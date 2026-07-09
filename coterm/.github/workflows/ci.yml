@@ -1,0 +1,29 @@
+# CI for the Coterm backend. Assumes this directory is the repository root
+# (i.e. after extracting coterm/ into its own repo). If Coterm lives in a
+# subdirectory, add `working-directory` or a path filter accordingly.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Test
+        run: bun test
+      - name: Wrangler dry-run (build check)
+        run: |
+          for w in relay control-plane presence; do
+            echo "== $w =="
+            bunx wrangler deploy --dry-run --outdir "/tmp/dist-$w" --config "workers/$w/wrangler.toml"
+          done

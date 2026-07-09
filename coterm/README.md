@@ -30,6 +30,13 @@ Three Cloudflare Workers + one shared package:
 
 State lives entirely in Cloudflare Durable Objects — no database to run.
 
+## Docs
+
+- [Self-hosting guide](docs/self-hosting.md) — deploy, auth modes, custom domains, troubleshooting
+- [Client setup](docs/client-setup.md) — point a client at your backend; offline guest mode
+- [Architecture](docs/architecture.md) — components, wire protocol, data flow
+- [Contributing](CONTRIBUTING.md) — dev setup + the wire-compatibility rule
+
 ## Quick start: self-host on Cloudflare
 
 Requires [Bun](https://bun.sh) and a (free) Cloudflare account.

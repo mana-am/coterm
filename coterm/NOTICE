@@ -1,0 +1,28 @@
+Coterm
+Copyright (c) 2026-present Coterm contributors
+
+This product is licensed under the GNU General Public License v3.0 or later
+(GPL-3.0-or-later). See the LICENSE file for the full text.
+
+--------------------------------------------------------------------------------
+Attribution
+--------------------------------------------------------------------------------
+
+Coterm is an independent, rebranded fork/reimplementation. It is NOT affiliated
+with, sponsored by, or endorsed by emergent.inc, and "mosaic" is a trademark of
+emergent.inc.
+
+Portions of the realtime relay and presence workers are derived from the mosaic
+project:
+  https://github.com/emergent-inc/mosaic
+  Copyright (c) 2024-present emergent.inc
+  Licensed under GPL-3.0-or-later
+
+The control-plane worker and the collab-auth package are original works by the
+Coterm contributors, reimplemented from the mosaic client's observable wire
+contract (an interoperable, independent implementation of the protocol).
+
+The mosaic client is built on Ghostty (https://github.com/ghostty-org/ghostty),
+Copyright (c) 2024 Mitchell Hashimoto and Ghostty contributors, licensed MIT.
+Coterm itself does not bundle Ghostty; this notice is informational for users
+pairing Coterm with a mosaic-compatible client.
