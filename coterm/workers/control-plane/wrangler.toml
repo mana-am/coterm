@@ -16,6 +16,8 @@ enabled = true
 COLLAB_AUTH_MODE = "noauth"
 # Where the control-plane tells clients to reach the relay, and where it
 # pre-creates rooms / probes liveness / fans out inbox nudges.
+# Set this to YOUR deployed relay URL before deploying the control-plane
+# (see docs/self-hosting.md). Defaults to the local dev relay.
 COLLAB_RELAY_URL = "http://localhost:8787"
 
 # Secret (set via `wrangler secret put` or `.dev.vars`):
