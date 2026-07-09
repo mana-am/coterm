@@ -71,7 +71,7 @@ struct AuthEnvironmentTests {
         )
     }
 
-    @Test("sign-in URL enters native wrapper")
+    @Test("sign-in URL enters native wrapper for explicit auth origin")
     func signInURLEntersNativeWrapper() {
         // Regression coverage for #5720: the client must not derive auth URL
         // path segments from the user's system locale, such as /ru/.
@@ -81,28 +81,43 @@ struct AuthEnvironmentTests {
                 "AppleLanguages": "(ru)",
                 "LANG": "ru_RU.UTF-8",
                 "LC_ALL": "ru_RU.UTF-8",
-                "COTERM_AUTH_WWW_ORIGIN": "https://dashboard.coterm.cc",
+                "COTERM_AUTH_WWW_ORIGIN": "https://auth.example.test",
                 "COTERM_AUTH_CALLBACK_SCHEME": "coterm",
             ],
             bundleIdentifier: "coterm.com.emergent.app"
         )
 
-        assertNativeSignInURL(url)
+        assertNativeSignInURL(url, host: "auth.example.test")
     }
 
-    @Test("tagged debug sign-in URL uses hosted origin and tag callback scheme")
-    func taggedDebugSignInURLUsesHostedOriginAndTagCallbackScheme() throws {
+    @Test("hosted auth is disabled unless an auth origin is explicitly configured")
+    func hostedAuthIsDisabledUnlessOriginIsExplicit() {
+        #expect(AuthEnvironment.hostedAuthEnabled(
+            environment: [
+                "COTERM_TAG": "pair-auth",
+                "COTERM_PORT": "4123",
+            ]
+        ) == false)
+        #expect(AuthEnvironment.hostedAuthEnabled(
+            environment: [
+                "COTERM_AUTH_WWW_ORIGIN": "https://auth.example.test",
+            ]
+        ))
+    }
+
+    @Test("tagged debug explicit auth origin uses tag callback scheme")
+    func taggedDebugExplicitAuthOriginUsesTagCallbackScheme() throws {
         let url = AuthEnvironment.signInURL(
             callbackState: "state-1",
             environment: [
                 "COTERM_TAG": "pair-auth",
-                "COTERM_PORT": "4123",
+                "COTERM_AUTH_WWW_ORIGIN": "https://auth.example.test",
             ],
             bundleIdentifier: "coterm.com.emergent.app.debug.pair-auth"
         )
 
         #expect(url.scheme == "https")
-        #expect(url.host == "dashboard.coterm.cc")
+        #expect(url.host == "auth.example.test")
         #expect(url.port == nil)
         #expect(url.path == "/handler/native-sign-in")
 
@@ -112,7 +127,7 @@ struct AuthEnvironmentTests {
             .value)
         let afterSignInURL = try #require(URL(string: afterAuthReturnTo))
         #expect(afterSignInURL.scheme == "https")
-        #expect(afterSignInURL.host == "dashboard.coterm.cc")
+        #expect(afterSignInURL.host == "auth.example.test")
         #expect(afterSignInURL.port == nil)
 
         let nativeReturnTo = try #require(URLComponents(url: afterSignInURL, resolvingAgainstBaseURL: false)?
@@ -158,7 +173,7 @@ struct AuthEnvironmentTests {
                 "AppleLanguages": "(en)",
                 "LANG": "en_US.UTF-8",
                 "LC_ALL": "en_US.UTF-8",
-                "COTERM_AUTH_WWW_ORIGIN": "https://dashboard.coterm.cc",
+                "COTERM_AUTH_WWW_ORIGIN": "https://auth.example.test",
                 "COTERM_AUTH_CALLBACK_SCHEME": "coterm",
             ],
             bundleIdentifier: "coterm.com.emergent.app"
@@ -169,7 +184,7 @@ struct AuthEnvironmentTests {
                 "AppleLanguages": "(ru)",
                 "LANG": "ru_RU.UTF-8",
                 "LC_ALL": "ru_RU.UTF-8",
-                "COTERM_AUTH_WWW_ORIGIN": "https://dashboard.coterm.cc",
+                "COTERM_AUTH_WWW_ORIGIN": "https://auth.example.test",
                 "COTERM_AUTH_CALLBACK_SCHEME": "coterm",
             ],
             bundleIdentifier: "coterm.com.emergent.app"
@@ -179,9 +194,9 @@ struct AuthEnvironmentTests {
     }
 }
 
-private func assertNativeSignInURL(_ url: URL) {
+private func assertNativeSignInURL(_ url: URL, host: String) {
     #expect(url.scheme == "https")
-    #expect(url.host == "dashboard.coterm.cc")
+    #expect(url.host == host)
     #expect(url.path == "/handler/native-sign-in")
     #expect(!urlHasLeadingLocaleSegment(url))
 
@@ -194,7 +209,7 @@ private func assertNativeSignInURL(_ url: URL) {
     }
 
     #expect(afterSignInURL.scheme == "https")
-    #expect(afterSignInURL.host == "dashboard.coterm.cc")
+    #expect(afterSignInURL.host == host)
     #expect(afterSignInURL.path == "/handler/after-sign-in")
     #expect(!urlHasLeadingLocaleSegment(afterSignInURL))
 

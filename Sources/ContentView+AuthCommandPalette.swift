@@ -18,7 +18,8 @@ extension ContentView {
                 subtitle: constant(String(localized: "command.auth.subtitle", defaultValue: "Account")),
                 keywords: ["account", "auth", "authenticate", "authentication", "login", "log in", "signin", "sign in"],
                 when: { context in
-                    !context.bool(CommandPaletteContextKeys.authSignedIn)
+                    AuthEnvironment.hostedAuthEnabled
+                        && !context.bool(CommandPaletteContextKeys.authSignedIn)
                         && !context.bool(CommandPaletteContextKeys.authWorking)
                 }
             ),
@@ -41,6 +42,10 @@ extension ContentView {
             cotermDebugLog("palette.auth.signIn.invoke")
 #endif
             guard let auth = AppDelegate.shared?.auth else {
+                NSSound.beep()
+                return
+            }
+            guard AuthEnvironment.hostedAuthEnabled else {
                 NSSound.beep()
                 return
             }

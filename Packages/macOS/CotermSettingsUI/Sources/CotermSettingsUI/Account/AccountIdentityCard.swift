@@ -45,7 +45,7 @@ struct AccountIdentityCard: View {
                         Text(String(localized: "settings.account.signIn.cancel", defaultValue: "Cancel"))
                     }
                     .controlSize(.small)
-                } else {
+                } else if shouldShowAuthButton {
                     Button(action: buttonAction) {
                         Text(buttonTitle)
                     }
@@ -105,6 +105,9 @@ struct AccountIdentityCard: View {
             }
             return String(localized: "settings.account.signedIn.title", defaultValue: "Signed in")
         }
+        if flow?.isSignInAvailable == false {
+            return String(localized: "settings.account.selfHosted.title", defaultValue: "Self-hosted mode")
+        }
         return String(localized: "settings.account.signedOut.title", defaultValue: "Not signed in")
     }
 
@@ -114,6 +117,12 @@ struct AccountIdentityCard: View {
             // directly. Pass the raw value through (including empty strings) so
             // the row shape matches when displayName is set to "".
             return identity.displayName
+        }
+        if flow?.isSignInAvailable == false {
+            return String(
+                localized: "settings.account.selfHosted.subtitle",
+                defaultValue: "Account sign-in is disabled. Configure your self-hosted collaboration backend locally."
+            )
         }
         return String(localized: "settings.account.signedOut.subtitle", defaultValue: "Sign in with your Coterm account to enable sharing with others.")
     }
@@ -130,7 +139,12 @@ struct AccountIdentityCard: View {
         if flow.currentIdentity != nil {
             Task { await flow.signOut() }
         } else {
+            guard flow.isSignInAvailable else { return }
             flow.startSignIn()
         }
+    }
+
+    private var shouldShowAuthButton: Bool {
+        flow?.currentIdentity != nil || flow?.isSignInAvailable != false
     }
 }

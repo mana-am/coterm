@@ -40,7 +40,7 @@ enum SidebarWorkspaceGroupConfigOpener {
 
     static func openWorkspaceGroupsDocs() {
         guard let url = URL(
-            string: "https://github.com/emergent-inc/coterm/blob/main/docs/workspace-groups.md"
+            string: "https://github.com/mana-am/coterm/blob/main/docs/workspace-groups.md"
         ) else { return }
         NSWorkspace.shared.open(url)
     }

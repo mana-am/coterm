@@ -44,6 +44,12 @@ public protocol AccountFlow: AnyObject {
     /// indefinite spinner when this is `true`.
     var signInIsSlow: Bool { get }
 
+    /// Whether this build/environment exposes a hosted account sign-in flow.
+    /// Coterm's default open-source distribution is self-hosted and does not
+    /// provide a public hosted account service, so hosts can return `false` to
+    /// show an inert self-hosted account state instead of a Sign In button.
+    var isSignInAvailable: Bool { get }
+
     /// Launches the host's sign-in flow. The package shows the user a
     /// progress indicator while ``isWorkingOnAuth`` is `true` and
     /// re-reads ``currentIdentity`` when the flow resolves.
@@ -67,4 +73,8 @@ public protocol AccountFlow: AnyObject {
     /// Re-fetches the current user from the backend, refreshing the
     /// identity card without forcing the user through sign-in again.
     func refreshCurrentUser() async
+}
+
+public extension AccountFlow {
+    var isSignInAvailable: Bool { true }
 }

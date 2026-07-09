@@ -14,7 +14,7 @@ struct SetupHelpGateContent {
 
     /// Founders Edition page: coterm for Mac download plus TestFlight enrollment,
     /// used by the "Run coterm on your Mac" gate.
-    private static let setupHelpMacDownloadURL = URL(string: "https://github.com/emergent-inc/coterm#founders-edition")!
+    private static let setupHelpMacDownloadURL = URL(string: "https://github.com/mana-am/coterm")!
 
     /// Maps a setup gate to its title, icon, copy, and optional link. Pure and
     /// scoped to the content type so the gate guidance is data, separate from

@@ -144,6 +144,29 @@ enum AuthEnvironment {
         )
     }
 
+    /// Hosted browser auth is opt-in for Coterm. The public build is self-host
+    /// first and must not generate a coterm.cc/dashboard sign-in URL unless a
+    /// developer explicitly points it at an auth-capable self-hosted origin.
+    static var hostedAuthEnabled: Bool {
+        if hostedAuthEnabled(environment: ProcessInfo.processInfo.environment) {
+            return true
+        }
+        #if DEBUG
+        return devOverride(key: "COTERM_AUTH_WWW_ORIGIN") != nil
+        #else
+        return false
+        #endif
+    }
+
+    static func hostedAuthEnabled(environment: [String: String]) -> Bool {
+        if let origin = environment["COTERM_AUTH_WWW_ORIGIN"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !origin.isEmpty {
+            return true
+        }
+        return false
+    }
+
     static var apiBaseURL: URL {
         // Process env wins; then `~/.coterm-dev.env` (DEBUG only) so a
         // click-launched tagged build can point at a self-hosted backend without
@@ -278,7 +301,7 @@ enum AuthEnvironment {
            !origin.isEmpty {
             return origin
         }
-        return "https://dashboard.coterm.cc"
+        return "https://coterm.cc"
     }
 
     private static var defaultVMAPIOrigin: String {
@@ -295,7 +318,7 @@ enum AuthEnvironment {
            !url.isEmpty {
             return url
         }
-        return "https://dashboard.coterm.cc"
+        return "https://coterm.cc"
     }
 
     static var stackBaseURL: URL {

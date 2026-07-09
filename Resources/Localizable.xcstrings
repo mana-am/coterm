@@ -21560,6 +21560,28 @@
         }
       }
     },
+    "settings.account.selfHosted.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account sign-in is disabled. Configure your self-hosted collaboration backend locally."
+          }
+        }
+      }
+    },
+    "settings.account.selfHosted.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Self-hosted mode"
+          }
+        }
+      }
+    },
     "settings.account.signedIn.title": {
       "extractionState": "manual",
       "localizations": {

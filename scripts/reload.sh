@@ -590,10 +590,10 @@ reload_finalize() {
     echo "Dev web origin:"
     echo "  $COTERM_DEV_ORIGIN"
     if [[ -n "${TAG_SLUG:-}" ]]; then
-      AUTH_WWW_HINT="${COTERM_AUTH_WWW_ORIGIN:-$COTERM_DEV_ORIGIN}"
+      DEV_WWW_HINT="${COTERM_WWW_ORIGIN:-$COTERM_DEV_ORIGIN}"
       echo "Dev web command:"
-      echo "  cd ../www && NEXT_PUBLIC_APP_URL=$AUTH_WWW_HINT pnpm dev"
-      echo "  # Ensure ../www/.env has Clerk keys and COTERM_NATIVE_AUTH_SECRET; native callback scheme: coterm-dev-$TAG_SLUG"
+      echo "  cd ../www && NEXT_PUBLIC_APP_URL=$DEV_WWW_HINT pnpm dev"
+      echo "  # Hosted auth is disabled unless COTERM_AUTH_WWW_ORIGIN is set; native callback scheme: coterm-dev-$TAG_SLUG"
     fi
   fi
   if [[ -x "${CLI_PATH:-}" ]]; then

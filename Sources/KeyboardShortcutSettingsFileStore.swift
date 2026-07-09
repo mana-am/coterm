@@ -25,8 +25,8 @@ final class CotermSettingsFileStore {
     static let shared = CotermSettingsFileStore()
 
     static let currentSchemaVersion = 1
-    static let schemaURLString = "https://raw.githubusercontent.com/emergent-inc/coterm/main/web/data/coterm.schema.json"
-    private static let legacySchemaURLString = "https://raw.githubusercontent.com/emergent-inc/coterm/main/web/data/coterm-settings.schema.json"
+    static let schemaURLString = "https://raw.githubusercontent.com/mana-am/coterm/main/web/data/coterm.schema.json"
+    private static let legacySchemaURLString = "https://raw.githubusercontent.com/mana-am/coterm/main/web/data/coterm-settings.schema.json"
     private static let releaseBundleIdentifier = "coterm.com.emergent.app"
     private static let backupsDefaultsKey = "coterm.settingsFile.backups.v1"
     private static let importedManagedDefaultsDefaultsKey = "coterm.settingsFile.importedManagedDefaults.v1"

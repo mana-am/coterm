@@ -55,7 +55,12 @@ final class HostAccountFlow: AccountFlow {
         browserSignIn.signInIsSlow
     }
 
+    var isSignInAvailable: Bool {
+        AuthEnvironment.hostedAuthEnabled
+    }
+
     func startSignIn() {
+        guard isSignInAvailable else { return }
         browserSignIn.beginSignIn()
     }
 
@@ -64,6 +69,7 @@ final class HostAccountFlow: AccountFlow {
     }
 
     func openSignInInDefaultBrowser() {
+        guard isSignInAvailable else { return }
         guard let url = browserSignIn.activeAttemptSignInURL else { return }
         NSWorkspace.shared.open(url)
     }

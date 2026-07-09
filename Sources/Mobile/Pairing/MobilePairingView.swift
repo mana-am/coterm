@@ -26,7 +26,7 @@ struct MobilePairingView: View {
 
     private static let tailscaleDownloadURL = URL(string: "https://tailscale.com/download")!
     /// Where a Mac user goes to get coterm for iPhone while the beta is invite-only.
-    private static let iphoneAppURL = URL(string: "https://github.com/emergent-inc/coterm#founders-edition")!
+    private static let iphoneAppURL = URL(string: "https://github.com/mana-am/coterm")!
 
     var body: some View {
         ScrollView {

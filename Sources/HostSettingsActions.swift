@@ -120,7 +120,7 @@ final class HostSettingsActions: SettingsHostActions {
 
     func sendFeedback() {
         trackSettingsAction("settings.send_feedback")
-        guard let url = URL(string: "https://github.com/emergent-inc/coterm/issues/new") else { return }
+        guard let url = URL(string: "https://github.com/mana-am/coterm/issues/new") else { return }
         NSWorkspace.shared.open(url)
     }
 

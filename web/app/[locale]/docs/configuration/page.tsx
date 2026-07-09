@@ -33,7 +33,7 @@ const typedSettingsSchema = settingsSchema as SchemaDocument;
 const schemaProperties = typedSettingsSchema.properties ?? {};
 const schemaUrl =
   typedSettingsSchema.$id ??
-  "https://raw.githubusercontent.com/emergent-inc/coterm/main/web/data/coterm.schema.json";
+  "https://raw.githubusercontent.com/mana-am/coterm/main/web/data/coterm.schema.json";
 const schemaSourceUrl =
   "https://github.com/emergent-inc/coterm/blob/main/web/data/coterm.schema.json";
 const sectionOrder = [

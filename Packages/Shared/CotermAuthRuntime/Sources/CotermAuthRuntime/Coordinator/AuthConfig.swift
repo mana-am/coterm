@@ -54,8 +54,8 @@ public struct AuthConfig: Equatable, Sendable {
             callbackURL = "http://localhost:3000/auth/callback"
             defaultAPIBaseURL = "http://localhost:3000"
         case .production:
-            callbackURL = "https://dashboard.coterm.cc/auth/callback"
-            defaultAPIBaseURL = "https://dashboard.coterm.cc"
+            callbackURL = "https://coterm.cc/auth/callback"
+            defaultAPIBaseURL = "https://coterm.cc"
         }
 
         let override = overrides["ApiBaseURL"]

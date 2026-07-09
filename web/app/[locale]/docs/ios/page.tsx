@@ -35,7 +35,7 @@ export default function IosPage() {
         {t.rich("accessDesc", {
           foundersLink: (chunks) => (
             <a
-              href="https://github.com/emergent-inc/coterm#founders-edition"
+              href="https://github.com/mana-am/coterm"
               className={linkClass}
             >
               {chunks}

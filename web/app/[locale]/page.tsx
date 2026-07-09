@@ -167,7 +167,7 @@ function HomeContent() {
               <span>
                 <strong className="font-medium">
                   <a
-                    href="https://github.com/emergent-inc/coterm#founders-edition"
+                    href="https://github.com/mana-am/coterm"
                     className={linkClass}
                   >
                     {t("feature.ios")}
@@ -226,7 +226,7 @@ function HomeContent() {
                 {t.rich("faqIosA", {
                   foundersLink: (chunks) => (
                     <a
-                      href="https://github.com/emergent-inc/coterm#founders-edition"
+                      href="https://github.com/mana-am/coterm"
                       className={linkClass}
                     >
                       {chunks}
@@ -424,7 +424,7 @@ function HomeContent() {
                 {t.rich("faqSupportA", {
                   foundersLink: (chunks) => (
                     <a
-                      href="https://github.com/emergent-inc/coterm#founders-edition"
+                      href="https://github.com/mana-am/coterm"
                       className={linkClass}
                     >
                       {chunks}

@@ -1,9 +1,9 @@
 import Foundation
 
 enum CotermBranding {
-    static let docsBaseURL = URL(string: "https://coterm.com/docs")!
-    static let githubRepositoryURL = URL(string: "https://github.com/emergent-inc/coterm")!
-    static let githubIssuesURL = URL(string: "https://github.com/emergent-inc/coterm/issues")!
+    static let docsBaseURL = URL(string: "https://coterm.cc/docs")!
+    static let githubRepositoryURL = URL(string: "https://github.com/mana-am/coterm")!
+    static let githubIssuesURL = URL(string: "https://github.com/mana-am/coterm/issues")!
 
     static func docsURL(_ path: String = "") -> URL {
         guard !path.isEmpty else { return docsBaseURL }

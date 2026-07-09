@@ -211,7 +211,7 @@ npx skills add emergent-inc/coterm -g -y
 
 # Or install just diagnostics
 npx skills add emergent-inc/coterm --skill coterm-diagnostics -g -y`}</CodeBlock>
-      <CodeBlock title={t("installWithSkillsSh")} lang="bash">{`curl -fsSL https://raw.githubusercontent.com/emergent-inc/coterm/main/skills.sh | bash`}</CodeBlock>
+      <CodeBlock title={t("installWithSkillsSh")} lang="bash">{`curl -fsSL https://raw.githubusercontent.com/mana-am/coterm/main/skills.sh | bash`}</CodeBlock>
       <Callout type="info">
         {t.rich("installDestination", {
           code: (chunks) => <code>{chunks}</code>,
@@ -226,7 +226,7 @@ npx skills add emergent-inc/coterm --skill coterm-diagnostics -g -y`}</CodeBlock
 ./skills.sh --dest ~/.codex/skills
 ./skills.sh --dry-run`}</CodeBlock>
       <p>{t("pinRefIntro")}</p>
-      <CodeBlock lang="bash">{`curl -fsSL https://raw.githubusercontent.com/emergent-inc/coterm/main/skills.sh | bash -s -- --ref main`}</CodeBlock>
+      <CodeBlock lang="bash">{`curl -fsSL https://raw.githubusercontent.com/mana-am/coterm/main/skills.sh | bash -s -- --ref main`}</CodeBlock>
 
       <DocsHeading level={2} id="included-title">{t("includedTitle")}</DocsHeading>
       <p>{t("includedIntro")}</p>

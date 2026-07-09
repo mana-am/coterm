@@ -3,10 +3,10 @@ import Testing
 @testable import CotermAuthRuntime
 
 @Suite struct AuthConfigTests {
-    @Test func productionUsesStackWhitelistedCotermDomain() {
+    @Test func productionUsesPublicCotermOriginWithoutDashboardAuth() {
         let config = AuthConfig(environment: .production)
 
-        #expect(config.magicLinkCallbackURL == "https://dashboard.coterm.cc/auth/callback")
-        #expect(config.apiBaseURL == "https://dashboard.coterm.cc")
+        #expect(config.magicLinkCallbackURL == "https://coterm.cc/auth/callback")
+        #expect(config.apiBaseURL == "https://coterm.cc")
     }
 }
