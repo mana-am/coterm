@@ -13,7 +13,7 @@ Cursor, Codex, or another repository-aware assistant:
 
 ```text
 Install and configure the Coterm self-hosted collaboration backend by following the instructions here:
-https://raw.githubusercontent.com/emergent-inc/coterm/refs/heads/main/coterm/instruction.md
+https://raw.githubusercontent.com/mana-am/coterm/refs/heads/main/coterm/instruction.md
 
 Work in the repository root. Coterm collaboration is self-host only; do not look for an official hosted backend. Read the guide, run `cd coterm && bun install && bunx wrangler login && bun run deploy:self-host`, then summarize the printed client configuration values and any manual DNS steps that remain. If I already deployed, use `bun run deploy:self-host -- --print-config` to reprint the saved values or `bun run doctor:self-host` to diagnose health. To configure a DEBUG Coterm client, run `bun run configure:client -- --guest-id <name>`. To inspect the non-secret agent context, run `bun run context:self-host -- --format markdown`. Use `--smoke` only if I ask for a live smoke test.
 ```
@@ -27,7 +27,7 @@ and cross-worker URLs aligned.
 Fetch this guide and follow it from top to bottom:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/emergent-inc/coterm/refs/heads/main/coterm/instruction.md
+curl -fsSL https://raw.githubusercontent.com/mana-am/coterm/refs/heads/main/coterm/instruction.md
 ```
 
 If the raw URL is unavailable because the user is working from a local checkout,
