@@ -1,0 +1,13 @@
+# Copy to each worker directory as `.dev.vars` (wrangler auto-loads it in `wrangler dev`).
+#
+# Auth mode: "noauth" (session code is the only gate) or "hmac" (signed join grants).
+COLLAB_AUTH_MODE=noauth
+
+# Required only when COLLAB_AUTH_MODE=hmac. The SAME secret must be shared by all
+# three workers so control-plane-minted grants/descriptors verify in the relay and
+# access tokens verify in control-plane + presence. Generate with: openssl rand -hex 32
+COLLAB_AUTH_SECRET=
+
+# Control-plane only: where it tells clients to reach the relay, and where it
+# pre-creates rooms / probes liveness / fans out inbox nudges.
+COLLAB_RELAY_URL=http://localhost:8787

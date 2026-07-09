@@ -1,0 +1,46 @@
+# Open-source mosaic collaboration relay — Cloudflare Worker + Durable Objects.
+#
+# This is a faithful port of workers/collaboration from the mosaic repo. The only
+# behavioral change is the join-grant gate on /connect (see src/handler.ts), driven
+# by COLLAB_AUTH_MODE. In "noauth" mode the session code is the only gate, exactly
+# like upstream.
+
+name = "mosaic-oss-collab-relay"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+[observability]
+enabled = true
+
+[vars]
+# "noauth" (session code is the only gate) or "hmac" (verify signed join grants).
+COLLAB_AUTH_MODE = "noauth"
+
+# Secrets (set via `wrangler secret put`, or `.dev.vars` for local dev):
+#   COLLAB_AUTH_SECRET     — shared HMAC secret (required when COLLAB_AUTH_MODE=hmac)
+#   COLLABORATION_ADMIN_TOKEN — gates GET /v1/collaboration/admin/sessions[/:code]
+
+[[durable_objects.bindings]]
+name = "COLLABORATION_SESSIONS"
+class_name = "CollaborationSessionObject"
+
+[[durable_objects.bindings]]
+name = "COLLABORATION_SESSION_INDEX"
+class_name = "CollaborationSessionIndexObject"
+
+[[durable_objects.bindings]]
+name = "COLLABORATION_INBOX"
+class_name = "CollaborationInboxObject"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["CollaborationSessionObject"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["CollaborationSessionIndexObject"]
+
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["CollaborationInboxObject"]
