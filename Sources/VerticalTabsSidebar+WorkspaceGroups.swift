@@ -1,8 +1,8 @@
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 import SwiftUI
-import MosaicSettings
-import MosaicWorkspaces
+import CotermSettings
+import CotermWorkspaces
 
 extension VerticalTabsSidebar {
     @ViewBuilder
@@ -16,7 +16,7 @@ extension VerticalTabsSidebar {
         let settings = renderContext.tabItemSettings
         let isAnchorActive = tabManager.selectedTabId == group.anchorWorkspaceId
         let anchorCwd = renderContext.workspaceById[group.anchorWorkspaceId]?.currentDirectory
-        let resolvedConfig = mosaicConfigStore.resolveWorkspaceGroupConfig(forCwd: anchorCwd)
+        let resolvedConfig = cotermConfigStore.resolveWorkspaceGroupConfig(forCwd: anchorCwd)
         let effectiveColor = group.customColor ?? resolvedConfig?.color
         let effectiveIcon = RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
             explicit: group.iconSymbol,
@@ -64,7 +64,7 @@ extension VerticalTabsSidebar {
         )
         let onDragStart: () -> NSItemProvider = { [anchorId = group.anchorWorkspaceId] in
             #if DEBUG
-            mosaicDebugLog("sidebar.onDrag groupAnchor=\(anchorId.uuidString.prefix(5))")
+            cotermDebugLog("sidebar.onDrag groupAnchor=\(anchorId.uuidString.prefix(5))")
             #endif
             dragState.beginDragging(tabId: anchorId)
             return SidebarTabDragPayload.provider(for: anchorId)
@@ -180,7 +180,7 @@ extension VerticalTabsSidebar {
                 tabManager.deleteWorkspaceGroup(groupId: groupId)
             },
             onEditConfig: {
-                SidebarWorkspaceGroupConfigOpener.openMosaicConfigInEditor()
+                SidebarWorkspaceGroupConfigOpener.openCotermConfigInEditor()
             },
             onOpenDocs: {
                 SidebarWorkspaceGroupConfigOpener.openWorkspaceGroupsDocs()
@@ -195,6 +195,6 @@ extension VerticalTabsSidebar {
                 id: group.anchorWorkspaceId,
                 isEnabled: shouldCollectWorkspaceDropTargets
             )
-            .mosaicCursorOnHover(.openHand, enabled: dragState.draggedTabId != group.anchorWorkspaceId)
+            .cotermCursorOnHover(.openHand, enabled: dragState.draggedTabId != group.anchorWorkspaceId)
     }
 }

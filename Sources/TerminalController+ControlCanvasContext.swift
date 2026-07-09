@@ -1,6 +1,6 @@
-import MosaicCanvas
-import MosaicCanvasUI
-import MosaicControlSocket
+import CotermCanvas
+import CotermCanvasUI
+import CotermControlSocket
 import Foundation
 
 /// Canvas-domain witnesses. Reads snapshot the workspace's `canvasModel`;

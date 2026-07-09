@@ -1,5 +1,5 @@
-import MosaicSettings
-import MosaicSettingsUI
+import CotermSettings
+import CotermSettingsUI
 import Foundation
 
 extension KeyboardShortcutSettings {
@@ -58,7 +58,7 @@ extension KeyboardShortcutSettings {
     }
 
     /// The effective focus predicate gating `action`: the `shortcuts.when`
-    /// override from mosaic.json if present, otherwise the action's built-in
+    /// override from coterm.json if present, otherwise the action's built-in
     /// ``KeyboardShortcutSettings/Action/shortcutContext`` expressed as a
     /// ``ShortcutWhenClause``. Drives both runtime availability and conflict
     /// detection so the same keystroke can be context-routed.
@@ -80,7 +80,7 @@ extension KeyboardShortcutSettings {
 
     static func settingsFileManagedSubtitle(for action: Action) -> String? {
         guard isManagedBySettingsFile(action) else { return nil }
-        return String(localized: "settings.shortcuts.managedByFile", defaultValue: "Managed in mosaic.json")
+        return String(localized: "settings.shortcuts.managedByFile", defaultValue: "Managed in coterm.json")
     }
 
 }

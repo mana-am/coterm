@@ -1,9 +1,9 @@
-# Custom sidebars: vibe-code your own mosaic sidebar
+# Custom sidebars: vibe-code your own coterm sidebar
 
-mosaic lets you build your own sidebar UI by writing a small SwiftUI-style file.
+coterm lets you build your own sidebar UI by writing a small SwiftUI-style file.
 It is interpreted at runtime (no Xcode, no build step, no signing), renders as
-native SwiftUI in the real sidebar, hot-reloads on save, binds to live mosaic
-state, and can run mosaic commands on tap. This guide is the authoring contract
+native SwiftUI in the real sidebar, hot-reloads on save, binds to live coterm
+state, and can run coterm commands on tap. This guide is the authoring contract
 for you or a coding agent.
 
 It is a beta, on by default. Turn it off in **Settings → Custom Sidebars**
@@ -20,7 +20,7 @@ SwiftUI, files, or syntax. Concretely:
 - Default to real, live data. If they mention workspaces/tabs, bind to the
   `workspaces` context (not hard-coded text) so it stays correct on its own.
 - Make it interactive by default. Rows that represent something you can open
-  should be tappable and run the matching `mosaic(...)` action (e.g. selecting a
+  should be tappable and run the matching `coterm(...)` action (e.g. selecting a
   workspace, focusing a tab). A list that just displays text is rarely what
   they wanted.
 - If the list is something a person would naturally reorder (workspaces, tasks,
@@ -30,7 +30,7 @@ SwiftUI, files, or syntax. Concretely:
   status dot / pill / highlight patterns below so it is scannable at a glance.
 - Lazy-load / cap large lists (see Performance). Do not render hundreds of rows.
 - Iterate by saving the file and opening it as a pane with
-  `mosaic sidebar open <name>`; it hot-reloads there while you edit. Verify it
+  `coterm sidebar open <name>`; it hot-reloads there while you edit. Verify it
   shows real data and that taps do the right thing before declaring it done.
 - Stay inside the supported subset below. If something is not supported, choose
   the closest supported approach rather than failing.
@@ -39,12 +39,12 @@ SwiftUI, files, or syntax. Concretely:
 
 Write a named file (the name becomes the menu label; use short kebab-case):
 
-    ~/.config/mosaic/sidebars/<name>.swift     # interpreted Swift (preferred)
-    ~/.config/mosaic/sidebars/<name>.json      # declarative JSON (simpler, static)
+    ~/.config/coterm/sidebars/<name>.swift     # interpreted Swift (preferred)
+    ~/.config/coterm/sidebars/<name>.json      # declarative JSON (simpler, static)
 
 Each file shows up as an option in the **sidebar toggle button's right-click
 menu** and can also open as a normal Bonsplit pane tab. Pick it from the menu
-for the left sidebar, or run `mosaic sidebar open <name>` to show it in a pane;
+for the left sidebar, or run `coterm sidebar open <name>` to show it in a pane;
 edit the file and save and it hot-reloads. If both `<name>.swift` and
 `<name>.json` exist, `.swift` wins.
 
@@ -54,16 +54,16 @@ A sidebar file is a single SwiftUI-style view expression (no `struct`, no
 ## Choosing the renderer (in-process vs remote)
 
 By default a custom sidebar renders in-process: the interpreted view mounts
-as real SwiftUI inside the mosaic window, so hover styling, focus, keyboard,
+as real SwiftUI inside the coterm window, so hover styling, focus, keyboard,
 and same-frame resize all work natively. The tradeoff is that the
 interpreter shares the host process.
 
 For sidebars from sources you do not fully trust you can switch to the
 remote renderer, an out-of-process worker. That is the containment lane: a
-crash or hang caused by the interpreted file cannot take down mosaic, but
+crash or hang caused by the interpreted file cannot take down coterm, but
 input is limited to forwarded clicks (no hover, focus, or keyboard).
 
-Set it in **Settings → Custom Sidebars**, or in `~/.config/mosaic/mosaic.json`:
+Set it in **Settings → Custom Sidebars**, or in `~/.config/coterm/coterm.json`:
 
     { "customSidebars": { "renderer": "remote" } }
 
@@ -82,30 +82,30 @@ The repo includes ready-to-copy sidebars in `Examples/CustomSidebars/`:
 - `finder.swift` shows a macOS Finder-style workspace browser with a source
   list, selected workspace details, and tabs.
 
-Install one from a mosaic checkout:
+Install one from a coterm checkout:
 
-    mkdir -p ~/.config/mosaic/sidebars
-    cp Examples/CustomSidebars/status-board.swift ~/.config/mosaic/sidebars/status-board.swift
-    cp Examples/CustomSidebars/finder.swift ~/.config/mosaic/sidebars/finder.swift
+    mkdir -p ~/.config/coterm/sidebars
+    cp Examples/CustomSidebars/status-board.swift ~/.config/coterm/sidebars/status-board.swift
+    cp Examples/CustomSidebars/finder.swift ~/.config/coterm/sidebars/finder.swift
 
 Then validate and open it as a Bonsplit pane:
 
-    mosaic sidebar validate status-board
-    mosaic sidebar open status-board
+    coterm sidebar validate status-board
+    coterm sidebar open status-board
 
-`mosaic sidebar select <name>` still previews a custom sidebar in the left
-sidebar picker. Use `mosaic sidebar open <name>` when you want the sidebar as a
+`coterm sidebar select <name>` still previews a custom sidebar in the left
+sidebar picker. Use `coterm sidebar open <name>` when you want the sidebar as a
 normal pane tab that can live in a right-side split.
 
 ## Quick start
 
-    cat > ~/.config/mosaic/sidebars/mine.swift <<'SWIFT'
+    cat > ~/.config/coterm/sidebars/mine.swift <<'SWIFT'
     VStack(alignment: .leading, spacing: 8) {
         Text("My sidebar").font(.title3).bold()
         Text(clock.time).font(.caption).foregroundColor(.secondary)
         Divider()
         ForEach(workspaces) { w in
-            Button(action: { mosaic("workspace.select", workspace_id: w.id) }) {
+            Button(action: { coterm("workspace.select", workspace_id: w.id) }) {
                 HStack {
                     Text(w.selected ? "●" : "○").foregroundColor(w.selected ? "#FF8800" : .secondary)
                     Text(w.title)
@@ -119,7 +119,7 @@ normal pane tab that can live in a right-side split.
 Then right-click the sidebar button and choose **mine**, or open it as a pane
 with:
 
-    mosaic sidebar open mine
+    coterm sidebar open mine
 
 ## Live data you can bind to (read-only, refreshes ~1s)
 
@@ -130,7 +130,7 @@ with:
   `color` (hex), `branch` + `dirty` (Bool) from git, `pr`
   (`{ number, label, url, status: open|merged|closed, stale, branch }`, the
   workspace's first pull request in sidebar display order) + `prs` (array of
-  the same shape with every pull request mosaic knows for the workspace),
+  the same shape with every pull request coterm knows for the workspace),
   `progress` (`{ value: 0..1, label }`), `latestMessage` (last agent message),
   `latestPrompt` (last submitted prompt), `latestAt` (epoch), `remote`
   (`{ target, state, connected }`).
@@ -227,17 +227,17 @@ Array methods: `.filter`, `.map`, `.flatMap`, `.reduce`, `.sorted { $0 > $1 }`,
 `.formatted(.percent)` / `.formatted(.notation(.compactName))`. Builtins:
 `min`, `max`, `abs`, `Int(...)`, `Double(...)`, `String(...)`.
 
-## Actions (run real mosaic commands on tap)
+## Actions (run real coterm commands on tap)
 
-A button or `.onTapGesture` body calls `mosaic("<method>", param: value)`. On tap
-it runs that mosaic command through the same dispatcher as the `mosaic` CLI:
+A button or `.onTapGesture` body calls `coterm("<method>", param: value)`. On tap
+it runs that coterm command through the same dispatcher as the `coterm` CLI:
 
-    Button(action: { mosaic("workspace.select", workspace_id: w.id) }) { ... }
-    ...onTapGesture { mosaic("surface.focus", surface_id: t.id) }
+    Button(action: { coterm("workspace.select", workspace_id: w.id) }) { ... }
+    ...onTapGesture { coterm("surface.focus", surface_id: t.id) }
 
 Use real method and parameter names. Common ones: `workspace.select`
 (`workspace_id`), `surface.focus` (`surface_id`), `workspace.reorder`
-(`workspace_id` + `index`). Run `mosaic docs api` to discover the full command
+(`workspace_id` + `index`). Run `coterm docs api` to discover the full command
 surface.
 
 ## Drag-and-drop reordering (persisted)
@@ -245,11 +245,11 @@ surface.
 Drag-and-drop is achieved with `Reorderable`. This is the supported way to make
 a list draggable, do not reach for `List`/`.onMove`/`.draggable` directly. Wrap
 rows in `Reorderable`; the rows become draggable and dropping one onto another
-runs the `move` command, which both reorders and persists (mosaic remembers
+runs the `move` command, which both reorders and persists (coterm remembers
 workspace order):
 
     Reorderable(workspaces, move: "workspace.reorder") { w in
-        Button(action: { mosaic("workspace.select", workspace_id: w.id) }) {
+        Button(action: { coterm("workspace.select", workspace_id: w.id) }) {
             HStack { Text(w.title); Spacer() }.padding(6)
         }
     }
@@ -261,7 +261,7 @@ The dropped item's id and target index are sent as `workspace_id` and `index`.
     HSplitView {
         VStack(alignment: .leading) {
             for i in 0..<workspaces.count {
-                Button(action: { mosaic("workspace.select", workspace_id: workspaces[i].id) }) {
+                Button(action: { coterm("workspace.select", workspace_id: workspaces[i].id) }) {
                     HStack { Image(systemName: "folder.fill"); Text(workspaces[i].title); Spacer() }.padding(4)
                 }
             }
@@ -270,7 +270,7 @@ The dropped item's id and target index are sent as `workspace_id` and `index`.
             for i in 0..<workspaces.count {
                 if workspaces[i].selected {
                     for j in 0..<workspaces[i].tabs.count {
-                        Button(action: { mosaic("surface.focus", surface_id: workspaces[i].tabs[j].id) }) {
+                        Button(action: { coterm("surface.focus", surface_id: workspaces[i].tabs[j].id) }) {
                             HStack { Image(systemName: "doc.text"); Text(workspaces[i].tabs[j].title); Spacer() }.padding(4)
                         }
                     }
@@ -286,12 +286,12 @@ The interpreter is a growing subset. `.overlay`/`.background`/`.mask`/
 shape `.stroke`/`.trim`, and user `func` helpers are all supported now.
 
 Still missing: `@State` and the interactive input controls that need it
-(`TextField`, `Toggle`, `Slider`, `Picker`) — buttons/taps that run `mosaic(...)`
+(`TextField`, `Toggle`, `Slider`, `Picker`) — buttons/taps that run `coterm(...)`
 work, but two-way-bound editing does not yet; `switch`; custom `struct`/`View`
 definitions; `gradients` (`LinearGradient`/…); navigation (`sheet`/`popover`/
 `NavigationStack`); `.keyboardShortcut`; `AsyncImage`/`.resizable`. Workspace
 data (git branch/dirty, ports, PR, unread, remote, latest agent/prompt messages)
-is live; data mosaic doesn't track (custom domain collections) won't appear.
+is live; data coterm doesn't track (custom domain collections) won't appear.
 
 If your sidebar needs a missing feature, write it the natural Swift way anyway —
 unsupported syntax is skipped (and even deeply nested or pathological source is

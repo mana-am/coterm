@@ -1,4 +1,4 @@
-import MosaicFoundation
+import CotermFoundation
 import SwiftUI
 
 struct SidebarWorkspaceDropTargetWriters: View {

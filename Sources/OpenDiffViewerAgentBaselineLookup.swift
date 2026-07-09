@@ -1,6 +1,6 @@
 import Foundation
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 
 extension AppDelegate {
     func startOpenDiffViewerAgentContextTask(
@@ -135,13 +135,13 @@ extension AppDelegate {
 
     nonisolated static func agentTurnDiffBaselineStoreURL() -> URL {
         let environment = ProcessInfo.processInfo.environment
-        if let override = normalizedOpenDiffViewerPath(environment["MOSAIC_AGENT_HOOK_STATE_DIR"]) {
+        if let override = normalizedOpenDiffViewerPath(environment["COTERM_AGENT_HOOK_STATE_DIR"]) {
             let expandedOverride = (override as NSString).expandingTildeInPath
             return URL(fileURLWithPath: expandedOverride, isDirectory: true)
                 .appendingPathComponent("agent-turn-diff-baselines.json", isDirectory: false)
         }
         return FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".mosaicterm", isDirectory: true)
+            .appendingPathComponent(".coterm", isDirectory: true)
             .appendingPathComponent("agent-turn-diff-baselines.json", isDirectory: false)
     }
 

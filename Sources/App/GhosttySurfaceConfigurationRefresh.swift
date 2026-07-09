@@ -1,34 +1,34 @@
 @MainActor
 enum GhosttySurfaceConfigurationRefresh {
     nonisolated static let forceRefreshReason = "appDelegate.refreshAfterGhosttyConfigReload"
-    nonisolated static let mosaicThemeReloadLegacySource = "distributed.mosaic.themes"
-    nonisolated static let mosaicThemeReloadPreviewSource = "distributed.mosaic.themes.preview"
-    nonisolated static let mosaicThemeReloadFinalSource = "distributed.mosaic.themes.final"
-    nonisolated static let mosaicThemePreviewReloadDebounceMilliseconds = 180
+    nonisolated static let cotermThemeReloadLegacySource = "distributed.coterm.themes"
+    nonisolated static let cotermThemeReloadPreviewSource = "distributed.coterm.themes.preview"
+    nonisolated static let cotermThemeReloadFinalSource = "distributed.coterm.themes.final"
+    nonisolated static let cotermThemePreviewReloadDebounceMilliseconds = 180
 
-    nonisolated static func mosaicThemeReloadSource(phase: String?) -> String {
+    nonisolated static func cotermThemeReloadSource(phase: String?) -> String {
         switch phase {
         case "final", "apply":
-            return mosaicThemeReloadFinalSource
+            return cotermThemeReloadFinalSource
         case "preview":
-            return mosaicThemeReloadPreviewSource
+            return cotermThemeReloadPreviewSource
         default:
-            return mosaicThemeReloadLegacySource
+            return cotermThemeReloadLegacySource
         }
     }
 
-    nonisolated static func shouldDebounceMosaicThemeReload(source: String) -> Bool {
+    nonisolated static func shouldDebounceCotermThemeReload(source: String) -> Bool {
         switch source {
-        case mosaicThemeReloadLegacySource, mosaicThemeReloadPreviewSource:
+        case cotermThemeReloadLegacySource, cotermThemeReloadPreviewSource:
             return true
         default:
             return false
         }
     }
 
-    nonisolated static func isMosaicThemeReloadSource(_ source: String) -> Bool {
+    nonisolated static func isCotermThemeReloadSource(_ source: String) -> Bool {
         switch source {
-        case mosaicThemeReloadLegacySource, mosaicThemeReloadPreviewSource, mosaicThemeReloadFinalSource:
+        case cotermThemeReloadLegacySource, cotermThemeReloadPreviewSource, cotermThemeReloadFinalSource:
             return true
         default:
             return false

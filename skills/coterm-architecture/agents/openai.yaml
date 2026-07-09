@@ -1,0 +1,4 @@
+interface:
+  display_name: "coterm Architecture"
+  short_description: "Apply coterm package, refactor, file organization, DocC, testability, and concurrency rules."
+  default_prompt: "Use this skill before adding or meaningfully rewriting Swift files, Swift packages, coordinators, services, repositories, package APIs, or Swift concurrency code in coterm."

@@ -34,7 +34,7 @@ extension SessionIndexStore {
         guard fm.fileExists(atPath: dbPath) else { return nil }
 
         let snapshotDir = fm.temporaryDirectory.appendingPathComponent(
-            "mosaic-codex-search-\(UUID().uuidString)", isDirectory: true
+            "coterm-codex-search-\(UUID().uuidString)", isDirectory: true
         )
         do { try fm.createDirectory(at: snapshotDir, withIntermediateDirectories: true) } catch { return nil }
         defer { try? fm.removeItem(at: snapshotDir) }

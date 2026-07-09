@@ -1,4 +1,4 @@
-// Swift harness for the mosaic iroh FFI spike.
+// Swift harness for the coterm iroh FFI spike.
 //
 // listen: bind an endpoint, print its EndpointId + route JSON, echo one
 //         connection's bytes back until the peer closes.
@@ -22,7 +22,7 @@ func lastError(_ buf: [CChar]) -> String {
 
 func takeString(_ raw: UnsafeMutablePointer<CChar>?) -> String {
     guard let raw else { return "" }
-    defer { mosaic_iroh_string_free(raw) }
+    defer { coterm_iroh_string_free(raw) }
     return String(cString: raw)
 }
 
@@ -33,7 +33,7 @@ func fail(_ message: String) -> Never {
 
 func bindEndpoint(acceptConnections: Bool) -> OpaquePointer {
     var err = [CChar](repeating: 0, count: errCap)
-    guard let endpoint = mosaic_iroh_endpoint_bind(true, acceptConnections, &err, errCap) else {
+    guard let endpoint = coterm_iroh_endpoint_bind(true, acceptConnections, &err, errCap) else {
         fail("bind: \(lastError(err))")
     }
     return endpoint
@@ -41,7 +41,7 @@ func bindEndpoint(acceptConnections: Bool) -> OpaquePointer {
 
 func waitOnline(_ endpoint: OpaquePointer) {
     var err = [CChar](repeating: 0, count: errCap)
-    guard mosaic_iroh_endpoint_online(endpoint, 30_000, &err, errCap) == 0 else {
+    guard coterm_iroh_endpoint_online(endpoint, 30_000, &err, errCap) == 0 else {
         fail("online: \(lastError(err))")
     }
 }
@@ -51,12 +51,12 @@ func runListen() {
     let endpoint = bindEndpoint(acceptConnections: true)
     print("bound; waiting for relay connection...")
     waitOnline(endpoint)
-    print("endpoint-id: \(takeString(mosaic_iroh_endpoint_id(endpoint)))")
-    print("route: \(takeString(mosaic_iroh_endpoint_route_json(endpoint)))")
+    print("endpoint-id: \(takeString(coterm_iroh_endpoint_id(endpoint)))")
+    print("route: \(takeString(coterm_iroh_endpoint_route_json(endpoint)))")
     print("listening; dial me with: swift-harness dial <endpoint-id>")
 
     var err = [CChar](repeating: 0, count: errCap)
-    guard let connection = mosaic_iroh_endpoint_accept(endpoint, 180_000, &err, errCap) else {
+    guard let connection = coterm_iroh_endpoint_accept(endpoint, 180_000, &err, errCap) else {
         fail("accept: \(lastError(err))")
     }
     print("accepted connection; echoing")
@@ -64,17 +64,17 @@ func runListen() {
     var buf = [UInt8](repeating: 0, count: 64 * 1024)
     var total = 0
     while true {
-        let read = mosaic_iroh_connection_recv(connection, &buf, buf.count, &err, errCap)
+        let read = coterm_iroh_connection_recv(connection, &buf, buf.count, &err, errCap)
         if read < 0 { fail("recv: \(lastError(err))") }
         if read == 0 { break }
         total += read
-        guard mosaic_iroh_connection_send(connection, buf, read, &err, errCap) == 0 else {
+        guard coterm_iroh_connection_send(connection, buf, read, &err, errCap) == 0 else {
             fail("send: \(lastError(err))")
         }
     }
     print("echoed \(total) byte(s); peer closed stream")
-    mosaic_iroh_connection_close(connection)
-    mosaic_iroh_endpoint_close(endpoint)
+    coterm_iroh_connection_close(connection)
+    coterm_iroh_endpoint_close(endpoint)
 }
 
 func runDial(endpointID: String, payload: String) {
@@ -82,27 +82,27 @@ func runDial(endpointID: String, payload: String) {
     var err = [CChar](repeating: 0, count: errCap)
     let started = Date()
     guard let connection = endpointID.withCString({ id in
-        mosaic_iroh_endpoint_connect(endpoint, id, nil, nil, 0, 60_000, &err, errCap)
+        coterm_iroh_endpoint_connect(endpoint, id, nil, nil, 0, 60_000, &err, errCap)
     }) else {
         fail("connect: \(lastError(err))")
     }
     let connectSeconds = Date().timeIntervalSince(started)
 
     let message = Array(payload.utf8)
-    guard mosaic_iroh_connection_send(connection, message, message.count, &err, errCap) == 0 else {
+    guard coterm_iroh_connection_send(connection, message, message.count, &err, errCap) == 0 else {
         fail("send: \(lastError(err))")
     }
 
     var echoed = [UInt8]()
     var buf = [UInt8](repeating: 0, count: 64 * 1024)
     while echoed.count < message.count {
-        let read = mosaic_iroh_connection_recv(connection, &buf, buf.count, &err, errCap)
+        let read = coterm_iroh_connection_recv(connection, &buf, buf.count, &err, errCap)
         if read < 0 { fail("recv: \(lastError(err))") }
         if read == 0 { break }
         echoed.append(contentsOf: buf[0..<read])
     }
-    mosaic_iroh_connection_close(connection)
-    mosaic_iroh_endpoint_close(endpoint)
+    coterm_iroh_connection_close(connection)
+    coterm_iroh_endpoint_close(endpoint)
 
     guard echoed == message else {
         fail("echo mismatch: sent \(message.count) byte(s), received \(echoed.count)")

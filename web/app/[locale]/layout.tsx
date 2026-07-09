@@ -58,7 +58,7 @@ export async function generateMetadata({
       title: t("title"),
       description: t("ogDescription"),
       url: alternates.canonical,
-      siteName: "Mosaic",
+      siteName: "Coterm",
       type: "website",
     },
     twitter: {
@@ -67,7 +67,7 @@ export async function generateMetadata({
       description: t("ogDescription"),
     },
     alternates,
-    metadataBase: new URL("https://mosaic.inc"),
+    metadataBase: new URL("https://coterm.cc"),
   };
 }
 
@@ -95,17 +95,17 @@ export default async function LocaleLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Mosaic",
+    name: "Coterm",
     operatingSystem: "macOS",
     applicationCategory: "DeveloperApplication",
-    url: "https://mosaic.inc",
+    url: "https://coterm.cc",
     downloadUrl: DOWNLOAD_URL,
     description:
       "Free and open source native macOS terminal built on Ghostty. Works with Claude Code, Codex, OpenCode, Gemini CLI, Kiro, Aider, and any CLI tool. Vertical tabs, notification rings, split panes, and a socket API.",
     keywords:
       "terminal, macOS, open source terminal, Claude Code, Codex, OpenCode, Gemini CLI, Kiro, Aider, AI coding agents, Ghostty",
     isAccessibleForFree: true,
-    license: "https://github.com/emergent-inc/mosaic/blob/main/LICENSE",
+    license: "https://github.com/emergent-inc/coterm/blob/main/LICENSE",
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   };
   const jsonLdScript = JSON.stringify(jsonLd).replace(/</g, "\\u003c");

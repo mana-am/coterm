@@ -1,6 +1,6 @@
 # Feed
 
-Feed is mosaic's inline surface for AI agent decisions. It stays in the right sidebar on `Ctrl-4`. The keyboard-first OpenTUI Feed can also run in the separate right-sidebar [Dock](dock.md) after you add a Dock control that runs `mosaic feed tui`. It shows three things that need a human response:
+Feed is coterm's inline surface for AI agent decisions. It stays in the right sidebar on `Ctrl-4`. The keyboard-first OpenTUI Feed can also run in the separate right-sidebar [Dock](dock.md) after you add a Dock control that runs `coterm feed tui`. It shows three things that need a human response:
 
 - **Permission requests:** Agent wants to run a tool, edit a file, or execute a shell command. Pick Once / Always / All tools / Bypass / Deny.
 - **ExitPlanMode:** Agent finished planning and is ready to start editing. Pick Ultraplan / Manual / Auto.
@@ -8,18 +8,18 @@ Feed is mosaic's inline surface for AI agent decisions. It stays in the right si
 
 Anything else the agent does, including tool uses, assistant messages, session starts/stops, and `TodoWrite` updates, is stored and shown in the TUI's latest-first timeline as informational activity.
 
-`mosaic feed tui` uses OpenTUI through Bun in the terminal alternate screen. The first run creates `~/.mosaicterm/feed-tui-opentui`, writes the bundled Feed app there, and installs `@opentui/core`. The prepared app is launched by absolute path, so the TUI keeps the workspace cwd where you ran the command. Use `mosaic feed tui --opentui` to dogfood OpenTUI in isolation and fail loudly if it cannot start. Set `MOSAIC_FEED_TUI_BUN_PATH` to an explicit Bun executable when your shell does not expose Bun on `PATH`. Set `MOSAIC_FEED_TUI_LEGACY=1` or run `mosaic feed tui --legacy` to force the older built-in TUI.
+`coterm feed tui` uses OpenTUI through Bun in the terminal alternate screen. The first run creates `~/.coterm/feed-tui-opentui`, writes the bundled Feed app there, and installs `@opentui/core`. The prepared app is launched by absolute path, so the TUI keeps the workspace cwd where you ran the command. Use `coterm feed tui --opentui` to dogfood OpenTUI in isolation and fail loudly if it cannot start. Set `COTERM_FEED_TUI_BUN_PATH` to an explicit Bun executable when your shell does not expose Bun on `PATH`. Set `COTERM_FEED_TUI_LEGACY=1` or run `coterm feed tui --legacy` to force the older built-in TUI.
 
 ## How it works
 
 ```text
 ┌─────────────────────┐  hook/stdin  ┌──────────────────────────┐
-│ Agent CLI           ├─────────────▶│ mosaic hooks feed          │
-│ (Claude / Codex /…) │              │  forwards to mosaic socket │
+│ Agent CLI           ├─────────────▶│ coterm hooks feed          │
+│ (Claude / Codex /…) │              │  forwards to coterm socket │
 └─────────────────────┘              └──────────────┬───────────┘
                                                     │
 ┌─────────────────────┐  plugin in   ┌──────────────┼───────────┐
-│ OpenCode            ├─────────────▶│ mosaic-feed.js ▼           │
+│ OpenCode            ├─────────────▶│ coterm-feed.js ▼           │
 │                     │  process     │ writes same socket       │
 └─────────────────────┘              └──────────────┬───────────┘
                                                     │
@@ -43,17 +43,17 @@ Anything else the agent does, including tool uses, assistant messages, session s
                          └───────────────┘   └──────────────────┘
 ```
 
-Agents pipe their hook events into `mosaic hooks feed --source <agent>`. The bridge forwards the event to the mosaic socket as a `feed.push` V2 frame. The `FeedCoordinator` records it on the `@MainActor` `WorkstreamStore`, displays it in the sidebar (and posts a native notification if the window isn't focused), then blocks the hook on a semaphore keyed by the event's `request_id`.
+Agents pipe their hook events into `coterm hooks feed --source <agent>`. The bridge forwards the event to the coterm socket as a `feed.push` V2 frame. The `FeedCoordinator` records it on the `@MainActor` `WorkstreamStore`, displays it in the sidebar (and posts a native notification if the window isn't focused), then blocks the hook on a semaphore keyed by the event's `request_id`.
 
 When you click Allow / Deny / Submit (either in Feed or in the notification's inline action buttons), `feed.permission.reply` / `feed.question.reply` / `feed.exit_plan.reply` delivers the decision back through `FeedCoordinator`, which wakes the hook. The hook emits the agent's expected decision JSON on stdout and the agent proceeds.
 
-All events (actionable and telemetry) are appended to `~/.mosaicterm/workstream.jsonl` for audit. Memory holds the most recent 2000 items in a ring; older items remain available in the JSONL audit log.
+All events (actionable and telemetry) are appended to `~/.coterm/workstream.jsonl` for audit. Memory holds the most recent 2000 items in a ring; older items remain available in the JSONL audit log.
 
 The reconnectable [events stream](events.md) also publishes Feed and agent-hook
 activity as it happens:
 
 ```bash
-mosaic events --category feed --category agent --cursor-file ~/.cache/mosaic/feed-events.seq --reconnect
+coterm events --category feed --category agent --cursor-file ~/.cache/coterm/feed-events.seq --reconnect
 ```
 
 Use `feed.item.received` to observe incoming hook work, `feed.item.completed`
@@ -63,11 +63,11 @@ Claude Code, Codex, OpenCode, and other agent events by their native hook name.
 ## Installing hooks
 
 ```bash
-mosaic hooks setup
-mosaic hooks setup --agent codex
-mosaic hooks setup rovo
-mosaic hooks uninstall
-mosaic hooks uninstall rovo
+coterm hooks setup
+coterm hooks setup --agent codex
+coterm hooks setup rovo
+coterm hooks uninstall
+coterm hooks uninstall rovo
 ```
 
 Installs supported agent hooks whose binaries are on `PATH`. See [Agent hook integrations](agent-hooks.md) for the complete session restore and Feed support matrix.
@@ -76,28 +76,28 @@ Installs supported agent hooks whose binaries are on `PATH`. See [Agent hook int
 |--------------|-------------------------------------------|--------------------------|
 | Claude Code  | wrapper-injected                          | PermissionRequest        |
 | Codex        | `~/.codex/hooks.json`                     | PreToolUse / PermissionRequest telemetry |
-| Grok         | `~/.grok/hooks/mosaic-session.json`         | PreToolUse               |
-| OpenCode     | `~/.config/opencode/plugins/mosaic-feed.js` | plugin event bus         |
+| Grok         | `~/.grok/hooks/coterm-session.json`         | PreToolUse               |
+| OpenCode     | `~/.config/opencode/plugins/coterm-feed.js` | plugin event bus         |
 | Cursor CLI   | `~/.cursor/hooks.json`                    | beforeShellExecution     |
 | Gemini       | `~/.gemini/settings.json`                 | PreToolUse               |
 | Copilot      | `~/.copilot/config.json`                  | PreToolUse               |
 | CodeBuddy    | `~/.codebuddy/settings.json`              | PreToolUse               |
 | Factory      | `~/.factory/settings.json`                | PreToolUse               |
 | Qoder        | `~/.qoder/settings.json`                  | PreToolUse               |
-| Pi           | `~/.pi/agent/extensions/mosaic-session.ts`  | tool_execution_start / tool_execution_end telemetry |
-| OMP          | `~/.omp/agent/extensions/mosaic-omp-session.ts` or `$PI_CODING_AGENT_DIR/extensions/mosaic-omp-session.ts` | lifecycle only           |
+| Pi           | `~/.pi/agent/extensions/coterm-session.ts`  | tool_execution_start / tool_execution_end telemetry |
+| OMP          | `~/.omp/agent/extensions/coterm-omp-session.ts` or `$PI_CODING_AGENT_DIR/extensions/coterm-omp-session.ts` | lifecycle only           |
 | Rovo Dev     | `~/.rovodev/config.yml`                   | lifecycle only           |
 
 Individual agents:
 
 ```bash
-mosaic hooks codex install
-mosaic hooks opencode install               # global
-mosaic hooks opencode install --project     # .opencode/plugins/mosaic-feed.js in cwd
-mosaic hooks <agent> uninstall
+coterm hooks codex install
+coterm hooks opencode install               # global
+coterm hooks opencode install --project     # .opencode/plugins/coterm-feed.js in cwd
+coterm hooks <agent> uninstall
 ```
 
-Agents without a binary on `PATH` are skipped at install time, and `mosaic hooks setup` prints a summary line naming the ones it skipped. Use `mosaic hooks setup --agent <name>` or `mosaic hooks setup <name>` to install one integration, and `mosaic hooks uninstall --agent <name>` or `mosaic hooks uninstall <name>` to remove one. Rovo Dev accepts either `rovodev` or `rovo`.
+Agents without a binary on `PATH` are skipped at install time, and `coterm hooks setup` prints a summary line naming the ones it skipped. Use `coterm hooks setup --agent <name>` or `coterm hooks setup <name>` to install one integration, and `coterm hooks uninstall --agent <name>` or `coterm hooks uninstall <name>` to remove one. Rovo Dev accepts either `rovodev` or `rovo`.
 
 Pi provides lifecycle and session-restore hooks plus Feed telemetry for `tool_execution_start` and `tool_execution_end` events. OMP and Rovo Dev provide lifecycle and session-restore hooks only; they do not install a Feed permission bridge.
 
@@ -105,7 +105,7 @@ Pi provides lifecycle and session-restore hooks plus Feed telemetry for `tool_ex
 
 **Permission modes**
 
-| Mode   | What mosaic sends back to the agent                                             |
+| Mode   | What coterm sends back to the agent                                             |
 |--------|--------------------------------------------------------------------------------|
 | Once   | Allow once through the agent's native permission hook.                         |
 | Always | Allow and apply the agent's suggested persistent permission rule when present. |
@@ -113,7 +113,7 @@ Pi provides lifecycle and session-restore hooks plus Feed telemetry for `tool_ex
 | Bypass | Allow and request session-level bypass mode when the agent supports it.        |
 | Deny   | Deny through the agent's native permission hook.                               |
 
-For Claude Code, the mosaic wrapper launches Claude with `--allow-dangerously-skip-permissions`. This does not enable bypass by default, but it lets a later `PermissionRequest` response switch the current session into `bypassPermissions`. Without that launch flag, Claude ignores `setMode: bypassPermissions`.
+For Claude Code, the coterm wrapper launches Claude with `--allow-dangerously-skip-permissions`. This does not enable bypass by default, but it lets a later `PermissionRequest` response switch the current session into `bypassPermissions`. Without that launch flag, Claude ignores `setMode: bypassPermissions`.
 
 **Plan-mode decisions**
 
@@ -128,9 +128,9 @@ For Claude Code, the mosaic wrapper launches Claude with `--allow-dangerously-sk
 
 For Claude Code, AskUserQuestion is answered by allowing the PermissionRequest with an updated tool input containing the selected answers. Other agents use their native question reply shape where available.
 
-Codex's hook-level `request_user_input`, `update_plan`, and approval prompts stay in Codex's own TUI/app-server path. mosaic records Codex `PreToolUse` and `PermissionRequest` hooks as non-blocking telemetry only, because Codex runs `PermissionRequest` hooks before its `Approve for me` auto-review path. Blocking in hook mode would make Codex ask for Feed approval before its own reviewer can decide.
+Codex's hook-level `request_user_input`, `update_plan`, and approval prompts stay in Codex's own TUI/app-server path. coterm records Codex `PreToolUse` and `PermissionRequest` hooks as non-blocking telemetry only, because Codex runs `PermissionRequest` hooks before its `Approve for me` auto-review path. Blocking in hook mode would make Codex ask for Feed approval before its own reviewer can decide.
 
-When Codex is launched through `mosaic codex-teams`, mosaic owns the private Codex app-server connection. The Codex Teams watcher listens for app-server command and file-change approval requests, which happen after Codex has decided that user approval is needed, and bridges those requests to Feed as actionable permission cards. A Feed click responds to the app-server request. If Feed times out or no decision is returned, mosaic does not send a denial so Codex's native TUI approval can still answer the request.
+When Codex is launched through `coterm codex-teams`, coterm owns the private Codex app-server connection. The Codex Teams watcher listens for app-server command and file-change approval requests, which happen after Codex has decided that user approval is needed, and bridges those requests to Feed as actionable permission cards. A Feed click responds to the app-server request. If Feed times out or no decision is returned, coterm does not send a denial so Codex's native TUI approval can still answer the request.
 
 ## Timeout behavior
 
@@ -142,30 +142,30 @@ Per-event timeout inside agent hook configs is raised to roughly 120 to 125 seco
 
 | Path                              | Contents                                                   |
 |-----------------------------------|------------------------------------------------------------|
-| `~/.mosaicterm/workstream.jsonl`    | Append-only audit log of every Feed event.                 |
-| `~/.mosaicterm/<agent>-hook-sessions.json` | Session-to-workspace mapping used by `feed.jump`.   |
-| `~/.config/mosaic/mosaic.sock`        | V2 socket the hooks/plugin talk to.                        |
-| `~/.config/opencode/plugins/mosaic-feed.js` | OpenCode plugin emitted by `mosaic hooks opencode install`. |
+| `~/.coterm/workstream.jsonl`    | Append-only audit log of every Feed event.                 |
+| `~/.coterm/<agent>-hook-sessions.json` | Session-to-workspace mapping used by `feed.jump`.   |
+| `~/.config/coterm/coterm.sock`        | V2 socket the hooks/plugin talk to.                        |
+| `~/.config/opencode/plugins/coterm-feed.js` | OpenCode plugin emitted by `coterm hooks opencode install`. |
 
 To reset history:
 
 ```bash
-mosaic feed clear           # prompts for confirmation
-mosaic feed clear --yes
+coterm feed clear           # prompts for confirmation
+coterm feed clear --yes
 ```
 
 ## Jumping from Feed to the terminal
 
-Double-click a Feed row and mosaic focuses the mosaic workspace + surface where the agent is running, via `workspace.select` + `surface.focus` V2 verbs. If the agent isn't running in a mosaic terminal (no matching entry in `<agent>-hook-sessions.json`), the jump is a no-op.
+Double-click a Feed row and coterm focuses the coterm workspace + surface where the agent is running, via `workspace.select` + `surface.focus` V2 verbs. If the agent isn't running in a coterm terminal (no matching entry in `<agent>-hook-sessions.json`), the jump is a no-op.
 
 ## Troubleshooting
 
-**Feed shows nothing even though the agent is running.** Check that the hook got installed: `cat ~/.codex/hooks.json` (or similar) should contain a `mosaic hooks feed --source codex` entry. Re-run `mosaic hooks setup`.
+**Feed shows nothing even though the agent is running.** Check that the hook got installed: `cat ~/.codex/hooks.json` (or similar) should contain a `coterm hooks feed --source codex` entry. Re-run `coterm hooks setup`.
 
 **Codex plan-mode question stays in the terminal.** Codex `request_user_input` is not a hook event in the stock TUI path. Feed only sees Codex permission hooks today.
 
-**Agent hangs on a permission request.** Feed never blocks the agent longer than 120 seconds; if you see a longer hang, the hook failed to reach the socket. Verify `$MOSAIC_SOCKET_PATH` matches the running app (default is `~/.config/mosaic/mosaic.sock`).
+**Agent hangs on a permission request.** Feed never blocks the agent longer than 120 seconds; if you see a longer hang, the hook failed to reach the socket. Verify `$COTERM_SOCKET_PATH` matches the running app (default is `~/.config/coterm/coterm.sock`).
 
-**Notifications aren't showing inline buttons.** The three Feed categories (`MosaicFeedPermission`, `MosaicFeedExitPlan`, `MosaicFeedQuestion`) are registered at app launch. On first Feed use, macOS may prompt for notification authorization; if authorization is denied, Feed rows still appear in the sidebar but no native banner is delivered.
+**Notifications aren't showing inline buttons.** The three Feed categories (`CotermFeedPermission`, `CotermFeedExitPlan`, `CotermFeedQuestion`) are registered at app launch. On first Feed use, macOS may prompt for notification authorization; if authorization is denied, Feed rows still appear in the sidebar but no native banner is delivered.
 
-**OpenCode plugin doesn't fire.** Plugin is only installed if `opencode` is on `PATH` at `mosaic hooks setup` time. Check `~/.config/opencode/plugins/mosaic-feed.js` contains `// mosaic-feed-plugin-marker v1`. If you added project-local plugins (`.opencode/plugins/…`), re-run `mosaic hooks opencode install --project`.
+**OpenCode plugin doesn't fire.** Plugin is only installed if `opencode` is on `PATH` at `coterm hooks setup` time. Check `~/.config/opencode/plugins/coterm-feed.js` contains `// coterm-feed-plugin-marker v1`. If you added project-local plugins (`.opencode/plugins/…`), re-run `coterm hooks opencode install --project`.

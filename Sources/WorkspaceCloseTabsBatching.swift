@@ -1,5 +1,5 @@
 import Bonsplit
-import MosaicSettings
+import CotermSettings
 import Foundation
 
 struct CloseOtherTabsConfirmationPrompt: Sendable {

@@ -1,5 +1,5 @@
-import MosaicSidebar
-import MosaicSwiftRender
+import CotermSidebar
+import CotermSwiftRender
 import Foundation
 
 @MainActor

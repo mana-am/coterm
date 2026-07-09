@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "EULA — Mosaic",
-  description: "End-User License Agreement for mosaic",
-  alternates: { canonical: "https://mosaic.inc/eula" },
+  title: "EULA — Coterm",
+  description: "End-User License Agreement for coterm",
+  alternates: { canonical: "https://coterm.cc/eula" },
 };
 
 export default function EulaPage() {
@@ -14,7 +14,7 @@ export default function EulaPage() {
 
       <p>
         Please read this End-User License Agreement carefully before
-        downloading or using mosaic.
+        downloading or using coterm.
       </p>
 
       <h2>Interpretation and Definitions</h2>
@@ -26,7 +26,7 @@ export default function EulaPage() {
           regarding the use of the Application.
         </li>
         <li>
-          <strong>&ldquo;Application&rdquo;</strong> means the mosaic desktop
+          <strong>&ldquo;Application&rdquo;</strong> means the coterm desktop
           application for macOS, a native terminal application built on Ghostty.
         </li>
         <li>

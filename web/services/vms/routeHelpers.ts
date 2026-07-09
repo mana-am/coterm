@@ -37,7 +37,7 @@ export async function withAuthedVmApiRoute(
   return withApiRouteSpan(
     request,
     route,
-    { "mosaic.subsystem": "vm-cloud", ...attributes },
+    { "coterm.subsystem": "vm-cloud", ...attributes },
     async (span) => {
       let responseFinalizer: ((response: Response) => void) | null = null;
       const setResponseFinalizer = (finalizer: ((response: Response) => void) | null) => {
@@ -121,7 +121,7 @@ export function notFoundVm(vmId: string): Response {
     error: "vm_not_found",
     status: 404,
     message: `Cloud VM ${vmId} was not found.`,
-    action: "Run `mosaic vm ls` to see available Cloud VMs. If the VM stopped while idle, start a new one with `mosaic vm new`.",
+    action: "Run `coterm vm ls` to see available Cloud VMs. If the VM stopped while idle, start a new one with `coterm vm new`.",
     details: { vmId },
   });
 }
@@ -163,14 +163,14 @@ export function vmWorkflowErrorResponse(err: unknown): Response | null {
 function cloudServiceAction(operation: string): string {
   switch (operation) {
     case "create":
-      return "Retry once. If it fails again, run `mosaic vm ls` to check whether a VM was created, then try `mosaic vm new` again or contact support.";
+      return "Retry once. If it fails again, run `coterm vm ls` to check whether a VM was created, then try `coterm vm new` again or contact support.";
     case "openAttach":
     case "openSSH":
-      return "Run `mosaic vm ls` to confirm the VM still exists. If it was paused or destroyed, start a fresh VM with `mosaic vm new`.";
+      return "Run `coterm vm ls` to confirm the VM still exists. If it was paused or destroyed, start a fresh VM with `coterm vm new`.";
     case "exec":
-      return "Check that the VM is still running with `mosaic vm ls`, then retry the command. For long commands, increase the exec timeout.";
+      return "Check that the VM is still running with `coterm vm ls`, then retry the command. For long commands, increase the exec timeout.";
     case "destroy":
-      return "Run `mosaic vm ls` to see whether the VM is already gone. If it still appears, retry `mosaic vm rm <id>`.";
+      return "Run `coterm vm ls` to see whether the VM is already gone. If it still appears, retry `coterm vm rm <id>`.";
     default:
       return "Retry the command. If it keeps failing, copy this error and contact support.";
   }
@@ -178,8 +178,8 @@ function cloudServiceAction(operation: string): string {
 
 export function requestedVmTeamIdFromRequest(request: Request): string | null {
   const fromHeader = normalizedOptionalString(
-    request.headers.get("x-mosaic-team-id") ??
-      request.headers.get("x-mosaic-billing-team-id"),
+    request.headers.get("x-coterm-team-id") ??
+      request.headers.get("x-coterm-billing-team-id"),
   );
   if (fromHeader) return fromHeader;
 
@@ -228,11 +228,11 @@ function requestURLOrigin(request: Request): string | null {
 let cachedAllowedOriginsEnv: string | undefined;
 let cachedAllowedOrigins: Set<string> | null = null;
 
-// MOSAIC_VM_ALLOWED_ORIGINS is a comma-separated list of full origins that must match
+// COTERM_VM_ALLOWED_ORIGINS is a comma-separated list of full origins that must match
 // the Origin header exactly, for example `https://app.example.com,https://staging.example.com`.
 // Do not include paths, schemeless hosts, or trailing slashes.
 function allowedBrowserOrigins(): Set<string> {
-  const raw = process.env.MOSAIC_VM_ALLOWED_ORIGINS;
+  const raw = process.env.COTERM_VM_ALLOWED_ORIGINS;
   if (cachedAllowedOrigins && cachedAllowedOriginsEnv === raw) return cachedAllowedOrigins;
   cachedAllowedOriginsEnv = raw;
   const configured = raw?.split(",") ?? [];

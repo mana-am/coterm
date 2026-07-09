@@ -61,16 +61,16 @@ select_zig_for_target() {
   local host_arch
   host_arch="$(detected_host_arch)"
 
-  if [[ -n "${MOSAIC_ZIG:-}" ]]; then
-    if [[ ! -x "$MOSAIC_ZIG" ]]; then
-      echo "error: MOSAIC_ZIG is not executable: $MOSAIC_ZIG" >&2
+  if [[ -n "${COTERM_ZIG:-}" ]]; then
+    if [[ ! -x "$COTERM_ZIG" ]]; then
+      echo "error: COTERM_ZIG is not executable: $COTERM_ZIG" >&2
       return 1
     fi
-    if ! zig_has_required_version "$MOSAIC_ZIG"; then
-      echo "error: MOSAIC_ZIG must be zig ${ZIG_REQUIRED}: $MOSAIC_ZIG" >&2
+    if ! zig_has_required_version "$COTERM_ZIG"; then
+      echo "error: COTERM_ZIG must be zig ${ZIG_REQUIRED}: $COTERM_ZIG" >&2
       return 1
     fi
-    echo "$MOSAIC_ZIG"
+    echo "$COTERM_ZIG"
     return 0
   fi
 
@@ -207,10 +207,10 @@ EOF
 # Allow CI to skip the Zig helper build where only a valid app bundle shape is
 # required. The stub is a Mach-O binary so architecture validation still checks
 # the bundle layout and slices instead of accepting a shell script placeholder.
-if [[ "${MOSAIC_SKIP_ZIG_BUILD:-}" == "1" ]]; then
-  echo "Skipping zig CLI helper build (MOSAIC_SKIP_ZIG_BUILD=1)"
+if [[ "${COTERM_SKIP_ZIG_BUILD:-}" == "1" ]]; then
+  echo "Skipping zig CLI helper build (COTERM_SKIP_ZIG_BUILD=1)"
   mkdir -p "$(dirname "$OUTPUT_PATH")"
-  STUB_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/mosaic-ghostty-helper-stub.XXXXXX")"
+  STUB_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/coterm-ghostty-helper-stub.XXXXXX")"
   trap 'rm -rf "$STUB_TMP_DIR"' EXIT
   if [[ "$UNIVERSAL" == "true" ]]; then
     write_macho_stub "$STUB_TMP_DIR/ghostty-arm64" "arm64-apple-macos14" "$STUB_TMP_DIR"
@@ -277,7 +277,7 @@ build_helper() {
   )
 }
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/mosaic-ghostty-helper.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/coterm-ghostty-helper.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 mkdir -p "$(dirname "$OUTPUT_PATH")"

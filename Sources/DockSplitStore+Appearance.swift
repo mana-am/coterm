@@ -1,7 +1,7 @@
 import Bonsplit
-import MosaicAppKitSupportUI
-import MosaicSettings
-import MosaicTerminal
+import CotermAppKitSupportUI
+import CotermSettings
+import Coterminal
 import CoreGraphics
 
 extension DockSplitStore {

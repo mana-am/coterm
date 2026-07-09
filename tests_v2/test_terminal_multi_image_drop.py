@@ -16,15 +16,15 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(condition: bool, message: str) -> None:
     if not condition:
-        raise mosaicError(message)
+        raise cotermError(message)
 
 
 def _escape_for_shell_path(path: str) -> str:
@@ -36,14 +36,14 @@ def _escape_for_shell_path(path: str) -> str:
     return result
 
 
-def _focused_surface_id(client: mosaic) -> str:
+def _focused_surface_id(client: coterm) -> str:
     ident = client.identify()
     surface_id = str((ident.get("focused") or {}).get("surface_id") or "")
     _must(bool(surface_id), f"Missing focused surface in identify payload: {ident}")
     return surface_id
 
 
-def _wait_for_materialized_paths(client: mosaic, surface_id: str, expected_count: int, timeout: float = 10.0) -> list[str]:
+def _wait_for_materialized_paths(client: coterm, surface_id: str, expected_count: int, timeout: float = 10.0) -> list[str]:
     pattern = re.compile(r"/[^\s%]*/clipboard-[^\s%]+\.png")
     deadline = time.time() + timeout
     last = ""
@@ -57,10 +57,10 @@ def _wait_for_materialized_paths(client: mosaic, surface_id: str, expected_count
         if len(paths) >= expected_count:
             return paths[:expected_count]
         time.sleep(0.2)
-    raise mosaicError(f"Timed out waiting for {expected_count} materialized image paths: {last[-1000:]!r}")
+    raise cotermError(f"Timed out waiting for {expected_count} materialized image paths: {last[-1000:]!r}")
 
 
-def _wait_for_terminal_text(client: mosaic, surface_id: str, predicate, timeout: float = 10.0) -> str:
+def _wait_for_terminal_text(client: coterm, surface_id: str, predicate, timeout: float = 10.0) -> str:
     deadline = time.time() + timeout
     last = ""
     while time.time() < deadline:
@@ -68,10 +68,10 @@ def _wait_for_terminal_text(client: mosaic, surface_id: str, predicate, timeout:
         if predicate(last):
             return last
         time.sleep(0.2)
-    raise mosaicError(f"Timed out waiting for terminal predicate: {last[-1000:]!r}")
+    raise cotermError(f"Timed out waiting for terminal predicate: {last[-1000:]!r}")
 
 
-def _run_drop_case(client: mosaic, expected_paths: list[str], payload: str) -> tuple[str, str]:
+def _run_drop_case(client: coterm, expected_paths: list[str], payload: str) -> tuple[str, str]:
     workspace_id = client.new_workspace()
     client.select_workspace(workspace_id)
     surface_id = _focused_surface_id(client)
@@ -134,7 +134,7 @@ finally:
     return script_path
 
 
-def _run_bracketed_paste_case(client: mosaic, expected_paths: list[str], payload: str, temp_dir: Path) -> tuple[str, bytes, list[float]]:
+def _run_bracketed_paste_case(client: coterm, expected_paths: list[str], payload: str, temp_dir: Path) -> tuple[str, bytes, list[float]]:
     token = f"{payload}-{secrets.token_hex(4)}"
     script_path = _write_bracketed_paste_capture_script(temp_dir, token)
     workspace_id = client.new_workspace()
@@ -165,7 +165,7 @@ def _run_bracketed_paste_case(client: mosaic, expected_paths: list[str], payload
 
 
 def main() -> int:
-    temp_dir = Path(tempfile.mkdtemp(prefix="mosaic-local-multi-image-drop-"))
+    temp_dir = Path(tempfile.mkdtemp(prefix="coterm-local-multi-image-drop-"))
     workspace_ids: list[str] = []
     materialized_paths: list[str] = []
     try:
@@ -182,7 +182,7 @@ def main() -> int:
             hashlib.sha256(first_image_path.read_bytes()).hexdigest(),
             hashlib.sha256(second_image_path.read_bytes()).hexdigest(),
         ]
-        with mosaic(SOCKET_PATH) as client:
+        with coterm(SOCKET_PATH) as client:
             workspace_id, surface_id = _run_drop_case(client, expected_paths, "image_data")
             workspace_ids.append(workspace_id)
             paths = _wait_for_materialized_paths(client, surface_id, expected_count=2)
@@ -239,10 +239,10 @@ def main() -> int:
     finally:
         if workspace_ids:
             try:
-                with mosaic(SOCKET_PATH) as client:
+                with coterm(SOCKET_PATH) as client:
                     for workspace_id in workspace_ids:
                         client.close_workspace(workspace_id)
-            except mosaicError:
+            except cotermError:
                 pass
         for path in materialized_paths:
             try:

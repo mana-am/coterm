@@ -1,6 +1,6 @@
 # Third-Party Licenses
 
-mosaic includes the following third-party software:
+coterm includes the following third-party software:
 
 ---
 
@@ -132,7 +132,7 @@ SOFTWARE.
 
 ## Markdown Viewer Web Assets
 
-mosaic bundles these files under `Resources/markdown-viewer/` so the markdown
+coterm bundles these files under `Resources/markdown-viewer/` so the markdown
 viewer has no runtime CDN dependency.
 
 ### marked

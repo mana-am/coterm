@@ -1,4 +1,4 @@
-import MosaicFoundation
+import CotermFoundation
 import Darwin
 import Foundation
 
@@ -11,19 +11,19 @@ import Foundation
 
 enum CLISocketEnvironment {
     static func socketPath(in environment: [String: String]) throws -> String? {
-        let socketPath = normalized(environment["MOSAIC_SOCKET_PATH"])
-        let legacySocketPath = normalized(environment["MOSAIC_SOCKET"])
+        let socketPath = normalized(environment["COTERM_SOCKET_PATH"])
+        let legacySocketPath = normalized(environment["COTERM_SOCKET"])
         if let socketPath, let legacySocketPath, socketPath != legacySocketPath {
             throw CLIError(message: String(
                 localized: "cli.socket.error.conflictingEnvironment",
-                defaultValue: "Refusing to choose socket: MOSAIC_SOCKET_PATH and MOSAIC_SOCKET differ. Use MOSAIC_SOCKET_PATH or unset MOSAIC_SOCKET."
+                defaultValue: "Refusing to choose socket: COTERM_SOCKET_PATH and COTERM_SOCKET differ. Use COTERM_SOCKET_PATH or unset COTERM_SOCKET."
             ))
         }
         return socketPath ?? legacySocketPath
     }
 
     static func socketPathForTelemetry(in environment: [String: String]) -> String? {
-        normalized(environment["MOSAIC_SOCKET_PATH"]) ?? normalized(environment["MOSAIC_SOCKET"])
+        normalized(environment["COTERM_SOCKET_PATH"]) ?? normalized(environment["COTERM_SOCKET"])
     }
 
     private static func normalized(_ raw: String?) -> String? {
@@ -65,7 +65,7 @@ final class CLISocketSentryTelemetry {
     }
 
     private static func currentSentryBundleIdentifier() -> String? {
-        if let bundleIdentifier = ProcessInfo.processInfo.environment["MOSAIC_BUNDLE_ID"]?
+        if let bundleIdentifier = ProcessInfo.processInfo.environment["COTERM_BUNDLE_ID"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !bundleIdentifier.isEmpty {
             return bundleIdentifier
@@ -111,11 +111,11 @@ final class CLISocketSentryTelemetry {
         self.socketPath = socketPath
         self.envSocketPath = CLISocketEnvironment.socketPathForTelemetry(in: processEnv)
         self.processEnv = processEnv
-        self.workspaceId = processEnv["MOSAIC_WORKSPACE_ID"]
-        self.surfaceId = processEnv["MOSAIC_SURFACE_ID"]
+        self.workspaceId = processEnv["COTERM_WORKSPACE_ID"]
+        self.surfaceId = processEnv["COTERM_SURFACE_ID"]
         self.disabledByEnv =
-            processEnv["MOSAIC_CLI_SENTRY_DISABLED"] == "1" ||
-            processEnv["MOSAIC_CLAUDE_HOOK_SENTRY_DISABLED"] == "1"
+            processEnv["COTERM_CLI_SENTRY_DISABLED"] == "1" ||
+            processEnv["COTERM_CLAUDE_HOOK_SENTRY_DISABLED"] == "1"
         self.noiseFilter = SentryNoiseFilter()
     }
 
@@ -185,7 +185,7 @@ final class CLISocketSentryTelemetry {
 
 #if DEBUG
     private func recordCaptureProbe(stage: String, error: Error) {
-        guard let path = processEnv["MOSAIC_CLI_SENTRY_CAPTURE_PROBE_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+        guard let path = processEnv["COTERM_CLI_SENTRY_CAPTURE_PROBE_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
               !path.isEmpty else {
             return
         }
@@ -195,7 +195,7 @@ final class CLISocketSentryTelemetry {
 
 #if canImport(Sentry)
     private func recordStoreProbe(eventId: String) {
-        guard let path = processEnv["MOSAIC_CLI_SENTRY_STORE_PROBE_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+        guard let path = processEnv["COTERM_CLI_SENTRY_STORE_PROBE_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
               !path.isEmpty else {
             return
         }
@@ -224,7 +224,7 @@ final class CLISocketSentryTelemetry {
         event.environment = "production-cli"
 #endif
         event.tags = [
-            "component": "mosaic-cli",
+            "component": "coterm-cli",
             "cli_command": command,
             "cli_subcommand": subcommand
         ]
@@ -284,7 +284,7 @@ final class CLISocketSentryTelemetry {
         for (key, value) in data {
             payload[key] = value
         }
-        let crumb = Breadcrumb(level: .info, category: "mosaic.cli")
+        let crumb = Breadcrumb(level: .info, category: "coterm.cli")
         crumb.message = message
         crumb.data = payload
         return crumb
@@ -330,7 +330,7 @@ final class CLISocketSentryTelemetry {
 
         let tmpSockets = Self.discoverSockets(in: "/tmp", limit: 10)
         if !tmpSockets.isEmpty {
-            context["tmp_mosaic_sockets"] = tmpSockets
+            context["tmp_coterm_sockets"] = tmpSockets
         }
         let taggedSockets = tmpSockets.filter { $0 != CLISocketPathResolver.legacyDefaultSocketPath }
         if CLISocketPathResolver.isImplicitDefaultPath(
@@ -340,7 +340,7 @@ final class CLISocketSentryTelemetry {
         ),
            (envSocketPath?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true),
            !taggedSockets.isEmpty {
-            context["possible_root_cause"] = "MOSAIC_SOCKET_PATH missing while tagged sockets exist"
+            context["possible_root_cause"] = "COTERM_SOCKET_PATH missing while tagged sockets exist"
         }
 
         return context
@@ -367,7 +367,7 @@ final class CLISocketSentryTelemetry {
         }
         var sockets: [String] = []
         for name in entries.sorted() {
-            guard name.hasPrefix("mosaic"), name.hasSuffix(".sock") else { continue }
+            guard name.hasPrefix("coterm"), name.hasSuffix(".sock") else { continue }
             let fullPath = URL(fileURLWithPath: directory)
                 .appendingPathComponent(name, isDirectory: false)
                 .path

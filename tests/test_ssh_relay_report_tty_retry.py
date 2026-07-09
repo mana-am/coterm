@@ -35,27 +35,27 @@ def _run_shell(
     env.update(
         {
             "PATH": f"{bin_dir}:/usr/bin:/bin:/usr/sbin:/sbin",
-            "MOSAIC_SOCKET_PATH": "127.0.0.1:64011",
-            "MOSAIC_WORKSPACE_ID": "11111111-1111-1111-1111-111111111111",
-            "MOSAIC_TAB_ID": "22222222-2222-2222-2222-222222222222",
-            "MOSAIC_PANEL_ID": "22222222-2222-2222-2222-222222222222",
-            "MOSAIC_TEST_LOG": str(log_path),
-            "MOSAIC_TEST_STATE": str(state_path),
-            "MOSAIC_TEST_BIN_DIR": str(bin_dir),
+            "COTERM_SOCKET_PATH": "127.0.0.1:64011",
+            "COTERM_WORKSPACE_ID": "11111111-1111-1111-1111-111111111111",
+            "COTERM_TAB_ID": "22222222-2222-2222-2222-222222222222",
+            "COTERM_PANEL_ID": "22222222-2222-2222-2222-222222222222",
+            "COTERM_TEST_LOG": str(log_path),
+            "COTERM_TEST_STATE": str(state_path),
+            "COTERM_TEST_BIN_DIR": str(bin_dir),
         }
     )
     command = f"""
 source "{integration_path}"
-PATH="$MOSAIC_TEST_BIN_DIR:$PATH"
+PATH="$COTERM_TEST_BIN_DIR:$PATH"
 hash -r 2>/dev/null || true
 : > "{log_path}"
 rm -f "{state_path}"
-_MOSAIC_TTY_NAME={tty_name}
-_MOSAIC_TTY_REPORTED=0
-_mosaic_report_tty_once || true
-first="${{_MOSAIC_TTY_REPORTED}}:$(wc -l < "{log_path}" | tr -d ' ')"
-_mosaic_report_tty_once || true
-second="${{_MOSAIC_TTY_REPORTED}}:$(wc -l < "{log_path}" | tr -d ' ')"
+_COTERM_TTY_NAME={tty_name}
+_COTERM_TTY_REPORTED=0
+_coterm_report_tty_once || true
+first="${{_COTERM_TTY_REPORTED}}:$(wc -l < "{log_path}" | tr -d ' ')"
+_coterm_report_tty_once || true
+second="${{_COTERM_TTY_REPORTED}}:$(wc -l < "{log_path}" | tr -d ' ')"
 printf '%s\\n' "$first|$second"
 """.strip()
     result = subprocess.run(
@@ -72,7 +72,7 @@ printf '%s\\n' "$first|$second"
 def main() -> int:
     failures: list[str] = []
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-ssh-relay-report-tty-retry-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-ssh-relay-report-tty-retry-") as td:
         tmp = Path(td)
         bin_dir = tmp / "bin"
         bin_dir.mkdir(parents=True, exist_ok=True)
@@ -80,15 +80,15 @@ def main() -> int:
         state_path = tmp / "relay.state"
 
         _write_executable(
-            bin_dir / "mosaic",
+            bin_dir / "coterm",
             """#!/bin/sh
 count=0
-if [ -r "$MOSAIC_TEST_STATE" ]; then
-    count=$(cat "$MOSAIC_TEST_STATE")
+if [ -r "$COTERM_TEST_STATE" ]; then
+    count=$(cat "$COTERM_TEST_STATE")
 fi
 count=$((count + 1))
-printf '%s' "$count" > "$MOSAIC_TEST_STATE"
-printf '%s\n' "$*" >> "$MOSAIC_TEST_LOG"
+printf '%s' "$count" > "$COTERM_TEST_STATE"
+printf '%s\n' "$*" >> "$COTERM_TEST_LOG"
 if [ "$count" -eq 1 ]; then
     printf '%s\n' '{"ok":false,"error":{"code":"not_found"}}'
 else
@@ -101,13 +101,13 @@ fi
             (
                 "zsh",
                 ["-f", "-c"],
-                SHELL_DIR / "mosaic-zsh-integration.zsh",
+                SHELL_DIR / "coterm-zsh-integration.zsh",
                 "ttys777",
             ),
             (
                 "bash",
                 ["--noprofile", "--norc", "-c"],
-                SHELL_DIR / "mosaic-bash-integration.bash",
+                SHELL_DIR / "coterm-bash-integration.bash",
                 "ttys888",
             ),
         ]

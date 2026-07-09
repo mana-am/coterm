@@ -12,36 +12,36 @@ extension DockSplitStore {
     static func shellStartupScript(command: String, workingDirectory: String) -> String {
         let tempDir = FileManager.default.temporaryDirectory
         let scriptURL = tempDir.appendingPathComponent(
-            "mosaic-dock-control-\(UUID().uuidString.lowercased()).sh"
+            "coterm-dock-control-\(UUID().uuidString.lowercased()).sh"
         )
         let encodedCommand = Data(command.utf8).base64EncodedString()
         let encodedWorkingDirectory = Data(workingDirectory.utf8).base64EncodedString()
         let body = """
         #!/bin/sh
-        mosaic_dock_decode() { printf '%s' "$1" | base64 --decode 2>/dev/null || printf '%s' "$1" | base64 -D 2>/dev/null; }
-        mosaic_dock_login_shell() {
-          mosaic_dock_user="$(id -un 2>/dev/null || printf '%s' "${USER:-}")"
-          mosaic_dock_ds_shell="$(dscl . -read "/Users/$mosaic_dock_user" UserShell 2>/dev/null | awk '{print $2; exit}')"
-          if [ -n "$mosaic_dock_ds_shell" ] && [ -x "$mosaic_dock_ds_shell" ]; then printf '%s\\n' "$mosaic_dock_ds_shell"
+        coterm_dock_decode() { printf '%s' "$1" | base64 --decode 2>/dev/null || printf '%s' "$1" | base64 -D 2>/dev/null; }
+        coterm_dock_login_shell() {
+          coterm_dock_user="$(id -un 2>/dev/null || printf '%s' "${USER:-}")"
+          coterm_dock_ds_shell="$(dscl . -read "/Users/$coterm_dock_user" UserShell 2>/dev/null | awk '{print $2; exit}')"
+          if [ -n "$coterm_dock_ds_shell" ] && [ -x "$coterm_dock_ds_shell" ]; then printf '%s\\n' "$coterm_dock_ds_shell"
           elif [ -n "${SHELL:-}" ] && [ -x "${SHELL:-}" ]; then printf '%s\\n' "$SHELL"
           else printf '%s\\n' /bin/sh; fi
         }
-        mosaic_dock_command="$(mosaic_dock_decode '\(encodedCommand)')"
-        mosaic_dock_working_directory="$(mosaic_dock_decode '\(encodedWorkingDirectory)')"
-        mosaic_dock_shell="$(mosaic_dock_login_shell)"
-        mosaic_dock_bundle_bin=""
-        if [ -n "${MOSAIC_BUNDLED_CLI_PATH:-}" ]; then mosaic_dock_bundle_bin="$(dirname "$MOSAIC_BUNDLED_CLI_PATH")"; fi
-        export SHELL="$mosaic_dock_shell"
+        coterm_dock_command="$(coterm_dock_decode '\(encodedCommand)')"
+        coterm_dock_working_directory="$(coterm_dock_decode '\(encodedWorkingDirectory)')"
+        coterm_dock_shell="$(coterm_dock_login_shell)"
+        coterm_dock_bundle_bin=""
+        if [ -n "${COTERM_BUNDLED_CLI_PATH:-}" ]; then coterm_dock_bundle_bin="$(dirname "$COTERM_BUNDLED_CLI_PATH")"; fi
+        export SHELL="$coterm_dock_shell"
         rm -f -- "$0" 2>/dev/null || true
-        case "$(basename "$mosaic_dock_shell")" in
+        case "$(basename "$coterm_dock_shell")" in
           fish)
-            MOSAIC_DOCK_BUNDLE_BIN="$mosaic_dock_bundle_bin" MOSAIC_DOCK_START_COMMAND="$mosaic_dock_command" MOSAIC_DOCK_START_DIRECTORY="$mosaic_dock_working_directory" "$mosaic_dock_shell" -l -c 'if test -n "$MOSAIC_DOCK_BUNDLE_BIN"; and not contains -- "$MOSAIC_DOCK_BUNDLE_BIN" $PATH; set -gx PATH "$MOSAIC_DOCK_BUNDLE_BIN" $PATH; end; if test -n "$MOSAIC_DOCK_START_DIRECTORY"; cd "$MOSAIC_DOCK_START_DIRECTORY"; end; eval "$MOSAIC_DOCK_START_COMMAND"'
+            COTERM_DOCK_BUNDLE_BIN="$coterm_dock_bundle_bin" COTERM_DOCK_START_COMMAND="$coterm_dock_command" COTERM_DOCK_START_DIRECTORY="$coterm_dock_working_directory" "$coterm_dock_shell" -l -c 'if test -n "$COTERM_DOCK_BUNDLE_BIN"; and not contains -- "$COTERM_DOCK_BUNDLE_BIN" $PATH; set -gx PATH "$COTERM_DOCK_BUNDLE_BIN" $PATH; end; if test -n "$COTERM_DOCK_START_DIRECTORY"; cd "$COTERM_DOCK_START_DIRECTORY"; end; eval "$COTERM_DOCK_START_COMMAND"'
             ;;
-          *) MOSAIC_DOCK_BUNDLE_BIN="$mosaic_dock_bundle_bin" MOSAIC_DOCK_START_COMMAND="$mosaic_dock_command" MOSAIC_DOCK_START_DIRECTORY="$mosaic_dock_working_directory" "$mosaic_dock_shell" -lc 'if [ -n "${MOSAIC_DOCK_BUNDLE_BIN:-}" ]; then case ":${PATH:-}:" in *":$MOSAIC_DOCK_BUNDLE_BIN:"*) ;; *) PATH="$MOSAIC_DOCK_BUNDLE_BIN${PATH:+:$PATH}"; export PATH ;; esac; fi; cd "$MOSAIC_DOCK_START_DIRECTORY" 2>/dev/null || true; eval "$MOSAIC_DOCK_START_COMMAND"'
+          *) COTERM_DOCK_BUNDLE_BIN="$coterm_dock_bundle_bin" COTERM_DOCK_START_COMMAND="$coterm_dock_command" COTERM_DOCK_START_DIRECTORY="$coterm_dock_working_directory" "$coterm_dock_shell" -lc 'if [ -n "${COTERM_DOCK_BUNDLE_BIN:-}" ]; then case ":${PATH:-}:" in *":$COTERM_DOCK_BUNDLE_BIN:"*) ;; *) PATH="$COTERM_DOCK_BUNDLE_BIN${PATH:+:$PATH}"; export PATH ;; esac; fi; cd "$COTERM_DOCK_START_DIRECTORY" 2>/dev/null || true; eval "$COTERM_DOCK_START_COMMAND"'
             ;;
         esac
         printf '\\n'
-        exec "$mosaic_dock_shell" -l
+        exec "$coterm_dock_shell" -l
         """
         do {
             try body.write(to: scriptURL, atomically: true, encoding: .utf8)

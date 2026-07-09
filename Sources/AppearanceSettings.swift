@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// mosaic renders with one fixed dark appearance so the UI looks identical on
+/// coterm renders with one fixed dark appearance so the UI looks identical on
 /// every machine regardless of the macOS light/dark setting. Pinning
 /// `NSApplication.shared.appearance` makes every semantic AppKit/SwiftUI color,
 /// popover, alert, and `effectiveAppearance` check resolve dark.
@@ -22,9 +22,9 @@ private struct FixedColorSchemeModifier: ViewModifier {
 }
 
 extension View {
-    /// Pins a SwiftUI window tree to mosaic's fixed dark appearance so the
+    /// Pins a SwiftUI window tree to coterm's fixed dark appearance so the
     /// rendered UI never follows the macOS light/dark setting.
-    func mosaicFixedColorScheme() -> some View {
+    func cotermFixedColorScheme() -> some View {
         modifier(FixedColorSchemeModifier())
     }
 }

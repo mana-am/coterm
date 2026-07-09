@@ -90,7 +90,7 @@ final class BrowserPaneDropTargetView: NSView {
     override func prepareForDragOperation(_ sender: any NSDraggingInfo) -> Bool {
         guard let dropContext = activeDropContext() else {
 #if DEBUG
-            mosaicDebugLog("browser.paneDrop.prepare allowed=0 reason=missingContext")
+            cotermDebugLog("browser.paneDrop.prepare allowed=0 reason=missingContext")
 #endif
             return false
         }
@@ -102,7 +102,7 @@ final class BrowserPaneDropTargetView: NSView {
             let accepted = webView?.prepareForDragOperation(sender) ?? false
             preparedFileDropWebView = accepted ? webView : nil
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.paneDrop.prepareAsWebView panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                 "accepted=\(accepted ? 1 : 0)"
             )
@@ -120,7 +120,7 @@ final class BrowserPaneDropTargetView: NSView {
         if AppDelegate.shared?.dockForPane(dropContext.paneId) != nil,
            liveSurfaceTransfer(for: sender) == nil {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.paneDrop.prepare.dock panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                 "allowed=0 reason=nonLiveDockDrop"
             )
@@ -138,7 +138,7 @@ final class BrowserPaneDropTargetView: NSView {
 
         guard let dropContext = activeDropContext() else {
 #if DEBUG
-            mosaicDebugLog("browser.paneDrop.perform allowed=0 reason=missingContext")
+            cotermDebugLog("browser.paneDrop.perform allowed=0 reason=missingContext")
 #endif
             return false
         }
@@ -161,7 +161,7 @@ final class BrowserPaneDropTargetView: NSView {
                 performedFileDropWebView = nil
             }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.paneDrop.performAsWebView panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                 "handled=\(handled ? 1 : 0)"
             )
@@ -179,7 +179,7 @@ final class BrowserPaneDropTargetView: NSView {
         if let dock = AppDelegate.shared?.dockForPane(dropContext.paneId) {
             guard let transfer = liveSurfaceTransfer(for: sender) else {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "browser.paneDrop.perform.dock panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                     "allowed=0 reason=nonLiveDockDrop"
                 )
@@ -199,7 +199,7 @@ final class BrowserPaneDropTargetView: NSView {
                 zone: dockZone
             )
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.paneDrop.perform.dock panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                 "tab=\(transfer.tabId.uuidString.prefix(5)) zone=\(dockZone) handled=\(handled ? 1 : 0)"
             )
@@ -213,7 +213,7 @@ final class BrowserPaneDropTargetView: NSView {
                 guard let entry = FilePreviewDragRegistry.shared.consume(id: transfer.tabId),
                       let workspace = AppDelegate.shared?.workspaceFor(tabId: dropContext.workspaceId) else {
 #if DEBUG
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "browser.paneDrop.perform allowed=0 panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                         "reason=missingFilePreviewEntry tab=\(transfer.tabId.uuidString.prefix(5))"
                     )
@@ -228,7 +228,7 @@ final class BrowserPaneDropTargetView: NSView {
                     )
                 )
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "browser.paneDrop.perform panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                     "tab=\(transfer.tabId.uuidString.prefix(5)) zone=\(zone) filePreview=1 handled=\(handled ? 1 : 0)"
                 )
@@ -242,7 +242,7 @@ final class BrowserPaneDropTargetView: NSView {
                 zone: zone
             ) else {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "browser.paneDrop.perform allowed=0 panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                     "reason=noAction zone=\(zone)"
                 )
@@ -253,7 +253,7 @@ final class BrowserPaneDropTargetView: NSView {
             switch action {
             case .noOp:
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "browser.paneDrop.perform allowed=1 panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                     "tab=\(transfer.tabId.uuidString.prefix(5)) action=noop"
                 )
@@ -272,7 +272,7 @@ final class BrowserPaneDropTargetView: NSView {
                 let splitLabel = splitTarget.map {
                     "\($0.orientation.rawValue):\($0.insertFirst ? 1 : 0)"
                 } ?? "none"
-                mosaicDebugLog(
+                cotermDebugLog(
                     "browser.paneDrop.perform panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                     "tab=\(tabId.uuidString.prefix(5)) zone=\(zone) pane=\(targetPane.id.uuidString.prefix(5)) " +
                     "split=\(splitLabel) moved=\(moved ? 1 : 0)"
@@ -286,7 +286,7 @@ final class BrowserPaneDropTargetView: NSView {
         guard !urls.isEmpty,
               let workspace = AppDelegate.shared?.workspaceFor(tabId: dropContext.workspaceId) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.paneDrop.perform allowed=0 panel=\(dropContext.panelId.uuidString.prefix(5)) reason=missingTransferAndFiles"
             )
 #endif
@@ -300,7 +300,7 @@ final class BrowserPaneDropTargetView: NSView {
             )
         ))
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.paneDrop.perform panel=\(dropContext.panelId.uuidString.prefix(5)) " +
             "fileURLs=\(urls.count) zone=\(zone) handled=\(handled ? 1 : 0)"
         )
@@ -365,7 +365,7 @@ final class BrowserPaneDropTargetView: NSView {
             activeZone = dockZone
             slotView?.setPortalDragDropZone(dockZone)
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.paneDrop.\(phase).dock panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                 "tab=\(transfer.tabId.uuidString.prefix(5)) zone=\(dockZone)"
             )
@@ -382,7 +382,7 @@ final class BrowserPaneDropTargetView: NSView {
             activeZone = zone
             slotView?.setPortalDragDropZone(zone)
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.paneDrop.\(phase) panel=\(dropContext.panelId.uuidString.prefix(5)) " +
                 "tab=\(transfer.tabId.uuidString.prefix(5)) zone=\(zone)"
             )
@@ -397,7 +397,7 @@ final class BrowserPaneDropTargetView: NSView {
         activeZone = zone
         slotView?.setPortalDragDropZone(zone)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.paneDrop.\(phase) panel=\(dropContext.panelId.uuidString.prefix(5)) fileURL=1 zone=\(zone)"
         )
 #endif
@@ -492,7 +492,7 @@ final class BrowserPaneDropTargetView: NSView {
         slotView?.setPortalDragDropZone(nil)
 #if DEBUG
         if let dropContext {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.paneDrop.\(phase) panel=\(dropContext.panelId.uuidString.prefix(5)) zone=none"
             )
         }
@@ -520,7 +520,7 @@ final class BrowserPaneDropTargetView: NSView {
         lastHitTestSignature = signature
 
         let types = pasteboardTypes?.map(\.rawValue).joined(separator: ",") ?? "-"
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.paneDrop.hitTest capture=\(capture ? 1 : 0) " +
             "hasTransfer=\(hasTransferType ? 1 : 0) hasFileURL=\(hasFileURL ? 1 : 0) context=\(dropContext != nil ? 1 : 0) " +
             "event=\(eventType.map { String($0.rawValue) } ?? "nil") types=\(types)"

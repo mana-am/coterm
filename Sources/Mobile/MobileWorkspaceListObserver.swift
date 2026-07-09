@@ -1,9 +1,9 @@
 import Combine
-import MosaicWorkspaces
+import CotermWorkspaces
 import Foundation
 import OSLog
 
-private let mobileWorkspaceObserverLog = Logger(subsystem: "dev.mosaic", category: "mobile-workspace-observer")
+private let mobileWorkspaceObserverLog = Logger(subsystem: "dev.coterm", category: "mobile-workspace-observer")
 
 /// Watches `TabManager.tabs` (and each workspace's panels publisher) and emits
 /// `workspace.updated` to subscribed mobile clients whenever the iOS-facing
@@ -37,7 +37,7 @@ final class MobileWorkspaceListObserver {
         self.tabManager = tabManager
         self.notificationStore = notificationStore
         #if DEBUG
-        mosaicDebugLog("mobile.observer init tabs=\(tabManager.tabs.count)")
+        cotermDebugLog("mobile.observer init tabs=\(tabManager.tabs.count)")
         #endif
         attach(to: tabManager)
     }
@@ -60,7 +60,7 @@ final class MobileWorkspaceListObserver {
             .sink { [weak self] tabs in
                 guard let self else { return }
                 #if DEBUG
-                mosaicDebugLog("mobile.observer tabs sink fired count=\(tabs.count)")
+                cotermDebugLog("mobile.observer tabs sink fired count=\(tabs.count)")
                 #endif
                 self.refreshPerWorkspaceSubscriptions(tabs: tabs)
                 self.emitIfNeeded(force: false)
@@ -208,14 +208,14 @@ final class MobileWorkspaceListObserver {
         )
         if !force, hash == lastSummaryHash {
             #if DEBUG
-            mosaicDebugLog("mobile.observer skip: hash unchanged=\(hash) tabs=\(tabManager.tabs.count)")
+            cotermDebugLog("mobile.observer skip: hash unchanged=\(hash) tabs=\(tabManager.tabs.count)")
             #endif
             return
         }
         lastSummaryHash = hash
         mobileWorkspaceObserverLog.debug("emitting workspace.updated (hash=\(hash, privacy: .public))")
         #if DEBUG
-        mosaicDebugLog("mobile.observer EMIT workspace.updated hash=\(hash) tabs=\(tabManager.tabs.count) force=\(force)")
+        cotermDebugLog("mobile.observer EMIT workspace.updated hash=\(hash) tabs=\(tabManager.tabs.count) force=\(force)")
         #endif
         MobileHostService.shared.emitEvent(topic: "workspace.updated", payload: [:])
     }

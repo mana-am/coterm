@@ -1,9 +1,9 @@
 import AppKit
-import MosaicAppKitSupportUI
-import MosaicFoundation
-import MosaicSidebar
+import CotermAppKitSupportUI
+import CotermFoundation
+import CotermSidebar
 import SwiftUI
-import MosaicSettings
+import CotermSettings
 
 /// Collapsible group header that doubles as the anchor workspace row.
 struct SidebarWorkspaceGroupHeaderView: View, Equatable {
@@ -62,7 +62,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
     let shortcutHintXOffset: Double
     let shortcutHintYOffset: Double
     let fontScale: CGFloat
-    let cwdContextMenuItems: [MosaicResolvedConfigContextMenuItem]
+    let cwdContextMenuItems: [CotermResolvedConfigContextMenuItem]
     let newWorkspacePlacement: WorkspaceGroupNewPlacement?
     let rowSpacing: CGFloat
     let isFirstRow: Bool
@@ -73,7 +73,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
     let onToggleCollapsed: () -> Void
     let onFocusAnchor: () -> Void
     let onTapPlus: () -> Void
-    let onRunResolvedItem: (MosaicResolvedConfigMenuAction) -> Void
+    let onRunResolvedItem: (CotermResolvedConfigMenuAction) -> Void
     let onRename: () -> Void
     let onTogglePinned: () -> Void
     let onMarkRead: () -> Void
@@ -117,7 +117,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
     var body: some View {
         HStack(spacing: 4) {
             if isPinned {
-                MosaicSystemSymbolImage(
+                CotermSystemSymbolImage(
                     magnified: "pin.fill",
                     pointSize: metrics.pinnedIconFontSize,
                     weight: .semibold
@@ -127,7 +127,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
                 .safeHelp(pinnedGroupTooltip)
                 .accessibilityLabel(Text(pinnedGroupTooltip))
             }
-            MosaicSystemSymbolImage(
+            CotermSystemSymbolImage(
                 systemName: isCollapsed ? "chevron.right" : "chevron.down",
                 pointSize: metrics.chevronFontSize,
                 weight: .semibold,
@@ -147,7 +147,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
                 )
 
             HStack(spacing: 6) {
-                MosaicSystemSymbolImage(
+                CotermSystemSymbolImage(
                     systemName: displayedIconSymbol,
                     pointSize: metrics.iconFontSize,
                     weight: .semibold,
@@ -157,13 +157,13 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
                     .frame(width: metrics.iconFrame, height: metrics.iconFrame)
                     .accessibilityHidden(true)
                 Text(name)
-                    .mosaicFont(size: metrics.nameFontSize, weight: .medium)
+                    .cotermFont(size: metrics.nameFontSize, weight: .medium)
                     .foregroundStyle(isAnchorActive ? Color.primary : Color.primary.opacity(0.9))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 if anchorUnreadCount > 0 {
                     Text("\(anchorUnreadCount)")
-                        .mosaicFont(size: metrics.unreadFontSize, weight: .semibold)
+                        .cotermFont(size: metrics.unreadFontSize, weight: .semibold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, metrics.unreadHorizontalPadding)
                         .padding(.vertical, metrics.unreadVerticalPadding)
@@ -189,7 +189,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
                 shortcutHintModeActive: showsShortcutHint
             )
             TrackedButton("sidebarworkspacegroupheaderview_button_191", action: onTapPlus) {
-                MosaicSystemSymbolImage(
+                CotermSystemSymbolImage(
                     systemName: "plus",
                     pointSize: metrics.plusFontSize,
                     weight: .medium,

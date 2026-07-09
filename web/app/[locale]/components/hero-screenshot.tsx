@@ -20,7 +20,7 @@ export function HeroScreenshot() {
           channel, so the shadow hugs the real window corners. */}
       <Image
         src={landingImage}
-        alt="mosaic terminal app screenshot"
+        alt="coterm terminal app screenshot"
         priority
         quality={85}
         // The screenshot caps at 90rem (1440px) wide and is full-width below

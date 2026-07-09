@@ -1,5 +1,5 @@
 import AppKit
-import MosaicTerminal
+import Coterminal
 
 final class GhosttyPassthroughVisualEffectView: NSVisualEffectView {
     override var acceptsFirstResponder: Bool { false }

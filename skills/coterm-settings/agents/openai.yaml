@@ -1,0 +1,4 @@
+interface:
+  display_name: "coterm Settings"
+  short_description: "Inspect, edit, validate, and reload coterm.json settings."
+  default_prompt: "Use this skill to change coterm settings safely: map user-facing preferences to coterm.json paths, edit with the bundled helper, validate recognized keys, and rely on coterm's live config reload."

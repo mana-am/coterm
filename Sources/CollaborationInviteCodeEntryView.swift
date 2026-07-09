@@ -1,5 +1,5 @@
 import AppKit
-import MosaicCollaboration
+import CotermCollaboration
 
 @MainActor
 final class CollaborationInviteCodeEntryView: NSView, NSTextFieldDelegate {
@@ -244,7 +244,7 @@ final class CollaborationInviteCodeEntryView: NSView, NSTextFieldDelegate {
         restartCaretBlink()
     }
 
-    private static let caretBlinkAnimationKey = "mosaic.inviteCode.caretBlink"
+    private static let caretBlinkAnimationKey = "coterm.inviteCode.caretBlink"
 
     private func restartCaretBlink() {
         guard let layer = caret.layer else { return }

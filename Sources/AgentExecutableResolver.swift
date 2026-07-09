@@ -1,4 +1,4 @@
-import MosaicSettings
+import CotermSettings
 import Foundation
 
 struct AgentExecutableResolver {
@@ -40,8 +40,8 @@ struct AgentExecutableResolver {
             let candidatePath = candidateURL.path
             guard fileManager.isExecutableFile(atPath: candidatePath) else { continue }
             guard !isBundledProviderExecutable(candidateURL) else { continue }
-            guard !isKnownMosaicClaudeCommandShim(candidateURL, provider: provider) else { continue }
-            guard !isKnownMosaicClaudeWrapper(candidateURL, provider: provider) else { continue }
+            guard !isKnownCotermClaudeCommandShim(candidateURL, provider: provider) else { continue }
+            guard !isKnownCotermClaudeWrapper(candidateURL, provider: provider) else { continue }
 
             return launchPlan(provider: provider, executableURL: candidateURL, searchDirectories: searchDirectories)
         }
@@ -53,7 +53,7 @@ struct AgentExecutableResolver {
         )
     }
 
-    static func mosaicConfiguredExecutablePaths(defaults: UserDefaults = .standard) -> [AgentSessionProviderID: String] {
+    static func cotermConfiguredExecutablePaths(defaults: UserDefaults = .standard) -> [AgentSessionProviderID: String] {
         guard let claudePath = AgentIntegrationSettingsStore(defaults: defaults).customClaudePath else {
             return [:]
         }
@@ -181,8 +181,8 @@ struct AgentExecutableResolver {
               !isDirectory.boolValue,
               fileManager.isExecutableFile(atPath: candidateURL.path),
               !isBundledProviderExecutable(candidateURL),
-              !isKnownMosaicClaudeCommandShim(candidateURL, provider: provider),
-              !isKnownMosaicClaudeWrapper(candidateURL, provider: provider) else {
+              !isKnownCotermClaudeCommandShim(candidateURL, provider: provider),
+              !isKnownCotermClaudeWrapper(candidateURL, provider: provider) else {
             return nil
         }
         return candidateURL
@@ -197,28 +197,28 @@ struct AgentExecutableResolver {
            standardized == bundleBin {
             return true
         }
-        if Self.isMosaicAppBundleResourceBinDirectory(standardized) {
+        if Self.isCotermAppBundleResourceBinDirectory(standardized) {
             return true
         }
         return false
     }
 
-    private func isKnownMosaicClaudeCommandShim(_ url: URL, provider: AgentSessionProviderID) -> Bool {
+    private func isKnownCotermClaudeCommandShim(_ url: URL, provider: AgentSessionProviderID) -> Bool {
         guard provider == .claude else { return false }
         let candidatePath = url.standardizedFileURL.path
-        if let shimPath = environment["MOSAIC_CLAUDE_WRAPPER_SHIM"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+        if let shimPath = environment["COTERM_CLAUDE_WRAPPER_SHIM"]?.trimmingCharacters(in: .whitespacesAndNewlines),
            !shimPath.isEmpty,
            candidatePath == URL(fileURLWithPath: shimPath, isDirectory: false).standardizedFileURL.path {
             return true
         }
 
         let shimRoots: [String?] = [
-            environment["MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT"],
+            environment["COTERM_CLAUDE_WRAPPER_SHIM_ROOT"],
             URL(fileURLWithPath: environment["TMPDIR"] ?? NSTemporaryDirectory(), isDirectory: true)
-                .appendingPathComponent("mosaic-cli-shims", isDirectory: true)
+                .appendingPathComponent("coterm-cli-shims", isDirectory: true)
                 .standardizedFileURL
                 .path,
-            "/tmp/mosaic-cli-shims",
+            "/tmp/coterm-cli-shims",
         ]
         for shimRoot in shimRoots {
             guard let shimRoot = shimRoot?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -235,41 +235,41 @@ struct AgentExecutableResolver {
 
     private func isBundledProviderExecutable(_ url: URL) -> Bool {
         let path = url.standardizedFileURL.path
-        if Self.isMosaicAppBundleResourceBinChild(path) {
+        if Self.isCotermAppBundleResourceBinChild(path) {
             return true
         }
         guard let resourcePath = bundleResourceURL?.standardizedFileURL.path else { return false }
         return path.hasPrefix(resourcePath + "/")
     }
 
-    private func isKnownMosaicClaudeWrapper(_ url: URL, provider: AgentSessionProviderID) -> Bool {
+    private func isKnownCotermClaudeWrapper(_ url: URL, provider: AgentSessionProviderID) -> Bool {
         guard provider == .claude,
               let data = fileManager.contents(atPath: url.path),
               let prefix = String(data: data.prefix(512), encoding: .utf8) else {
             return false
         }
-        return prefix.contains("mosaic claude wrapper - injects hooks and session tracking")
+        return prefix.contains("coterm claude wrapper - injects hooks and session tracking")
     }
 
-    private static func isMosaicAppBundleResourceBinDirectory(_ path: String) -> Bool {
-        mosaicAppBundleResourceBinComponentIndex(path).map { index in
+    private static func isCotermAppBundleResourceBinDirectory(_ path: String) -> Bool {
+        cotermAppBundleResourceBinComponentIndex(path).map { index in
             URL(fileURLWithPath: path, isDirectory: true).standardizedFileURL.pathComponents.count == index + 4
         } ?? false
     }
 
-    private static func isMosaicAppBundleResourceBinChild(_ path: String) -> Bool {
-        mosaicAppBundleResourceBinComponentIndex(path).map { index in
+    private static func isCotermAppBundleResourceBinChild(_ path: String) -> Bool {
+        cotermAppBundleResourceBinComponentIndex(path).map { index in
             URL(fileURLWithPath: path, isDirectory: false).standardizedFileURL.pathComponents.count > index + 4
         } ?? false
     }
 
-    private static func mosaicAppBundleResourceBinComponentIndex(_ path: String) -> Int? {
+    private static func cotermAppBundleResourceBinComponentIndex(_ path: String) -> Int? {
         let components = URL(fileURLWithPath: path).standardizedFileURL.pathComponents
         guard components.count >= 4 else { return nil }
         for index in components.indices {
             let lowercased = components[index].lowercased()
             guard components[index].hasSuffix(".app"),
-                  lowercased.contains("mosaic") || lowercased.contains("mosaic"),
+                  lowercased.contains("coterm") || lowercased.contains("coterm"),
                   components.indices.contains(index + 3),
                   components[index + 1] == "Contents",
                   components[index + 2] == "Resources",

@@ -460,7 +460,7 @@ test("admin session index requires a token and lists recorded codes", async () =
   const listResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -497,7 +497,7 @@ test("admin session detail reports active metadata and durable object id", async
   const response = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions/nxpl-xzah", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -536,7 +536,7 @@ test("admin session detail distinguishes indexed expired codes", async () => {
   const response = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions/NXPLXZAH", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -565,7 +565,7 @@ test("admin session detail reports unknown non-indexed codes", async () => {
   const response = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions/UNKNOWN1", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -593,7 +593,7 @@ test("admin session detail rejects malformed codes before routing", async () => 
   const response = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions/abc", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -618,14 +618,14 @@ test("admin session index is hidden when disabled or unbound", async () => {
   const noTokenResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     noTokenEnv
   );
   const noIndexResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     noIndexEnv
   );
@@ -648,7 +648,7 @@ test("admin session index forwards pagination query parameters", async () => {
   const listResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions?limit=2&cursor=session%3A00000000", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -672,13 +672,13 @@ test("deleted index records disappear from admin session list", async () => {
     COLLABORATION_ADMIN_TOKEN: "secret",
   } satisfies CollaborationWorkerEnv;
 
-  await index.fetch(new Request("https://mosaic-collaboration-index.local/sessions/NXPLXZAH", {
+  await index.fetch(new Request("https://coterm-collaboration-index.local/sessions/NXPLXZAH", {
     method: "DELETE",
   }));
   const listResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );

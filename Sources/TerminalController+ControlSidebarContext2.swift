@@ -1,8 +1,8 @@
-import MosaicControlSocket
-import MosaicRemoteSession
+import CotermControlSocket
+import CotermRemoteSession
 import Foundation
-import MosaicWorkspaces
-import MosaicSidebar
+import CotermWorkspaces
+import CotermSidebar
 
 /// The live-app half of the v1 sidebar telemetry/report commands
 /// (`report_git_branch` / `report_pr` / `report_ports` / `report_pwd` /

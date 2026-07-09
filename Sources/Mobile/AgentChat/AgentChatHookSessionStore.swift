@@ -1,8 +1,8 @@
-import MosaicAgentChat
+import CotermAgentChat
 import Foundation
 
-/// Reads the per-agent hook session stores (`~/.mosaicterm/<agent>-hook-sessions.json`)
-/// the `mosaic hooks` CLI maintains, yielding terminal bindings and transcript
+/// Reads the per-agent hook session stores (`~/.coterm/<agent>-hook-sessions.json`)
+/// the `coterm hooks` CLI maintains, yielding terminal bindings and transcript
 /// paths for agent sessions.
 ///
 /// Mirrors `FeedJumpResolver.lookup`'s tolerant parsing (nested `sessions`
@@ -13,9 +13,9 @@ struct AgentChatHookSessionStore: Sendable {
     struct Entry: Sendable {
         /// The agent's session identifier (the store key).
         let sessionID: String
-        /// Owning mosaic workspace UUID string.
+        /// Owning coterm workspace UUID string.
         let workspaceID: String?
-        /// Hosting mosaic terminal surface UUID string.
+        /// Hosting coterm terminal surface UUID string.
         let surfaceID: String?
         /// The session's working directory.
         let workingDirectory: String?
@@ -32,7 +32,7 @@ struct AgentChatHookSessionStore: Sendable {
     /// Creates a store reader.
     ///
     /// - Parameter homeDirectory: The home directory containing
-    ///   `.mosaicterm/`; injectable for tests.
+    ///   `.coterm/`; injectable for tests.
     init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) {
         self.homeDirectory = homeDirectory
     }
@@ -44,7 +44,7 @@ struct AgentChatHookSessionStore: Sendable {
     /// - Returns: All entries, or empty when the store is absent/malformed.
     func entries(agentSource: String) -> [Entry] {
         let file = homeDirectory
-            .appendingPathComponent(".mosaicterm", isDirectory: true)
+            .appendingPathComponent(".coterm", isDirectory: true)
             .appendingPathComponent("\(agentSource)-hook-sessions.json", isDirectory: false)
         guard let data = try? Data(contentsOf: file),
               let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {

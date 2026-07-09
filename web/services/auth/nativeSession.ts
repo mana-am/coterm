@@ -23,7 +23,7 @@ export type NativeSessionClaims = {
 export type NativeSessionTeamWorkspace = {
   id: string;
   workspaceType: "team" | null;
-  mosaicPlan: "hobby" | "team" | null;
+  cotermPlan: "hobby" | "team" | null;
   useType: "personal" | "commercial" | null;
   billingStatus: "trial" | "active" | "past_due" | "exempt" | null;
   vmBillingPlanId: string | null;
@@ -70,7 +70,7 @@ export function refreshNativeSessionTokenPair(refreshToken: string): NativeSessi
 
 export function verifyNativeAuthToken(token: string): NativeSessionClaims | null {
   const parts = token.split(".");
-  if (parts.length !== 3 || parts[0] !== "mosaicv1") return null;
+  if (parts.length !== 3 || parts[0] !== "cotermv1") return null;
   const [, payloadPart, signaturePart] = parts;
   const expectedSignature = signature(payloadPart);
   if (!constantTimeEqual(signaturePart, expectedSignature)) return null;
@@ -111,7 +111,7 @@ function claimsFor(
 
 function signClaims(claims: NativeSessionClaims): string {
   const payload = Buffer.from(JSON.stringify(claims)).toString("base64url");
-  return `mosaicv1.${payload}.${signature(payload)}`;
+  return `cotermv1.${payload}.${signature(payload)}`;
 }
 
 function signature(payload: string): string {
@@ -119,7 +119,7 @@ function signature(payload: string): string {
 }
 
 function signingSecret(): string {
-  return env.MOSAIC_NATIVE_AUTH_SECRET ?? env.CLERK_SECRET_KEY;
+  return env.COTERM_NATIVE_AUTH_SECRET ?? env.CLERK_SECRET_KEY;
 }
 
 function constantTimeEqual(a: string, b: string): boolean {
@@ -169,7 +169,7 @@ function isValidTeamWorkspace(value: NativeSessionTeamWorkspace): boolean {
     typeof value.id === "string" &&
     value.id.length > 0 &&
     (value.workspaceType === null || value.workspaceType === "team") &&
-    (value.mosaicPlan === null || value.mosaicPlan === "hobby" || value.mosaicPlan === "team") &&
+    (value.cotermPlan === null || value.cotermPlan === "hobby" || value.cotermPlan === "team") &&
     (value.useType === null || value.useType === "personal" || value.useType === "commercial") &&
     (value.billingStatus === null ||
       value.billingStatus === "trial" ||

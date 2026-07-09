@@ -17,7 +17,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from mosaic import mosaic
+from coterm import coterm
 
 
 def _bundle_id(app_path: Path) -> str:
@@ -34,7 +34,7 @@ def _bundle_id(app_path: Path) -> str:
 
 def _snapshot_path(bundle_id: str, suffix: str = "") -> Path:
     safe_bundle = re.sub(r"[^A-Za-z0-9._-]", "_", bundle_id)
-    return Path.home() / "Library/Application Support/mosaic" / f"session-{safe_bundle}{suffix}.json"
+    return Path.home() / "Library/Application Support/coterm" / f"session-{safe_bundle}{suffix}.json"
 
 
 def _socket_reachable(socket_path: Path) -> bool:
@@ -72,7 +72,7 @@ def _wait_for_socket_closed(socket_path: Path, timeout: float = 20.0) -> None:
 
 
 def _kill_existing(app_path: Path) -> None:
-    exe = app_path / "Contents" / "MacOS" / "Mosaic DEV"
+    exe = app_path / "Contents" / "MacOS" / "Coterm DEV"
     subprocess.run(["pkill", "-f", str(exe)], capture_output=True, text=True)
     time.sleep(1.0)
 
@@ -85,8 +85,8 @@ def _launch(app_path: Path, socket_path: Path, env_overrides: dict[str, str] | N
 
     command = ["open", "-na", str(app_path)]
     full_env = dict(env_overrides or {})
-    full_env["MOSAIC_SOCKET_PATH"] = str(socket_path)
-    full_env["MOSAIC_ALLOW_SOCKET_OVERRIDE"] = "1"
+    full_env["COTERM_SOCKET_PATH"] = str(socket_path)
+    full_env["COTERM_ALLOW_SOCKET_OVERRIDE"] = "1"
     for key, value in full_env.items():
         command.extend(["--env", f"{key}={value}"])
     subprocess.run(command, check=True)
@@ -109,15 +109,15 @@ def _quit(bundle_id: str, socket_path: Path) -> None:
     time.sleep(0.8)
 
 
-def _connect(socket_path: Path) -> mosaic:
-    client = mosaic(socket_path=str(socket_path))
+def _connect(socket_path: Path) -> coterm:
+    client = coterm(socket_path=str(socket_path))
     client.connect()
     if not client.ping():
         raise RuntimeError("ping failed")
     return client
 
 
-def _read_scrollback(client: mosaic) -> str:
+def _read_scrollback(client: coterm) -> str:
     return client._send_command("read_screen --scrollback")
 
 
@@ -135,7 +135,7 @@ def _write_fake_codex(fake_bin_dir: Path) -> None:
     fake_codex = fake_bin_dir / "codex"
     fake_codex.write_text(
         "#!/bin/sh\n"
-        "printf 'MOSAIC_FAKE_CODEX_RESUME:%s\\n' \"$*\"\n",
+        "printf 'COTERM_FAKE_CODEX_RESUME:%s\\n' \"$*\"\n",
         encoding="utf-8",
     )
     fake_codex.chmod(0o755)
@@ -159,28 +159,28 @@ def _write_hook_state(path: Path, session_id: str, workspace_id: str, surface_id
 
 
 def main() -> int:
-    app_path_str = os.environ.get("MOSAIC_APP_PATH", "").strip()
+    app_path_str = os.environ.get("COTERM_APP_PATH", "").strip()
     if not app_path_str:
-        print("SKIP: set MOSAIC_APP_PATH to a built Mosaic DEV .app path")
+        print("SKIP: set COTERM_APP_PATH to a built Coterm DEV .app path")
         return 0
     app_path = Path(app_path_str)
     if not app_path.exists():
-        print(f"SKIP: MOSAIC_APP_PATH does not exist: {app_path}")
+        print(f"SKIP: COTERM_APP_PATH does not exist: {app_path}")
         return 0
 
-    cli_path = app_path / "Contents" / "Resources" / "bin" / "mosaic"
+    cli_path = app_path / "Contents" / "Resources" / "bin" / "coterm"
     if not cli_path.exists():
-        print(f"SKIP: bundled mosaic CLI not found at {cli_path}")
+        print(f"SKIP: bundled coterm CLI not found at {cli_path}")
         return 0
 
     bundle_id = _bundle_id(app_path)
-    socket_path = Path(f"/tmp/mosaic-restore-session-codex-{bundle_id.replace('.', '-')}.sock")
+    socket_path = Path(f"/tmp/coterm-restore-session-codex-{bundle_id.replace('.', '-')}.sock")
     snapshot = _snapshot_path(bundle_id)
     previous_snapshot = _snapshot_path(bundle_id, suffix="-previous")
 
     failures: list[str] = []
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-restore-session-codex-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-restore-session-codex-") as td:
         fake_bin_dir = Path(td) / "bin"
         hook_state_dir = Path(td) / "hook-state"
         hook_state = hook_state_dir / "codex-hook-sessions.json"
@@ -188,7 +188,7 @@ def main() -> int:
         launch_path = f"{fake_bin_dir}:{os.environ.get('PATH', '')}"
         launch_env = {
             "PATH": launch_path,
-            "MOSAIC_AGENT_HOOK_STATE_DIR": str(hook_state_dir),
+            "COTERM_AGENT_HOOK_STATE_DIR": str(hook_state_dir),
         }
 
         _kill_existing(app_path)
@@ -227,7 +227,7 @@ def main() -> int:
                 socket_path,
                 env_overrides={
                     **launch_env,
-                    "MOSAIC_DISABLE_SESSION_RESTORE": "1",
+                    "COTERM_DISABLE_SESSION_RESTORE": "1",
                 },
             )
             client = _connect(socket_path)
@@ -241,8 +241,8 @@ def main() -> int:
                 time.sleep(9.5)
 
                 restore_env = dict(os.environ)
-                restore_env["MOSAIC_SOCKET_PATH"] = str(socket_path)
-                restore_env["MOSAIC_AGENT_HOOK_STATE_DIR"] = str(hook_state_dir)
+                restore_env["COTERM_SOCKET_PATH"] = str(socket_path)
+                restore_env["COTERM_AGENT_HOOK_STATE_DIR"] = str(hook_state_dir)
                 restore_proc = subprocess.run(
                     [str(cli_path), "restore-session"],
                     capture_output=True,
@@ -258,7 +258,7 @@ def main() -> int:
                 elif restore_proc.stdout.strip() != "OK":
                     failures.append(f"unexpected restore-session stdout: {restore_proc.stdout!r}")
 
-                marker = "MOSAIC_FAKE_CODEX_RESUME:resume codex-session-restore-2923"
+                marker = "COTERM_FAKE_CODEX_RESUME:resume codex-session-restore-2923"
 
                 def restored() -> bool:
                     workspaces = client.list_workspaces()

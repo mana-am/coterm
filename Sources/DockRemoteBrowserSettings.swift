@@ -1,5 +1,5 @@
 import Foundation
-import MosaicCore
+import CotermCore
 
 /// Remote-workspace browser settings the Dock forwards to `BrowserPanel`, so
 /// Dock browsers route through the same remote proxy / website-data store as

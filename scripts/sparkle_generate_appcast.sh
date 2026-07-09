@@ -16,8 +16,8 @@ if [[ -z "${SPARKLE_PRIVATE_KEY:-}" ]]; then
 fi
 
 SPARKLE_VERSION="${SPARKLE_VERSION:-2.8.1}"
-DOWNLOAD_URL_PREFIX="${DOWNLOAD_URL_PREFIX:-https://download.mosaic.inc/releases/$TAG/}"
-RELEASE_NOTES_URL="${RELEASE_NOTES_URL:-https://mosaic.inc/docs/changelog}"
+DOWNLOAD_URL_PREFIX="${DOWNLOAD_URL_PREFIX:-https://download.coterm.cc/releases/$TAG/}"
+RELEASE_NOTES_URL="${RELEASE_NOTES_URL:-https://coterm.cc/docs/changelog}"
 
 work_dir="$(mktemp -d)"
 cleanup() {

@@ -1,6 +1,6 @@
-import MosaicFoundation
-import MosaicAppKitSupportUI
-import MosaicSettings
+import CotermFoundation
+import CotermAppKitSupportUI
+import CotermSettings
 import SwiftUI
 
 func titlebarShortcutHintShouldShow(
@@ -26,7 +26,7 @@ enum HeaderChromeIconStyle {
     }
 
     static func symbol(_ systemName: String) -> some View {
-        MosaicSystemSymbolImage(
+        CotermSystemSymbolImage(
             systemName: systemName,
             pointSize: RightSidebarChromeMetrics.headerIconSize,
             weight: weight
@@ -102,7 +102,7 @@ struct RightSidebarChromeBarModifier: ViewModifier {
     var leadingPadding: CGFloat
     var trailingPadding: CGFloat
     var height: CGFloat
-    @Environment(\.mosaicGlobalFontMagnificationPercent) private var globalFontPercent
+    @Environment(\.cotermGlobalFontMagnificationPercent) private var globalFontPercent
 
     func body(content: Content) -> some View {
         content
@@ -123,7 +123,7 @@ struct RightSidebarChromePillModifier: ViewModifier {
     var isHovered: Bool
     var horizontalPadding: CGFloat = RightSidebarChromeMetrics.controlHorizontalPadding
     var geometryKeyPrefix: String?
-    @Environment(\.mosaicGlobalFontMagnificationPercent) private var globalFontPercent
+    @Environment(\.cotermGlobalFontMagnificationPercent) private var globalFontPercent
 
     func body(content: Content) -> some View {
         content
@@ -355,7 +355,7 @@ struct ModeBarButton: View {
     var body: some View {
         TrackedButton("rightsidebarchromestyle_button_356", action: action) {
             HStack(spacing: 4) {
-                MosaicSystemSymbolImage(
+                CotermSystemSymbolImage(
                     systemName: item.symbolName,
                     pointSize: RightSidebarChromeControlStyle.modeIconSize,
                     weight: RightSidebarChromeControlStyle.iconWeight,
@@ -366,7 +366,7 @@ struct ModeBarButton: View {
                         isVisible: true
                     )
                 Text(item.label)
-                    .mosaicFont(
+                    .cotermFont(
                         size: RightSidebarChromeControlStyle.labelSize,
                         weight: RightSidebarChromeControlStyle.labelWeight
                     )
@@ -412,7 +412,7 @@ struct ModeBarButton: View {
     private var pendingChip: some View {
         let countText = badgeCount > 9 ? "9+" : String(badgeCount)
         return Text(countText)
-            .mosaicFont(size: 10, weight: .bold, monospacedDigit: true)
+            .cotermFont(size: 10, weight: .bold, monospacedDigit: true)
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: true)
             .foregroundColor(.orange)

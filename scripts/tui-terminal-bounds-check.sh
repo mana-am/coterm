@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -u
 
-INTERVAL="${MOSAIC_BOUNDS_TUI_INTERVAL:-1}"
-USE_ALT_SCREEN="${MOSAIC_BOUNDS_TUI_ALT_SCREEN:-1}"
+INTERVAL="${COTERM_BOUNDS_TUI_INTERVAL:-1}"
+USE_ALT_SCREEN="${COTERM_BOUNDS_TUI_ALT_SCREEN:-1}"
 HAVE_ALT_SCREEN=0
 NEEDS_DRAW=1
 
@@ -155,7 +155,7 @@ draw_frame() {
   done
 
   now="$(date '+%H:%M:%S')"
-  put_centered_line_text 3 "MOSAIC BOUNDS CHECK"
+  put_centered_line_text 3 "COTERM BOUNDS CHECK"
   put_centered_line_text 4 "rows=$ROWS cols=$COLS redraw=$now"
 
   if (( ROWS >= 10 )); then
@@ -182,7 +182,7 @@ draw() {
   printf '\033[0m\033[?7l\033[H'
 
   if (( ROWS < 6 || COLS < 24 )); then
-    printf 'MOSAIC BOUNDS CHECK\r\n'
+    printf 'COTERM BOUNDS CHECK\r\n'
     printf 'Too small: %sx%s\r\n' "$ROWS" "$COLS"
     printf 'Need 6x24 or larger.'
     return 0

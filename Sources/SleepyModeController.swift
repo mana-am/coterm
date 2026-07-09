@@ -1,11 +1,11 @@
 import AppKit
-import MosaicSettingsUI
+import CotermSettingsUI
 import IOKit.pwr_mgt
 import SwiftUI
 
 /// Owns "Sleepy Mode": a cute full-screen keep-awake screensaver. It holds
 /// IOKit power assertions so the Mac (and its display) stay awake — useful for
-/// leaving the Mac running for the mosaic iOS app — and covers every screen with
+/// leaving the Mac running for the coterm iOS app — and covers every screen with
 /// the animated scene.
 ///
 /// It is deliberately NOT a security boundary: a normal macOS app cannot make
@@ -17,7 +17,7 @@ final class SleepyModeController {
     // App-lifecycle UI/window controller: it owns NSWindows and IOKit power
     // assertions tied to the app's foreground lifetime, so a process-wide
     // instance is the right ownership boundary. This matches the established
-    // mosaic pattern for such controllers (TerminalController.shared,
+    // coterm pattern for such controllers (TerminalController.shared,
     // TaskManagerWindowController.shared, SystemWideHotkeyController.shared,
     // AboutWindowController.shared, and the *WindowController singletons). Its
     // data/service dependencies — the settings store and the power-action
@@ -116,7 +116,7 @@ final class SleepyModeController {
             backing: .buffered,
             defer: false
         )
-        window.identifier = NSUserInterfaceItemIdentifier("mosaic.sleepyMode")
+        window.identifier = NSUserInterfaceItemIdentifier("coterm.sleepyMode")
         window.isReleasedWhenClosed = false
         window.isOpaque = true
         window.backgroundColor = .black
@@ -167,7 +167,7 @@ final class SleepyModeController {
     /// In-process equivalent of `caffeinate -d -i`: keep the display awake so the
     /// screensaver stays visible, and stop the system from idle-sleeping.
     private func beginPowerAssertions() {
-        let reason = "mosaic Sleepy Mode" as CFString
+        let reason = "coterm Sleepy Mode" as CFString
         if !hasSystemAssertion {
             var id = IOPMAssertionID(0)
             if IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleSystemSleep as CFString, IOPMAssertionLevel(kIOPMAssertionLevelOn), reason, &id) == kIOReturnSuccess {

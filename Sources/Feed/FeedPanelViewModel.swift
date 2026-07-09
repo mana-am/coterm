@@ -1,5 +1,5 @@
-import MosaicFoundation
-import MosaicAgentLaunch
+import CotermFoundation
+import CotermAgentLaunch
 import Foundation
 import Observation
 import SwiftUI
@@ -68,7 +68,7 @@ struct FeedHistoryLoadMoreRow: View {
                         .frame(width: 12, height: 12)
                 }
                 Text(label)
-                    .mosaicFont(size: 11, weight: .medium)
+                    .cotermFont(size: 11, weight: .medium)
                     .foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity)

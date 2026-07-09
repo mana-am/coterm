@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Regression test: `mosaic --version` must not scan huge sibling app lists just to
+Regression test: `coterm --version` must not scan huge sibling app lists just to
 resolve optional version metadata.
 """
 
@@ -19,27 +19,27 @@ import time
 JUNK_APP_COUNT = 40000
 RSS_LIMIT_KB = 64 * 1024
 TIMEOUT_SECONDS = 10.0
-EXPECTED_STDOUT = "mosaic 9.9.9 (999)"
+EXPECTED_STDOUT = "coterm 9.9.9 (999)"
 
 
-def resolve_mosaic_cli() -> str:
-    explicit = os.environ.get("MOSAIC_CLI_BIN") or os.environ.get("MOSAIC_CLI")
+def resolve_coterm_cli() -> str:
+    explicit = os.environ.get("COTERM_CLI_BIN") or os.environ.get("COTERM_CLI")
     if explicit and os.path.exists(explicit) and os.access(explicit, os.X_OK):
         return explicit
 
     candidates: list[str] = []
-    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/mosaic")))
-    candidates.extend(glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic"))
+    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/coterm")))
+    candidates.extend(glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm"))
     candidates = [p for p in candidates if os.path.exists(p) and os.access(p, os.X_OK)]
     if candidates:
         candidates.sort(key=os.path.getmtime, reverse=True)
         return candidates[0]
 
-    in_path = shutil.which("mosaic")
+    in_path = shutil.which("coterm")
     if in_path:
         return in_path
 
-    raise RuntimeError("Unable to find mosaic CLI binary. Set MOSAIC_CLI_BIN.")
+    raise RuntimeError("Unable to find coterm CLI binary. Set COTERM_CLI_BIN.")
 
 
 def copy_runtime_frameworks(cli_path: str, fixture_contents: str) -> None:
@@ -64,19 +64,19 @@ def copy_runtime_frameworks(cli_path: str, fixture_contents: str) -> None:
 
 
 def build_fixture(root: str, cli_path: str) -> str:
-    app_path = os.path.join(root, "Mosaic.app")
+    app_path = os.path.join(root, "Coterm.app")
     contents_path = os.path.join(app_path, "Contents")
     resources_path = os.path.join(contents_path, "Resources")
     bin_path = os.path.join(resources_path, "bin")
     os.makedirs(bin_path, exist_ok=True)
 
-    fixture_cli = os.path.join(bin_path, "mosaic")
+    fixture_cli = os.path.join(bin_path, "coterm")
     shutil.copy2(cli_path, fixture_cli)
     copy_runtime_frameworks(cli_path, contents_path)
 
     info = {
-        "CFBundleExecutable": "mosaic",
-        "CFBundleIdentifier": "test.mosaic.version-memory-guard",
+        "CFBundleExecutable": "coterm",
+        "CFBundleIdentifier": "test.coterm.version-memory-guard",
         "CFBundlePackageType": "APPL",
         "CFBundleShortVersionString": "9.9.9",
         "CFBundleVersion": "999",
@@ -94,7 +94,7 @@ def build_fixture(root: str, cli_path: str) -> str:
 
 def run_with_limits(cli_path: str, *args: str) -> dict[str, object]:
     env = dict(os.environ)
-    env.pop("MOSAIC_COMMIT", None)
+    env.pop("COTERM_COMMIT", None)
 
     proc = subprocess.Popen(
         ["/usr/bin/time", "-l", cli_path, *args],
@@ -145,17 +145,17 @@ def run_with_limits(cli_path: str, *args: str) -> dict[str, object]:
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-version-memory-guard-") as root:
+    with tempfile.TemporaryDirectory(prefix="coterm-version-memory-guard-") as root:
         fixture_cli = build_fixture(root, cli_path)
         result = run_with_limits(fixture_cli, "--version")
 
     if result["failure_reason"]:
-        print("FAIL: `mosaic --version` exceeded runtime guard")
+        print("FAIL: `coterm --version` exceeded runtime guard")
         print(f"reason={result['failure_reason']}")
         print(f"elapsed={result['elapsed']:.2f}s")
         print(f"peak_rss_kb={result['peak_rss_kb']}")
@@ -164,7 +164,7 @@ def main() -> int:
         return 1
 
     if result["exit_code"] != 0:
-        print("FAIL: `mosaic --version` exited non-zero")
+        print("FAIL: `coterm --version` exited non-zero")
         print(f"exit={result['exit_code']}")
         print(f"stdout={result['stdout']}")
         print(f"stderr={result['stderr']}")
@@ -177,7 +177,7 @@ def main() -> int:
         return 1
 
     print(
-        "PASS: `mosaic --version` exits within memory/time limits "
+        "PASS: `coterm --version` exits within memory/time limits "
         f"(peak_rss_kb={result['peak_rss_kb']}, elapsed={result['elapsed']:.2f}s)"
     )
     return 0

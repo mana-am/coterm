@@ -7,7 +7,7 @@ export function headersForCanonicalFetch({
 }): Headers {
   const headers = new Headers({
     accept: "text/html",
-    "x-mosaic-agent-page-variant": "canonical-html",
+    "x-coterm-agent-page-variant": "canonical-html",
   });
 
   copyRequestHeader(requestHeaders, headers, "authorization");

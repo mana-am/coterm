@@ -46,40 +46,40 @@ enum AuthEnvironment {
         registeredURLSchemes: [String],
         isDebugBuild: Bool
     ) -> String {
-        if let overridden = environment["MOSAIC_AUTH_CALLBACK_SCHEME"]?
+        if let overridden = environment["COTERM_AUTH_CALLBACK_SCHEME"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !overridden.isEmpty {
             return overridden
         }
         if isDebugBuild {
-            // Untagged Debug builds register mosaic-dev:// so they can coexist
+            // Untagged Debug builds register coterm-dev:// so they can coexist
             // with the installed stable app. Tagged Debug builds use
-            // mosaic-dev-<tag>://.
-            if let tag = environment["MOSAIC_TAG"]?
+            // coterm-dev-<tag>://.
+            if let tag = environment["COTERM_TAG"]?
                 .trimmingCharacters(in: .whitespacesAndNewlines),
                !tag.isEmpty,
                let schemeTag = sanitizedCallbackSchemeTag(tag) {
-                return "mosaic-dev-\(schemeTag)"
+                return "coterm-dev-\(schemeTag)"
             }
             if let registered = registeredURLSchemes
                 .map({ $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() })
-                .first(where: { $0.hasPrefix("mosaic-dev-") }) {
+                .first(where: { $0.hasPrefix("coterm-dev-") }) {
                 return registered
             }
             if let schemeTag = debugSchemeTag(fromBundleIdentifier: bundleIdentifier) {
-                return "mosaic-dev-\(schemeTag)"
+                return "coterm-dev-\(schemeTag)"
             }
-            return "mosaic-dev"
+            return "coterm-dev"
         }
-        if bundleIdentifier == "mosaic.com.emergent.app.nightly" {
-            return "mosaic-nightly"
+        if bundleIdentifier == "coterm.com.emergent.app.nightly" {
+            return "coterm-nightly"
         }
-        return "mosaic"
+        return "coterm"
     }
 
     private static func debugSchemeTag(fromBundleIdentifier bundleIdentifier: String?) -> String? {
         guard let bundleIdentifier else { return nil }
-        let prefix = "mosaic.com.emergent.app.debug."
+        let prefix = "coterm.com.emergent.app.debug."
         guard bundleIdentifier.hasPrefix(prefix) else { return nil }
         let suffix = String(bundleIdentifier.dropFirst(prefix.count))
         return sanitizedCallbackSchemeTag(suffix)
@@ -95,7 +95,7 @@ enum AuthEnvironment {
     }
 
     private static func isDebugBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
-        bundleIdentifier?.hasPrefix("mosaic.com.emergent.app.debug") == true
+        bundleIdentifier?.hasPrefix("coterm.com.emergent.app.debug") == true
     }
 
     static func sanitizedCallbackSchemeTag(_ rawTag: String) -> String? {
@@ -130,50 +130,50 @@ enum AuthEnvironment {
 
     static var websiteOrigin: URL {
         resolvedURL(
-            environmentKey: "MOSAIC_WWW_ORIGIN",
-            fallback: "https://mosaic.inc"
+            environmentKey: "COTERM_WWW_ORIGIN",
+            fallback: "https://coterm.cc"
         )
     }
 
     static var signInWebsiteOrigin: URL {
         canonicalizedLoopbackURL(
             resolvedURL(
-                environmentKey: "MOSAIC_AUTH_WWW_ORIGIN",
+                environmentKey: "COTERM_AUTH_WWW_ORIGIN",
                 fallback: defaultAuthWebOrigin
             )
         )
     }
 
     static var apiBaseURL: URL {
-        // Process env wins; then `~/.mosaic-dev.env` (DEBUG only) so a
+        // Process env wins; then `~/.coterm-dev.env` (DEBUG only) so a
         // click-launched tagged build can point at a self-hosted backend without
         // a shell; then the production default.
-        let fallback = devOverride(key: "MOSAIC_API_BASE_URL") ?? defaultAPIBaseURL
+        let fallback = devOverride(key: "COTERM_API_BASE_URL") ?? defaultAPIBaseURL
         return canonicalizedLoopbackURL(
             resolvedURL(
-                environmentKey: "MOSAIC_API_BASE_URL",
+                environmentKey: "COTERM_API_BASE_URL",
                 fallback: fallback
             )
         )
     }
 
     /// Offline collaboration "guest" identity. When set (process env or
-    /// `~/.mosaic-dev.env`), the app skips the browser sign-in for collaboration
+    /// `~/.coterm-dev.env`), the app skips the browser sign-in for collaboration
     /// and uses this id directly — no account, fully offline. Empty/absent → the
     /// normal signed-in flow is used.
     static var collaborationGuestID: String? {
-        collaborationGuestValue("MOSAIC_COLLAB_GUEST_ID")
+        collaborationGuestValue("COTERM_COLLAB_GUEST_ID")
     }
 
     /// Optional avatar (image URL) shown next to the guest id.
     static var collaborationGuestAvatarURL: String? {
-        collaborationGuestValue("MOSAIC_COLLAB_GUEST_AVATAR")
+        collaborationGuestValue("COTERM_COLLAB_GUEST_AVATAR")
     }
 
     /// Override for the collaboration relay WebSocket base URL. Lets a self-hosted
     /// deployment (or local dev) use its own relay instead of the built-in default.
     static var collaborationRelayURLOverride: String? {
-        collaborationGuestValue("MOSAIC_COLLABORATION_RELAY_URL")
+        collaborationGuestValue("COTERM_COLLABORATION_RELAY_URL")
     }
 
     private static func collaborationGuestValue(_ key: String) -> String? {
@@ -185,34 +185,34 @@ enum AuthEnvironment {
         return devOverride(key: key)
     }
 
-    /// Base URL for the mosaic-owned cloud VM backend (`/api/vm`).
+    /// Base URL for the coterm-owned cloud VM backend (`/api/vm`).
     ///
     /// Resolution order (first hit wins):
-    ///   1. process env `MOSAIC_VM_API_BASE_URL` — works when the app is launched from a shell.
-    ///   2. `~/.mosaic-dev.env` file `MOSAIC_VM_API_BASE_URL=...` line — works regardless of how
+    ///   1. process env `COTERM_VM_API_BASE_URL` — works when the app is launched from a shell.
+    ///   2. `~/.coterm-dev.env` file `COTERM_VM_API_BASE_URL=...` line — works regardless of how
     ///      the app was launched (click-through, Dock, `open`, etc.). Only honored in DEBUG.
-    ///   3. VM backend dev origin (`http://localhost:$MOSAIC_PORT` in Debug, mosaic.inc in Release).
+    ///   3. VM backend dev origin (`http://localhost:$COTERM_PORT` in Debug, coterm.cc in Release).
     static var vmAPIBaseURL: URL {
-        if let overridden = ProcessInfo.processInfo.environment["MOSAIC_VM_API_BASE_URL"]?
+        if let overridden = ProcessInfo.processInfo.environment["COTERM_VM_API_BASE_URL"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !overridden.isEmpty,
            let url = URL(string: overridden) {
             return canonicalizedLoopbackURL(url)
         }
-        if let override = devOverride(key: "MOSAIC_VM_API_BASE_URL"),
+        if let override = devOverride(key: "COTERM_VM_API_BASE_URL"),
            let url = URL(string: override) {
             return canonicalizedLoopbackURL(url)
         }
         return canonicalizedLoopbackURL(URL(string: defaultVMAPIOrigin)!)
     }
 
-    /// Look up `key=value` in `~/.mosaic-dev.env` for the DEBUG build. Returns nil in Release.
+    /// Look up `key=value` in `~/.coterm-dev.env` for the DEBUG build. Returns nil in Release.
     /// Kept tiny on purpose — this is a "drop a file, restart the app, it picks up" override,
     /// not a real config system.
     private static func devOverride(key: String) -> String? {
         #if DEBUG
         guard let home = ProcessInfo.processInfo.environment["HOME"] else { return nil }
-        let path = (home as NSString).appendingPathComponent(".mosaic-dev.env")
+        let path = (home as NSString).appendingPathComponent(".coterm-dev.env")
         guard let data = try? String(contentsOfFile: path, encoding: .utf8) else { return nil }
         for raw in data.split(separator: "\n") {
             let line = raw.trimmingCharacters(in: .whitespaces)
@@ -230,12 +230,12 @@ enum AuthEnvironment {
         #endif
     }
 
-    private static var mosaicPort: String {
-        resolvedMosaicPort(environment: ProcessInfo.processInfo.environment)
+    private static var cotermPort: String {
+        resolvedCotermPort(environment: ProcessInfo.processInfo.environment)
     }
 
-    private static func resolvedMosaicPort(environment: [String: String]) -> String {
-        environmentPort("MOSAIC_PORT", environment: environment)
+    private static func resolvedCotermPort(environment: [String: String]) -> String {
+        environmentPort("COTERM_PORT", environment: environment)
             ?? environmentPort("PORT", environment: environment)
             ?? "3777"
     }
@@ -260,12 +260,12 @@ enum AuthEnvironment {
     }
 
     private static func resolvedDefaultWebOrigin(environment: [String: String]) -> String {
-        if let origin = environment["MOSAIC_WWW_ORIGIN"]?
+        if let origin = environment["COTERM_WWW_ORIGIN"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !origin.isEmpty {
             return origin
         }
-        return "https://mosaic.inc"
+        return "https://coterm.cc"
     }
 
     private static var defaultAuthWebOrigin: String {
@@ -273,41 +273,41 @@ enum AuthEnvironment {
     }
 
     private static func resolvedDefaultAuthWebOrigin(environment: [String: String]) -> String {
-        if let origin = environment["MOSAIC_AUTH_WWW_ORIGIN"]?
+        if let origin = environment["COTERM_AUTH_WWW_ORIGIN"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !origin.isEmpty {
             return origin
         }
-        return "https://dashboard.mosaic.inc"
+        return "https://dashboard.coterm.cc"
     }
 
     private static var defaultVMAPIOrigin: String {
         #if DEBUG
-        return "http://localhost:\(mosaicPort)"
+        return "http://localhost:\(cotermPort)"
         #else
-        return "https://mosaic.inc"
+        return "https://coterm.cc"
         #endif
     }
 
     private static var defaultAPIBaseURL: String {
-        if let url = ProcessInfo.processInfo.environment["MOSAIC_API_BASE_URL"]?
+        if let url = ProcessInfo.processInfo.environment["COTERM_API_BASE_URL"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !url.isEmpty {
             return url
         }
-        return "https://dashboard.mosaic.inc"
+        return "https://dashboard.coterm.cc"
     }
 
     static var stackBaseURL: URL {
         resolvedURL(
-            environmentKey: "MOSAIC_STACK_BASE_URL",
+            environmentKey: "COTERM_STACK_BASE_URL",
             fallback: "https://api.stack-auth.com"
         )
     }
 
     static var stackProjectID: String {
         let environment = ProcessInfo.processInfo.environment
-        if let projectID = environment["MOSAIC_STACK_PROJECT_ID"]?
+        if let projectID = environment["COTERM_STACK_PROJECT_ID"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !projectID.isEmpty {
             return projectID
@@ -321,7 +321,7 @@ enum AuthEnvironment {
 
     static var stackPublishableClientKey: String {
         let environment = ProcessInfo.processInfo.environment
-        if let clientKey = environment["MOSAIC_STACK_PUBLISHABLE_CLIENT_KEY"]?
+        if let clientKey = environment["COTERM_STACK_PUBLISHABLE_CLIENT_KEY"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !clientKey.isEmpty {
             return clientKey
@@ -340,7 +340,7 @@ enum AuthEnvironment {
 
     static func resolvedAfterSignInOrigin(environment: [String: String]) -> URL {
         resolvedURL(
-            environmentKey: "MOSAIC_AUTH_WWW_ORIGIN",
+            environmentKey: "COTERM_AUTH_WWW_ORIGIN",
             fallback: resolvedDefaultAuthWebOrigin(environment: environment),
             environment: environment
         )
@@ -369,7 +369,7 @@ enum AuthEnvironment {
     ) -> URL {
         // Build the after-sign-in callback URL that includes the native app return scheme.
         // The after-sign-in handler exchanges the Clerk browser session for
-        // Mosaic-native tokens, then redirects to the app callback scheme.
+        // Coterm-native tokens, then redirects to the app callback scheme.
         var afterSignInComponents = URLComponents(
             url: afterSignInOrigin.appendingPathComponent("handler/after-sign-in", isDirectory: false),
             resolvingAgainstBaseURL: false
@@ -377,7 +377,7 @@ enum AuthEnvironment {
         var nativeCallbackComponents = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)!
         if let callbackState {
             nativeCallbackComponents.queryItems = [
-                URLQueryItem(name: "mosaic_auth_state", value: callbackState),
+                URLQueryItem(name: "coterm_auth_state", value: callbackState),
             ]
         }
 
@@ -385,7 +385,7 @@ enum AuthEnvironment {
             ("native_app_return_to", nativeCallbackComponents.url!.absoluteString),
         ])
 
-        // Enter through Mosaic's native sign-in wrapper, which sets a short-lived
+        // Enter through Coterm's native sign-in wrapper, which sets a short-lived
         // server-side handoff nonce before redirecting to Clerk's /sign-in.
         var components = URLComponents(
             url: afterSignInOrigin.appendingPathComponent("handler/native-sign-in", isDirectory: false),
@@ -453,7 +453,7 @@ enum AuthEnvironment {
 ///
 /// When ``AuthEnvironment/collaborationGuestID`` is set, collaboration runs with
 /// no account and no browser sign-in: the chosen id is the identity, and the
-/// access token is a locally-minted `mosaicv1`-shaped token whose payload the
+/// access token is a locally-minted `cotermv1`-shaped token whose payload the
 /// self-hosted (open-source) control-plane decodes in `noauth` mode — it is not
 /// verified, so no shared secret is needed.
 enum CollaborationGuestSession {
@@ -466,8 +466,8 @@ enum CollaborationGuestSession {
     /// The chosen guest avatar image URL, if any.
     static var avatarURL: String? { AuthEnvironment.collaborationGuestAvatarURL }
 
-    /// Mint an unsigned `mosaicv1`-shaped access token carrying `id` as the user
-    /// id. Shape: `mosaicv1.<base64url(JSON payload)>.<placeholder-signature>`.
+    /// Mint an unsigned `cotermv1`-shaped access token carrying `id` as the user
+    /// id. Shape: `cotermv1.<base64url(JSON payload)>.<placeholder-signature>`.
     static func accessToken(id: String, now: Date = Date()) -> String {
         let iat = Int(now.timeIntervalSince1970)
         let payload: [String: Any] = [
@@ -484,6 +484,6 @@ enum CollaborationGuestSession {
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
-        return "mosaicv1.\(base64url).guest"
+        return "cotermv1.\(base64url).guest"
     }
 }

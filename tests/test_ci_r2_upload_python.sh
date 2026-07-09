@@ -12,11 +12,11 @@ python3 -m py_compile "$ROOT_DIR/scripts/ci/upload-r2-object.py"
 AWS_ACCESS_KEY_ID=AKIDEXAMPLE \
 AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY \
 AWS_DEFAULT_REGION=auto \
-MOSAIC_R2_UPLOAD_AMZ_DATE=20260102T030405Z \
+COTERM_R2_UPLOAD_AMZ_DATE=20260102T030405Z \
 python3 "$ROOT_DIR/scripts/ci/upload-r2-object.py" \
   --file "$TMP_DIR/appcast.xml" \
   --endpoint-url "https://example-account.r2.cloudflarestorage.com" \
-  --bucket mosaic-binaries \
+  --bucket coterm-binaries \
   --key nightly/appcast.xml \
   --cache-control "no-cache, no-store, must-revalidate" \
   --dry-run-json >"$TMP_DIR/request.json"
@@ -32,7 +32,7 @@ headers = {key.lower(): value for key, value in request["headers"].items()}
 authorization = headers.get("authorization", "")
 
 assert request["method"] == "PUT", request
-assert request["url"] == "https://example-account.r2.cloudflarestorage.com/mosaic-binaries/nightly/appcast.xml", request
+assert request["url"] == "https://example-account.r2.cloudflarestorage.com/coterm-binaries/nightly/appcast.xml", request
 assert headers["cache-control"] == "no-cache, no-store, must-revalidate", headers
 assert headers["x-amz-date"] == "20260102T030405Z", headers
 assert "Credential=AKIDEXAMPLE/20260102/auto/s3/aws4_request" in authorization, authorization

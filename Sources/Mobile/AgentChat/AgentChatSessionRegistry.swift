@@ -1,5 +1,5 @@
-import MosaicAgentLaunch
-import MosaicAgentChat
+import CotermAgentLaunch
+import CotermAgentChat
 import Foundation
 
 /// A coding-agent session discovered by observing the process table, with no
@@ -121,16 +121,16 @@ final class AgentChatSessionRegistry {
     /// matches (a `node …/codex` shim is named `node` and does not).
     private nonisolated static func liveAgentPID(surfaceID: String, kind: ChatAgentKind) -> Int? {
         guard let surfaceUUID = UUID(uuidString: surfaceID) else { return nil }
-        let snapshot = MosaicTopProcessSnapshot.capture(
+        let snapshot = CotermTopProcessSnapshot.capture(
             includeProcessDetails: true,
-            includeMosaicScope: true
+            includeCotermScope: true
         )
-        let rootPIDs = snapshot.pids(forMosaicSurfaceID: surfaceUUID)
+        let rootPIDs = snapshot.pids(forCotermSurfaceID: surfaceUUID)
         guard !rootPIDs.isEmpty else { return nil }
         let wantedID = kind.sourceName
         for pid in snapshot.expandedPIDs(rootPIDs: rootPIDs).sorted() {
             guard let info = snapshot.process(pid: pid),
-                  let def = MosaicTaskManagerCodingAgentDefinition.matchingDefinition(
+                  let def = CotermTaskManagerCodingAgentDefinition.matchingDefinition(
                       processName: info.name,
                       processPath: info.path,
                       arguments: [],
@@ -161,7 +161,7 @@ final class AgentChatSessionRegistry {
     }
 
     /// Folds detections in: create a record for any session not already known
-    /// (state `.idle`, from mosaic's own observation), and backfill a missing
+    /// (state `.idle`, from coterm's own observation), and backfill a missing
     /// binding (surface / workspace / transcript / pid) on an existing one.
     /// Observation only ADDS presence and bindings; it never downgrades
     /// hook-derived state.
@@ -169,7 +169,7 @@ final class AgentChatSessionRegistry {
         let now = Date()
         for session in observed {
             #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "agentChat.detect session=\(session.sessionID.prefix(8)) kind=\(session.agentKind.sourceName) "
                 + "surface=\(session.surfaceID.prefix(8)) pid=\(session.pid) "
                 + "transcript=\(session.transcriptPath != nil ? "fd" : "argv-only") "
@@ -205,18 +205,18 @@ final class AgentChatSessionRegistry {
         }
     }
 
-    /// Off-main: one entry per distinct live codex/claude session under any mosaic
+    /// Off-main: one entry per distinct live codex/claude session under any coterm
     /// surface, identity resolved without hooks.
     private nonisolated static func scanObservedAgentSessions() -> [ObservedAgentSession] {
-        let snapshot = MosaicTopProcessSnapshot.capture(
+        let snapshot = CotermTopProcessSnapshot.capture(
             includeProcessDetails: true,
-            includeMosaicScope: true
+            includeCotermScope: true
         )
         var result: [ObservedAgentSession] = []
         var seen = Set<String>()
-        for process in snapshot.mosaicScopedProcesses() {
-            guard let surfaceID = process.mosaicSurfaceID,
-                  let def = MosaicTaskManagerCodingAgentDefinition.matchingDefinition(
+        for process in snapshot.cotermScopedProcesses() {
+            guard let surfaceID = process.cotermSurfaceID,
+                  let def = CotermTaskManagerCodingAgentDefinition.matchingDefinition(
                       processName: process.name,
                       processPath: process.path,
                       arguments: [],
@@ -230,7 +230,7 @@ final class AgentChatSessionRegistry {
                 sessionID = firstUUIDLike(in: (rollout as NSString).lastPathComponent)
             }
             if sessionID == nil,
-               let argv = MosaicTopProcessSnapshot.processArgumentsAndEnvironment(for: process.pid)?.arguments {
+               let argv = CotermTopProcessSnapshot.processArgumentsAndEnvironment(for: process.pid)?.arguments {
                 sessionID = sessionIDFromArguments(argv)
             }
             guard let resolved = sessionID, !seen.contains(resolved) else { continue }
@@ -239,7 +239,7 @@ final class AgentChatSessionRegistry {
                 sessionID: resolved,
                 agentKind: ChatAgentKind(source: def.id),
                 surfaceID: surfaceID.uuidString,
-                workspaceID: process.mosaicWorkspaceID?.uuidString,
+                workspaceID: process.cotermWorkspaceID?.uuidString,
                 pid: process.pid,
                 transcriptPath: transcriptPath
             ))
@@ -422,7 +422,7 @@ final class AgentChatSessionRegistry {
         records[sessionID] = record
         #if DEBUG
         if previous.state != record.state {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "agentChat.state session=\(sessionID.prefix(8)) "
                 + "\(Self.stateLabel(previous.state))->\(Self.stateLabel(record.state)) v\(record.version)"
             )
@@ -503,7 +503,7 @@ final class AgentChatSessionRegistry {
         let sessionID = Self.normalizedSessionID(event.sessionId, source: event.source)
         let kind = ChatAgentKind(source: event.source)
         #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "agentChat.hook session=\(sessionID.prefix(8)) event=\(event.hookEventName.rawValue) "
             + "source=\(event.source) tool=\(event.toolName ?? "-") "
             + "toolInput=\(event.toolInputJSON != nil ? "yes" : "no") "
@@ -575,12 +575,12 @@ final class AgentChatSessionRegistry {
         return record
     }
 
-    /// Records, from mosaic's own authority, that it is resuming `rawSessionID`
-    /// onto `surfaceID`. Resume is ALWAYS mosaic-initiated, and some agents (codex)
+    /// Records, from coterm's own authority, that it is resuming `rawSessionID`
+    /// onto `surfaceID`. Resume is ALWAYS coterm-initiated, and some agents (codex)
     /// fire NO SessionStart hook on resume, so the hook-driven path would keep the
     /// stale pre-relaunch record: its pid is already dead, the exit watcher flips
     /// it to `.ended`, and the GUI shows it read-only with no composer (and can't
-    /// recover, since you can't submit a prompt from a hidden composer). mosaic
+    /// recover, since you can't submit a prompt from a hidden composer). coterm
     /// holds the `(session, surface)` pair at resume time, so it writes that fact
     /// directly instead of waiting for a hook the agent will never send.
     ///
@@ -599,7 +599,7 @@ final class AgentChatSessionRegistry {
         let sessionID = Self.normalizedSessionID(rawSessionID, source: source)
         let now = Date()
         #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "agentChat.resumeInitiated session=\(sessionID.prefix(8)) source=\(source) "
             + "surface=\((surfaceID ?? "nil").prefix(8)) existed=\(records[sessionID] != nil)"
         )

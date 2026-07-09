@@ -3,7 +3,7 @@ import {
   type NativeSessionClaims,
   verifyNativeAuthToken,
 } from "../auth/nativeSession";
-import { vmBillingPlanIdFromMetadata } from "../workspaces/mosaicWorkspace";
+import { vmBillingPlanIdFromMetadata } from "../workspaces/cotermWorkspace";
 
 export type AuthedUser = {
   id: string;
@@ -24,7 +24,7 @@ export type AuthedTeam = {
 };
 
 /**
- * Verify the caller's Clerk session. Accepts either a mosaic native bearer token
+ * Verify the caller's Clerk session. Accepts either a coterm native bearer token
  * minted from a Clerk browser session or a Clerk cookie session for browser
  * routes.
  *

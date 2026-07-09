@@ -1,11 +1,11 @@
-import MosaicAppKitSupportUI
-import MosaicSettings
-import MosaicSettingsUI
-import MosaicSidebar
-import MosaicSidebarInterpreterClient
-import MosaicSidebarRemoteRender
-import MosaicSwiftRender
-import MosaicSwiftRenderUI
+import CotermAppKitSupportUI
+import CotermSettings
+import CotermSettingsUI
+import CotermSidebar
+import CotermSidebarInterpreterClient
+import CotermSidebarRemoteRender
+import CotermSwiftRender
+import CotermSwiftRenderUI
 import SwiftUI
 
 struct CustomSidebarPanelView: View {
@@ -30,7 +30,7 @@ struct CustomSidebarPanelView: View {
                     CustomSidebarSurface(
                         fileURL: panel.fileURL,
                         dataContext: customSidebarDataContext(now: timeline.date),
-                        dispatch: makeMosaicSidebarActionDispatch(),
+                        dispatch: makeCotermSidebarActionDispatch(),
                         contentInsets: CustomSidebarContentInsets.zero,
                         rendersInProcess: customSidebarRenderer == .inProcess,
                         client: $renderWorkerClient

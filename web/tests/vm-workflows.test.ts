@@ -32,7 +32,7 @@ import {
   openSshEndpoint,
 } from "../services/vms/workflows";
 
-const runDbTests = process.env.MOSAIC_DB_TEST === "1";
+const runDbTests = process.env.COTERM_DB_TEST === "1";
 const dbTest = runDbTests ? test : test.skip;
 
 let sql: Sql | null = null;
@@ -40,7 +40,7 @@ let sql: Sql | null = null;
 function databaseURL() {
   const url = process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!url) {
-    throw new Error("DATABASE_URL is required when MOSAIC_DB_TEST=1");
+    throw new Error("DATABASE_URL is required when COTERM_DB_TEST=1");
   }
   return url;
 }
@@ -159,7 +159,7 @@ describe("VM Effect workflows", () => {
             provider: "e2b" as const,
             providerVmId: "provider-vm-idem-1",
             status: "running" as const,
-            image: "mosaicd-ws:test",
+            image: "cotermd-ws:test",
             createdAt: Date.now(),
           };
         }),
@@ -177,7 +177,7 @@ describe("VM Effect workflows", () => {
       billingPlanId: "free",
       maxActiveVms: 1,
       provider: "e2b",
-      image: "mosaicd-ws:test",
+      image: "cotermd-ws:test",
       imageVersion: "test-version",
       idempotencyKey: "idem-1",
     });
@@ -226,7 +226,7 @@ describe("VM Effect workflows", () => {
             transport: "ssh" as const,
             host: "vm-ssh.freestyle.sh",
             port: 22,
-            username: "provider-vm-ssh-1+mosaic",
+            username: "provider-vm-ssh-1+coterm",
             publicKeyFingerprint: null,
             credential: { kind: "password" as const, value: `token-${mintCount}` },
             identityHandle: `identity-${mintCount}`,
@@ -271,7 +271,7 @@ describe("VM Effect workflows", () => {
     await sql`truncate cloud_vm_billing_grants, cloud_vm_usage_events, cloud_vm_leases, cloud_vms restart identity cascade`;
     await sql`
       insert into cloud_vms (user_id, billing_team_id, billing_plan_id, provider, provider_vm_id, image_id, status)
-      values ('user-workflow-limit-owner', 'team-workflow-limit', 'free', 'e2b', 'provider-vm-limit-1', 'mosaicd-ws:test', 'running')
+      values ('user-workflow-limit-owner', 'team-workflow-limit', 'free', 'e2b', 'provider-vm-limit-1', 'cotermd-ws:test', 'running')
     `;
 
     let createCalls = 0;
@@ -283,7 +283,7 @@ describe("VM Effect workflows", () => {
             provider: "e2b" as const,
             providerVmId: "provider-vm-limit-2",
             status: "running" as const,
-            image: "mosaicd-ws:test",
+            image: "cotermd-ws:test",
             createdAt: Date.now(),
           };
         }),
@@ -302,7 +302,7 @@ describe("VM Effect workflows", () => {
         billingPlanId: "free",
         maxActiveVms: 1,
         provider: "e2b",
-        image: "mosaicd-ws:test",
+        image: "cotermd-ws:test",
         idempotencyKey: "limit-new-1",
       }).pipe(
         Effect.flip,
@@ -807,7 +807,7 @@ describe("VM Effect workflows", () => {
             provider: "e2b" as const,
             providerVmId: "provider-vm-concurrent-idem",
             status: "running" as const,
-            image: "mosaicd-ws:test",
+            image: "cotermd-ws:test",
             createdAt: Date.now(),
           };
         }),
@@ -825,7 +825,7 @@ describe("VM Effect workflows", () => {
       billingPlanId: "free",
       maxActiveVms: 1,
       provider: "e2b" as const,
-      image: "mosaicd-ws:test",
+      image: "cotermd-ws:test",
       idempotencyKey: "concurrent-idem-1",
     };
     const locker = postgres(databaseURL(), { max: 1 });
@@ -881,7 +881,7 @@ describe("VM Effect workflows", () => {
     await sql`truncate cloud_vm_billing_grants, cloud_vm_usage_events, cloud_vm_leases, cloud_vms restart identity cascade`;
     await sql`
       insert into cloud_vms (user_id, billing_team_id, billing_plan_id, provider, provider_vm_id, image_id, status)
-      values ('user-workflow-reuse-slot', 'team-workflow-reuse-slot', 'free', 'e2b', 'provider-vm-reuse-old', 'mosaicd-ws:test', 'running')
+      values ('user-workflow-reuse-slot', 'team-workflow-reuse-slot', 'free', 'e2b', 'provider-vm-reuse-old', 'cotermd-ws:test', 'running')
     `;
 
     let createCalls = 0;
@@ -894,7 +894,7 @@ describe("VM Effect workflows", () => {
             provider: "e2b" as const,
             providerVmId: "provider-vm-reuse-new",
             status: "running" as const,
-            image: "mosaicd-ws:test",
+            image: "cotermd-ws:test",
             createdAt: Date.now(),
           };
         }),
@@ -922,7 +922,7 @@ describe("VM Effect workflows", () => {
         billingPlanId: "free",
         maxActiveVms: 1,
         provider: "e2b",
-        image: "mosaicd-ws:test",
+        image: "cotermd-ws:test",
         idempotencyKey: "reuse-slot-new",
       }).pipe(Effect.provide(layer)),
     );
@@ -971,7 +971,7 @@ describe("VM Effect workflows", () => {
           reserveCalls += 1;
           return {
             kind: "stack_item" as const,
-            itemId: "mosaic-vm-create-credit",
+            itemId: "coterm-vm-create-credit",
             customerType: "team" as const,
             customerId: "team-workflow-credit-idem",
             amount: 1,
@@ -1020,7 +1020,7 @@ describe("VM Effect workflows", () => {
             provider: "e2b" as const,
             providerVmId: `provider-vm-credit-grant-${createCalls}`,
             status: "running" as const,
-            image: "mosaicd-ws:credit-grant",
+            image: "cotermd-ws:credit-grant",
             createdAt: Date.now(),
           };
         }),
@@ -1037,7 +1037,7 @@ describe("VM Effect workflows", () => {
       ...noOpVmBillingGateway(),
       resolveInitialCreateCreditGrant: () => ({
         kind: "stack_item" as const,
-        itemId: "mosaic-vm-create-credit",
+        itemId: "coterm-vm-create-credit",
         customerType: "team" as const,
         customerId: "team-workflow-credit-grant",
         amount: 20,
@@ -1052,7 +1052,7 @@ describe("VM Effect workflows", () => {
           reserveCalls += 1;
           return {
             kind: "stack_item" as const,
-            itemId: "mosaic-vm-create-credit",
+            itemId: "coterm-vm-create-credit",
             customerType: "team" as const,
             customerId: "team-workflow-credit-grant",
             amount: 1,
@@ -1070,7 +1070,7 @@ describe("VM Effect workflows", () => {
           billingPlanId: "free",
           maxActiveVms: 10,
           provider: "e2b",
-          image: "mosaicd-ws:credit-grant",
+          image: "cotermd-ws:credit-grant",
           idempotencyKey,
         }).pipe(Effect.provide(layer)),
       );
@@ -1084,7 +1084,7 @@ describe("VM Effect workflows", () => {
       select count(*)::int as total, count(applied_at)::int as applied
       from cloud_vm_billing_grants
       where billing_customer_id = 'team-workflow-credit-grant'
-        and item_id = 'mosaic-vm-create-credit'
+        and item_id = 'coterm-vm-create-credit'
     `;
     expect(grantRow).toEqual({ total: 1, applied: 1 });
 
@@ -1117,7 +1117,7 @@ describe("VM Effect workflows", () => {
     const billing: VmBillingGatewayShape = {
       ...noOpVmBillingGateway(),
       reserveCreate: () => Effect.fail(new VmCreateCreditsInsufficientError({
-        itemId: "mosaic-vm-create-credit",
+        itemId: "coterm-vm-create-credit",
         billingCustomerId: "team-workflow-credit-empty",
         amount: 1,
       })),
@@ -1224,7 +1224,7 @@ describe("VM Effect workflows", () => {
       ...noOpVmBillingGateway(),
       reserveCreate: () => Effect.succeed({
         kind: "stack_item" as const,
-        itemId: "mosaic-vm-create-credit",
+        itemId: "coterm-vm-create-credit",
         customerType: "team" as const,
         customerId: "team-workflow-credit-refund",
         amount: 1,
@@ -1333,7 +1333,7 @@ describe("VM Effect workflows", () => {
           transport: "ssh" as const,
           host: "vm-ssh.freestyle.sh",
           port: 22,
-          username: "provider-vm-private-2+mosaic",
+          username: "provider-vm-private-2+coterm",
           publicKeyFingerprint: null,
           credential: { kind: "password" as const, value: "token" },
           identityHandle: "identity",

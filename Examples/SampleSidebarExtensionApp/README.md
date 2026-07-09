@@ -1,6 +1,6 @@
-# MOSAIC Sample Sidebar Extension
+# COTERM Sample Sidebar Extension
 
-This is a standalone macOS app that embeds a MOSAIC sidebar ExtensionKit app extension. It is the reference project for third-party sidebar authors.
+This is a standalone macOS app that embeds a COTERM sidebar ExtensionKit app extension. It is the reference project for third-party sidebar authors.
 
 ## Build and Enable
 
@@ -8,17 +8,17 @@ This is a standalone macOS app that embeds a MOSAIC sidebar ExtensionKit app ext
 2. Select the app and extension targets.
 3. Replace the emergent.inc signing team with your own team.
 4. Replace the app and extension bundle identifiers with your own reverse-DNS identifiers.
-5. Keep the extension point identifier as `mosaic.com.emergent.app.mosaic.sidebar`.
+5. Keep the extension point identifier as `coterm.com.emergent.app.coterm.sidebar`.
 6. Build and launch the containing app once.
-7. In MOSAIC, click the puzzle button next to the sidebar help button, open Sidebar Extensions, and enable the sample.
+7. In COTERM, click the puzzle button next to the sidebar help button, open Sidebar Extensions, and enable the sample.
 8. In the same puzzle menu, choose the extension sidebar provider.
-9. In the extension sidebar header, choose `MOSAIC ExtKit Sample Sidebar` if more than one sidebar extension is enabled.
+9. In the extension sidebar header, choose `COTERM ExtKit Sample Sidebar` if more than one sidebar extension is enabled.
 
-The sample targets macOS 14+, matching MOSAIC.
+The sample targets macOS 14+, matching COTERM.
 
 ## What It Shows
 
-The extension renders real workspace data supplied by MOSAIC:
+The extension renders real workspace data supplied by COTERM:
 
 - workspace count
 - unread total
@@ -34,15 +34,15 @@ It does not use fake workspaces. The sample requests workspace metadata, surface
 ## Authoring Pattern
 
 The sample's `@main` ExtensionKit entrypoint conforms directly to
-`MosaicSidebarExtension`. App-specific state lives in `SidebarConnectionModel`. MOSAIC
+`CotermSidebarExtension`. App-specific state lives in `SidebarConnectionModel`. COTERM
 delivers workspace updates through `update(context:)`, and the model uses the typed
 host helpers for actions:
 
 ```swift
 @main
 @MainActor
-final class SampleSidebarExtension: MosaicSidebarExtension {
-    static let manifest = MosaicExtensionManifest(...)
+final class SampleSidebarExtension: CotermSidebarExtension {
+    static let manifest = CotermExtensionManifest(...)
     private let model = SidebarConnectionModel()
 
     required init() {}
@@ -51,7 +51,7 @@ final class SampleSidebarExtension: MosaicSidebarExtension {
         SampleSidebarView(model: model)
     }
 
-    func update(context: MosaicSidebarContext) {
+    func update(context: CotermSidebarContext) {
         model.update(context: context)
     }
 }
@@ -59,10 +59,10 @@ final class SampleSidebarExtension: MosaicSidebarExtension {
 @Observable
 @MainActor
 final class SidebarConnectionModel {
-    private(set) var snapshot: MosaicSidebarSnapshot?
-    private var host: MosaicSidebarHost?
+    private(set) var snapshot: CotermSidebarSnapshot?
+    private var host: CotermSidebarHost?
 
-    func update(context: MosaicSidebarContext) {
+    func update(context: CotermSidebarContext) {
         snapshot = context.snapshot
         host = context.host
     }
@@ -81,19 +81,19 @@ final class SidebarConnectionModel {
 }
 ```
 
-`MosaicSidebarExtension` owns the ExtensionKit scene and XPC connection, so extension
+`CotermSidebarExtension` owns the ExtensionKit scene and XPC connection, so extension
 authors do not define `configuration`, bind an extension point in Swift, or touch
 `NSXPCConnection`.
 
-`MosaicSidebarContext` exposes one typed host channel through `context.host`.
+`CotermSidebarContext` exposes one typed host channel through `context.host`.
 
-The manifest is the permission request MOSAIC shows to users. Request only the scopes
+The manifest is the permission request COTERM shows to users. Request only the scopes
 your sidebar actually needs.
 
 ## Troubleshooting
 
-If the extension does not appear in MOSAIC, launch the containing app once, then reopen MOSAIC's Sidebar Extensions browser.
+If the extension does not appear in COTERM, launch the containing app once, then reopen COTERM's Sidebar Extensions browser.
 
 If it appears but cannot be enabled, check signing on both the containing app and the embedded appex.
 
-If it loads but row clicks do not select workspaces, open the MOSAIC extension details popover and grant the requested action.
+If it loads but row clicks do not select workspaces, open the COTERM extension details popover and grant the requested action.

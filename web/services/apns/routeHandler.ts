@@ -10,8 +10,8 @@ export async function withApnsApiRoute(
     request,
     route,
     {
-      "mosaic.subsystem": "apns",
-      "mosaic.apns.operation": operation,
+      "coterm.subsystem": "apns",
+      "coterm.apns.operation": operation,
     } satisfies MaybeAttributes,
     async (span) => {
       try {

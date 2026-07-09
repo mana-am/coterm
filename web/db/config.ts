@@ -69,11 +69,11 @@ function missingAwsKeys(env: Env): readonly string[] {
 }
 
 function shouldUseAwsRdsIam(env: Env): boolean {
-  const requestedDriver = envValue(env, "MOSAIC_DB_DRIVER");
+  const requestedDriver = envValue(env, "COTERM_DB_DRIVER");
   if (requestedDriver) {
     if (requestedDriver === "aws-rds-iam") return true;
     if (requestedDriver === "url" || requestedDriver === "postgres-url") return false;
-    throw new Error("MOSAIC_DB_DRIVER must be url, postgres-url, or aws-rds-iam");
+    throw new Error("COTERM_DB_DRIVER must be url, postgres-url, or aws-rds-iam");
   }
 
   const hasUrl = Boolean(envValue(env, "DIRECT_DATABASE_URL") ?? envValue(env, "DATABASE_URL"));
@@ -81,7 +81,7 @@ function shouldUseAwsRdsIam(env: Env): boolean {
 }
 
 export function cloudDbConfig(env: Env = process.env): CloudDbConfig {
-  const poolMax = parsePositiveInteger(envValue(env, "MOSAIC_DB_POOL_MAX"), "MOSAIC_DB_POOL_MAX", 5);
+  const poolMax = parsePositiveInteger(envValue(env, "COTERM_DB_POOL_MAX"), "COTERM_DB_POOL_MAX", 5);
 
   if (shouldUseAwsRdsIam(env)) {
     const missing = missingAwsKeys(env);
@@ -98,9 +98,9 @@ export function cloudDbConfig(env: Env = process.env): CloudDbConfig {
       user: envValue(env, "PGUSER")!,
       database: envValue(env, "PGDATABASE")!,
       poolMax,
-      sslRejectUnauthorized: parseBoolean(envValue(env, "MOSAIC_DB_SSL_REJECT_UNAUTHORIZED"), true),
-      sslCaPem: envValue(env, "MOSAIC_DB_SSL_CA_PEM") ??
-        decodeBase64Env(envValue(env, "MOSAIC_DB_SSL_CA_PEM_BASE64"), "MOSAIC_DB_SSL_CA_PEM_BASE64"),
+      sslRejectUnauthorized: parseBoolean(envValue(env, "COTERM_DB_SSL_REJECT_UNAUTHORIZED"), true),
+      sslCaPem: envValue(env, "COTERM_DB_SSL_CA_PEM") ??
+        decodeBase64Env(envValue(env, "COTERM_DB_SSL_CA_PEM_BASE64"), "COTERM_DB_SSL_CA_PEM_BASE64"),
     };
   }
 

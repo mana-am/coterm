@@ -15,33 +15,33 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
-DOCKER_SSH_HOST = os.environ.get("MOSAIC_SSH_TEST_DOCKER_HOST", "127.0.0.1")
-DOCKER_PUBLISH_ADDR = os.environ.get("MOSAIC_SSH_TEST_DOCKER_BIND_ADDR", "127.0.0.1")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
+DOCKER_SSH_HOST = os.environ.get("COTERM_SSH_TEST_DOCKER_HOST", "127.0.0.1")
+DOCKER_PUBLISH_ADDR = os.environ.get("COTERM_SSH_TEST_DOCKER_BIND_ADDR", "127.0.0.1")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
@@ -50,7 +50,7 @@ def _run(cmd: list[str], *, env: dict[str, str] | None = None, check: bool = Tru
     proc = subprocess.run(cmd, capture_output=True, text=True, env=env, check=False)
     if check and proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"Command failed ({' '.join(cmd)}): {merged}")
+        raise cotermError(f"Command failed ({' '.join(cmd)}): {merged}")
     return proc
 
 
@@ -64,7 +64,7 @@ def _docker_available() -> bool:
 def _parse_host_port(docker_port_output: str) -> int:
     text = docker_port_output.strip()
     if not text:
-        raise mosaicError("docker port output was empty")
+        raise cotermError("docker port output was empty")
     last = text.split(":")[-1]
     return int(last)
 
@@ -101,7 +101,7 @@ def _wait_for_ssh(host: str, host_port: int, key_path: Path, timeout: float = 20
         if probe.returncode == 0 and "ready" in probe.stdout:
             return
         time.sleep(0.5)
-    raise mosaicError("Timed out waiting for SSH server in docker fixture to become ready")
+    raise cotermError("Timed out waiting for SSH server in docker fixture to become ready")
 
 
 def _find_free_loopback_port() -> int:
@@ -110,7 +110,7 @@ def _find_free_loopback_port() -> int:
         return int(sock.getsockname()[1])
 
 
-def _wait_for_proxy_conflict_status(client: mosaic, workspace_id: str, expected_local_proxy_port: int, timeout: float = 30.0) -> dict:
+def _wait_for_proxy_conflict_status(client: coterm, workspace_id: str, expected_local_proxy_port: int, timeout: float = 30.0) -> dict:
     deadline = time.time() + timeout
     last_status = {}
     while time.time() < deadline:
@@ -146,7 +146,7 @@ def _wait_for_proxy_conflict_status(client: mosaic, workspace_id: str, expected_
             return last_status
         time.sleep(0.5)
 
-    raise mosaicError(f"Remote did not reach structured proxy_unavailable status for bind conflict: {last_status}")
+    raise cotermError(f"Remote did not reach structured proxy_unavailable status for bind conflict: {last_status}")
 
 
 def main() -> int:
@@ -159,9 +159,9 @@ def main() -> int:
     fixture_dir = repo_root / "tests" / "fixtures" / "ssh-remote"
     _must(fixture_dir.is_dir(), f"Missing docker fixture directory: {fixture_dir}")
 
-    temp_dir = Path(tempfile.mkdtemp(prefix="mosaic-ssh-proxy-conflict-"))
-    image_tag = f"mosaic-ssh-test:{secrets.token_hex(4)}"
-    container_name = f"mosaic-ssh-proxy-conflict-{secrets.token_hex(4)}"
+    temp_dir = Path(tempfile.mkdtemp(prefix="coterm-ssh-proxy-conflict-"))
+    image_tag = f"coterm-ssh-test:{secrets.token_hex(4)}"
+    container_name = f"coterm-ssh-proxy-conflict-{secrets.token_hex(4)}"
     workspace_id = ""
     conflict_listener: socket.socket | None = None
 
@@ -191,7 +191,7 @@ def main() -> int:
         conflict_port = int(conflict_listener.getsockname()[1])
         conflict_listener.listen(1)
 
-        with mosaic(SOCKET_PATH) as client:
+        with coterm(SOCKET_PATH) as client:
             created = client._call("workspace.create", {"initial_command": "echo ssh-proxy-conflict"})
             workspace_id = str((created or {}).get("workspace_id") or "")
             _must(bool(workspace_id), f"workspace.create did not return workspace_id: {created}")
@@ -232,7 +232,7 @@ def main() -> int:
 
         if workspace_id:
             try:
-                with mosaic(SOCKET_PATH) as cleanup_client:
+                with coterm(SOCKET_PATH) as cleanup_client:
                     cleanup_client.close_workspace(workspace_id)
             except Exception:
                 pass

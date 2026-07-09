@@ -1,5 +1,5 @@
 import Foundation
-import MosaicSettings
+import CotermSettings
 
 nonisolated enum PanelTitleUpdateCoalescingSettings {
     private nonisolated static let terminalSettings = SettingCatalog().terminal

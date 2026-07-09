@@ -1,0 +1,31 @@
+{
+  "actions": {
+    "coterm.newTerminal": {
+      "type": "command",
+      "title": "Dot COTERM Wins",
+      "subtitle": "Same-directory .coterm/coterm.json should beat coterm.json",
+      "command": "echo 'DOT COTERM WINS'; echo 'SOURCE=legacy/prefer-dot-coterm/.coterm/coterm.json'; pwd",
+      "target": "newTabInCurrentPane",
+      "shortcut": "cmd+shift+4",
+      "icon": { "type": "image", "path": "./icons/winner-terminal.svg" }
+    },
+    "winner.echo": {
+      "type": "command",
+      "title": "Winner Echo",
+      "subtitle": "If you see this, .coterm precedence is working",
+      "command": "echo 'WINNER ECHO'; echo 'SOURCE=legacy/prefer-dot-coterm/.coterm/coterm.json'; pwd",
+      "target": "newTabInCurrentPane",
+      "shortcut": "cmd+shift+p",
+      "icon": { "type": "emoji", "value": "🏆" }
+    }
+  },
+  "ui": {
+    "surfaceTabBar": {
+      "buttons": [
+        "coterm.newTerminal",
+        "winner.echo",
+        "coterm.newBrowser"
+      ]
+    }
+  }
+}

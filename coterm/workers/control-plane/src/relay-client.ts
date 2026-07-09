@@ -3,7 +3,7 @@
 
 export interface RelayClient {
   /// POST /v1/collaboration/sessions → pre-create a fresh session code (room).
-  preCreateRoom(relayURL: string): Promise<string | null>;
+  preCreateRoom(relayURL: string): Promise<{ room: string; shareSecret: string | null } | null>;
   /// GET /v1/collaboration/sessions/:room/metadata → is the room still live?
   probeRoom(relayURL: string, room: string): Promise<boolean>;
   /// POST /v1/collaboration/inbox/notify → nudge an invitee's live inbox sockets.
@@ -18,14 +18,19 @@ function joinURL(base: string, path: string): string {
 export class HttpRelayClient implements RelayClient {
   constructor(private readonly fetchFn: typeof fetch = fetch) {}
 
-  async preCreateRoom(relayURL: string): Promise<string | null> {
+  async preCreateRoom(relayURL: string): Promise<{ room: string; shareSecret: string | null } | null> {
     try {
       const response = await this.fetchFn(joinURL(relayURL, "/v1/collaboration/sessions"), {
         method: "POST",
       });
       if (!response.ok) return null;
-      const body = (await response.json()) as { sessionCode?: unknown };
-      return typeof body.sessionCode === "string" ? body.sessionCode : null;
+      const body = (await response.json()) as { sessionCode?: unknown; shareSecret?: unknown };
+      return typeof body.sessionCode === "string"
+        ? {
+            room: body.sessionCode,
+            shareSecret: typeof body.shareSecret === "string" ? body.shareSecret : null,
+          }
+        : null;
     } catch {
       return null;
     }

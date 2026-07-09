@@ -27,16 +27,16 @@ export default function SshPage() {
       <iframe
         className="my-6 rounded-lg w-full aspect-video"
         src="https://www.youtube.com/embed/RoR9pMOZWkk"
-        title="mosaic SSH demo"
+        title="Coterm SSH demo"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       />
 
       <DocsHeading level={2} id="usage">{t("usage")}</DocsHeading>
-      <CodeBlock lang="bash">{`mosaic ssh user@remote
-mosaic ssh user@remote --name "dev server"
-mosaic ssh user@remote -p 2222
-mosaic ssh user@remote -i ~/.ssh/id_ed25519`}</CodeBlock>
+      <CodeBlock lang="bash">{`coterm ssh user@remote
+coterm ssh user@remote --name "dev server"
+coterm ssh user@remote -p 2222
+coterm ssh user@remote -i ~/.ssh/id_ed25519`}</CodeBlock>
       <p>{t("usageDesc")}</p>
 
       <DocsHeading level={2} id="flags-title">{t("flagsTitle")}</DocsHeading>
@@ -58,18 +58,18 @@ mosaic ssh user@remote -i ~/.ssh/id_ed25519`}</CodeBlock>
 
       <DocsHeading level={2} id="ssh-deep-links">{t("deepLinksTitle")}</DocsHeading>
       <p>{t("deepLinksDesc")}</p>
-      <CodeBlock lang="text">{`mosaic://ssh?host=dev.example.com
-mosaic://ssh?host=dev.example.com&user=alice&port=2222&title=GPU%20box
-mosaic://ssh?host=workspace123.vm-ssh.freestyle.sh&user=workspace123%2Csession-token
-mosaic://ssh?host=dev.example.com&host-key-policy=accept-new&no-focus=true`}</CodeBlock>
+      <CodeBlock lang="text">{`coterm://ssh?host=dev.example.com
+coterm://ssh?host=dev.example.com&user=alice&port=2222&title=GPU%20box
+coterm://ssh?host=workspace123.vm-ssh.freestyle.sh&user=workspace123%2Csession-token
+coterm://ssh?host=dev.example.com&host-key-policy=accept-new&no-focus=true`}</CodeBlock>
       <p>{t("deepLinksWebFallbackDesc")}</p>
-      <CodeBlock lang="text">{`https://mosaic.inc/deeplink/ssh?host=workspace123.vm-ssh.freestyle.sh&user=workspace123%2Csession-token&title=Freestyle`}</CodeBlock>
+      <CodeBlock lang="text">{`https://coterm.cc/deeplink/ssh?host=workspace123.vm-ssh.freestyle.sh&user=workspace123%2Csession-token&title=Freestyle`}</CodeBlock>
       <p>{t("deepLinksPromptRulesDesc")}</p>
-      <CodeBlock lang="text">{`https://mosaic.inc/deeplink/prompt?text=Review%20this%20branch
-https://mosaic.inc/deeplink/rules?name=freestyle&text=Prefer%20commas,%20colons:%20and%20small%20PRs`}</CodeBlock>
+      <CodeBlock lang="text">{`https://coterm.cc/deeplink/prompt?text=Review%20this%20branch
+https://coterm.cc/deeplink/rules?name=freestyle&text=Prefer%20commas,%20colons:%20and%20small%20PRs`}</CodeBlock>
       <p>{t("deepLinksIconDesc")}</p>
-      <CodeBlock lang="text">{`https://mosaic.inc/mosaic-icon.svg
-https://mosaic.inc/logo.png`}</CodeBlock>
+      <CodeBlock lang="text">{`https://coterm.cc/coterm-icon.svg
+https://coterm.cc/logo.png`}</CodeBlock>
       <p>{t("deepLinksButtonDesc")}</p>
       <CodeBlock lang="tsx">{`const params = new URLSearchParams({
   host: "workspace123.vm-ssh.freestyle.sh",
@@ -77,7 +77,7 @@ https://mosaic.inc/logo.png`}</CodeBlock>
   title: "Freestyle",
 });
 
-const href = "https://mosaic.inc/deeplink/ssh?" + params.toString();`}</CodeBlock>
+const href = "https://coterm.cc/deeplink/ssh?" + params.toString();`}</CodeBlock>
       <table>
         <thead>
           <tr>
@@ -112,8 +112,8 @@ const href = "https://mosaic.inc/deeplink/ssh?" + params.toString();`}</CodeBloc
       <DocsHeading level={2} id="agents-title">{t("agentsTitle")}</DocsHeading>
       <p>{t("agentsDesc")}</p>
       <CodeBlock lang="bash">{`# Inside an SSH session:
-mosaic claude-teams
-mosaic omo`}</CodeBlock>
+coterm claude-teams
+coterm omo`}</CodeBlock>
 
       <DocsHeading level={2} id="reconnect-title">{t("reconnectTitle")}</DocsHeading>
       <p>{t("reconnectDesc")}</p>

@@ -1,4 +1,4 @@
-import MosaicCommandPalette
+import CotermCommandPalette
 import Foundation
 
 struct TextBoxMentionCandidateIndex: Sendable {

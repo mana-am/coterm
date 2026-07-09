@@ -75,7 +75,7 @@ struct RemoteTmuxLayoutNode: Sendable, Equatable, Codable {
     }
 
     /// All pane ids in this subtree, in depth-first left-to-right order — the
-    /// natural order to create matching mosaic splits.
+    /// natural order to create matching coterm splits.
     var paneIDsInOrder: [Int] {
         switch content {
         case let .pane(id):

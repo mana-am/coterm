@@ -1,5 +1,5 @@
 import AppKit
-import MosaicSettings
+import CotermSettings
 import WebKit
 
 struct ShortcutEventFocusContext {
@@ -26,8 +26,8 @@ struct ShortcutEventFocusContextCache {
 }
 
 extension Notification.Name {
-    static let debugBrowserReloadShortcutInvoked = Notification.Name("mosaic.debugBrowserReloadShortcutInvoked")
-    static let debugBrowserHardReloadShortcutInvoked = Notification.Name("mosaic.debugBrowserHardReloadShortcutInvoked")
+    static let debugBrowserReloadShortcutInvoked = Notification.Name("coterm.debugBrowserReloadShortcutInvoked")
+    static let debugBrowserHardReloadShortcutInvoked = Notification.Name("coterm.debugBrowserHardReloadShortcutInvoked")
 }
 
 extension AppDelegate {
@@ -156,7 +156,7 @@ extension AppDelegate {
     private func shortcutFileExplorerFocusView(for responder: NSResponder) -> NSView? {
         if let textView = responder as? NSTextView,
            textView.isFieldEditor,
-           let ownerView = mosaicFieldEditorOwnerView(textView) {
+           let ownerView = cotermFieldEditorOwnerView(textView) {
             return fileExplorerShortcutFocusRoot(containing: ownerView)
         }
 
@@ -196,7 +196,7 @@ extension AppDelegate {
         }
 
         let responder = shortcutWindow.firstResponder
-        if mosaicOwningGhosttyView(for: responder) != nil {
+        if cotermOwningGhosttyView(for: responder) != nil {
             return nil
         }
 
@@ -257,7 +257,7 @@ extension AppDelegate {
 
     private func shortcutWebInspectorFocusedBrowserPanel(in window: NSWindow?) -> BrowserPanel? {
         let responder = window?.firstResponder ?? NSApp.keyWindow?.firstResponder ?? NSApp.mainWindow?.firstResponder
-        guard mosaicIsLikelyWebInspectorResponder(responder) else { return nil }
+        guard cotermIsLikelyWebInspectorResponder(responder) else { return nil }
 
         if let window,
            let context = mainWindowContexts[ObjectIdentifier(window)] ??
@@ -335,7 +335,7 @@ extension AppDelegate {
 
         if let textView = responder as? NSTextView,
            textView.isFieldEditor,
-           let ownerView = mosaicFieldEditorOwnerView(textView),
+           let ownerView = cotermFieldEditorOwnerView(textView),
            let webView = shortcutOwningWebView(for: ownerView) {
             return webView
         }

@@ -6,7 +6,7 @@ describe("VM image resolver", () => {
   test("uses manifest local defaults outside deployed runtimes", () => {
     expect(resolveVmImage("e2b", undefined, {})).toMatchObject({
       provider: "e2b",
-      image: "mosaicd-ws:tooling-20260509f",
+      image: "cotermd-ws:tooling-20260509f",
       imageVersion: "e2b-tooling-20260509f",
     });
     expect(resolveVmImage("freestyle", undefined, {})).toMatchObject({
@@ -27,7 +27,7 @@ describe("VM image resolver", () => {
 
   test("rejects unknown deployed images", () => {
     expect(() =>
-      resolveVmImage("e2b", "mosaicd-ws:unknown", {
+      resolveVmImage("e2b", "cotermd-ws:unknown", {
         VERCEL: "1",
         VERCEL_ENV: "production",
       }),
@@ -39,11 +39,11 @@ describe("VM image resolver", () => {
       resolveVmImage("e2b", undefined, {
         VERCEL: "1",
         VERCEL_ENV: "production",
-        E2B_MOSAICD_WS_TEMPLATE: "mosaicd-ws:proxy-20260424a",
+        E2B_COTERMD_WS_TEMPLATE: "cotermd-ws:proxy-20260424a",
       }),
     ).toMatchObject({
       provider: "e2b",
-      image: "mosaicd-ws:proxy-20260424a",
+      image: "cotermd-ws:proxy-20260424a",
       imageVersion: "e2b-proxy-20260424a",
     });
   });
@@ -53,7 +53,7 @@ describe("VM image resolver", () => {
       resolveVmImage("freestyle", "scratch-image", {
         VERCEL: "1",
         VERCEL_ENV: "preview",
-        MOSAIC_VM_ALLOW_UNMANIFESTED_IMAGES: "1",
+        COTERM_VM_ALLOW_UNMANIFESTED_IMAGES: "1",
       }),
     ).toMatchObject({
       provider: "freestyle",

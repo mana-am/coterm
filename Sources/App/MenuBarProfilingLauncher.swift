@@ -2,18 +2,18 @@ import AppKit
 import Foundation
 import os.log
 
-nonisolated private let menuBarProfilingLogger = Logger(subsystem: "mosaic.com.emergent.app", category: "MenuBarProfiling")
+nonisolated private let menuBarProfilingLogger = Logger(subsystem: "coterm.com.emergent.app", category: "MenuBarProfiling")
 
 enum MenuBarProfilingLauncher {
     static let defaultDurationSeconds = 15
     static let defaultUsefulTemplateCount = 4
 
     static func bundledScriptURL(bundle: Bundle = .main) -> URL? {
-        bundle.url(forResource: "start-mosaic-profiling", withExtension: nil, subdirectory: "bin")
+        bundle.url(forResource: "start-coterm-profiling", withExtension: nil, subdirectory: "bin")
     }
 
     static func bundledSubmitterURL(bundle: Bundle = .main) -> URL? {
-        bundle.url(forResource: "submit-mosaic-profile", withExtension: nil, subdirectory: "bin")
+        bundle.url(forResource: "submit-coterm-profile", withExtension: nil, subdirectory: "bin")
     }
 
     static func estimatedCaptureSeconds(
@@ -58,10 +58,10 @@ enum MenuBarProfilingLauncher {
 
         do {
             try process.run()
-            menuBarProfilingLogger.notice("Started mosaic profiling for pid \(pid)")
+            menuBarProfilingLogger.notice("Started coterm profiling for pid \(pid)")
             return true
         } catch {
-            menuBarProfilingLogger.error("Failed to start mosaic profiling for pid \(pid): \(error.localizedDescription, privacy: .public)")
+            menuBarProfilingLogger.error("Failed to start coterm profiling for pid \(pid): \(error.localizedDescription, privacy: .public)")
             NSSound.beep()
             return false
         }

@@ -19,9 +19,9 @@ export {
   base64urlDecodeToBytes,
   base64urlEncodeBytes,
   constantTimeEqual,
-  decodeMosaicPayload,
-  signMosaicToken,
-  verifyMosaicToken,
+  decodeCotermPayload,
+  signCotermToken,
+  verifyCotermToken,
 } from "./hmac";
 export { HmacAuthProvider, type DirectorySource, type HmacAuthProviderOptions } from "./hmacProvider";
 export { NoAuthProvider, type NoAuthProviderOptions } from "./noAuthProvider";

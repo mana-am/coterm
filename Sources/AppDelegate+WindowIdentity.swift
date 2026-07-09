@@ -12,7 +12,7 @@ extension AppDelegate {
            let window = ctx.window {
             return window
         }
-        let expectedIdentifier = "mosaic.main.\(windowId.uuidString)"
+        let expectedIdentifier = "coterm.main.\(windowId.uuidString)"
         return NSApp.windows.first(where: { $0.identifier?.rawValue == expectedIdentifier })
     }
 

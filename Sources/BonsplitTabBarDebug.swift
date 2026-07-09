@@ -1,4 +1,4 @@
-import MosaicFoundation
+import CotermFoundation
 import AppKit
 import Bonsplit
 import Foundation
@@ -174,7 +174,7 @@ final class BonsplitTabBarDebugWindowController: ReleasingWindowController {
         window.titleVisibility = .visible
         window.titlebarAppearsTransparent = false
         window.isMovableByWindowBackground = true
-        window.identifier = NSUserInterfaceItemIdentifier("mosaic.bonsplitTabBarDebug")
+        window.identifier = NSUserInterfaceItemIdentifier("coterm.bonsplitTabBarDebug")
         window.center()
         window.contentView = NSHostingView(rootView: BonsplitTabBarDebugView())
         AppDelegate.shared?.applyWindowDecorations(to: window)
@@ -230,7 +230,7 @@ private struct BonsplitTabBarDebugView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(String(localized: "debug.bonsplitTabBarDebug.heading", defaultValue: "Bonsplit Tab Bar"))
-                .mosaicFont(.headline)
+                .cotermFont(.headline)
 
             GroupBox(String(localized: "debug.bonsplitTabBarDebug.actionLaneGeometry", defaultValue: "Action Lane Geometry")) {
                 VStack(alignment: .leading, spacing: 10) {
@@ -264,7 +264,7 @@ private struct BonsplitTabBarDebugView: View {
 
             HStack(spacing: 10) {
                 TrackedButton("bonsplittabbardebug_button_266", String(localized: "debug.bonsplitTabBarDebug.reset", defaultValue: "Reset")) {
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "bonsplit.tabbarDebug.reset " +
                         "separatorFadeWidth=\(BonsplitTabBarDebugSettings.formatPixels(BonsplitTabBarDebugSettings.defaultSeparatorFadeWidth)) " +
                         "contentFadeWidth=\(BonsplitTabBarDebugSettings.formatPixels(BonsplitTabBarDebugSettings.defaultContentFadeWidth)) " +
@@ -276,12 +276,12 @@ private struct BonsplitTabBarDebugView: View {
                 }
                 TrackedButton("bonsplittabbardebug_button_277", String(localized: "debug.bonsplitTabBarDebug.copyConfig", defaultValue: "Copy Config")) {
                     BonsplitTabBarDebugSettings.copyCurrentTuningToPasteboard()
-                    mosaicDebugLog("bonsplit.tabbarDebug.copyConfig \(BonsplitTabBarDebugSettings.currentTuningDescription())")
+                    cotermDebugLog("bonsplit.tabbarDebug.copyConfig \(BonsplitTabBarDebugSettings.currentTuningDescription())")
                 }
             }
 
             Text(verbatim: BonsplitTabBarDebugSettings.currentTuningDescription())
-                .mosaicFont(.caption, design: .monospaced)
+                .cotermFont(.caption, design: .monospaced)
                 .textSelection(.enabled)
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -292,7 +292,7 @@ private struct BonsplitTabBarDebugView: View {
 
     private func setSeparatorFadeWidth(_ value: Double) {
         separatorFadeWidth = BonsplitTabBarDebugSettings.resolvedSeparatorFadeWidth(value)
-        mosaicDebugLog(
+        cotermDebugLog(
             "bonsplit.tabbarDebug.separatorFadeWidth=" +
             BonsplitTabBarDebugSettings.formatPixels(separatorFadeWidth)
         )
@@ -301,7 +301,7 @@ private struct BonsplitTabBarDebugView: View {
 
     private func setContentFadeWidth(_ value: Double) {
         contentFadeWidth = BonsplitTabBarDebugSettings.resolvedContentFadeWidth(value)
-        mosaicDebugLog(
+        cotermDebugLog(
             "bonsplit.tabbarDebug.contentFadeWidth=" +
             BonsplitTabBarDebugSettings.formatPixels(contentFadeWidth)
         )
@@ -310,7 +310,7 @@ private struct BonsplitTabBarDebugView: View {
 
     private func setSolidSurfaceWidthAdjustment(_ value: Double) {
         solidSurfaceWidthAdjustment = BonsplitTabBarDebugSettings.resolvedSolidSurfaceWidthAdjustment(value)
-        mosaicDebugLog(
+        cotermDebugLog(
             "bonsplit.tabbarDebug.solidSurfaceWidthAdjustment=" +
             BonsplitTabBarDebugSettings.formatPixels(solidSurfaceWidthAdjustment)
         )
@@ -357,7 +357,7 @@ private struct BonsplitTabBarDebugSliderRow: View {
                     step: setting.step
                 )
                 Text(pixelValueText)
-                    .mosaicFont(.caption)
+                    .cotermFont(.caption)
                     .monospacedDigit()
                     .frame(width: 76, alignment: .trailing)
             }

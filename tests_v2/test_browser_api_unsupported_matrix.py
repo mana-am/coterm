@@ -6,10 +6,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 # Methods expected to be present in system.capabilities for the browser v2 surface.
 EXPECTED_BROWSER_METHODS = {
@@ -119,22 +119,22 @@ WKWEBVIEW_NOT_SUPPORTED = {
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
-def _expect_not_supported(c: mosaic, method: str, params: dict) -> None:
+def _expect_not_supported(c: coterm, method: str, params: dict) -> None:
     try:
         c._call(method, params)
-    except mosaicError as exc:
+    except cotermError as exc:
         text = str(exc)
         if "not_supported" in text:
             return
-        raise mosaicError(f"Expected not_supported for {method}, got: {text}")
-    raise mosaicError(f"Expected not_supported for {method}, but call succeeded")
+        raise cotermError(f"Expected not_supported for {method}, got: {text}")
+    raise cotermError(f"Expected not_supported for {method}, but call succeeded")
 
 
 def main() -> int:
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         caps = c.capabilities() or {}
         methods = set(caps.get("methods") or [])
 

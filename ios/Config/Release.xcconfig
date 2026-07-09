@@ -4,18 +4,18 @@
 
 #include "Shared.xcconfig"
 
-PRODUCT_BUNDLE_IDENTIFIER = dev.mosaic.app.beta
+PRODUCT_BUNDLE_IDENTIFIER = dev.coterm.app.beta
 DEVELOPMENT_TEAM = 7WLXT3NR37
 
-// Distinguish the TestFlight beta on-device from a future App Store "mosaic"
-// (overrides PRODUCT_DISPLAY_NAME = mosaic from Shared.xcconfig). Debug stays "mosaic".
-PRODUCT_DISPLAY_NAME = Mosaic BETA
+// Distinguish the TestFlight beta on-device from a future App Store "coterm"
+// (overrides PRODUCT_DISPLAY_NAME = coterm from Shared.xcconfig). Debug stays "coterm".
+PRODUCT_DISPLAY_NAME = Coterm BETA
 
 // TestFlight/App Store builds use production APNs. Debug keeps
-// Config/mosaic.entitlements from Shared.xcconfig.
-CODE_SIGN_ENTITLEMENTS = Config/mosaic-release.entitlements
+// Config/coterm.entitlements from Shared.xcconfig.
+CODE_SIGN_ENTITLEMENTS = Config/coterm-release.entitlements
 
 // Release (TestFlight beta + App Store) pairing scheme. Dev builds register
-// mosaic-ios-dev instead, so the Camera app routes each channel's QR to the
+// coterm-ios-dev instead, so the Camera app routes each channel's QR to the
 // matching build. Keep in sync with CmxPairingURLScheme.release.
-MOSAIC_IOS_URL_SCHEME = mosaic-ios
+COTERM_IOS_URL_SCHEME = coterm-ios

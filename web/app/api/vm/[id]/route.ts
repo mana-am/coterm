@@ -16,11 +16,11 @@ export async function DELETE(
   return withAuthedVmApiRoute(
     request,
     "/api/vm/[id]",
-    { "mosaic.vm.operation": "destroy" },
+    { "coterm.vm.operation": "destroy" },
     "/api/vm/[id] DELETE failed",
     async ({ user, span }) => {
       const { id } = await params;
-      setSpanAttributes(span, { "mosaic.vm.id": id });
+      setSpanAttributes(span, { "coterm.vm.id": id });
       try {
         await runVmWorkflow(destroyVm({ userId: user.id, providerVmId: id }));
       } catch (err) {

@@ -1,4 +1,4 @@
-import MosaicSettings
+import CotermSettings
 import Foundation
 
 extension TerminalController {
@@ -85,16 +85,16 @@ extension TerminalController {
             groupReferenceWorkspaceId = nil
         }
 
-        // Decode optional layout param (same JSON schema as mosaic.json layout field).
+        // Decode optional layout param (same JSON schema as coterm.json layout field).
         // Validate before creating the workspace so malformed layouts fail fast.
-        var layoutNode: MosaicLayoutNode?
+        var layoutNode: CotermLayoutNode?
         if let rawLayout = params["layout"] {
             guard JSONSerialization.isValidJSONObject(rawLayout),
                   let layoutData = try? JSONSerialization.data(withJSONObject: rawLayout) else {
                 return .err(code: "invalid_params", message: "layout must be a valid JSON object", data: nil)
             }
             do {
-                layoutNode = try JSONDecoder().decode(MosaicLayoutNode.self, from: layoutData)
+                layoutNode = try JSONDecoder().decode(CotermLayoutNode.self, from: layoutData)
             } catch {
                 return .err(code: "invalid_params", message: "Invalid layout: \(error.localizedDescription)", data: nil)
             }

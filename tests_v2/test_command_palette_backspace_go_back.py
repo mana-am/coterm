@@ -13,10 +13,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _wait_until(predicate, timeout_s=4.0, interval_s=0.05, message="timeout"):
@@ -25,7 +25,7 @@ def _wait_until(predicate, timeout_s=4.0, interval_s=0.05, message="timeout"):
         if predicate():
             return
         time.sleep(interval_s)
-    raise mosaicError(message)
+    raise cotermError(message)
 
 
 def _palette_visible(client, window_id):
@@ -72,7 +72,7 @@ def _open_rename_input(client, window_id):
 
 
 def main():
-    with mosaic(SOCKET_PATH) as client:
+    with coterm(SOCKET_PATH) as client:
         client.activate_app()
         time.sleep(0.2)
         window_id = client.current_window()
@@ -97,7 +97,7 @@ def main():
                 and selection_location in (-1, 0)
                 and selection_length == text_length
             ):
-                raise mosaicError(
+                raise cotermError(
                     "rename input was not select-all on open: "
                     f"text_length={text_length} selection=({selection_location}, {selection_length})"
                 )
@@ -116,13 +116,13 @@ def main():
                     break
                 time.sleep(0.05)
             if not first_backspace_cleared:
-                raise mosaicError(
+                raise cotermError(
                     "first backspace did not clear rename input: "
                     f"selection={last_selection} results={_palette_results(client, window_id)}"
                 )
             after_first = _palette_results(client, window_id)
             if str(after_first.get("mode") or "") != "rename_input":
-                raise mosaicError(f"palette exited rename mode too early after first backspace: {after_first}")
+                raise cotermError(f"palette exited rename mode too early after first backspace: {after_first}")
 
             client._call(
                 "debug.command_palette.rename_input.delete_backward",
@@ -135,7 +135,7 @@ def main():
             )
 
             if not _palette_visible(client, window_id):
-                raise mosaicError("palette closed unexpectedly instead of navigating back to command list")
+                raise cotermError("palette closed unexpectedly instead of navigating back to command list")
 
         finally:
             try:

@@ -1,6 +1,6 @@
 import Bonsplit
-import MosaicPanes
-import MosaicWorkspaces
+import CotermPanes
+import CotermWorkspaces
 import Foundation
 
 /// `Workspace` is the tree-reading host for its `WorkspaceSurfaceListModel`.

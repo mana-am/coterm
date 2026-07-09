@@ -1,4 +1,4 @@
-import MosaicMobileCore
+import CotermMobileCore
 import Darwin
 import Foundation
 

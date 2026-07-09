@@ -1,19 +1,19 @@
-import MosaicFoundation
+import CotermFoundation
 import AppKit
-import MosaicSidebarProviderKit
+import CotermSidebarProviderKit
 import SwiftUI
 import WebKit
 
-struct MosaicExtensionSidebarWorkspaceRowView: View, Equatable {
-    let row: MosaicSidebarProviderRow
-    let workspace: MosaicSidebarProviderWorkspace?
+struct CotermExtensionSidebarWorkspaceRowView: View, Equatable {
+    let row: CotermSidebarProviderRow
+    let workspace: CotermSidebarProviderWorkspace?
     let providerId: String
     let relativeNow: Date
     let isSelected: Bool
     let onSelect: (UUID) -> Void
-    let onOpenWindow: (MosaicSidebarProviderWorkspace) -> Void
+    let onOpenWindow: (CotermSidebarProviderWorkspace) -> Void
     @State private var showsInspector = false
-    @State private var inspectorDraft: MosaicExtensionWorkspaceInspectorDraft?
+    @State private var inspectorDraft: CotermExtensionWorkspaceInspectorDraft?
 
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.row == rhs.row &&
@@ -37,14 +37,14 @@ struct MosaicExtensionSidebarWorkspaceRowView: View, Equatable {
         HStack(spacing: isSuperCompact ? 5 : 7) {
             VStack(alignment: .leading, spacing: isSuperCompact ? 0 : 2) {
                 Text(row.title)
-                    .mosaicFont(size: primarySize, weight: .regular)
+                    .cotermFont(size: primarySize, weight: .regular)
                     .foregroundColor(isSelected ? .primary : .primary.opacity(0.86))
                     .lineLimit(1)
                     .truncationMode(.tail)
 
                 if !isSuperCompact, let subtitle = rendered(row.subtitle) {
                     Text(subtitle)
-                        .mosaicFont(size: secondarySize, weight: .regular)
+                        .cotermFont(size: secondarySize, weight: .regular)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -54,7 +54,7 @@ struct MosaicExtensionSidebarWorkspaceRowView: View, Equatable {
 
             if !isSuperCompact, let trailing = rendered(row.trailingText) {
                 Text(trailing)
-                    .mosaicFont(size: 10.5, weight: .regular)
+                    .cotermFont(size: 10.5, weight: .regular)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
@@ -62,7 +62,7 @@ struct MosaicExtensionSidebarWorkspaceRowView: View, Equatable {
             if let accessory = row.accessory, let workspace {
                 TrackedButton("extensionsidebarworkspacerowview_button_63", action: {
                     if inspectorDraft == nil {
-                        inspectorDraft = MosaicExtensionWorkspaceInspectorDraft.initial(
+                        inspectorDraft = CotermExtensionWorkspaceInspectorDraft.initial(
                             workspace: workspace,
                             selectedTab: accessory.defaultTab
                         )
@@ -70,17 +70,17 @@ struct MosaicExtensionSidebarWorkspaceRowView: View, Equatable {
                     showsInspector = true
                 }) {
                     Image(systemName: accessory.systemImageName)
-                        .mosaicFont(size: isSuperCompact ? 10 : 12, weight: .regular)
+                        .cotermFont(size: isSuperCompact ? 10 : 12, weight: .regular)
                         .frame(width: isSuperCompact ? 14 : 18, height: isSuperCompact ? 14 : 18)
                 }
                 .buttonStyle(.plain)
                 .safeHelp(String(localized: "sidebar.extension.inspectWorkspace", defaultValue: "Workspace tools"))
                 .popover(isPresented: $showsInspector, arrowEdge: .trailing) {
-                    MosaicExtensionWorkspaceInspectorView(
+                    CotermExtensionWorkspaceInspectorView(
                         workspace: workspace,
                         draft: Binding(
                             get: {
-                                inspectorDraft ?? MosaicExtensionWorkspaceInspectorDraft.initial(
+                                inspectorDraft ?? CotermExtensionWorkspaceInspectorDraft.initial(
                                     workspace: workspace,
                                     selectedTab: accessory.defaultTab
                                 )
@@ -109,31 +109,31 @@ struct MosaicExtensionSidebarWorkspaceRowView: View, Equatable {
         }
     }
 
-    private func rendered(_ text: MosaicSidebarProviderText?) -> String? {
+    private func rendered(_ text: CotermSidebarProviderText?) -> String? {
         guard let text else { return nil }
         switch text {
         case .plain(let value):
             return value
         case .localized(let localized):
-            return MosaicExtensionSidebarSelection.localizedText(localized)
+            return CotermExtensionSidebarSelection.localizedText(localized)
         case .relativeDate(let date, _):
-            return MosaicExtensionRelativeTimeFormatter.string(from: date, to: relativeNow)
+            return CotermExtensionRelativeTimeFormatter.string(from: date, to: relativeNow)
         }
     }
 }
 
-struct MosaicExtensionWorkspaceInspectorDraft: Equatable {
-    var selectedTab: MosaicSidebarProviderWorkspacePopoverTab
+struct CotermExtensionWorkspaceInspectorDraft: Equatable {
+    var selectedTab: CotermSidebarProviderWorkspacePopoverTab
     var notes: String
     var address: String
     var committedAddress: String
 
     static func initial(
-        workspace: MosaicSidebarProviderWorkspace,
-        selectedTab: MosaicSidebarProviderWorkspacePopoverTab = .notes
-    ) -> MosaicExtensionWorkspaceInspectorDraft {
+        workspace: CotermSidebarProviderWorkspace,
+        selectedTab: CotermSidebarProviderWorkspacePopoverTab = .notes
+    ) -> CotermExtensionWorkspaceInspectorDraft {
         let initialAddress = workspace.pullRequestURLs.first ?? "https://github.com/"
-        return MosaicExtensionWorkspaceInspectorDraft(
+        return CotermExtensionWorkspaceInspectorDraft(
             selectedTab: selectedTab,
             notes: "",
             address: initialAddress,
@@ -142,7 +142,7 @@ struct MosaicExtensionWorkspaceInspectorDraft: Equatable {
     }
 }
 
-enum MosaicExtensionRelativeTimeFormatter {
+enum CotermExtensionRelativeTimeFormatter {
     static func string(from date: Date, to now: Date) -> String {
         let seconds = max(0, Int(now.timeIntervalSince(date)))
         if seconds < 60 { return String(localized: "relativeTime.now", defaultValue: "now") }
@@ -168,14 +168,14 @@ enum MosaicExtensionRelativeTimeFormatter {
     }
 }
 
-struct MosaicExtensionWorkspaceInspectorView: View {
-    let workspace: MosaicSidebarProviderWorkspace
+struct CotermExtensionWorkspaceInspectorView: View {
+    let workspace: CotermSidebarProviderWorkspace
     let onOpenWindow: () -> Void
-    @Binding private var draft: MosaicExtensionWorkspaceInspectorDraft
+    @Binding private var draft: CotermExtensionWorkspaceInspectorDraft
 
     init(
-        workspace: MosaicSidebarProviderWorkspace,
-        draft: Binding<MosaicExtensionWorkspaceInspectorDraft>,
+        workspace: CotermSidebarProviderWorkspace,
+        draft: Binding<CotermExtensionWorkspaceInspectorDraft>,
         onOpenWindow: @escaping () -> Void
     ) {
         self.workspace = workspace
@@ -187,8 +187,8 @@ struct MosaicExtensionWorkspaceInspectorView: View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Picker("", selection: $draft.selectedTab) {
-                    Text(String(localized: "sidebar.extension.notesTab", defaultValue: "Notes")).tag(MosaicSidebarProviderWorkspacePopoverTab.notes)
-                    Text(String(localized: "sidebar.extension.browserTab", defaultValue: "Browser")).tag(MosaicSidebarProviderWorkspacePopoverTab.browser)
+                    Text(String(localized: "sidebar.extension.notesTab", defaultValue: "Notes")).tag(CotermSidebarProviderWorkspacePopoverTab.notes)
+                    Text(String(localized: "sidebar.extension.browserTab", defaultValue: "Browser")).tag(CotermSidebarProviderWorkspacePopoverTab.browser)
                 }
                 .pickerStyle(.segmented)
 
@@ -206,7 +206,7 @@ struct MosaicExtensionWorkspaceInspectorView: View {
             switch draft.selectedTab {
             case .notes:
                 TextEditor(text: $draft.notes)
-                    .mosaicFont(size: 13)
+                    .cotermFont(size: 13)
                     .scrollContentBackground(.hidden)
                     .padding(8)
                     .accessibilityIdentifier("ExtensionSidebarNotesEditor")
@@ -221,39 +221,39 @@ struct MosaicExtensionWorkspaceInspectorView: View {
                         )
                         .textFieldStyle(.plain)
                         .onSubmit {
-                            let normalized = MosaicExtensionWorkspaceInspectorBrowserView.normalizedAddress(draft.address)
+                            let normalized = CotermExtensionWorkspaceInspectorBrowserView.normalizedAddress(draft.address)
                             draft.address = normalized
                             draft.committedAddress = normalized
                         }
                     }
-                    .mosaicFont(size: 12)
+                    .cotermFont(size: 12)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 7)
                     .background(Color(nsColor: .controlBackgroundColor))
 
-                    MosaicExtensionWorkspaceInspectorBrowserView(address: draft.committedAddress)
+                    CotermExtensionWorkspaceInspectorBrowserView(address: draft.committedAddress)
                 }
             }
         }
     }
 }
 
-struct MosaicExtensionWorkspaceInspectorWindowContentView: View {
-    let workspace: MosaicSidebarProviderWorkspace
+struct CotermExtensionWorkspaceInspectorWindowContentView: View {
+    let workspace: CotermSidebarProviderWorkspace
     let onOpenWindow: () -> Void
-    @State private var draft: MosaicExtensionWorkspaceInspectorDraft
+    @State private var draft: CotermExtensionWorkspaceInspectorDraft
 
     init(
-        workspace: MosaicSidebarProviderWorkspace,
+        workspace: CotermSidebarProviderWorkspace,
         onOpenWindow: @escaping () -> Void
     ) {
         self.workspace = workspace
         self.onOpenWindow = onOpenWindow
-        _draft = State(initialValue: MosaicExtensionWorkspaceInspectorDraft.initial(workspace: workspace))
+        _draft = State(initialValue: CotermExtensionWorkspaceInspectorDraft.initial(workspace: workspace))
     }
 
     var body: some View {
-        MosaicExtensionWorkspaceInspectorView(
+        CotermExtensionWorkspaceInspectorView(
             workspace: workspace,
             draft: $draft,
             onOpenWindow: onOpenWindow
@@ -261,7 +261,7 @@ struct MosaicExtensionWorkspaceInspectorWindowContentView: View {
     }
 }
 
-struct MosaicExtensionWorkspaceInspectorBrowserView: NSViewRepresentable {
+struct CotermExtensionWorkspaceInspectorBrowserView: NSViewRepresentable {
     let address: String
 
     final class Coordinator {
@@ -300,11 +300,11 @@ struct MosaicExtensionWorkspaceInspectorBrowserView: NSViewRepresentable {
 }
 
 @MainActor
-final class MosaicExtensionSidebarInspectorWindowController {
+final class CotermExtensionSidebarInspectorWindowController {
     private static var controllers: [UUID: NSWindowController] = [:]
     private static var closeObservers: [UUID: NSObjectProtocol] = [:]
 
-    static func show(workspace: MosaicSidebarProviderWorkspace) {
+    static func show(workspace: CotermSidebarProviderWorkspace) {
         if let controller = controllers[workspace.id] {
             controller.window?.title = workspace.title
             controller.window?.setContentSize(NSSize(width: 620, height: 440))
@@ -313,13 +313,13 @@ final class MosaicExtensionSidebarInspectorWindowController {
             return
         }
 
-        let view = MosaicExtensionWorkspaceInspectorWindowContentView(workspace: workspace) {
+        let view = CotermExtensionWorkspaceInspectorWindowContentView(workspace: workspace) {
             show(workspace: workspace)
         }
         let hostingController = NSHostingController(rootView: view.frame(width: 620, height: 440))
         let window = NSWindow(contentViewController: hostingController)
         window.title = workspace.title
-        window.identifier = NSUserInterfaceItemIdentifier("mosaic.extensionSidebarInspector")
+        window.identifier = NSUserInterfaceItemIdentifier("coterm.extensionSidebarInspector")
         window.setContentSize(NSSize(width: 620, height: 440))
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         let controller = NSWindowController(window: window)

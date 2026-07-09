@@ -1,8 +1,8 @@
 import Foundation
-import MosaicCore
+import CotermCore
 import Darwin
-import MosaicNotifications
-import MosaicSidebar
+import CotermNotifications
+import CotermSidebar
 
 extension Workspace {
     struct DetachedAgentRuntimeState {

@@ -33,10 +33,10 @@ export default function DockPage() {
       <p>{t("configIntro")}</p>
       <ol>
         <li>
-          <code>.mosaic/dock.json</code> {t("projectConfig")}
+          <code>.coterm/dock.json</code> {t("projectConfig")}
         </li>
         <li>
-          <code>~/.config/mosaic/dock.json</code> {t("globalConfig")}
+          <code>~/.config/coterm/dock.json</code> {t("globalConfig")}
         </li>
       </ol>
       <Callout type="info">{t("precedenceCallout")}</Callout>
@@ -44,7 +44,7 @@ export default function DockPage() {
 
       <DocsHeading level={2} id="example-title">{t("exampleTitle")}</DocsHeading>
       <p>{t("exampleIntro")}</p>
-      <CodeBlock title=".mosaic/dock.json" lang="json">{`{
+      <CodeBlock title=".coterm/dock.json" lang="json">{`{
   "controls": [
     {
       "id": "git",
@@ -61,7 +61,7 @@ export default function DockPage() {
     {
       "id": "feed",
       "title": "Feed",
-      "command": "mosaic feed tui --opentui",
+      "command": "coterm feed tui --opentui",
       "height": 320
     }
   ]

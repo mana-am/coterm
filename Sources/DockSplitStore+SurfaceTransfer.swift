@@ -1,7 +1,7 @@
 import AppKit
 import Bonsplit
-import MosaicTerminal
-import MosaicTerminalCore
+import Coterminal
+import CoterminalCore
 
 /// Cross-container surface transfer for the Dock.
 ///

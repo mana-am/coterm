@@ -1,12 +1,12 @@
 #include "TerminationWatchdogAtomic.h"
 
-MosaicTerminationWatchdogLatch MosaicTerminationWatchdogLatchMake(void) {
-    MosaicTerminationWatchdogLatch latch;
+CoterminationWatchdogLatch CoterminationWatchdogLatchMake(void) {
+    CoterminationWatchdogLatch latch;
     atomic_init(&latch.isArmed, false);
     return latch;
 }
 
-bool MosaicTerminationWatchdogLatchClaim(MosaicTerminationWatchdogLatch *latch) {
+bool CoterminationWatchdogLatchClaim(CoterminationWatchdogLatch *latch) {
     bool expected = false;
     return atomic_compare_exchange_strong_explicit(
         &latch->isArmed,

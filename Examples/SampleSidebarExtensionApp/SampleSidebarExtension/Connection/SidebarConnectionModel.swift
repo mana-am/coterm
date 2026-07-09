@@ -1,29 +1,29 @@
 import Foundation
 import Observation
 import SwiftUI
-import MosaicExtensionKit
+import CotermExtensionKit
 
 @Observable
 @MainActor
 final class SidebarConnectionModel {
-    private(set) var snapshot: MosaicSidebarSnapshot?
+    private(set) var snapshot: CotermSidebarSnapshot?
     private(set) var errorText: String?
 
     @ObservationIgnored
-    private var host: MosaicSidebarHost?
+    private var host: CotermSidebarHost?
 
-    func update(context: MosaicSidebarContext) {
+    func update(context: CotermSidebarContext) {
         snapshot = context.snapshot
         host = context.host
         errorText = nil
     }
 
-    func connectionStatusDidChange(_ status: MosaicSidebarConnectionStatus) {
+    func connectionStatusDidChange(_ status: CotermSidebarConnectionStatus) {
         switch status {
         case .connected:
             errorText = nil
         case .waitingForHost:
-            errorText = String(localized: "sampleSidebar.waitingForHost", defaultValue: "Waiting for mosaic")
+            errorText = String(localized: "sampleSidebar.waitingForHost", defaultValue: "Waiting for coterm")
         case .error(let message):
             errorText = message
         }
@@ -76,12 +76,12 @@ final class SidebarConnectionModel {
         do {
             try await operation()
             errorText = nil
-        } catch MosaicSidebarActionError.rejected(let message) {
+        } catch CotermSidebarActionError.rejected(let message) {
             errorText = message
-        } catch MosaicSidebarActionError.cancelled {
+        } catch CotermSidebarActionError.cancelled {
             errorText = nil
         } catch {
-            errorText = String(localized: "sampleSidebar.actionDenied", defaultValue: "mosaic did not allow that action")
+            errorText = String(localized: "sampleSidebar.actionDenied", defaultValue: "coterm did not allow that action")
         }
     }
 

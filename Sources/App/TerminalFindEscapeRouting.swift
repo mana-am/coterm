@@ -1,9 +1,9 @@
 import AppKit
-import MosaicTerminal
+import Coterminal
 
 @MainActor
-func mosaicCloseFocusedTerminalFindForEscape(event: NSEvent, appDelegate: AppDelegate) -> Bool {
-    guard mosaicFindEventIsPlainEscape(event) else { return false }
+func cotermCloseFocusedTerminalFindForEscape(event: NSEvent, appDelegate: AppDelegate) -> Bool {
+    guard cotermFindEventIsPlainEscape(event) else { return false }
 
     let shortcutWindow = event.window
         ?? (event.windowNumber > 0 ? NSApp.window(withWindowNumber: event.windowNumber) : nil)
@@ -12,7 +12,7 @@ func mosaicCloseFocusedTerminalFindForEscape(event: NSEvent, appDelegate: AppDel
     if shortcutWindow?.firstResponder is TextBoxInputTextView {
         return false
     }
-    let terminalFindFieldOwnsResponder = mosaicFindTextFieldOwner(for: shortcutWindow?.firstResponder)?
+    let terminalFindFieldOwnsResponder = cotermFindTextFieldOwner(for: shortcutWindow?.firstResponder)?
         .identifier?.rawValue == "TerminalFindSearchTextField"
     let targetTabManager = appDelegate.synchronizeActiveMainWindowContext(preferredWindow: shortcutWindow)
 
@@ -28,7 +28,7 @@ func mosaicCloseFocusedTerminalFindForEscape(event: NSEvent, appDelegate: AppDel
     }
 
 #if DEBUG
-    mosaicDebugLog("find.escape.close terminal panel=\(panel.id.uuidString.prefix(5))")
+    cotermDebugLog("find.escape.close terminal panel=\(panel.id.uuidString.prefix(5))")
 #endif
     panel.hostedView.beginFindEscapeSuppression()
     panel.searchState = nil

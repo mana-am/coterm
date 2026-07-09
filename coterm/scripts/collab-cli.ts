@@ -2,28 +2,28 @@
 //
 //   # terminal 1
 //   bun scripts/collab-cli.ts host --name alice
-//   → prints a room code, e.g.  Room code: 7QF3K2 P9
+//   → prints a share token, e.g.  Share token: 7QF3K2P9.<secret>
 //
 //   # terminal 2
-//   bun scripts/collab-cli.ts join 7QF3K2P9 --name bob
+//   bun scripts/collab-cli.ts join 7QF3K2P9.<secret> --name bob
 //
 // Then type lines in either terminal; both sides see each other's messages in
 // real time, plus join/leave presence. Ctrl-C to quit.
 //
 // Env (all optional):
-//   MOSAIC_COLLAB_CONTROL_URL       (default http://localhost:8788)
-//   MOSAIC_COLLABORATION_RELAY_URL  (default http://localhost:8787)
+//   COTERM_COLLAB_CONTROL_URL       (default http://localhost:8788)
+//   COTERM_COLLABORATION_RELAY_URL  (default http://localhost:8787)
 //   COLLAB_AUTH_SECRET              (default dev-secret; used to mint the token)
 
 import { createInterface } from "node:readline";
-import { nowSeconds, signMosaicToken } from "../packages/collab-auth/src/index";
+import { nowSeconds, signCotermToken } from "../packages/collab-auth/src/index";
 
-const controlURL = (process.env.MOSAIC_COLLAB_CONTROL_URL ?? "http://localhost:8788").replace(/\/+$/, "");
-const relayURL = (process.env.MOSAIC_COLLABORATION_RELAY_URL ?? "http://localhost:8787").replace(/\/+$/, "");
+const controlURL = (process.env.COTERM_COLLAB_CONTROL_URL ?? "http://localhost:8788").replace(/\/+$/, "");
+const relayURL = (process.env.COTERM_COLLABORATION_RELAY_URL ?? "http://localhost:8787").replace(/\/+$/, "");
 const secret = process.env.COLLAB_AUTH_SECRET ?? "dev-secret";
 
 function usage(): never {
-  console.error("usage: collab-cli.ts <host | join <CODE>> --name <name>");
+  console.error("usage: collab-cli.ts <host | join <CODE.SECRET>> --name <name>");
   process.exit(1);
 }
 
@@ -43,7 +43,7 @@ function parseArgs(): { mode: "host" | "join"; code: string | null; name: string
 }
 
 async function tokenFor(name: string): Promise<string> {
-  return signMosaicToken({ kind: "access", userId: name, teamIds: [], selectedTeamId: null, exp: nowSeconds() + 24 * 3600 }, secret);
+  return signCotermToken({ kind: "access", userId: name, teamIds: [], selectedTeamId: null, exp: nowSeconds() + 24 * 3600 }, secret);
 }
 
 async function api(path: string, name: string, body: unknown): Promise<Record<string, unknown>> {
@@ -56,10 +56,17 @@ async function api(path: string, name: string, body: unknown): Promise<Record<st
   return (await response.json()) as Record<string, unknown>;
 }
 
-async function preCreateRoom(): Promise<string> {
+function parseShareToken(value: string): { code: string; shareSecret: string } {
+  const [code, shareSecret] = value.split(".", 2);
+  if (!code || !shareSecret) throw new Error("join requires a full CODE.SECRET share token");
+  return { code, shareSecret };
+}
+
+async function preCreateRoom(): Promise<{ code: string; shareSecret: string | null }> {
   const r = await fetch(`${relayURL}/v1/collaboration/sessions`, { method: "POST" });
   if (!r.ok) throw new Error(`relay pre-create → ${r.status}`);
-  return ((await r.json()) as { sessionCode: string }).sessionCode;
+  const body = (await r.json()) as { sessionCode: string; shareSecret?: string };
+  return { code: body.sessionCode, shareSecret: body.shareSecret ?? null };
 }
 
 function connectURL(room: string, name: string, grant: string | null): string {
@@ -79,16 +86,26 @@ async function main(): Promise<void> {
   let room: string;
   let grant: string | null;
   if (mode === "host") {
-    room = await preCreateRoom();
-    const created = await api("/api/collab/sessions", name, { orgId: "cli", code: room, relayURL });
+    const precreated = await preCreateRoom();
+    room = precreated.code;
+    const created = await api("/api/collab/sessions", name, {
+      orgId: "cli",
+      code: room,
+      relayURL,
+      ...(precreated.shareSecret ? { shareSecret: precreated.shareSecret } : {}),
+    });
+    const shareSecret = (created.shareSecret as string) || precreated.shareSecret;
     grant = (created.grant as string) || null;
     console.log(`\n  Room code: ${room}`);
-    console.log(`  Share it:  bun scripts/collab-cli.ts join ${room} --name <you>\n`);
+    console.log(`  Share token: ${room}.${shareSecret}`);
+    console.log(`  Share it:  bun scripts/collab-cli.ts join ${room}.${shareSecret} --name <you>`);
+    console.log("  Join requests require owner approval before the guest can connect.\n");
   } else {
-    const joined = await api("/api/collab/join", name, { code });
-    room = joined.room as string;
-    grant = (joined.grant as string) || null;
-    console.log(`\n  Joined room ${room} as ${name}\n`);
+    const token = parseShareToken(code ?? "");
+    const pending = await api("/api/collab/join", name, token);
+    console.log(`\n  Join request ${pending.requestId} is pending for room ${pending.room}.`);
+    console.log("  Ask the room owner to approve it, then connect from a Coterm client.\n");
+    return;
   }
 
   const roster = new Map<string, string>(); // peerID → displayName

@@ -1,0 +1,18 @@
+import CotermFoundation
+import CotermSettings
+import Testing
+
+/// Guards the hardcoded `UserDefaults` key and default in
+/// ``ShortcutHintDebugSettings`` against the canonical
+/// `shortcuts.showModifierHoldHints` catalog entry. `CotermFoundation` is a leaf
+/// module and cannot import `CotermSettings`, so the values are duplicated; this
+/// suite fails if they drift.
+@Suite("Shortcut hint debug settings binding")
+struct ShortcutHintDebugSettingsBindingTests {
+    @Test
+    func keyAndDefaultMatchSettingCatalog() {
+        let catalogEntry = SettingCatalog().shortcuts.showModifierHoldHints
+        #expect(ShortcutHintDebugSettings.showModifierHoldHintsKey == catalogEntry.userDefaultsKey)
+        #expect(ShortcutHintDebugSettings.defaultShowModifierHoldHints == catalogEntry.defaultValue)
+    }
+}

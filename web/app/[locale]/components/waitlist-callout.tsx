@@ -27,7 +27,7 @@ export function WaitlistCallout({
         <button
           type="button"
           onClick={() => {
-            posthog.capture("mosaicterm_waitlist_opened", {
+            posthog.capture("coterm_waitlist_opened", {
               location,
               platform: "any",
             });

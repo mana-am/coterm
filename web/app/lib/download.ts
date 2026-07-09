@@ -1,7 +1,7 @@
 /**
- * Single source of truth for mosaic download links.
+ * Single source of truth for coterm download links.
  *
- * `DOWNLOAD_URL` is the actual release asset. mosaic ships only a macOS build,
+ * `DOWNLOAD_URL` is the actual release asset. coterm ships only a macOS build,
  * so there is one asset; if win/linux builds are added later, route them from
  * here (and from the confirmation page) rather than duplicating URLs at call
  * sites.
@@ -20,7 +20,7 @@
  * reflects the original page load.
  */
 export const DOWNLOAD_URL =
-  "https://download.mosaic.inc/mosaic-macos.dmg";
+  "https://download.coterm.cc/coterm-macos.dmg";
 
 export const DOWNLOAD_CONFIRMATION_PATH = "/download/confirmation";
 
@@ -53,7 +53,7 @@ export type WaitlistTarget = WaitlistPlatform | "any";
  * rather than only as a raw event.
  */
 export const WAITLIST_EARLY_ACCESS_FLAGS: Record<WaitlistPlatform, string> = {
-  linux: "mosaic-for-linux",
-  android: "mosaic-for-android",
-  windows: "mosaic-for-windows",
+  linux: "coterm-for-linux",
+  android: "coterm-for-android",
+  windows: "coterm-for-windows",
 };

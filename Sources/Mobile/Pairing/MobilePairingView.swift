@@ -1,12 +1,12 @@
-import MosaicFoundation
+import CotermFoundation
 import AppKit
-import MosaicMobileCore
-import MosaicAuthRuntime
+import CotermMobileCore
+import CotermAuthRuntime
 import SwiftUI
 
 /// The macOS onboarding window for pairing an iPhone with this Mac.
 ///
-/// Walks the user through the two requirements (signed in to mosaic, Tailscale
+/// Walks the user through the two requirements (signed in to coterm, Tailscale
 /// reachable) and then shows a scannable QR code with step-by-step
 /// instructions. Pairing is gated on sign-in because authorization is a Stack
 /// same-account check; Tailscale is what gives the iPhone a route to this Mac.
@@ -25,8 +25,8 @@ struct MobilePairingView: View {
     private let browserSignIn: HostBrowserSignInFlow? = AppDelegate.shared?.auth?.browserSignIn
 
     private static let tailscaleDownloadURL = URL(string: "https://tailscale.com/download")!
-    /// Where a Mac user goes to get mosaic for iPhone while the beta is invite-only.
-    private static let iphoneAppURL = URL(string: "https://github.com/emergent-inc/mosaic#founders-edition")!
+    /// Where a Mac user goes to get coterm for iPhone while the beta is invite-only.
+    private static let iphoneAppURL = URL(string: "https://github.com/emergent-inc/coterm#founders-edition")!
 
     var body: some View {
         ScrollView {
@@ -54,9 +54,9 @@ struct MobilePairingView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(String(localized: "mobile.pairing.window.heading", defaultValue: "Pair your iPhone"))
-                .mosaicFont(.title2, weight: .semibold)
-            Text(String(localized: "mobile.pairing.window.subheading", defaultValue: "Scan this code with the mosaic app on your iPhone to sync your terminal workspaces."))
-                .mosaicFont(.callout)
+                .cotermFont(.title2, weight: .semibold)
+            Text(String(localized: "mobile.pairing.window.subheading", defaultValue: "Scan this code with the coterm app on your iPhone to sync your terminal workspaces."))
+                .cotermFont(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -73,7 +73,7 @@ struct MobilePairingView: View {
 
     private var signInRow: some View {
         requirementRow(
-            title: String(localized: "mobile.pairing.req.signIn.title", defaultValue: "Signed in to mosaic"),
+            title: String(localized: "mobile.pairing.req.signIn.title", defaultValue: "Signed in to coterm"),
             subtitle: model.signedInEmail
                 ?? String(localized: "mobile.pairing.req.signIn.subtitle", defaultValue: "Sign in to authorize this Mac for pairing.")
         ) {
@@ -92,7 +92,7 @@ struct MobilePairingView: View {
                     String(localized: "mobile.pairing.req.tailscale.get", defaultValue: "Get Tailscale"),
                     destination: Self.tailscaleDownloadURL
                 )
-                .mosaicFont(.callout)
+                .cotermFont(.callout)
             }
         }
     }
@@ -125,9 +125,9 @@ struct MobilePairingView: View {
     ) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).mosaicFont(.callout, weight: .medium)
+                Text(title).cotermFont(.callout, weight: .medium)
                 Text(subtitle)
-                    .mosaicFont(.caption)
+                    .cotermFont(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -165,7 +165,7 @@ struct MobilePairingView: View {
     private var needsTailscaleContent: some View {
         VStack(spacing: 12) {
             Image(systemName: "network.slash")
-                .mosaicFont(size: 28)
+                .cotermFont(size: 28)
                 .foregroundStyle(.orange)
             Text(String(localized: "mobile.pairing.needsTailscale.body", defaultValue: "This Mac has no Tailscale address, so your iPhone can't reach it. Install Tailscale on this Mac and your iPhone (same account), then refresh."))
                 .multilineTextAlignment(.center)
@@ -175,7 +175,7 @@ struct MobilePairingView: View {
                 String(localized: "mobile.pairing.req.tailscale.get", defaultValue: "Get Tailscale"),
                 destination: Self.tailscaleDownloadURL
             )
-            .buttonStyle(.mosaicAccent)
+            .buttonStyle(.cotermAccent)
             TrackedButton("mobilepairingview_button_179", String(localized: "mobile.pairing.refresh", defaultValue: "Refresh Code")) {
                 Task { await model.refresh() }
             }
@@ -188,9 +188,9 @@ struct MobilePairingView: View {
     private var signedOut: some View {
         VStack(spacing: 12) {
             Image(systemName: "person.crop.circle.badge.plus")
-                .mosaicFont(size: 28)
+                .cotermFont(size: 28)
                 .foregroundStyle(.tint)
-            Text(String(localized: "mobile.pairing.signIn.prompt", defaultValue: "Sign in with your mosaic account to pair your iPhone."))
+            Text(String(localized: "mobile.pairing.signIn.prompt", defaultValue: "Sign in with your coterm account to pair your iPhone."))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -204,7 +204,7 @@ struct MobilePairingView: View {
             TrackedButton("mobilepairingview_button_204", String(localized: "mobile.pairing.signIn.button", defaultValue: "Sign In")) {
                 model.signIn()
             }
-            .buttonStyle(.mosaicAccent)
+            .buttonStyle(.cotermAccent)
         }
         .frame(maxWidth: .infinity, minHeight: 200)
     }
@@ -260,7 +260,7 @@ struct MobilePairingView: View {
     private func failure(message: String) -> some View {
         VStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle")
-                .mosaicFont(size: 28)
+                .cotermFont(size: 28)
                 .foregroundStyle(.orange)
             Text(message)
                 .multilineTextAlignment(.center)
@@ -268,7 +268,7 @@ struct MobilePairingView: View {
             TrackedButton("mobilepairingview_button_268", String(localized: "mobile.pairing.retry", defaultValue: "Try Again")) {
                 Task { await model.refresh() }
             }
-            .buttonStyle(.mosaicAccent)
+            .buttonStyle(.cotermAccent)
         }
         .frame(maxWidth: .infinity, minHeight: 200)
     }
@@ -298,7 +298,7 @@ struct MobilePairingView: View {
             HStack(spacing: 6) {
                 ProgressView().controlSize(.small)
                 Text(String(localized: "mobile.pairing.waiting", defaultValue: "Waiting for your iPhone…"))
-                    .mosaicFont(.callout)
+                    .cotermFont(.callout)
                     .foregroundStyle(.secondary)
             }
         }
@@ -320,10 +320,10 @@ struct MobilePairingView: View {
     private func connectedContent(_ ready: MobilePairingModel.Ready) -> some View {
         VStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
-                .mosaicFont(size: 36)
+                .cotermFont(size: 36)
                 .foregroundStyle(.green)
             Text(String(localized: "mobile.pairing.connected.title", defaultValue: "iPhone connected"))
-                .mosaicFont(.title3, weight: .semibold)
+                .cotermFont(.title3, weight: .semibold)
             Text(String(localized: "mobile.pairing.connected.subtitle", defaultValue: "Your terminal workspaces are now syncing to your iPhone. You can close this window."))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
@@ -334,17 +334,17 @@ struct MobilePairingView: View {
 
     private var steps: some View {
         VStack(alignment: .leading, spacing: 10) {
-            step(1, String(localized: "mobile.pairing.step.install", defaultValue: "Install mosaic on your iPhone and open it."))
+            step(1, String(localized: "mobile.pairing.step.install", defaultValue: "Install coterm on your iPhone and open it."))
             HStack(spacing: 4) {
                 Spacer(minLength: 30)
                 Text(String(localized: "mobile.pairing.getApp.prompt", defaultValue: "Don't have it yet?"))
-                    .mosaicFont(.caption)
+                    .cotermFont(.caption)
                     .foregroundStyle(.secondary)
                 Link(
-                    String(localized: "mobile.pairing.getApp.link", defaultValue: "Get mosaic for iPhone"),
+                    String(localized: "mobile.pairing.getApp.link", defaultValue: "Get coterm for iPhone"),
                     destination: Self.iphoneAppURL
                 )
-                .mosaicFont(.caption)
+                .cotermFont(.caption)
                 Spacer(minLength: 0)
             }
             step(2, String(localized: "mobile.pairing.step.signIn", defaultValue: "Sign in with the same account you use on this Mac."))
@@ -356,12 +356,12 @@ struct MobilePairingView: View {
     private func step(_ number: Int, _ text: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Text("\(number)")
-                .mosaicFont(.caption, weight: .bold)
+                .cotermFont(.caption, weight: .bold)
                 .foregroundStyle(.white)
                 .frame(width: 20, height: 20)
                 .background(Color.accentColor, in: Circle())
             Text(text)
-                .mosaicFont(.callout)
+                .cotermFont(.callout)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
@@ -371,11 +371,11 @@ struct MobilePairingView: View {
     private func manualFallback(_ ready: MobilePairingModel.Ready) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(String(localized: "mobile.pairing.manual.title", defaultValue: "Can't scan? Add this Mac manually:"))
-                .mosaicFont(.caption, weight: .semibold)
+                .cotermFont(.caption, weight: .semibold)
                 .foregroundStyle(.secondary)
             ForEach(ready.tailscaleLines, id: \.self) { line in
                 Text(line)
-                    .mosaicFont(.caption, design: .monospaced)
+                    .cotermFont(.caption, design: .monospaced)
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
             }
@@ -415,7 +415,7 @@ struct MobilePairingView: View {
                         : label
                 )
             }
-            .mosaicFont(.caption)
+            .cotermFont(.caption)
         }
         .buttonStyle(.bordered)
         .controlSize(.small)

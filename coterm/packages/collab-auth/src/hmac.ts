@@ -1,14 +1,14 @@
-// WebCrypto port of the `mosaicv1` token format from
+// WebCrypto port of the `cotermv1` token format from
 // web/services/auth/nativeSession.ts. The output is byte-identical to the Node
 // implementation, so an access token minted by the upstream www service verifies
 // here and vice versa:
 //
-//   mosaicv1.<base64url(utf8 JSON claims)>.<base64url(HMAC-SHA256(payload, secret))>
+//   cotermv1.<base64url(utf8 JSON claims)>.<base64url(HMAC-SHA256(payload, secret))>
 //
 // where the signed message is the base64url payload STRING (ASCII), exactly as
 // `createHmac("sha256", secret).update(payload).digest("base64url")` does.
 
-const TOKEN_PREFIX = "mosaicv1";
+const TOKEN_PREFIX = "cotermv1";
 
 export function base64urlEncodeBytes(bytes: Uint8Array): string {
   let binary = "";
@@ -57,16 +57,16 @@ export function constantTimeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/// Sign an arbitrary claims object into a `mosaicv1.<payload>.<sig>` token.
-export async function signMosaicToken(claims: unknown, secret: string): Promise<string> {
+/// Sign an arbitrary claims object into a `cotermv1.<payload>.<sig>` token.
+export async function signCotermToken(claims: unknown, secret: string): Promise<string> {
   const payload = base64urlEncodeJSON(claims);
   const signature = await hmacSha256Base64url(secret, payload);
   return `${TOKEN_PREFIX}.${payload}.${signature}`;
 }
 
-/// Verify a `mosaicv1` token's signature and return its decoded payload. Does NOT
+/// Verify a `cotermv1` token's signature and return its decoded payload. Does NOT
 /// enforce expiry — callers apply their own `exp` policy.
-export async function verifyMosaicToken<T = unknown>(
+export async function verifyCotermToken<T = unknown>(
   token: string,
   secret: string,
 ): Promise<T | null> {
@@ -75,12 +75,12 @@ export async function verifyMosaicToken<T = unknown>(
   const [, payloadPart, signaturePart] = parts;
   const expected = await hmacSha256Base64url(secret, payloadPart);
   if (!constantTimeEqual(signaturePart, expected)) return null;
-  return decodeMosaicPayload<T>(token);
+  return decodeCotermPayload<T>(token);
 }
 
-/// Decode a `mosaicv1` token's payload WITHOUT verifying its signature. Used by
+/// Decode a `cotermv1` token's payload WITHOUT verifying its signature. Used by
 /// NoAuthProvider (best-effort identity) and to read a token's `exp` for deadlines.
-export function decodeMosaicPayload<T = unknown>(token: string): T | null {
+export function decodeCotermPayload<T = unknown>(token: string): T | null {
   const parts = token.split(".");
   if (parts.length !== 3 || parts[0] !== TOKEN_PREFIX) return null;
   try {

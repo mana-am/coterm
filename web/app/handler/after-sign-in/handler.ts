@@ -4,14 +4,14 @@ import { locales, routing } from "../../../i18n/routing";
 import { nativeIdentityClaimsFor, type ClerkUserIdentityLike } from "../../../services/auth/clerkIdentity";
 import { mintNativeSessionTokenPair } from "../../../services/auth/nativeSession";
 import {
-  MOSAIC_TEAM_WORKSPACE_DEFAULTS,
-  resolveMosaicWorkspaceMetadata,
-} from "../../../services/workspaces/mosaicWorkspace";
+  COTERM_TEAM_WORKSPACE_DEFAULTS,
+  resolveCotermWorkspaceMetadata,
+} from "../../../services/workspaces/cotermWorkspace";
 
-const NATIVE_SCHEME = "mosaic://";
-const NATIVE_SCHEMES = new Set(["mosaic", "mosaic-nightly"]);
-const NATIVE_HANDOFF_COOKIE = "mosaic-native-auth-handoff";
-const NATIVE_HANDOFF_PARAM = "mosaic_auth_handoff";
+const NATIVE_SCHEME = "coterm://";
+const NATIVE_SCHEMES = new Set(["coterm", "coterm-nightly"]);
+const NATIVE_HANDOFF_COOKIE = "coterm-native-auth-handoff";
+const NATIVE_HANDOFF_PARAM = "coterm_auth_handoff";
 
 type AfterSignInMessages = {
   title: string;
@@ -57,15 +57,15 @@ function isLocalRequest(request: NextRequest): boolean {
 
 function localAllowedNativeSchemes(): Set<string> {
   const values = [
-    process.env.MOSAIC_AUTH_CALLBACK_SCHEME,
-    process.env.MOSAIC_ALLOWED_NATIVE_CALLBACK_SCHEMES,
-    process.env.MOSAIC_DEV_NATIVE_CALLBACK_SCHEMES,
+    process.env.COTERM_AUTH_CALLBACK_SCHEME,
+    process.env.COTERM_ALLOWED_NATIVE_CALLBACK_SCHEMES,
+    process.env.COTERM_DEV_NATIVE_CALLBACK_SCHEMES,
   ];
   const schemes = new Set<string>();
   for (const value of values) {
     for (const raw of value?.split(/[\s,]+/) ?? []) {
       const scheme = raw.trim().replace(/:\/\/.*$/, "").replace(/:$/, "");
-      if (/^mosaic-dev-[a-z0-9-]+$/.test(scheme)) schemes.add(scheme);
+      if (/^coterm-dev-[a-z0-9-]+$/.test(scheme)) schemes.add(scheme);
     }
   }
   return schemes;
@@ -78,7 +78,7 @@ function isAllowedNativeReturnTo(href: string, request: NextRequest): boolean {
     if (url.pathname !== "" && url.pathname !== "/") return false;
     const scheme = url.protocol.replace(":", "");
     if (NATIVE_SCHEMES.has(scheme)) return true;
-    if (scheme === "mosaic-dev") return isLocalRequest(request);
+    if (scheme === "coterm-dev") return isLocalRequest(request);
     return isLocalRequest(request) && localAllowedNativeSchemes().has(scheme);
   } catch {
     return false;
@@ -94,17 +94,17 @@ function buildNativeHref(
   const href = baseHref ?? `${NATIVE_SCHEME}auth-callback`;
   try {
     const url = new URL(href);
-    url.searchParams.set("mosaic_refresh", refreshToken);
-    url.searchParams.set("mosaic_access", accessToken);
+    url.searchParams.set("coterm_refresh", refreshToken);
+    url.searchParams.set("coterm_access", accessToken);
     return url.toString();
   } catch {
-    return `${NATIVE_SCHEME}auth-callback?mosaic_refresh=${encodeURIComponent(refreshToken)}&mosaic_access=${encodeURIComponent(accessToken)}`;
+    return `${NATIVE_SCHEME}auth-callback?coterm_refresh=${encodeURIComponent(refreshToken)}&coterm_access=${encodeURIComponent(accessToken)}`;
   }
 }
 
 function hasAuthState(href: string): boolean {
   try {
-    return new URL(href).searchParams.has("mosaic_auth_state");
+    return new URL(href).searchParams.has("coterm_auth_state");
   } catch {
     return false;
   }
@@ -355,11 +355,11 @@ function teamWorkspaceForMembership(membership: ClerkOrganizationMembershipLike)
     organization?.privateMetadata,
     organization?.publicMetadata,
   );
-  const workspace = resolveMosaicWorkspaceMetadata(metadata, MOSAIC_TEAM_WORKSPACE_DEFAULTS);
+  const workspace = resolveCotermWorkspaceMetadata(metadata, COTERM_TEAM_WORKSPACE_DEFAULTS);
   return {
     id,
     workspaceType: workspace.workspaceType === "team" ? "team" as const : null,
-    mosaicPlan: workspace.plan,
+    cotermPlan: workspace.plan,
     useType: workspace.useType,
     billingStatus: workspace.billingStatus,
     vmBillingPlanId: workspace.vmBillingPlanId,

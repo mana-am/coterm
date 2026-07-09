@@ -1,5 +1,5 @@
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 import ObjectiveC
 import QuartzCore
 
@@ -292,20 +292,20 @@ private final class BrowserScreenshotSelectionOverlayView: NSView {
     }
 }
 
-private var mosaicWebViewScreenshotCaptureGateKey: UInt8 = 0
-private var mosaicWebViewScreenshotSelectionOverlayKey: UInt8 = 0
+private var cotermWebViewScreenshotCaptureGateKey: UInt8 = 0
+private var cotermWebViewScreenshotSelectionOverlayKey: UInt8 = 0
 
-extension MosaicWebView {
+extension CotermWebView {
     @MainActor
     private var screenshotCaptureGate: BrowserScreenshotCaptureGate {
-        if let gate = objc_getAssociatedObject(self, &mosaicWebViewScreenshotCaptureGateKey) as? BrowserScreenshotCaptureGate {
+        if let gate = objc_getAssociatedObject(self, &cotermWebViewScreenshotCaptureGateKey) as? BrowserScreenshotCaptureGate {
             return gate
         }
 
         let gate = BrowserScreenshotCaptureGate()
         objc_setAssociatedObject(
             self,
-            &mosaicWebViewScreenshotCaptureGateKey,
+            &cotermWebViewScreenshotCaptureGateKey,
             gate,
             .OBJC_ASSOCIATION_RETAIN_NONATOMIC
         )
@@ -314,12 +314,12 @@ extension MosaicWebView {
 
     private var screenshotSelectionOverlay: BrowserScreenshotSelectionOverlayView? {
         get {
-            objc_getAssociatedObject(self, &mosaicWebViewScreenshotSelectionOverlayKey) as? BrowserScreenshotSelectionOverlayView
+            objc_getAssociatedObject(self, &cotermWebViewScreenshotSelectionOverlayKey) as? BrowserScreenshotSelectionOverlayView
         }
         set {
             objc_setAssociatedObject(
                 self,
-                &mosaicWebViewScreenshotSelectionOverlayKey,
+                &cotermWebViewScreenshotSelectionOverlayKey,
                 newValue,
                 .OBJC_ASSOCIATION_RETAIN_NONATOMIC
             )
@@ -362,7 +362,7 @@ extension MosaicWebView {
                 )
             }) else {
                 #if DEBUG
-                mosaicDebugLog("browser.screenshot.page.ignored reason=captureInProgress")
+                cotermDebugLog("browser.screenshot.page.ignored reason=captureInProgress")
                 #endif
                 return false
             }
@@ -370,7 +370,7 @@ extension MosaicWebView {
             return true
         } catch {
             #if DEBUG
-            mosaicDebugLog("browser.screenshot.page.failed error=\(error.localizedDescription)")
+            cotermDebugLog("browser.screenshot.page.failed error=\(error.localizedDescription)")
             #endif
             NSSound.beep()
             return false
@@ -407,14 +407,14 @@ extension MosaicWebView {
                         )
                     }) else {
                         #if DEBUG
-                        mosaicDebugLog("browser.screenshot.section.ignored reason=captureInProgress")
+                        cotermDebugLog("browser.screenshot.section.ignored reason=captureInProgress")
                         #endif
                         return
                     }
                     BrowserScreenshotFlash.show(over: self)
                 } catch {
                     #if DEBUG
-                    mosaicDebugLog("browser.screenshot.section.failed error=\(error.localizedDescription)")
+                    cotermDebugLog("browser.screenshot.section.failed error=\(error.localizedDescription)")
                     #endif
                     NSSound.beep()
                 }
@@ -429,7 +429,7 @@ extension MosaicWebView {
 extension BrowserPanel {
     @MainActor
     func captureScreenshotPageToClipboard() async -> Bool {
-        guard let webView = webView as? MosaicWebView else {
+        guard let webView = webView as? CotermWebView else {
             NSSound.beep()
             return false
         }

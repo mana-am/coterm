@@ -12,10 +12,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _wait_until(predicate, timeout_s=4.0, interval_s=0.05, message="timeout"):
@@ -24,7 +24,7 @@ def _wait_until(predicate, timeout_s=4.0, interval_s=0.05, message="timeout"):
         if predicate():
             return
         time.sleep(interval_s)
-    raise mosaicError(message)
+    raise cotermError(message)
 
 
 def _palette_visible(client, window_id):
@@ -52,7 +52,7 @@ def _palette_input_selection(client, window_id):
 
 
 def main():
-    with mosaic(SOCKET_PATH) as client:
+    with coterm(SOCKET_PATH) as client:
         client.activate_app()
         time.sleep(0.2)
 
@@ -88,9 +88,9 @@ def main():
         before = _palette_results(client, window_id, limit=8)
         before_rows = before.get("results") or []
         if not before_rows:
-            raise mosaicError(f"no results for 'open': {before}")
+            raise cotermError(f"no results for 'open': {before}")
         if str(before_rows[0].get("command_id") or "") != "palette.terminalOpenDirectory":
-            raise mosaicError(f"unexpected top command for 'open': {before_rows[0]}")
+            raise cotermError(f"unexpected top command for 'open': {before_rows[0]}")
 
         client.simulate_shortcut("cmd+a")
         client.simulate_type(">rename")
@@ -101,10 +101,10 @@ def main():
         after = _palette_results(client, window_id, limit=8)
         after_rows = after.get("results") or []
         if not after_rows:
-            raise mosaicError(f"no results for 'rename' after replacement: {after}")
+            raise cotermError(f"no results for 'rename' after replacement: {after}")
         top_after = str(after_rows[0].get("command_id") or "")
         if top_after not in {"palette.renameWorkspace", "palette.renameTab"}:
-            raise mosaicError(f"top result did not update to rename command after replacement: {after_rows[0]}")
+            raise cotermError(f"top result did not update to rename command after replacement: {after_rows[0]}")
 
         client.simulate_shortcut("enter")
         _wait_until(

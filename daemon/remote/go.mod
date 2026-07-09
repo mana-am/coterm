@@ -1,4 +1,4 @@
-module github.com/emergent-inc/mosaic/daemon/remote
+module github.com/emergent-inc/coterm/daemon/remote
 
 go 1.22
 

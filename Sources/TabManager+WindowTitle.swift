@@ -56,17 +56,17 @@ extension TabManager {
             activeWorkspace: workspaceTitle.isEmpty ? defaultTitle : workspaceTitle,
             activeDirectory: activeDirectory,
             windowId: windowId,
-            appName: "mosaic"
+            appName: "coterm"
         ))
         let trimmedResolvedTitle = resolvedTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmedResolvedTitle.isEmpty ? defaultTitle : trimmedResolvedTitle
     }
 
     private func defaultWindowTitle(for tab: Workspace?) -> String {
-        guard let tab else { return "mosaic" }
+        guard let tab else { return "coterm" }
         let trimmedTitle = resolvedWorkspaceDisplayTitle(for: tab).trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedTitle.isEmpty { return trimmedTitle }
         let trimmedDirectory = tab.currentDirectory.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmedDirectory.isEmpty ? "mosaic" : trimmedDirectory
+        return trimmedDirectory.isEmpty ? "coterm" : trimmedDirectory
     }
 }

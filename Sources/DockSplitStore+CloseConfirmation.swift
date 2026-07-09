@@ -1,6 +1,6 @@
 import AppKit
 import Bonsplit
-import MosaicSettings
+import CotermSettings
 
 private struct DockPaneCloseConfirmationPrompt: Sendable {
     let title: String

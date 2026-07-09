@@ -3,7 +3,7 @@
 Automated test for ctrl+enter keybind using real keystrokes.
 
 Requires:
-  - mosaic running
+  - coterm running
   - Accessibility permissions for System Events (osascript)
   - keybind = ctrl+enter=text:\\r (or \\n/\\x0d) configured in Ghostty config
 """
@@ -15,10 +15,10 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-# Add the directory containing mosaic.py to the path
+# Add the directory containing coterm.py to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
 class SkipTest(Exception):
@@ -29,24 +29,24 @@ def infer_app_name_for_osascript(socket_path: str) -> str:
     Infer the app display name from the socket path.
 
     Examples:
-      - /tmp/mosaic-debug.sock          -> "Mosaic DEV"
-      - /tmp/mosaic-debug-foo.sock      -> "Mosaic DEV foo"
-      - ~/Library/Application Support/mosaic/mosaic.sock -> "Mosaic"
-      - /tmp/mosaic-foo.sock            -> "Mosaic foo"
+      - /tmp/coterm-debug.sock          -> "Coterm DEV"
+      - /tmp/coterm-debug-foo.sock      -> "Coterm DEV foo"
+      - ~/Library/Application Support/coterm/coterm.sock -> "Coterm"
+      - /tmp/coterm-foo.sock            -> "Coterm foo"
     """
     base = Path(socket_path).name
-    if base.startswith("mosaic-debug") and base.endswith(".sock"):
-        suffix = base[len("mosaic-debug") : -len(".sock")]
+    if base.startswith("coterm-debug") and base.endswith(".sock"):
+        suffix = base[len("coterm-debug") : -len(".sock")]
         if suffix.startswith("-") and suffix[1:]:
-            return f"Mosaic DEV {suffix[1:]}"
-        return "Mosaic DEV"
-    if base.startswith("mosaic") and base.endswith(".sock"):
-        suffix = base[len("mosaic") : -len(".sock")]
+            return f"Coterm DEV {suffix[1:]}"
+        return "Coterm DEV"
+    if base.startswith("coterm") and base.endswith(".sock"):
+        suffix = base[len("coterm") : -len(".sock")]
         if suffix.startswith("-") and suffix[1:]:
-            return f"Mosaic {suffix[1:]}"
-        return "Mosaic"
+            return f"Coterm {suffix[1:]}"
+        return "Coterm"
     # Fallback: tests usually run against Debug builds.
-    return "Mosaic DEV"
+    return "Coterm DEV"
 
 
 def run_osascript(script: str) -> None:
@@ -120,7 +120,7 @@ def find_config_with_keybind() -> Optional[Path]:
     return None
 
 
-def test_ctrl_enter_keybind(client: mosaic) -> tuple[bool, str]:
+def test_ctrl_enter_keybind(client: coterm) -> tuple[bool, str]:
     marker = Path("/tmp") / f"ghostty_ctrl_enter_{os.getpid()}"
     marker.unlink(missing_ok=True)
 
@@ -162,14 +162,14 @@ def test_ctrl_enter_keybind(client: mosaic) -> tuple[bool, str]:
 
 def run_tests() -> int:
     print("=" * 60)
-    print("mosaic Ctrl+Enter Keybind Test")
+    print("coterm Ctrl+Enter Keybind Test")
     print("=" * 60)
     print()
 
-    socket_path = mosaic.DEFAULT_SOCKET_PATH
+    socket_path = coterm.DEFAULT_SOCKET_PATH
     if not os.path.exists(socket_path):
         print(f"Error: Socket not found at {socket_path}")
-        print("Please make sure mosaic is running.")
+        print("Please make sure coterm is running.")
         return 1
 
     config_path = find_config_with_keybind()
@@ -182,12 +182,12 @@ def run_tests() -> int:
     print()
 
     try:
-        with mosaic() as client:
+        with coterm() as client:
             ok, message = test_ctrl_enter_keybind(client)
             status = "✅" if ok else "❌"
             print(f"{status} {message}")
             return 0 if ok else 1
-    except mosaicError as e:
+    except cotermError as e:
         print(f"Error: {e}")
         return 1
     except SkipTest as e:

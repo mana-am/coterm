@@ -1,4 +1,4 @@
-// Pure encoder for the mosaic iOS attach deep link.
+// Pure encoder for the coterm iOS attach deep link.
 //
 // Takes the raw payload returned by the `mobile.attach_ticket.create` RPC
 // (`{ ticket: { routes, version, ... }, ... }`), optionally filters the ticket
@@ -6,8 +6,8 @@
 // `<scheme>://attach?v=<n>&payload=<b64>` URL the phone consumes.
 //
 // The scheme is channel-specific, mirroring `CmxPairingURLScheme` in
-// `Packages/Shared/MosaicMobileCore`: development builds register and emit
-// `mosaic-ios-dev`, Release (TestFlight beta + App Store) emit `mosaic-ios`. Both
+// `Packages/Shared/CotermMobileCore`: development builds register and emit
+// `coterm-ios-dev`, Release (TestFlight beta + App Store) emit `coterm-ios`. Both
 // callers here are dev-only (the debug-CLI QR renderer and the headless
 // dev-setup auto-pair mint), so the default is the dev scheme: a QR rendered by
 // `mobile-attach-qr.sh` must route to the dev iOS build when scanned with the
@@ -19,10 +19,10 @@
 // `node --test scripts/lib/attach-url.test.mjs`.
 
 /** The pairing/attach URL scheme development (DEBUG/tagged) builds emit. */
-export const DEV_URL_SCHEME = "mosaic-ios-dev";
+export const DEV_URL_SCHEME = "coterm-ios-dev";
 
 /** The pairing/attach URL scheme Release (beta + prod) builds emit. */
-export const RELEASE_URL_SCHEME = "mosaic-ios";
+export const RELEASE_URL_SCHEME = "coterm-ios";
 
 /**
  * Filter a ticket's routes by id and/or kind. Returns the matching subset.
@@ -86,7 +86,7 @@ export function buildAttachURL(payload, filter = {}) {
   // route set, so fall through to the lossless v1 reconstruction.
   if (
     typeof payload.attach_url === "string" &&
-    payload.attach_url.startsWith("mosaic-ios://attach?") &&
+    payload.attach_url.startsWith("coterm-ios://attach?") &&
     routes.length === payload.ticket.routes.length
   ) {
     result.attach_url = payload.attach_url;

@@ -1,7 +1,7 @@
-import MosaicSettings
+import CotermSettings
 import Foundation
 
-extension MosaicSettingsFileStore {
+extension CotermSettingsFileStore {
     static func defaultTemplate() -> String {
         var lines: [String] = [
             "{",
@@ -11,7 +11,7 @@ extension MosaicSettingsFileStore {
             "  // This file uses JSON with comments (JSONC).",
             "  // Uncomment and edit any setting to make it file-managed.",
             "  // Remove a setting to fall back to the value saved in Settings.",
-            "  // mosaic creates this template on launch when ~/.config/mosaic/mosaic.json is missing.",
+            "  // coterm creates this template on launch when ~/.config/coterm/coterm.json is missing.",
             "  // Legacy settings.json files are read only as fallback for keys not present here.",
             "",
         ]
@@ -68,8 +68,8 @@ extension MosaicSettingsFileStore {
                     "keepWorkspaceOpenWhenClosingLastSurface": !SettingCatalog().app.keepWorkspaceOpenWhenClosingLastSurface.defaultValue,
                     "focusPaneOnFirstClick": PaneFirstClickFocusSettings.defaultEnabled,
                     "preferredEditor": "",
-                    "openSupportedFilesInMosaic": AppCatalogSection().openSupportedFilesInMosaic.defaultValue,
-                    "openMarkdownInMosaicViewer": AppCatalogSection().openMarkdownInMosaicViewer.defaultValue,
+                    "openSupportedFilesInCoterm": AppCatalogSection().openSupportedFilesInCoterm.defaultValue,
+                    "openMarkdownInCotermViewer": AppCatalogSection().openMarkdownInCotermViewer.defaultValue,
                     "reorderOnNotification": SettingCatalog().app.reorderOnNotification.defaultValue,
                     "iMessageMode": IMessageModeSettings.defaultValue,
                     "sendAnonymousTelemetry": AppCatalogSection().sendAnonymousTelemetry.defaultValue,
@@ -134,8 +134,8 @@ extension MosaicSettingsFileStore {
                     "showPullRequests": SidebarWorkspaceDetailDefaults.showPullRequests,
                     "watchGitStatus": SidebarWorkspaceDetailDefaults.watchGitStatus,
                     "makePullRequestsClickable": SettingCatalog().sidebar.makePullRequestsClickable.defaultValue,
-                    "openPullRequestLinksInMosaicBrowser": BrowserLinkOpenSettings.defaultOpenSidebarPullRequestLinksInMosaicBrowser,
-                    "openPortLinksInMosaicBrowser": BrowserLinkOpenSettings.defaultOpenSidebarPortLinksInMosaicBrowser,
+                    "openPullRequestLinksInCotermBrowser": BrowserLinkOpenSettings.defaultOpenSidebarPullRequestLinksInCotermBrowser,
+                    "openPortLinksInCotermBrowser": BrowserLinkOpenSettings.defaultOpenSidebarPortLinksInCotermBrowser,
                     "showSSH": SidebarWorkspaceDetailDefaults.showSSH,
                     "showPorts": SidebarWorkspaceDetailDefaults.showPorts,
                     "showLog": SidebarWorkspaceDetailDefaults.showLog,
@@ -189,8 +189,8 @@ extension MosaicSettingsFileStore {
                     "discardHiddenWebViews": BrowserHiddenWebViewDiscardPolicy.defaultEnabled,
                     "hiddenWebViewDiscardDelaySeconds": BrowserHiddenWebViewDiscardPolicy.defaultHiddenDelay,
                     "askWhereToSaveDownloads": SettingCatalog().browser.askWhereToSaveDownloads.defaultValue,
-                    "openTerminalLinksInMosaicBrowser": BrowserLinkOpenSettings.defaultOpenTerminalLinksInMosaicBrowser,
-                    "interceptTerminalOpenCommandInMosaicBrowser": BrowserLinkOpenSettings.defaultInterceptTerminalOpenCommandInMosaicBrowser,
+                    "openTerminalLinksInCotermBrowser": BrowserLinkOpenSettings.defaultOpenTerminalLinksInCotermBrowser,
+                    "interceptTerminalOpenCommandInCotermBrowser": BrowserLinkOpenSettings.defaultInterceptTerminalOpenCommandInCotermBrowser,
                     "hostsToOpenInEmbeddedBrowser": [String](),
                     "urlsToAlwaysOpenExternally": [String](),
                     "insecureHttpHostsAllowedInEmbeddedBrowser": BrowserInsecureHTTPSettings.defaultAllowlistPatterns,

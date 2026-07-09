@@ -1,6 +1,7 @@
 export interface SessionMetadata {
   sessionID: string;
   sessionCode: string;
+  shareSecretHash: string;
 }
 
 export interface SessionMetadataStorage {
@@ -24,14 +25,16 @@ const METADATA_KEY = "metadata";
 
 export async function createSessionMetadata(
   storage: SessionMetadataStorage,
-  sessionCode: string
+  sessionCode: string,
+  shareSecret: string
 ): Promise<SessionMetadata> {
-  return (await createSessionMetadataIfAbsent(storage, sessionCode)).metadata;
+  return (await createSessionMetadataIfAbsent(storage, sessionCode, shareSecret)).metadata;
 }
 
 export async function createSessionMetadataIfAbsent(
   storage: SessionMetadataStorage,
-  sessionCode: string
+  sessionCode: string,
+  shareSecret: string
 ): Promise<SessionMetadataCreateResult> {
   const claim = async (txn: SessionMetadataTransaction): Promise<SessionMetadataCreateResult> => {
     const existing = await txn.get<SessionMetadata>(METADATA_KEY) ?? null;
@@ -40,12 +43,18 @@ export async function createSessionMetadataIfAbsent(
     const metadata = {
       sessionID: sessionCode,
       sessionCode,
+      shareSecretHash: await sha256Hex(shareSecret),
     };
     await txn.put(METADATA_KEY, metadata);
     return { metadata, created: true };
   };
 
   return storage.transaction ? storage.transaction(claim) : claim(storage);
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export async function readSessionMetadata(storage: SessionMetadataStorage): Promise<SessionMetadata | null> {

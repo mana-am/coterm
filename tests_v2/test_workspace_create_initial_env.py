@@ -8,18 +8,18 @@ import base64
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
-def _wait_for_text(c: mosaic, workspace_id: str, needle: str, timeout_s: float = 8.0) -> str:
+def _wait_for_text(c: coterm, workspace_id: str, needle: str, timeout_s: float = 8.0) -> str:
     deadline = time.time() + timeout_s
     last_text = ""
     while time.time() < deadline:
@@ -36,11 +36,11 @@ def _wait_for_text(c: mosaic, workspace_id: str, needle: str, timeout_s: float =
         if needle in last_text:
             return last_text
         time.sleep(0.1)
-    raise mosaicError(f"Timed out waiting for {needle!r} in panel text: {last_text!r}")
+    raise cotermError(f"Timed out waiting for {needle!r} in panel text: {last_text!r}")
 
 
 def main() -> int:
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         baseline_workspace = c.current_workspace()
         created_workspace = ""
         try:
@@ -48,7 +48,7 @@ def main() -> int:
             payload = c._call(
                 "workspace.create",
                 {
-                    "initial_env": {"MOSAIC_INITIAL_ENV_TOKEN": token},
+                    "initial_env": {"COTERM_INITIAL_ENV_TOKEN": token},
                 },
             ) or {}
             created_workspace = str(payload.get("workspace_id") or "")
@@ -64,10 +64,10 @@ def main() -> int:
             terminal_row = next((row for row in rows if str(row.get("type") or "") == "terminal"), None)
             _must(terminal_row is not None, f"Expected a terminal surface in workspace.create result: {rows}")
 
-            c.send("printf 'MOSAIC_ENV_CHECK=%s\\n' \"$MOSAIC_INITIAL_ENV_TOKEN\"\\n")
-            text = _wait_for_text(c, created_workspace, f"MOSAIC_ENV_CHECK={token}")
+            c.send("printf 'COTERM_ENV_CHECK=%s\\n' \"$COTERM_INITIAL_ENV_TOKEN\"\\n")
+            text = _wait_for_text(c, created_workspace, f"COTERM_ENV_CHECK={token}")
             _must(
-                f"MOSAIC_ENV_CHECK={token}" in text,
+                f"COTERM_ENV_CHECK={token}" in text,
                 f"initial_env token missing from terminal output: {text!r}",
             )
             c.select_workspace(baseline_workspace)

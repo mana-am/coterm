@@ -1,6 +1,6 @@
 import Bonsplit
 import Foundation
-import MosaicWorkspaces
+import CotermWorkspaces
 
 extension Workspace {
     func portalPaneDropZone(

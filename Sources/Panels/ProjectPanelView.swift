@@ -1,6 +1,6 @@
-import MosaicFoundation
+import CotermFoundation
 import AppKit
-import MosaicProjectModel
+import CotermProjectModel
 import SwiftUI
 
 /// Top-level SwiftUI view for a ``ProjectPanel``.
@@ -32,7 +32,7 @@ struct ProjectPanelView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 10) {
                 Label(panel.displayTitle, systemImage: "hammer.fill")
-                    .mosaicFont(size: 13, weight: .semibold)
+                    .cotermFont(size: 13, weight: .semibold)
                     .help(panel.projectURL.path)
                 schemePicker
                 configurationPicker
@@ -41,7 +41,7 @@ struct ProjectPanelView: View {
                     panel.reload()
                 }) {
                     Image(systemName: "arrow.clockwise")
-                        .mosaicFont(size: 11, weight: .semibold)
+                        .cotermFont(size: 11, weight: .semibold)
                 }
                 .buttonStyle(.plain)
                 .help("Reload project")
@@ -49,9 +49,9 @@ struct ProjectPanelView: View {
             if let error = panel.lastLoadError, case .loaded = panel.loadState {
                 HStack(spacing: 6) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .mosaicFont(size: 10)
+                        .cotermFont(size: 10)
                     Text("Reload returned errors: \(error)")
-                        .mosaicFont(size: 10)
+                        .cotermFont(size: 10)
                         .lineLimit(1)
                         .truncationMode(.tail)
                     Spacer()
@@ -59,7 +59,7 @@ struct ProjectPanelView: View {
                         panel.lastLoadError = nil
                     }) {
                         Image(systemName: "xmark")
-                            .mosaicFont(size: 9)
+                            .cotermFont(size: 9)
                     }
                     .buttonStyle(.plain)
                 }
@@ -151,7 +151,7 @@ struct ProjectPanelView: View {
             ForEach(ProjectPanelTab.allCases, id: \.self) { tab in
                 TrackedButton("projectpanelview_button_152", action: { panel.activeTab = tab }) {
                     Text(tab.displayLabel)
-                        .mosaicFont(size: 11, weight: .medium)
+                        .cotermFont(size: 11, weight: .medium)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(
@@ -204,7 +204,7 @@ struct ProjectPanelStatusView: View {
             HStack {
                 Spacer()
                 Text(message)
-                    .mosaicFont(size: 13)
+                    .cotermFont(size: 13)
                     .foregroundStyle(.secondary)
                 Spacer()
             }
@@ -227,13 +227,13 @@ struct ProjectEmptyDetailView: View {
         VStack(spacing: 6) {
             Spacer()
             Image(systemName: systemImage)
-                .mosaicFont(size: 28, weight: .light)
+                .cotermFont(size: 28, weight: .light)
                 .foregroundStyle(.tertiary)
             Text(title)
-                .mosaicFont(size: 13, weight: .semibold)
+                .cotermFont(size: 13, weight: .semibold)
                 .foregroundStyle(.primary)
             Text(hint)
-                .mosaicFont(size: 11)
+                .cotermFont(size: 11)
                 .foregroundStyle(.secondary)
             Spacer()
         }

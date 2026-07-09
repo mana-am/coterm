@@ -1,13 +1,13 @@
 import { defineConfig } from "drizzle-kit";
 
 function defaultDatabaseURL(): string {
-  const rawPort = process.env.MOSAIC_PORT ?? process.env.PORT ?? "3777";
-  const mosaicPort = /^\d+$/.test(rawPort) ? Number(rawPort) : 3777;
-  const offset = Number(process.env.MOSAIC_DB_PORT_OFFSET ?? "10000");
-  const dbPort = process.env.MOSAIC_DB_PORT ?? String(mosaicPort + offset);
-  const user = process.env.MOSAIC_DB_USER ?? "mosaic";
-  const password = process.env.MOSAIC_DB_PASSWORD ?? "mosaic";
-  const database = process.env.MOSAIC_DB_NAME ?? "mosaic";
+  const rawPort = process.env.COTERM_PORT ?? process.env.PORT ?? "3777";
+  const cotermPort = /^\d+$/.test(rawPort) ? Number(rawPort) : 3777;
+  const offset = Number(process.env.COTERM_DB_PORT_OFFSET ?? "10000");
+  const dbPort = process.env.COTERM_DB_PORT ?? String(cotermPort + offset);
+  const user = process.env.COTERM_DB_USER ?? "coterm";
+  const password = process.env.COTERM_DB_PASSWORD ?? "coterm";
+  const database = process.env.COTERM_DB_NAME ?? "coterm";
   return `postgres://${user}:${password}@localhost:${dbPort}/${database}`;
 }
 

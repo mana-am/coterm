@@ -1,9 +1,9 @@
 import AppKit
 import Bonsplit
-import MosaicNotifications
+import CotermNotifications
 import Foundation
 
-/// App-side adapter that lets the `MosaicNotifications` navigation seams reach
+/// App-side adapter that lets the `CotermNotifications` navigation seams reach
 /// `AppDelegate` WITHOUT forming a retain cycle. The coordinator (and the
 /// `NotificationClickPerformer`) store their seams as strong `any …` refs, so if
 /// `AppDelegate` injected `self` the graph would be

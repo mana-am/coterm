@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WRAPPER = ROOT / "Resources" / "bin" / "mosaic-claude-wrapper"
+WRAPPER = ROOT / "Resources" / "bin" / "coterm-claude-wrapper"
 SHELL_INTEGRATION_DIR = ROOT / "Resources" / "shell-integration"
 
 
@@ -38,16 +38,16 @@ def run_wrapper(argv: list[str], env: dict[str, str]) -> subprocess.CompletedPro
     )
 
 
-def test_wrapper_skips_mosaic_shims_and_bundled_claude(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-wrapper-resolution-") as td:
+def test_wrapper_skips_coterm_shims_and_bundled_claude(failures: list[str]) -> None:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-wrapper-resolution-") as td:
         root = Path(td)
-        bundle_bin = root / "Mosaic.app" / "Contents" / "Resources" / "bin"
+        bundle_bin = root / "Coterm.app" / "Contents" / "Resources" / "bin"
         shim_bin = root / "shim-bin"
         real_bin = root / "real-bin"
         for directory in (bundle_bin, shim_bin, real_bin):
             directory.mkdir(parents=True, exist_ok=True)
 
-        wrapper = bundle_bin / "mosaic-claude-wrapper"
+        wrapper = bundle_bin / "coterm-claude-wrapper"
         wrapper.write_bytes(WRAPPER.read_bytes())
         wrapper.chmod(0o755)
 
@@ -67,16 +67,16 @@ echo real-claude "$@"
         write_executable(
             shim,
             f"""#!/bin/sh
-export MOSAIC_CLAUDE_WRAPPER_SHIM="{shim}"
-export MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT="{shim_bin}"
+export COTERM_CLAUDE_WRAPPER_SHIM="{shim}"
+export COTERM_CLAUDE_WRAPPER_SHIM_ROOT="{shim_bin}"
 exec "{wrapper}" "$@"
 """,
         )
 
         env = minimal_env(f"{shim_bin}:{bundle_bin}:{real_bin}:/usr/bin:/bin")
-        env["MOSAIC_CLAUDE_WRAPPER_SHIM"] = str(shim)
-        env["MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT"] = str(shim_bin)
-        env["MOSAIC_CUSTOM_CLAUDE_PATH"] = str(bundle_bin / "claude")
+        env["COTERM_CLAUDE_WRAPPER_SHIM"] = str(shim)
+        env["COTERM_CLAUDE_WRAPPER_SHIM_ROOT"] = str(shim_bin)
+        env["COTERM_CUSTOM_CLAUDE_PATH"] = str(bundle_bin / "claude")
 
         result = run_wrapper([str(shim), "--version"], env)
         output = (result.stdout + result.stderr).strip()
@@ -86,17 +86,17 @@ exec "{wrapper}" "$@"
             failures.append(f"expected user claude, got {output!r}")
 
 
-def test_wrapper_skips_inherited_mosaic_cli_shim_roots(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-wrapper-inherited-shim-") as td:
+def test_wrapper_skips_inherited_coterm_cli_shim_roots(failures: list[str]) -> None:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-wrapper-inherited-shim-") as td:
         root = Path(td)
         wrapper_bin = root / "wrapper-bin"
-        current_shim_root = root / "tmp" / "mosaic-cli-shims" / "current-surface"
-        inherited_shim_root = root / "tmp" / "mosaic-cli-shims" / "old-surface"
+        current_shim_root = root / "tmp" / "coterm-cli-shims" / "current-surface"
+        inherited_shim_root = root / "tmp" / "coterm-cli-shims" / "old-surface"
         real_bin = root / "real-bin"
         for directory in (wrapper_bin, current_shim_root, inherited_shim_root, real_bin):
             directory.mkdir(parents=True, exist_ok=True)
 
-        wrapper = wrapper_bin / "mosaic-claude-wrapper"
+        wrapper = wrapper_bin / "coterm-claude-wrapper"
         wrapper.write_bytes(WRAPPER.read_bytes())
         wrapper.chmod(0o755)
 
@@ -123,19 +123,19 @@ echo real-claude "$@"
         )
 
         env = minimal_env(f"{current_shim_root}:{wrapper_bin}:{inherited_shim_root}:{real_bin}:/usr/bin:/bin")
-        env["MOSAIC_CLAUDE_WRAPPER_SHIM"] = str(current_shim)
-        env["MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT"] = str(current_shim_root)
+        env["COTERM_CLAUDE_WRAPPER_SHIM"] = str(current_shim)
+        env["COTERM_CLAUDE_WRAPPER_SHIM_ROOT"] = str(current_shim_root)
 
         result = run_wrapper([str(wrapper), "--version"], env)
         output = (result.stdout + result.stderr).strip()
         if result.returncode != 0:
             failures.append(f"inherited-shim wrapper exited {result.returncode}: {output}")
         if output != "real-claude --version":
-            failures.append(f"expected inherited mosaic shim roots to be skipped, got {output!r}")
+            failures.append(f"expected inherited coterm shim roots to be skipped, got {output!r}")
 
 
 def test_shell_integration_does_not_shim_grok(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-grok-wrapper-resolution-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-grok-wrapper-resolution-") as td:
         root = Path(td)
         real_bin = root / "real-bin"
         real_bin.mkdir(parents=True, exist_ok=True)
@@ -147,7 +147,7 @@ echo real-grok "$@"
         )
 
         base_env = minimal_env(f"{real_bin}:/usr/bin:/bin")
-        base_env["MOSAIC_SHELL_INTEGRATION_DIR"] = str(SHELL_INTEGRATION_DIR)
+        base_env["COTERM_SHELL_INTEGRATION_DIR"] = str(SHELL_INTEGRATION_DIR)
 
         shell_commands = [
             [
@@ -155,13 +155,13 @@ echo real-grok "$@"
                 "--noprofile",
                 "--norc",
                 "-c",
-                'source "$MOSAIC_SHELL_INTEGRATION_DIR/mosaic-bash-integration.bash"; grok --version',
+                'source "$COTERM_SHELL_INTEGRATION_DIR/coterm-bash-integration.bash"; grok --version',
             ],
             [
                 "/bin/zsh",
                 "-f",
                 "-c",
-                'source "$MOSAIC_SHELL_INTEGRATION_DIR/mosaic-zsh-integration.zsh"; grok --version',
+                'source "$COTERM_SHELL_INTEGRATION_DIR/coterm-zsh-integration.zsh"; grok --version',
             ],
         ]
         for argv in shell_commands:
@@ -175,7 +175,7 @@ echo real-grok "$@"
 
 
 def test_shell_integration_preserves_empty_path_components(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-shell-path-components-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-shell-path-components-") as td:
         root = Path(td)
         tmpdir = root / "tmp"
         first = root / "first-bin"
@@ -184,14 +184,14 @@ def test_shell_integration_preserves_empty_path_components(failures: list[str]) 
             directory.mkdir(parents=True, exist_ok=True)
 
         surface_id = "surface-path-test"
-        shim_root = tmpdir / "mosaic-cli-shims" / surface_id
+        shim_root = tmpdir / "coterm-cli-shims" / surface_id
         expected_path = f"{shim_root}::{first}::{last}:"
 
         input_path = f":{first}::{shim_root}:{last}:"
         base_env = minimal_env("/usr/bin:/bin", tmpdir)
-        base_env["MOSAIC_SHELL_INTEGRATION_DIR"] = str(SHELL_INTEGRATION_DIR)
-        base_env["MOSAIC_SURFACE_ID"] = surface_id
-        base_env["MOSAIC_TEST_INPUT_PATH"] = input_path
+        base_env["COTERM_SHELL_INTEGRATION_DIR"] = str(SHELL_INTEGRATION_DIR)
+        base_env["COTERM_SURFACE_ID"] = surface_id
+        base_env["COTERM_TEST_INPUT_PATH"] = input_path
 
         shell_commands = [
             [
@@ -199,16 +199,16 @@ def test_shell_integration_preserves_empty_path_components(failures: list[str]) 
                 "--noprofile",
                 "--norc",
                 "-c",
-                'PATH="$MOSAIC_TEST_INPUT_PATH"; '
-                'source "$MOSAIC_SHELL_INTEGRATION_DIR/mosaic-bash-integration.bash"; '
+                'PATH="$COTERM_TEST_INPUT_PATH"; '
+                'source "$COTERM_SHELL_INTEGRATION_DIR/coterm-bash-integration.bash"; '
                 'printf "%s\\n" "$PATH"',
             ],
             [
                 "/bin/zsh",
                 "-f",
                 "-c",
-                'PATH="$MOSAIC_TEST_INPUT_PATH"; '
-                'source "$MOSAIC_SHELL_INTEGRATION_DIR/mosaic-zsh-integration.zsh"; '
+                'PATH="$COTERM_TEST_INPUT_PATH"; '
+                'source "$COTERM_SHELL_INTEGRATION_DIR/coterm-zsh-integration.zsh"; '
                 'printf "%s\\n" "$PATH"',
             ],
         ]
@@ -227,8 +227,8 @@ def test_shell_integration_preserves_empty_path_components(failures: list[str]) 
 
 def main() -> int:
     failures: list[str] = []
-    test_wrapper_skips_mosaic_shims_and_bundled_claude(failures)
-    test_wrapper_skips_inherited_mosaic_cli_shim_roots(failures)
+    test_wrapper_skips_coterm_shims_and_bundled_claude(failures)
+    test_wrapper_skips_inherited_coterm_cli_shim_roots(failures)
     test_shell_integration_does_not_shim_grok(failures)
     test_shell_integration_preserves_empty_path_components(failures)
     if failures:

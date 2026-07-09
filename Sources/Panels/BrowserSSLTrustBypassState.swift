@@ -84,7 +84,7 @@ final class BrowserSSLTrustBypassState {
         enforcePendingBypassLimit()
 
         var components = URLComponents()
-        components.scheme = "mosaic-browser-action"
+        components.scheme = "coterm-browser-action"
         components.host = "bypass-ssl"
         components.queryItems = [
             URLQueryItem(name: "token", value: token),
@@ -103,7 +103,7 @@ final class BrowserSSLTrustBypassState {
     }
 
     func consumePendingBypassAction(_ actionURL: URL) -> URLRequest? {
-        guard actionURL.scheme == "mosaic-browser-action",
+        guard actionURL.scheme == "coterm-browser-action",
               actionURL.host == "bypass-ssl",
               let components = URLComponents(url: actionURL, resolvingAgainstBaseURL: false),
               let token = components.queryItems?.first(where: { $0.name == "token" })?.value else {

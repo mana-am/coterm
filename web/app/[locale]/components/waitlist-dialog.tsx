@@ -60,7 +60,7 @@ async function recordWaitlistSignup(
       keepalive: true,
       body: JSON.stringify({
         api_key: token,
-        event: "mosaicterm_waitlist_signup",
+        event: "coterm_waitlist_signup",
         properties: {
           distinct_id: email,
           email,

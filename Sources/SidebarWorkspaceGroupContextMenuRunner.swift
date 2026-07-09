@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 enum SidebarWorkspaceGroupContextMenuRunner {
     static func run(
-        item: MosaicResolvedConfigMenuAction,
+        item: CotermResolvedConfigMenuAction,
         tabManager: TabManager,
         groupId: UUID
     ) {

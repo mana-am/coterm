@@ -1,4 +1,4 @@
-import MosaicFoundation
+import CotermFoundation
 import SwiftUI
 
 enum ShortcutHintAnimation {
@@ -50,7 +50,7 @@ struct ShortcutHintPill: View {
 
     var body: some View {
         Text(text)
-            .mosaicFont(size: fontSize, weight: .semibold, design: .rounded)
+            .cotermFont(size: fontSize, weight: .semibold, design: .rounded)
             .monospacedDigit()
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)

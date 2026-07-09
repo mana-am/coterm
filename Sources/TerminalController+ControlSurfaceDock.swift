@@ -1,5 +1,5 @@
 import AppKit
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
 
 extension TerminalController {

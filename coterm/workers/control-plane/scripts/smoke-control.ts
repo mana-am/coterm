@@ -1,15 +1,14 @@
 // End-to-end smoke test for the control-plane against a running relay.
-// Assumes noauth mode by default (no bearer token needed). In hmac mode, set
-// MOSAIC_COLLAB_TOKEN to a valid mosaicv1 access token.
+// In hmac mode, set COTERM_COLLAB_TOKEN to a valid cotermv1 access token.
 //
 //   bun scripts/smoke-control.ts [controlPlaneURL]
 //
 // Env:
-//   MOSAIC_COLLAB_CONTROL_URL  (default http://localhost:8788)
-//   MOSAIC_COLLAB_TOKEN        (bearer token; optional in noauth mode)
+//   COTERM_COLLAB_CONTROL_URL  (default http://localhost:8788)
+//   COTERM_COLLAB_TOKEN        (bearer token)
 
-const controlURL = (process.env.MOSAIC_COLLAB_CONTROL_URL ?? process.argv[2] ?? "http://localhost:8788").replace(/\/+$/, "");
-const token = process.env.MOSAIC_COLLAB_TOKEN ?? "";
+const controlURL = (process.env.COTERM_COLLAB_CONTROL_URL ?? process.argv[2] ?? "http://localhost:8788").replace(/\/+$/, "");
+const token = process.env.COTERM_COLLAB_TOKEN ?? "";
 
 function headers(json = false): Record<string, string> {
   const h: Record<string, string> = {};
@@ -37,8 +36,14 @@ async function main(): Promise<void> {
     body: JSON.stringify({ orgId: "smoke" }),
   });
   if (!sessions.ok) fail(`sessions failed: ${sessions.status} ${await sessions.text()}`);
-  const created = (await sessions.json()) as { session?: string; room?: string; grant?: string; relayURL?: string };
-  for (const key of ["session", "room", "grant", "relayURL"] as const) {
+  const created = (await sessions.json()) as {
+    session?: string;
+    room?: string;
+    grant?: string;
+    relayURL?: string;
+    shareSecret?: string;
+  };
+  for (const key of ["session", "room", "grant", "relayURL", "shareSecret"] as const) {
     if (!created[key]) fail(`sessions response missing ${key}: ${JSON.stringify(created)}`);
   }
 
@@ -52,11 +57,29 @@ async function main(): Promise<void> {
   const join = await fetch(`${controlURL}/api/collab/join`, {
     method: "POST",
     headers: headers(true),
-    body: JSON.stringify({ code: created.room }),
+    body: JSON.stringify({ code: created.room, shareSecret: created.shareSecret }),
   });
   if (!join.ok) fail(`join failed: ${join.status} ${await join.text()}`);
-  const joined = (await join.json()) as { grant?: string; room?: string };
-  if (!joined.grant || joined.room !== created.room) fail(`join returned unexpected result: ${JSON.stringify(joined)}`);
+  const pending = (await join.json()) as { requestId?: string; room?: string; status?: string };
+  if (!pending.requestId || pending.room !== created.room || pending.status !== "pending") {
+    fail(`join returned unexpected pending request: ${JSON.stringify(pending)}`);
+  }
+
+  const approve = await fetch(`${controlURL}/api/collab/join-requests/approve`, {
+    method: "POST",
+    headers: headers(true),
+    body: JSON.stringify({ requestId: pending.requestId }),
+  });
+  if (!approve.ok) fail(`approve failed: ${approve.status} ${await approve.text()}`);
+
+  const claim = await fetch(`${controlURL}/api/collab/join-requests/claim`, {
+    method: "POST",
+    headers: headers(true),
+    body: JSON.stringify({ room: created.room, requestId: pending.requestId }),
+  });
+  if (!claim.ok) fail(`claim failed: ${claim.status} ${await claim.text()}`);
+  const joined = (await claim.json()) as { grant?: string; room?: string };
+  if (!joined.grant || joined.room !== created.room) fail(`claim returned unexpected result: ${JSON.stringify(joined)}`);
 
   console.log(`control-plane smoke OK: ${controlURL} room ${created.room}`);
 }

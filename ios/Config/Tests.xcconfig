@@ -7,8 +7,8 @@
 // ==========================================
 // Test Target Settings (Customizable by scaffold tool)
 // ==========================================
-PRODUCT_BUNDLE_IDENTIFIER = dev.mosaic.ios.uitests
-TEST_TARGET_NAME = mosaic
+PRODUCT_BUNDLE_IDENTIFIER = dev.coterm.ios.uitests
+TEST_TARGET_NAME = coterm
 CODE_SIGN_ENTITLEMENTS =
 INFOPLIST_FILE =
 

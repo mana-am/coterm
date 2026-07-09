@@ -5,7 +5,7 @@
 	<key>EXAppExtensionAttributes</key>
 	<dict>
 		<key>EXExtensionPointIdentifier</key>
-		<string>$(MOSAIC_SIDEBAR_EXTENSION_POINT_ID)</string>
+		<string>$(COTERM_SIDEBAR_EXTENSION_POINT_ID)</string>
 	</dict>
 </dict>
 </plist>

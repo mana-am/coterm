@@ -1,0 +1,4 @@
+interface:
+  display_name: "coterm Customization"
+  short_description: "Customize coterm actions, UI, layouts, and presets."
+  default_prompt: "Use $coterm-customization to pick an examples-library preset, wire it into coterm.json, and validate the coterm config."

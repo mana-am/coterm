@@ -19,24 +19,24 @@ import uuid
 from pathlib import Path
 
 
-def resolve_mosaic_cli() -> str:
-    explicit = os.environ.get("MOSAIC_CLI_BIN") or os.environ.get("MOSAIC_CLI")
+def resolve_coterm_cli() -> str:
+    explicit = os.environ.get("COTERM_CLI_BIN") or os.environ.get("COTERM_CLI")
     if explicit and os.path.exists(explicit) and os.access(explicit, os.X_OK):
         return explicit
 
     candidates: list[str] = []
-    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/mosaic")))
-    candidates.extend(glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic"))
+    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/coterm")))
+    candidates.extend(glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm"))
     candidates = [p for p in candidates if os.path.exists(p) and os.access(p, os.X_OK)]
     if candidates:
         candidates.sort(key=os.path.getmtime, reverse=True)
         return candidates[0]
 
-    in_path = shutil.which("mosaic")
+    in_path = shutil.which("coterm")
     if in_path:
         return in_path
 
-    raise RuntimeError("Unable to find mosaic CLI binary. Set MOSAIC_CLI_BIN.")
+    raise RuntimeError("Unable to find coterm CLI binary. Set COTERM_CLI_BIN.")
 
 
 class TeardownUnavailableServer:
@@ -107,7 +107,7 @@ class TeardownUnavailableServer:
                         conn.sendall((response + "\n").encode("utf-8"))
 
                 if not self.commands:
-                    raise RuntimeError("mosaic CLI never sent a command to the teardown test socket")
+                    raise RuntimeError("coterm CLI never sent a command to the teardown test socket")
         except Exception as exc:  # pragma: no cover - explicit failure surfacing
             self.error = exc
             self.ready.set()
@@ -117,15 +117,15 @@ class TeardownUnavailableServer:
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1
 
-    temp_dir = tempfile.TemporaryDirectory(prefix="mosaic-claude-hook-stop-")
+    temp_dir = tempfile.TemporaryDirectory(prefix="coterm-claude-hook-stop-")
     try:
         root = Path(temp_dir.name)
-        socket_path = str(root / "mosaic.sock")
+        socket_path = str(root / "coterm.sock")
         state_path = root / "claude-hook-state.json"
         server = TeardownUnavailableServer(socket_path)
         server.start()
@@ -138,12 +138,12 @@ def main() -> int:
             return 1
 
         env = os.environ.copy()
-        env["MOSAIC_SOCKET_PATH"] = socket_path
-        env["MOSAIC_WORKSPACE_ID"] = str(uuid.uuid4())
-        env["MOSAIC_SURFACE_ID"] = str(uuid.uuid4())
-        env["MOSAIC_CLAUDE_HOOK_STATE_PATH"] = str(state_path)
-        env["MOSAIC_CLI_SENTRY_DISABLED"] = "1"
-        env["MOSAIC_CLAUDE_HOOK_SENTRY_DISABLED"] = "1"
+        env["COTERM_SOCKET_PATH"] = socket_path
+        env["COTERM_WORKSPACE_ID"] = str(uuid.uuid4())
+        env["COTERM_SURFACE_ID"] = str(uuid.uuid4())
+        env["COTERM_CLAUDE_HOOK_STATE_PATH"] = str(state_path)
+        env["COTERM_CLI_SENTRY_DISABLED"] = "1"
+        env["COTERM_CLAUDE_HOOK_SENTRY_DISABLED"] = "1"
 
         proc = subprocess.run(
             [cli_path, "--socket", socket_path, "claude-hook", "stop"],

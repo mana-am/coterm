@@ -1,0 +1,4 @@
+interface:
+  display_name: "coterm Keyboard Shortcuts"
+  short_description: "Customize coterm shortcuts and preset layouts."
+  default_prompt: "Use this skill to help choose and apply coterm keyboard shortcut templates: inspect current bindings, propose layouts, apply selected action paths, validate coterm.json, and report exact revert commands."

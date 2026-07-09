@@ -5,25 +5,25 @@
 //   bun scripts/smoke-e2e.ts
 //
 // Env:
-//   MOSAIC_COLLAB_CONTROL_URL  (default http://localhost:8788)
-//   MOSAIC_COLLABORATION_RELAY_URL (default http://localhost:8787)
-//   COLLAB_AUTH_MODE           (default noauth)
+//   COTERM_COLLAB_CONTROL_URL  (default http://localhost:8788)
+//   COTERM_COLLABORATION_RELAY_URL (default http://localhost:8787)
+//   COLLAB_AUTH_MODE           (default hmac in deployed self-host configs)
 //   COLLAB_AUTH_SECRET         (default dev-secret — used to mint client tokens)
 
-import { signMosaicToken, nowSeconds } from "../packages/collab-auth/src/index";
+import { signCotermToken, nowSeconds } from "../packages/collab-auth/src/index";
 
-const controlURL = (process.env.MOSAIC_COLLAB_CONTROL_URL ?? "http://localhost:8788").replace(/\/+$/, "");
-const relayURL = (process.env.MOSAIC_COLLABORATION_RELAY_URL ?? "http://localhost:8787").replace(/\/+$/, "");
+const controlURL = (process.env.COTERM_COLLAB_CONTROL_URL ?? "http://localhost:8788").replace(/\/+$/, "");
+const relayURL = (process.env.COTERM_COLLABORATION_RELAY_URL ?? "http://localhost:8787").replace(/\/+$/, "");
 const secret = process.env.COLLAB_AUTH_SECRET ?? "dev-secret";
-const timeoutMs = Number(process.env.MOSAIC_COLLAB_SMOKE_TIMEOUT_MS ?? "10000");
+const timeoutMs = Number(process.env.COTERM_COLLAB_SMOKE_TIMEOUT_MS ?? "10000");
 
 function fail(message: string): never {
   throw new Error(message);
 }
 
 async function token(userId: string): Promise<string> {
-  // A mosaicv1 access token: verified in hmac mode, decoded (unverified) in noauth.
-  return signMosaicToken(
+  // A cotermv1 access token: verified in hmac mode, decoded only in local noauth.
+  return signCotermToken(
     { kind: "access", userId, teamIds: [], selectedTeamId: null, exp: nowSeconds() + 900 },
     secret,
   );
@@ -91,34 +91,44 @@ class WS {
   }
 }
 
-async function preCreateRoom(): Promise<string> {
-  // Mirror the real mosaic client: pre-create the room on the relay, then hand
+async function preCreateRoom(): Promise<{ code: string; shareSecret: string | null }> {
+  // Mirror the real coterm client: pre-create the room on the relay, then hand
   // the code to the control-plane. (In local wrangler dev, workerd cannot fetch
   // another local dev server over loopback, so the control-plane's own
   // preCreateRoom fallback is exercised only in production / unit tests.)
   const response = await fetch(`${relayURL}/v1/collaboration/sessions`, { method: "POST" });
   if (!response.ok) fail(`relay pre-create failed: ${response.status}`);
-  const body = (await response.json()) as { sessionCode?: string };
+  const body = (await response.json()) as { sessionCode?: string; shareSecret?: string };
   if (!body.sessionCode) fail(`relay pre-create returned no code: ${JSON.stringify(body)}`);
-  return body.sessionCode;
+  return { code: body.sessionCode, shareSecret: body.shareSecret ?? null };
 }
 
 async function main(): Promise<void> {
-  // 1. Owner creates a session (client-precreated room, like the mosaic app).
-  const preCode = await preCreateRoom();
-  const created = await api("/api/collab/sessions", "owner", { orgId: "smoke", code: preCode, relayURL });
+  // 1. Owner creates a session (client-precreated room, like the coterm app).
+  const precreated = await preCreateRoom();
+  const created = await api("/api/collab/sessions", "owner", {
+    orgId: "smoke",
+    code: precreated.code,
+    relayURL,
+    ...(precreated.shareSecret ? { shareSecret: precreated.shareSecret } : {}),
+  });
   const room = created.room as string;
   const session = created.session as string;
   const ownerGrant = created.grant as string;
-  if (!room || !session || ownerGrant === undefined) fail(`sessions incomplete: ${JSON.stringify(created)}`);
+  const shareSecret = created.shareSecret as string;
+  if (!room || !session || ownerGrant === undefined || !shareSecret) fail(`sessions incomplete: ${JSON.stringify(created)}`);
 
   // 2. Owner connects to the relay with the grant.
   const owner = new WS(relayWsURL(room, "peer-a", ownerGrant || null));
   await owner.open();
   await owner.waitFor((f) => f.type === "session.joined", "owner session.joined");
 
-  // 3. Guest joins (fresh grant) and connects.
-  const joined = await api("/api/collab/join", "guest", { code: room });
+  // 3. Guest requests access with code + secret, owner approves, guest claims a grant.
+  const pending = await api("/api/collab/join", "guest", { code: room, shareSecret });
+  const requestId = pending.requestId as string;
+  if (!requestId || pending.status !== "pending") fail(`join did not create pending request: ${JSON.stringify(pending)}`);
+  await api("/api/collab/join-requests/approve", "owner", { requestId });
+  const joined = await api("/api/collab/join-requests/claim", "guest", { room, requestId });
   const guestGrant = joined.grant as string;
   const guest = new WS(relayWsURL(room, "peer-b", guestGrant || null));
   await guest.open();

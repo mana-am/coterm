@@ -1,5 +1,5 @@
-import MosaicAgentChat
-import MosaicFoundation
+import CotermAgentChat
+import CotermFoundation
 import Foundation
 
 /// Tails one agent session's transcript JSONL: initial bounded backfill,

@@ -1,0 +1,31 @@
+{
+  "actions": {
+    "coterm.newTerminal": {
+      "type": "command",
+      "title": "Nested New Terminal",
+      "subtitle": "Nearest .coterm/coterm.json should win here",
+      "command": "echo 'NESTED NEW TERMINAL'; echo 'SOURCE=alpha/nested/.coterm/coterm.json'; pwd",
+      "target": "newTabInCurrentPane",
+      "shortcut": "cmd+shift+2",
+      "icon": { "type": "image", "path": "./icons/nested-terminal.svg" }
+    },
+    "nested.echo": {
+      "type": "command",
+      "title": "Nested Echo",
+      "subtitle": "Added by alpha/nested/.coterm/coterm.json",
+      "command": "echo 'NESTED ECHO'; echo 'SOURCE=alpha/nested/.coterm/coterm.json'; pwd",
+      "target": "newTabInCurrentPane",
+      "shortcut": "cmd+shift+n",
+      "icon": { "type": "emoji", "value": "🪺" }
+    }
+  },
+  "ui": {
+    "surfaceTabBar": {
+      "buttons": [
+        "coterm.newTerminal",
+        "nested.echo",
+        "coterm.splitRight"
+      ]
+    }
+  }
+}

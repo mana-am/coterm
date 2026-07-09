@@ -10,7 +10,7 @@ type EventListener = (event: AgentEvent) => void;
 
 declare global {
   interface Window {
-    mosaicAgentBridge?: {
+    cotermAgentBridge?: {
       applyTheme(theme: AgentSessionTheme): void;
       receive(event: AgentEvent): void;
     };
@@ -37,7 +37,7 @@ export class NativeBridgeError extends Error {
 }
 
 if (typeof window !== "undefined") {
-  window.mosaicAgentBridge = {
+  window.cotermAgentBridge = {
     applyTheme(theme: AgentSessionTheme) {
       applyAgentTheme(theme);
     },

@@ -104,11 +104,11 @@ fi
 
 TAG_ID="$(sanitize_bundle "$TAG")"
 TAG_SLUG="$(sanitize_path "$TAG")"
-APP="$HOME/Library/Developer/Xcode/DerivedData/mosaic-${TAG_SLUG}/Build/Products/Debug/Mosaic DEV ${TAG}.app"
-BID="mosaic.com.emergent.app.debug.${TAG_ID}"
-SOCK="/tmp/mosaic-debug-${TAG_SLUG}.sock"
-DSOCK="$HOME/Library/Application Support/mosaic/mosaicd-dev-${TAG_SLUG}.sock"
-LOG="/tmp/mosaic-debug-${TAG_SLUG}.log"
+APP="$HOME/Library/Developer/Xcode/DerivedData/coterm-${TAG_SLUG}/Build/Products/Debug/Coterm DEV ${TAG}.app"
+BID="coterm.com.emergent.app.debug.${TAG_ID}"
+SOCK="/tmp/coterm-debug-${TAG_SLUG}.sock"
+DSOCK="$HOME/Library/Application Support/coterm/cotermd-dev-${TAG_SLUG}.sock"
+LOG="/tmp/coterm-debug-${TAG_SLUG}.log"
 
 if [[ ! -d "$APP" ]]; then
   echo "error: tagged app not found at $APP" >&2
@@ -117,29 +117,29 @@ fi
 
 /usr/bin/osascript -e "tell application id \"${BID}\" to quit" >/dev/null 2>&1 || true
 sleep 0.5
-pkill -f "Mosaic DEV ${TAG}.app/Contents/MacOS/Mosaic DEV" || true
+pkill -f "Coterm DEV ${TAG}.app/Contents/MacOS/Coterm DEV" || true
 rm -f "$SOCK" "$DSOCK"
 sleep 0.5
 
 OPEN_ENV=(
   env
-  -u MOSAIC_SOCKET_PATH
-  -u MOSAIC_SOCKET_MODE
-  -u MOSAIC_TAB_ID
-  -u MOSAIC_PANEL_ID
-  -u MOSAIC_SURFACE_ID
-  -u MOSAIC_WORKSPACE_ID
-  -u MOSAICD_UNIX_PATH
-  -u MOSAIC_TAG
-  -u MOSAIC_PORT
-  -u MOSAIC_PORT_END
-  -u MOSAIC_PORT_RANGE
-  -u MOSAIC_DEBUG_LOG
-  -u MOSAIC_BUNDLE_ID
-  -u MOSAIC_DISABLE_SESSION_RESTORE
-  -u MOSAIC_SHELL_INTEGRATION
-  -u MOSAIC_SHELL_INTEGRATION_DIR
-  -u MOSAIC_LOAD_GHOSTTY_ZSH_INTEGRATION
+  -u COTERM_SOCKET_PATH
+  -u COTERM_SOCKET_MODE
+  -u COTERM_TAB_ID
+  -u COTERM_PANEL_ID
+  -u COTERM_SURFACE_ID
+  -u COTERM_WORKSPACE_ID
+  -u COTERMD_UNIX_PATH
+  -u COTERM_TAG
+  -u COTERM_PORT
+  -u COTERM_PORT_END
+  -u COTERM_PORT_RANGE
+  -u COTERM_DEBUG_LOG
+  -u COTERM_BUNDLE_ID
+  -u COTERM_DISABLE_SESSION_RESTORE
+  -u COTERM_SHELL_INTEGRATION
+  -u COTERM_SHELL_INTEGRATION_DIR
+  -u COTERM_LOAD_GHOSTTY_ZSH_INTEGRATION
   -u GHOSTTY_BIN_DIR
   -u GHOSTTY_RESOURCES_DIR
   -u GHOSTTY_SHELL_FEATURES
@@ -147,11 +147,11 @@ OPEN_ENV=(
   -u GH_PAGER
   -u TERMINFO
   -u XDG_DATA_DIRS
-  "MOSAIC_SOCKET_MODE=${MODE}"
-  "MOSAIC_SOCKET_PATH=${SOCK}"
-  "MOSAICD_UNIX_PATH=${DSOCK}"
-  "MOSAIC_DEBUG_LOG=${LOG}"
-  "MOSAIC_DISABLE_SESSION_RESTORE=1"
+  "COTERM_SOCKET_MODE=${MODE}"
+  "COTERM_SOCKET_PATH=${SOCK}"
+  "COTERMD_UNIX_PATH=${DSOCK}"
+  "COTERM_DEBUG_LOG=${LOG}"
+  "COTERM_DISABLE_SESSION_RESTORE=1"
 )
 
 for kv in "${EXTRA_ENV[@]}"; do
@@ -176,7 +176,7 @@ fi
 echo "app: $APP"
 echo "bundle_id: $BID"
 echo "socket: $SOCK"
-echo "mosaicd_socket: $DSOCK"
+echo "cotermd_socket: $DSOCK"
 echo "log: $LOG"
 echo "mode: $MODE"
 echo "socket_ready: $(if [[ -S "$SOCK" ]]; then echo yes; else echo no; fi)"

@@ -16,7 +16,7 @@ import sys
 import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 from test_real_click_overlay_forwarding import (
     app_name_for_bundle,
     attempt_focus_via_real_clicks,
@@ -29,20 +29,20 @@ from test_real_click_overlay_forwarding import (
 
 
 def main() -> int:
-    socket_path = mosaic.default_socket_path()
+    socket_path = coterm.default_socket_path()
     if not os.path.exists(socket_path):
         print(f"SKIP: Socket not found at {socket_path}")
-        print("Tip: start mosaic first (or set MOSAIC_TAG / MOSAIC_SOCKET_PATH).")
+        print("Tip: start coterm first (or set COTERM_TAG / COTERM_SOCKET_PATH).")
         return 0
 
-    bundle_id = mosaic.default_bundle_id()
+    bundle_id = coterm.default_bundle_id()
     try:
         app_name = app_name_for_bundle(bundle_id)
     except subprocess.CalledProcessError as e:
         print(f"SKIP: Could not resolve app name for bundle {bundle_id}: {e}")
         return 0
 
-    with mosaic(socket_path) as client:
+    with coterm(socket_path) as client:
         ws_id = None
         try:
             client.activate_app()
@@ -135,6 +135,6 @@ if __name__ == "__main__":
         if getattr(e, "output", None):
             print(e.output.strip())
         raise SystemExit(1)
-    except mosaicError as e:
+    except cotermError as e:
         print(f"FAIL: {e}")
         raise SystemExit(1)

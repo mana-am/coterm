@@ -7,7 +7,7 @@ export function assertVmCreateEnabled(
   provider: ProviderId,
   env: VmRuntimeEnv = process.env,
 ): void {
-  if (isFalseFlag(env.MOSAIC_VM_CREATE_ENABLED)) {
+  if (isFalseFlag(env.COTERM_VM_CREATE_ENABLED)) {
     throw new VmCreateDisabledError({
       provider,
       reason: "Cloud VM creation is disabled",
@@ -26,9 +26,9 @@ export function assertVmCreateEnabled(
 export function providerEnabledEnvKey(provider: ProviderId): string {
   switch (provider) {
     case "e2b":
-      return "MOSAIC_VM_E2B_ENABLED";
+      return "COTERM_VM_E2B_ENABLED";
     case "freestyle":
-      return "MOSAIC_VM_FREESTYLE_ENABLED";
+      return "COTERM_VM_FREESTYLE_ENABLED";
     default:
       return assertNever(provider);
   }
@@ -42,7 +42,7 @@ export function isDeployedRuntime(env: VmRuntimeEnv = process.env): boolean {
 }
 
 export function allowUnmanifestedImages(env: VmRuntimeEnv = process.env): boolean {
-  return isTrueFlag(env.MOSAIC_VM_ALLOW_UNMANIFESTED_IMAGES) || !isDeployedRuntime(env);
+  return isTrueFlag(env.COTERM_VM_ALLOW_UNMANIFESTED_IMAGES) || !isDeployedRuntime(env);
 }
 
 function isFalseFlag(value: string | undefined): boolean {

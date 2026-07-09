@@ -1,6 +1,6 @@
-import MosaicCommandPalette
+import CotermCommandPalette
 import Foundation
-import MosaicSettings
+import CotermSettings
 
 extension MenuBarOnlySettings {
     static let legacyCommandPaletteUsageKey = "commandPalette.commandUsage.v1"
@@ -198,17 +198,17 @@ enum CommandPaletteSettingsToggleCommands {
                 defaultsKey: PaneFirstClickFocusSettings.enabledKey
             ),
             CommandPaletteSettingToggleDescriptor(
-                commandId: commandIdPrefix + "openSupportedFilesInMosaic",
-                settingsKey: "app.openSupportedFilesInMosaic",
+                commandId: commandIdPrefix + "openSupportedFilesInCoterm",
+                settingsKey: "app.openSupportedFilesInCoterm",
                 title: {
                     String(
-                        localized: "settings.app.openSupportedFilesInMosaic",
-                        defaultValue: "Open Supported Files in mosaic"
+                        localized: "settings.app.openSupportedFilesInCoterm",
+                        defaultValue: "Open Supported Files in Coterm"
                     )
                 },
                 sectionTitle: app,
                 keywords: [
-                    "app.openSupportedFilesInMosaic",
+                    "app.openSupportedFilesInCoterm",
                     "cmd",
                     "click",
                     "file",
@@ -223,8 +223,8 @@ enum CommandPaletteSettingsToggleCommands {
                     "editor",
                     "external",
                 ],
-                defaultValue: AppCatalogSection().openSupportedFilesInMosaic.defaultValue,
-                defaultsKey: AppCatalogSection().openSupportedFilesInMosaic.userDefaultsKey,
+                defaultValue: AppCatalogSection().openSupportedFilesInCoterm.defaultValue,
+                defaultsKey: AppCatalogSection().openSupportedFilesInCoterm.userDefaultsKey,
                 didSet: { _, _, notificationCenter in
                     FileRouteSettingsStore(
                         defaults: .standard,
@@ -233,18 +233,18 @@ enum CommandPaletteSettingsToggleCommands {
                 }
             ),
             CommandPaletteSettingToggleDescriptor(
-                commandId: commandIdPrefix + "openMarkdownInMosaicViewer",
-                settingsKey: "app.openMarkdownInMosaicViewer",
+                commandId: commandIdPrefix + "openMarkdownInCotermViewer",
+                settingsKey: "app.openMarkdownInCotermViewer",
                 title: {
                     String(
-                        localized: "settings.app.openMarkdownInMosaicViewer",
-                        defaultValue: "Open Markdown in mosaic Viewer"
+                        localized: "settings.app.openMarkdownInCotermViewer",
+                        defaultValue: "Open Markdown in Coterm Viewer"
                     )
                 },
                 sectionTitle: app,
-                keywords: ["app.openMarkdownInMosaicViewer", "markdown", "md", "viewer", "preview", "file"],
-                defaultValue: AppCatalogSection().openMarkdownInMosaicViewer.defaultValue,
-                defaultsKey: AppCatalogSection().openMarkdownInMosaicViewer.userDefaultsKey,
+                keywords: ["app.openMarkdownInCotermViewer", "markdown", "md", "viewer", "preview", "file"],
+                defaultValue: AppCatalogSection().openMarkdownInCotermViewer.defaultValue,
+                defaultsKey: AppCatalogSection().openMarkdownInCotermViewer.userDefaultsKey,
                 didSet: { _, _, notificationCenter in
                     FileRouteSettingsStore(
                         defaults: .standard,
@@ -637,33 +637,33 @@ enum CommandPaletteSettingsToggleCommands {
                 }
             ),
             CommandPaletteSettingToggleDescriptor(
-                commandId: commandIdPrefix + "openSidebarPullRequestLinksInMosaicBrowser",
-                settingsKey: "sidebar.openPullRequestLinksInMosaicBrowser",
+                commandId: commandIdPrefix + "openSidebarPullRequestLinksInCotermBrowser",
+                settingsKey: "sidebar.openPullRequestLinksInCotermBrowser",
                 title: {
                     String(
                         localized: "settings.app.openSidebarPRLinks",
-                        defaultValue: "Open Sidebar PR Links in mosaic Browser"
+                        defaultValue: "Open Sidebar PR Links in Coterm Browser"
                     )
                 },
                 sectionTitle: sidebar,
-                keywords: ["sidebar.openPullRequestLinksInMosaicBrowser", "sidebar", "pull", "request", "pr", "browser", "link"],
-                defaultValue: BrowserLinkOpenSettings.defaultOpenSidebarPullRequestLinksInMosaicBrowser,
-                defaultsKey: BrowserLinkOpenSettings.openSidebarPullRequestLinksInMosaicBrowserKey,
+                keywords: ["sidebar.openPullRequestLinksInCotermBrowser", "sidebar", "pull", "request", "pr", "browser", "link"],
+                defaultValue: BrowserLinkOpenSettings.defaultOpenSidebarPullRequestLinksInCotermBrowser,
+                defaultsKey: BrowserLinkOpenSettings.openSidebarPullRequestLinksInCotermBrowserKey,
                 isAvailable: sidebarPullRequestLinksAvailable
             ),
             CommandPaletteSettingToggleDescriptor(
-                commandId: commandIdPrefix + "openSidebarPortLinksInMosaicBrowser",
-                settingsKey: "sidebar.openPortLinksInMosaicBrowser",
+                commandId: commandIdPrefix + "openSidebarPortLinksInCotermBrowser",
+                settingsKey: "sidebar.openPortLinksInCotermBrowser",
                 title: {
                     String(
                         localized: "settings.app.openSidebarPortLinks",
-                        defaultValue: "Open Sidebar Port Links in mosaic Browser"
+                        defaultValue: "Open Sidebar Port Links in Coterm Browser"
                     )
                 },
                 sectionTitle: sidebar,
-                keywords: ["sidebar.openPortLinksInMosaicBrowser", "sidebar", "port", "localhost", "browser", "link"],
-                defaultValue: BrowserLinkOpenSettings.defaultOpenSidebarPortLinksInMosaicBrowser,
-                defaultsKey: BrowserLinkOpenSettings.openSidebarPortLinksInMosaicBrowserKey,
+                keywords: ["sidebar.openPortLinksInCotermBrowser", "sidebar", "port", "localhost", "browser", "link"],
+                defaultValue: BrowserLinkOpenSettings.defaultOpenSidebarPortLinksInCotermBrowser,
+                defaultsKey: BrowserLinkOpenSettings.openSidebarPortLinksInCotermBrowserKey,
                 isAvailable: sidebarPortLinksAvailable
             ),
             CommandPaletteSettingToggleDescriptor(
@@ -851,38 +851,38 @@ enum CommandPaletteSettingsToggleCommands {
                 defaultsKey: SettingCatalog().browser.askWhereToSaveDownloads.userDefaultsKey
             ),
             CommandPaletteSettingToggleDescriptor(
-                commandId: commandIdPrefix + "openTerminalLinksInMosaicBrowser",
-                settingsKey: "browser.openTerminalLinksInMosaicBrowser",
+                commandId: commandIdPrefix + "openTerminalLinksInCotermBrowser",
+                settingsKey: "browser.openTerminalLinksInCotermBrowser",
                 title: {
                     String(
                         localized: "settings.browser.openTerminalLinks",
-                        defaultValue: "Open Terminal Links in mosaic Browser"
+                        defaultValue: "Open Terminal Links in Coterm Browser"
                     )
                 },
                 sectionTitle: browser,
-                keywords: ["browser.openTerminalLinksInMosaicBrowser", "browser", "terminal", "links", "url", "click"],
-                defaultValue: BrowserLinkOpenSettings.defaultOpenTerminalLinksInMosaicBrowser,
-                defaultsKey: BrowserLinkOpenSettings.openTerminalLinksInMosaicBrowserKey
+                keywords: ["browser.openTerminalLinksInCotermBrowser", "browser", "terminal", "links", "url", "click"],
+                defaultValue: BrowserLinkOpenSettings.defaultOpenTerminalLinksInCotermBrowser,
+                defaultsKey: BrowserLinkOpenSettings.openTerminalLinksInCotermBrowserKey
             ),
             CommandPaletteSettingToggleDescriptor(
-                commandId: commandIdPrefix + "interceptTerminalOpenCommandInMosaicBrowser",
-                settingsKey: "browser.interceptTerminalOpenCommandInMosaicBrowser",
+                commandId: commandIdPrefix + "interceptTerminalOpenCommandInCotermBrowser",
+                settingsKey: "browser.interceptTerminalOpenCommandInCotermBrowser",
                 title: {
                     String(localized: "settings.browser.interceptOpen", defaultValue: "Intercept open http(s) in Terminal")
                 },
                 sectionTitle: browser,
-                keywords: ["browser.interceptTerminalOpenCommandInMosaicBrowser", "browser", "terminal", "open", "http", "https", "intercept"],
+                keywords: ["browser.interceptTerminalOpenCommandInCotermBrowser", "browser", "terminal", "open", "http", "https", "intercept"],
                 isOn: { defaults in
-                    if defaults.object(forKey: BrowserLinkOpenSettings.interceptTerminalOpenCommandInMosaicBrowserKey) != nil {
-                        return defaults.bool(forKey: BrowserLinkOpenSettings.interceptTerminalOpenCommandInMosaicBrowserKey)
+                    if defaults.object(forKey: BrowserLinkOpenSettings.interceptTerminalOpenCommandInCotermBrowserKey) != nil {
+                        return defaults.bool(forKey: BrowserLinkOpenSettings.interceptTerminalOpenCommandInCotermBrowserKey)
                     }
-                    if defaults.object(forKey: BrowserLinkOpenSettings.openTerminalLinksInMosaicBrowserKey) != nil {
-                        return defaults.bool(forKey: BrowserLinkOpenSettings.openTerminalLinksInMosaicBrowserKey)
+                    if defaults.object(forKey: BrowserLinkOpenSettings.openTerminalLinksInCotermBrowserKey) != nil {
+                        return defaults.bool(forKey: BrowserLinkOpenSettings.openTerminalLinksInCotermBrowserKey)
                     }
-                    return BrowserLinkOpenSettings.defaultInterceptTerminalOpenCommandInMosaicBrowser
+                    return BrowserLinkOpenSettings.defaultInterceptTerminalOpenCommandInCotermBrowser
                 },
                 setOn: { newValue, defaults, _ in
-                    defaults.set(newValue, forKey: BrowserLinkOpenSettings.interceptTerminalOpenCommandInMosaicBrowserKey)
+                    defaults.set(newValue, forKey: BrowserLinkOpenSettings.interceptTerminalOpenCommandInCotermBrowserKey)
                 }
             ),
             CommandPaletteSettingToggleDescriptor(

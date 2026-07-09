@@ -1,4 +1,4 @@
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
 
 /// Shared resolution/scheduling twins for the `ControlSidebarContext`

@@ -18,7 +18,7 @@ function firstValue(value: string | string[] | undefined): string | null {
 
 async function requestOrigin(): Promise<string> {
   const headerStore = await headers();
-  const host = headerStore.get("host") ?? "mosaic.inc";
+  const host = headerStore.get("host") ?? "coterm.cc";
   const forwardedProto = headerStore.get("x-forwarded-proto")?.split(",")[0]?.trim();
   const protocol = forwardedProto || (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
   return `${protocol}://${host}`;

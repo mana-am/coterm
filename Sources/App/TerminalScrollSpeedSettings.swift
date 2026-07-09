@@ -1,4 +1,4 @@
-import MosaicSettings
+import CotermSettings
 import Foundation
 
 enum TerminalScrollSpeedSettings {

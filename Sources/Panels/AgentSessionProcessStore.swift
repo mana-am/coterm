@@ -498,7 +498,7 @@ final class AgentSessionProcessStore {
         } catch {
             guard !Task.isCancelled else { return }
 #if DEBUG
-            mosaicDebugLog("agentSession.opencode.eventStream.failed error=\(error.localizedDescription)")
+            cotermDebugLog("agentSession.opencode.eventStream.failed error=\(error.localizedDescription)")
 #endif
             await failStream()
         }

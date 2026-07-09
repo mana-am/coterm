@@ -2,14 +2,14 @@ import Darwin
 import Foundation
 import os
 
-nonisolated private let cliForwardingLogger = Logger(subsystem: "mosaic.com.emergent.app", category: "CLIForwarding")
+nonisolated private let cliForwardingLogger = Logger(subsystem: "coterm.com.emergent.app", category: "CLIForwarding")
 
 enum CLIForwardingLaunchRouter {
-    private static let guardKey = "MOSAIC_CLI_FORWARDED"
+    private static let guardKey = "COTERM_CLI_FORWARDED"
 
     /// If `argv` looks like a CLI invocation, exec the bundled CLI at
-    /// `Contents/Resources/bin/mosaic` and never return. macOS-launch arguments
-    /// (`-psn_...`, other `-` flags) and `mosaic://` URLs are left to the GUI.
+    /// `Contents/Resources/bin/coterm` and never return. macOS-launch arguments
+    /// (`-psn_...`, other `-` flags) and `coterm://` URLs are left to the GUI.
     static func forwardToBundledCLIIfNeeded(
         arguments argv: [String] = CommandLine.arguments,
         bundle: Bundle = .main,
@@ -20,7 +20,7 @@ enum CLIForwardingLaunchRouter {
 
         guard let cliURL = bundledCLIURL(bundle: bundle, fileManager: fileManager) else {
             #if DEBUG
-            let resourcePath = bundle.resourceURL?.appendingPathComponent("bin/mosaic").path ?? "<missing>"
+            let resourcePath = bundle.resourceURL?.appendingPathComponent("bin/coterm").path ?? "<missing>"
             let executablePath = processExecutableURL()?.path ?? "<missing>"
             cliForwardingLogger.debug("bundled CLI not found for forwarding; bundleID=\(bundle.bundleIdentifier ?? "<missing>", privacy: .public) resourcePath=\(resourcePath, privacy: .public) executablePath=\(executablePath, privacy: .public)")
             #endif
@@ -72,7 +72,7 @@ enum CLIForwardingLaunchRouter {
         fileManager: FileManager = .default,
         executableURL: URL? = processExecutableURL()
     ) -> URL? {
-        let bundleCandidate = bundle.resourceURL?.appendingPathComponent("bin/mosaic")
+        let bundleCandidate = bundle.resourceURL?.appendingPathComponent("bin/coterm")
         if let bundleCandidate, fileManager.isExecutableFile(atPath: bundleCandidate.path) {
             return bundleCandidate
         }
@@ -82,7 +82,7 @@ enum CLIForwardingLaunchRouter {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .appendingPathComponent("Resources")
-        let executableCandidate = resourcesURL.appendingPathComponent("bin/mosaic")
+        let executableCandidate = resourcesURL.appendingPathComponent("bin/coterm")
         if fileManager.isExecutableFile(atPath: executableCandidate.path) {
             return executableCandidate
         }
@@ -119,21 +119,21 @@ enum CLIForwardingLaunchRouter {
     private static func localizedMissingBundledCLIError() -> String {
         String(
             localized: "cli.forwarding.error.missingBundledCLI",
-            defaultValue: "mosaic could not run this command from the app bundle. Reinstall mosaic or run the command from a standard CLI installation."
+            defaultValue: "coterm could not run this command from the app bundle. Reinstall coterm or run the command from a standard CLI installation."
         )
     }
 
     private static func localizedArgumentAllocationError() -> String {
         String(
             localized: "cli.forwarding.error.allocateArguments",
-            defaultValue: "mosaic could not start this command. Try again, or reinstall mosaic if the problem continues."
+            defaultValue: "coterm could not start this command. Try again, or reinstall coterm if the problem continues."
         )
     }
 
     private static func localizedExecFailureError() -> String {
         String(
             localized: "cli.forwarding.error.execFailed",
-            defaultValue: "mosaic could not start the command-line tool from the app bundle. Reinstall mosaic or run the command from a standard CLI installation."
+            defaultValue: "coterm could not start the command-line tool from the app bundle. Reinstall coterm or run the command from a standard CLI installation."
         )
     }
 

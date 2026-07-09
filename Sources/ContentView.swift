@@ -1,29 +1,29 @@
 import AppKit
-import MosaicAuthCore
-import MosaicAuthRuntime
-import MosaicAppKitSupportUI
-import MosaicCollaboration
-import MosaicCommandPalette
-import MosaicCore
-import MosaicFeedback
-import MosaicFoundation
-import MosaicPanes
-import MosaicSettings
-import MosaicWorkspaces
+import CotermAuthCore
+import CotermAuthRuntime
+import CotermAppKitSupportUI
+import CotermCollaboration
+import CotermCommandPalette
+import CotermCore
+import CotermFeedback
+import CotermFoundation
+import CotermPanes
+import CotermSettings
+import CotermWorkspaces
 import Bonsplit
 import Combine
-import MosaicSidebarInterpreterClient
-import MosaicTerminal
-@_spi(MosaicHostTransport) import MosaicExtensionKit
-import MosaicSidebarProviderKit
-import MosaicExtensionSidebarExamples
-import MosaicSettingsUI
-import MosaicSidebar
-import MosaicSidebarRemoteRender
-import MosaicSwiftRender
-import MosaicSwiftRenderUI
-import MosaicUpdater
-import MosaicUpdaterUI
+import CotermSidebarInterpreterClient
+import Coterminal
+@_spi(CotermHostTransport) import CotermExtensionKit
+import CotermSidebarProviderKit
+import CotermExtensionSidebarExamples
+import CotermSettingsUI
+import CotermSidebar
+import CotermSidebarRemoteRender
+import CotermSwiftRender
+import CotermSwiftRenderUI
+import CotermUpdater
+import CotermUpdaterUI
 import ImageIO
 import Observation
 import SwiftUI
@@ -35,13 +35,13 @@ var fileDropOverlayKey: UInt8 = 0
 private var commandPaletteWindowOverlayKey: UInt8 = 0
 private var tutorialVideoWindowOverlayKey: UInt8 = 0
 private var tmuxWorkspacePaneWindowOverlayKey: UInt8 = 0
-let commandPaletteOverlayContainerIdentifier = NSUserInterfaceItemIdentifier("mosaic.commandPalette.overlay.container")
-let tutorialVideoOverlayContainerIdentifier = NSUserInterfaceItemIdentifier("mosaic.tutorialVideo.overlay.container")
-let tmuxWorkspacePaneOverlayContainerIdentifier = NSUserInterfaceItemIdentifier("mosaic.tmuxWorkspacePane.overlay.container")
+let commandPaletteOverlayContainerIdentifier = NSUserInterfaceItemIdentifier("coterm.commandPalette.overlay.container")
+let tutorialVideoOverlayContainerIdentifier = NSUserInterfaceItemIdentifier("coterm.tutorialVideo.overlay.container")
+let tmuxWorkspacePaneOverlayContainerIdentifier = NSUserInterfaceItemIdentifier("coterm.tmuxWorkspacePane.overlay.container")
 
-private enum MosaicSidebarStyle {
-    static let background = Color(nsColor: MosaicChromePalette.sidebarBackgroundColor)
-    static let selectedRow = Color(nsColor: MosaicChromePalette.selectedSidebarRowColor)
+private enum CotermSidebarStyle {
+    static let background = Color(nsColor: CotermChromePalette.sidebarBackgroundColor)
+    static let selectedRow = Color(nsColor: CotermChromePalette.selectedSidebarRowColor)
     static let hoverRow = Color(red: 0x18 / 255, green: 0x18 / 255, blue: 0x18 / 255)
     static let selectedBorder = Color.clear
     static let primaryText = Color(red: 0xE8 / 255, green: 0xE8 / 255, blue: 0xE8 / 255)
@@ -200,7 +200,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
             installedContainerView = target.container
             installedReferenceView = target.reference
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.overlay.install container=\(String(describing: type(of: target.container))) " +
                 "reference=\(String(describing: type(of: target.reference))) " +
                 "glass=\(chromeComposition.glassEffect.portalInstallationTarget(for: window) != nil ? 1 : 0)"
@@ -318,7 +318,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
     private func focusPaletteTextInput(in window: NSWindow) -> Bool {
         guard let input = firstEditableTextInput(in: hostingView) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.direct missingInput window={\(debugCommandPaletteWindowSummary(window))} " +
                 "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
             )
@@ -326,7 +326,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
             return false
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.focus.direct attempt window={\(debugCommandPaletteWindowSummary(window))} " +
             "input=\(debugCommandPaletteResponderSummary(input)) " +
             "frBefore=\(debugCommandPaletteResponderSummary(window.firstResponder))"
@@ -334,7 +334,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
 #endif
         guard window.makeFirstResponder(input) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.direct failedMakeFirstResponder window={\(debugCommandPaletteWindowSummary(window))} " +
                 "input=\(debugCommandPaletteResponderSummary(input)) " +
                 "frAfter=\(debugCommandPaletteResponderSummary(window.firstResponder))"
@@ -352,7 +352,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
 
         let didSettle = isPaletteTextInputFirstResponder(window.firstResponder)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.focus.direct settled window={\(debugCommandPaletteWindowSummary(window))} " +
             "didSettle=\(didSettle ? 1 : 0) frAfter=\(debugCommandPaletteResponderSummary(window.firstResponder))"
         )
@@ -363,13 +363,13 @@ private final class WindowCommandPaletteOverlayController: NSObject {
     private func scheduleFocusIntoPalette(retries: Int = 4) {
 #if DEBUG
         if let window {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.schedule retries=\(retries) " +
                 "window={\(debugCommandPaletteWindowSummary(window))} " +
                 "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
             )
         } else {
-            mosaicDebugLog("palette.focus.schedule retries=\(retries) window=nil")
+            cotermDebugLog("palette.focus.schedule retries=\(retries) window=nil")
         }
 #endif
         scheduledFocusWorkItem?.cancel()
@@ -384,7 +384,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
     private func focusIntoPalette(retries: Int) {
         guard let window else { return }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.focus.retry start retries=\(retries) " +
             "window={\(debugCommandPaletteWindowSummary(window))} " +
             "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
@@ -392,7 +392,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
 #endif
         if isPaletteTextInputFirstResponder(window.firstResponder) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.retry alreadyFocused window={\(debugCommandPaletteWindowSummary(window))} " +
                 "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
             )
@@ -402,7 +402,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
 
         if focusPaletteTextInput(in: window) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.retry directSuccess retries=\(retries) " +
                 "window={\(debugCommandPaletteWindowSummary(window))}"
             )
@@ -412,7 +412,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
 
         let containerFocused = window.makeFirstResponder(containerView)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.focus.retry containerResult retries=\(retries) " +
             "window={\(debugCommandPaletteWindowSummary(window))} " +
             "didFocusContainer=\(containerFocused ? 1 : 0) " +
@@ -422,7 +422,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
         if containerFocused {
             if focusPaletteTextInput(in: window) {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.focus.retry containerAssistedSuccess retries=\(retries) " +
                     "window={\(debugCommandPaletteWindowSummary(window))}"
                 )
@@ -433,7 +433,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
 
         guard retries > 0 else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.retry exhausted window={\(debugCommandPaletteWindowSummary(window))} " +
                 "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
             )
@@ -441,7 +441,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
             return
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.focus.retry reschedule nextRetries=\(retries - 1) " +
             "window={\(debugCommandPaletteWindowSummary(window))}"
         )
@@ -480,7 +480,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
         }
         guard isPaletteVisible else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.lock inactive visible=0 window={\(debugCommandPaletteWindowSummary(window))}"
             )
 #endif
@@ -490,7 +490,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
 
         guard window.isKeyWindow else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.lock keyWindowMissing window={\(debugCommandPaletteWindowSummary(window))} " +
                 "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
             )
@@ -505,7 +505,7 @@ private final class WindowCommandPaletteOverlayController: NSObject {
         startFocusLockTimer()
         if !isPaletteTextInputFirstResponder(window.firstResponder) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.focus.lock requestRestore window={\(debugCommandPaletteWindowSummary(window))} " +
                 "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
             )
@@ -574,13 +574,13 @@ private final class WindowCommandPaletteOverlayController: NSObject {
         ).shouldPromote
 #if DEBUG
         if let window {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.overlay.update visible=\(isVisible ? 1 : 0) promote=\(shouldPromote ? 1 : 0) " +
                 "window={\(debugCommandPaletteWindowSummary(window))} " +
                 "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
             )
         } else {
-            mosaicDebugLog("palette.overlay.update visible=\(isVisible ? 1 : 0) promote=\(shouldPromote ? 1 : 0) window=nil")
+            cotermDebugLog("palette.overlay.update visible=\(isVisible ? 1 : 0) promote=\(shouldPromote ? 1 : 0) window=nil")
         }
 #endif
         isPaletteVisible = isVisible
@@ -889,10 +889,10 @@ private func commandPaletteOwningWebView(for responder: NSResponder?) -> WKWebVi
     return nil
 }
 
-// Lifted to `MosaicFoundation.WorkspaceMountPlan` / `MountedWorkspacePresentation`
+// Lifted to `CotermFoundation.WorkspaceMountPlan` / `MountedWorkspacePresentation`
 // (ContentView decomposition). These typealiases keep call sites short.
-typealias WorkspaceMountPlan = MosaicFoundation.WorkspaceMountPlan
-typealias MountedWorkspacePresentation = MosaicFoundation.MountedWorkspacePresentation
+typealias WorkspaceMountPlan = CotermFoundation.WorkspaceMountPlan
+typealias MountedWorkspacePresentation = CotermFoundation.MountedWorkspacePresentation
 
 /// Installs a FileDropOverlayView on the window's theme frame for Finder file drag support.
 private func findFileDropOverlayView(in root: NSView?) -> FileDropOverlayView? {
@@ -1089,7 +1089,7 @@ struct ContentView: View {
     var notificationStore: TerminalNotificationStore { .shared }
     @EnvironmentObject var sidebarState: SidebarState
     @EnvironmentObject var sidebarSelectionState: SidebarSelectionState
-    @EnvironmentObject var mosaicConfigStore: MosaicConfigStore
+    @EnvironmentObject var cotermConfigStore: CotermConfigStore
     @EnvironmentObject var fileExplorerState: FileExplorerState
 #if DEBUG
     @Environment(\.minimalModeInvalidationProbe) private var minimalModeInvalidationProbe
@@ -1880,10 +1880,10 @@ struct ContentView: View {
         )
         .frame(width: sidebarWidth)
         .frame(maxHeight: .infinity, alignment: .topLeading)
-        .background(MosaicSidebarStyle.background.ignoresSafeArea())
+        .background(CotermSidebarStyle.background.ignoresSafeArea())
     }
 
-    /// Native titlebar inset reported by AppKit. Standard mode follows mosaic's visual chrome;
+    /// Native titlebar inset reported by AppKit. Standard mode follows coterm's visual chrome;
     /// minimal WindowGroup hosts can still need the reported safe area cancelled.
     @State private var titlebarPadding: CGFloat = WindowChromeMetrics.defaultTitlebarHeight
     /// SwiftUI WindowGroup windows can still report a titlebar safe area; manually created
@@ -2111,7 +2111,7 @@ struct ContentView: View {
             },
             onClose: {
                 #if DEBUG
-                mosaicDebugLog("rightSidebar.closeButton")
+                cotermDebugLog("rightSidebar.closeButton")
                 #endif
                 _ = AppDelegate.shared?.closeRightSidebarInActiveMainWindow(preferredWindow: observedWindow)
             }
@@ -2160,7 +2160,7 @@ struct ContentView: View {
     @AppStorage("bgGlassTintOpacity") private var bgGlassTintOpacity = 0.03
     @AppStorage("bgGlassEnabled") private var bgGlassEnabled = false
     @State private var titlebarLeadingInset: CGFloat = 12
-    private var windowIdentifier: String { "mosaic.main.\(windowId.uuidString)" }
+    private var windowIdentifier: String { "coterm.main.\(windowId.uuidString)" }
     private var windowAppearanceSnapshot: WindowAppearanceSnapshot {
         _ = titlebarThemeGeneration
         return windowChrome.appearanceSnapshot(
@@ -2289,7 +2289,7 @@ struct ContentView: View {
                 }
 
                 Text(titlebarText)
-                    .mosaicFont(size: 13, weight: .bold)
+                    .cotermFont(size: 13, weight: .bold)
                     .foregroundColor(fakeTitlebarTextColor(appearance: appearance))
                     .lineLimit(1)
                     .allowsHitTesting(false)
@@ -2392,7 +2392,7 @@ struct ContentView: View {
 
     private func refreshWindowChromeMetrics(for window: NSWindow) {
         // Keep native measurements around for minimal WindowGroup safe-area cancellation.
-        // Standard mode uses mosaic's visual chrome height for layout.
+        // Standard mode uses coterm's visual chrome height for layout.
         let computedTitlebarHeight = window.frame.height - window.contentLayoutRect.height
         let nextPadding = WindowChromeMetrics.clampedTitlebarHeight(computedTitlebarHeight)
         let nextSafeAreaTop = max(0, window.contentView?.safeAreaInsets.top ?? 0)
@@ -2545,7 +2545,7 @@ struct ContentView: View {
 
             #if DEBUG
             let hasUnavailableDetail = unavailableDetail?.isEmpty == false
-            mosaicDebugLog(
+            cotermDebugLog(
                 "fileExplorer.sync remote state=\(tab.remoteConnectionState.rawValue) " +
                 "hasDestination=\(config.destination.isEmpty ? 0 : 1) " +
                 "hasDisplayTarget=\(config.displayTarget.isEmpty ? 0 : 1) " +
@@ -2753,7 +2753,7 @@ struct ContentView: View {
 
                 if didRecover {
 #if DEBUG
-                    mosaicDebugLog("startup.recovery tabCount=\(tabManager.tabs.count) selected=\(tabManager.selectedTabId?.uuidString.prefix(8) ?? "nil") mounted=\(mountedWorkspaceIds.count)")
+                    cotermDebugLog("startup.recovery tabCount=\(tabManager.tabs.count) selected=\(tabManager.selectedTabId?.uuidString.prefix(8) ?? "nil") mounted=\(mountedWorkspaceIds.count)")
 #endif
                     sentryBreadcrumb("startup.recovery", data: [
                         "tabCount": tabManager.tabs.count,
@@ -2768,11 +2768,11 @@ struct ContentView: View {
 #if DEBUG
             if let snapshot = tabManager.debugCurrentWorkspaceSwitchSnapshot() {
                 let dtMs = (CACurrentMediaTime() - snapshot.startedAt) * 1000
-                mosaicDebugLog(
+                cotermDebugLog(
                     "ws.view.selectedChange id=\(snapshot.id) dt=\(debugMsText(dtMs)) selected=\(debugShortWorkspaceId(newValue))"
                 )
             } else {
-                mosaicDebugLog("ws.view.selectedChange id=none selected=\(debugShortWorkspaceId(newValue))")
+                cotermDebugLog("ws.view.selectedChange id=none selected=\(debugShortWorkspaceId(newValue))")
             }
 #endif
             tabManager.applyWindowBackgroundForSelectedTab()
@@ -2804,11 +2804,11 @@ struct ContentView: View {
 #if DEBUG
             if let snapshot = tabManager.debugCurrentWorkspaceSwitchSnapshot() {
                 let dtMs = (CACurrentMediaTime() - snapshot.startedAt) * 1000
-                mosaicDebugLog(
+                cotermDebugLog(
                     "ws.view.hotChange id=\(snapshot.id) dt=\(debugMsText(dtMs)) hot=\(tabManager.isWorkspaceCycleHot ? 1 : 0)"
                 )
             } else {
-                mosaicDebugLog("ws.view.hotChange id=none hot=\(tabManager.isWorkspaceCycleHot ? 1 : 0)")
+                cotermDebugLog("ws.view.hotChange id=none hot=\(tabManager.isWorkspaceCycleHot ? 1 : 0)")
             }
 #endif
             reconcileMountedWorkspaceIds()
@@ -2993,7 +2993,7 @@ struct ContentView: View {
             let tabId = SidebarDragLifecycleNotification().tabId(from: notification)
             sidebarDraggedTabId = tabId
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "sidebar.dragState.content tab=\(debugShortWorkspaceId(tabId)) " +
                 "reason=\(SidebarDragLifecycleNotification().reason(from: notification))"
             )
@@ -3092,7 +3092,7 @@ struct ContentView: View {
                 mainWindow: NSApp.mainWindow
             )
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.request observed={\(debugCommandPaletteWindowSummary(observedWindow))} " +
                 "requested={\(debugCommandPaletteWindowSummary(requestedWindow))} " +
                 "shouldHandle=\(shouldHandle ? 1 : 0) presented=\(isCommandPalettePresented ? 1 : 0) " +
@@ -3361,7 +3361,7 @@ struct ContentView: View {
         }
         view = AnyView(view.background(mainWindowAccessor))
 
-        return AnyView(view.mosaicFixedColorScheme())
+        return AnyView(view.cotermFixedColorScheme())
     }
 
     @MainActor
@@ -3378,7 +3378,7 @@ struct ContentView: View {
         // Native AppKit titlebar dragging steals pane-tab drags in minimal
         // mode. Keep the main window immovable by default; explicit chrome
         // drag zones temporarily enable performDrag for real app moves.
-        configureMosaicMainWindowDragBehavior(window)
+        configureCotermMainWindowDragBehavior(window)
         window.styleMask.insert(.fullSizeContentView)
 
         // Track this window for fullscreen notifications
@@ -3411,7 +3411,7 @@ struct ContentView: View {
         )
         windowChrome.nativeTitlebarBackdropCoordinator.removeNativeTitlebarBackdrop(in: window)
 #if DEBUG
-        if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_MODE"] == "1" {
+        if ProcessInfo.processInfo.environment["COTERM_UI_TEST_MODE"] == "1" {
             AppDelegate.shared?.updateLog.append("ui test window accessor: id=\(windowIdentifier) visible=\(window.isVisible)")
         }
 #endif
@@ -3428,7 +3428,7 @@ struct ContentView: View {
         }
         AppDelegate.shared?.attachUpdateAccessory(to: window)
         AppDelegate.shared?.applyWindowDecorations(to: window)
-        // Let mosaic supply the translucent titlebar fills. AppKit's native
+        // Let coterm supply the translucent titlebar fills. AppKit's native
         // material otherwise blends a lighter strip over the terminal area.
         windowChrome.nativeTitlebarBackdropCoordinator.syncNativeTitlebarBackdrop(
             in: window,
@@ -3442,7 +3442,7 @@ struct ContentView: View {
             sidebarState: sidebarState,
             sidebarSelectionState: sidebarSelectionState,
             fileExplorerState: fileExplorerState,
-            mosaicConfigStore: mosaicConfigStore
+            cotermConfigStore: cotermConfigStore
         )
         installFileDropOverlayWhenReady(on: window, tabManager: tabManager)
     }
@@ -3484,14 +3484,14 @@ struct ContentView: View {
             let added = mountedWorkspaceIds.filter { !previousMountedIds.contains($0) }
             if let snapshot = tabManager.debugCurrentWorkspaceSwitchSnapshot() {
                 let dtMs = (CACurrentMediaTime() - snapshot.startedAt) * 1000
-                mosaicDebugLog(
+                cotermDebugLog(
                     "ws.mount.reconcile id=\(snapshot.id) dt=\(debugMsText(dtMs)) hot=\(isCycleHot ? 1 : 0) " +
                     "selected=\(debugShortWorkspaceId(effectiveSelectedId)) " +
                     "mounted=\(debugShortWorkspaceIds(mountedWorkspaceIds)) " +
                     "added=\(debugShortWorkspaceIds(added)) removed=\(debugShortWorkspaceIds(removedIds))"
                 )
             } else {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "ws.mount.reconcile id=none hot=\(isCycleHot ? 1 : 0) selected=\(debugShortWorkspaceId(effectiveSelectedId)) " +
                     "mounted=\(debugShortWorkspaceIds(mountedWorkspaceIds))"
                 )
@@ -3532,12 +3532,12 @@ struct ContentView: View {
 #if DEBUG
         if let snapshot = tabManager.debugCurrentWorkspaceSwitchSnapshot() {
             let dtMs = (CACurrentMediaTime() - snapshot.startedAt) * 1000
-            mosaicDebugLog(
+            cotermDebugLog(
                 "ws.handoff.start id=\(snapshot.id) dt=\(debugMsText(dtMs)) old=\(debugShortWorkspaceId(oldSelectedId)) " +
                 "new=\(debugShortWorkspaceId(newSelectedId))"
             )
         } else {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "ws.handoff.start id=none old=\(debugShortWorkspaceId(oldSelectedId)) new=\(debugShortWorkspaceId(newSelectedId))"
             )
         }
@@ -3547,11 +3547,11 @@ struct ContentView: View {
 #if DEBUG
             if let snapshot = tabManager.debugCurrentWorkspaceSwitchSnapshot() {
                 let dtMs = (CACurrentMediaTime() - snapshot.startedAt) * 1000
-                mosaicDebugLog(
+                cotermDebugLog(
                     "ws.handoff.fastReady id=\(snapshot.id) dt=\(debugMsText(dtMs)) selected=\(debugShortWorkspaceId(newSelectedId))"
                 )
             } else {
-                mosaicDebugLog("ws.handoff.fastReady id=none selected=\(debugShortWorkspaceId(newSelectedId))")
+                cotermDebugLog("ws.handoff.fastReady id=none selected=\(debugShortWorkspaceId(newSelectedId))")
             }
 #endif
             completeWorkspaceHandoff(reason: "ready")
@@ -3605,11 +3605,11 @@ struct ContentView: View {
 #if DEBUG
         if let snapshot = tabManager.debugCurrentWorkspaceSwitchSnapshot() {
             let dtMs = (CACurrentMediaTime() - snapshot.startedAt) * 1000
-            mosaicDebugLog(
+            cotermDebugLog(
                 "ws.handoff.complete id=\(snapshot.id) dt=\(debugMsText(dtMs)) reason=\(reason) retiring=\(debugShortWorkspaceId(retiring))"
             )
         } else {
-            mosaicDebugLog("ws.handoff.complete id=none reason=\(reason) retiring=\(debugShortWorkspaceId(retiring))")
+            cotermDebugLog("ws.handoff.complete id=none reason=\(reason) retiring=\(debugShortWorkspaceId(retiring))")
         }
 #endif
     }
@@ -3828,7 +3828,7 @@ struct ContentView: View {
         case .singleLine(let accessibilityIdentifier, let focus, let onDeleteBackward):
             TextField(placeholder, text: text)
                 .textFieldStyle(.plain)
-                .mosaicFont(size: 13, weight: .regular)
+                .cotermFont(size: 13, weight: .regular)
                 .tint(Color(nsColor: sidebarActiveForegroundNSColor(opacity: 1.0)))
                 .focused(focus)
                 .accessibilityIdentifier(accessibilityIdentifier)
@@ -3877,7 +3877,7 @@ struct ContentView: View {
             Divider()
 
             Text(renameInputHintText(target: target))
-                .mosaicFont(size: 11)
+                .cotermFont(size: 11)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -3909,7 +3909,7 @@ struct ContentView: View {
 
         return VStack(spacing: 0) {
             Text(nextName)
-                .mosaicFont(size: 13, weight: .regular)
+                .cotermFont(size: 13, weight: .regular)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 9)
@@ -3918,7 +3918,7 @@ struct ContentView: View {
             Divider()
 
             Text(renameConfirmHintText(target: target))
-                .mosaicFont(size: 11)
+                .cotermFont(size: 11)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -3967,7 +3967,7 @@ struct ContentView: View {
             Divider()
 
             Text(target.inputHint)
-                .mosaicFont(size: 11)
+                .cotermFont(size: 11)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -3976,7 +3976,7 @@ struct ContentView: View {
         }
         .onAppear {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.view.appear workspace=\(target.workspaceId.uuidString.prefix(8)) " +
                 "draftLen=\((commandPaletteWorkspaceDescriptionDraft as NSString).length) " +
                 "height=\(String(format: "%.1f", commandPaletteWorkspaceDescriptionHeight)) " +
@@ -3987,7 +3987,7 @@ struct ContentView: View {
         }
         .onChange(of: commandPaletteShouldFocusWorkspaceDescriptionEditor) { _, newValue in
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.focus.binding new=\(newValue ? 1 : 0) " +
                 "mode=\(debugCommandPaletteModeLabel(commandPaletteMode)) " +
                 "window={\(debugCommandPaletteWindowSummary(observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow))} " +
@@ -4044,7 +4044,7 @@ struct ContentView: View {
         let onEscape: () -> Void
         let onMoveSelection: (Int) -> Void
         let onUnhandledNavigationKey: (NSEvent) -> Bool
-        @Environment(\.mosaicGlobalFontMagnificationPercent) private var globalFontPercent
+        @Environment(\.cotermGlobalFontMagnificationPercent) private var globalFontPercent
 
         @MainActor final class Coordinator: NSObject, NSTextFieldDelegate {
             var parent: CommandPaletteSearchFieldRepresentable
@@ -4246,7 +4246,7 @@ struct ContentView: View {
 
         override func flagsChanged(with event: NSEvent) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.flagsChanged " +
                 "\(debugCommandPaletteKeyEventSummary(event))"
             )
@@ -4257,7 +4257,7 @@ struct ContentView: View {
         override func becomeFirstResponder() -> Bool {
             let becameFirstResponder = super.becomeFirstResponder()
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.textView.becomeFirstResponder success=\(becameFirstResponder ? 1 : 0) " +
                 "window={\(debugCommandPaletteWindowSummary(window))} " +
                 "fr=\(debugCommandPaletteResponderSummary(window?.firstResponder))"
@@ -4272,7 +4272,7 @@ struct ContentView: View {
         override func keyDown(with event: NSEvent) {
             if hasMarkedText() {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.keyDown markedText=1 " +
                     "\(debugCommandPaletteKeyEventSummary(event))"
                 )
@@ -4282,7 +4282,7 @@ struct ContentView: View {
             }
             let handled = onHandleKeyEvent?(event, self) == true
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.keyDown handled=\(handled ? 1 : 0) " +
                 "\(debugCommandPaletteKeyEventSummary(event))"
             )
@@ -4296,7 +4296,7 @@ struct ContentView: View {
         override func performKeyEquivalent(with event: NSEvent) -> Bool {
             if hasMarkedText() {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.performKeyEquivalent markedText=1 " +
                     "\(debugCommandPaletteKeyEventSummary(event))"
                 )
@@ -4305,7 +4305,7 @@ struct ContentView: View {
             }
             let handled = onHandleKeyEvent?(event, self) == true
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.performKeyEquivalent handled=\(handled ? 1 : 0) " +
                 "\(debugCommandPaletteKeyEventSummary(event))"
             )
@@ -4315,7 +4315,7 @@ struct ContentView: View {
             }
             let result = super.performKeyEquivalent(with: event)
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.performKeyEquivalent superResult=\(result ? 1 : 0) " +
                 "\(debugCommandPaletteKeyEventSummary(event))"
             )
@@ -4325,7 +4325,7 @@ struct ContentView: View {
 
         override func doCommand(by commandSelector: Selector) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.doCommand selector=\(NSStringFromSelector(commandSelector)) " +
                 "len=\((string as NSString).length) " +
                 "sel=\(selectedRange().location):\(selectedRange().length)"
@@ -4336,7 +4336,7 @@ struct ContentView: View {
 
         override func insertNewline(_ sender: Any?) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.insertNewline " +
                 "len=\((string as NSString).length) " +
                 "sel=\(selectedRange().location):\(selectedRange().length)"
@@ -4347,7 +4347,7 @@ struct ContentView: View {
 
         override func insertLineBreak(_ sender: Any?) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.insertLineBreak " +
                 "len=\((string as NSString).length) " +
                 "sel=\(selectedRange().location):\(selectedRange().length)"
@@ -4358,7 +4358,7 @@ struct ContentView: View {
 
         override func insertNewlineIgnoringFieldEditor(_ sender: Any?) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.insertNewlineIgnoringFieldEditor " +
                 "len=\((string as NSString).length) " +
                 "sel=\(selectedRange().location):\(selectedRange().length)"
@@ -4493,20 +4493,20 @@ struct ContentView: View {
         func focusIfNeeded() {
             guard let window else {
 #if DEBUG
-                mosaicDebugLog("palette.wsDescription.editor.focusIfNeeded window=nil")
+                cotermDebugLog("palette.wsDescription.editor.focusIfNeeded window=nil")
 #endif
                 return
             }
             guard window.firstResponder !== textView else {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.focusIfNeeded alreadyFocused window={\(debugCommandPaletteWindowSummary(window))}"
                 )
 #endif
                 return
             }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.focusIfNeeded attempt window={\(debugCommandPaletteWindowSummary(window))} " +
                 "frBefore=\(debugCommandPaletteResponderSummary(window.firstResponder))"
             )
@@ -4515,7 +4515,7 @@ struct ContentView: View {
             let length = (textView.string as NSString).length
             textView.setSelectedRange(NSRange(location: length, length: 0))
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.focusIfNeeded result didFocus=\(didFocus ? 1 : 0) " +
                 "window={\(debugCommandPaletteWindowSummary(window))} " +
                 "frAfter=\(debugCommandPaletteResponderSummary(window.firstResponder))"
@@ -4574,7 +4574,7 @@ struct ContentView: View {
             let newlineCount = textView.string.reduce(into: 0) { count, character in
                 if character == "\n" { count += 1 }
             }
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.textDidChange len=\((textView.string as NSString).length) " +
                 "newlines=\(newlineCount)"
             )
@@ -4600,7 +4600,7 @@ struct ContentView: View {
         let maxHeight: CGFloat
         let onSubmit: (String) -> Void
         let onEscape: () -> Void
-        @Environment(\.mosaicGlobalFontMagnificationPercent) private var globalFontPercent
+        @Environment(\.cotermGlobalFontMagnificationPercent) private var globalFontPercent
 
         final class Coordinator: NSObject, NSTextViewDelegate {
             var parent: CommandPaletteMultilineTextEditorRepresentable
@@ -4613,7 +4613,7 @@ struct ContentView: View {
 
             func textDidBeginEditing(_ notification: Notification) {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.beginEditing focus=\(parent.isFocused ? 1 : 0) " +
                     "responder=\(debugCommandPaletteResponderSummary(notification.object as? NSResponder))"
                 )
@@ -4633,7 +4633,7 @@ struct ContentView: View {
 
             func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.command selector=\(NSStringFromSelector(commandSelector)) " +
                     "len=\((textView.string as NSString).length) " +
                     "sel=\(textView.selectedRange().location):\(textView.selectedRange().length)"
@@ -4644,7 +4644,7 @@ struct ContentView: View {
 
             func handleDidBecomeFirstResponder() {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.didBecomeFirstResponder focus=\(parent.isFocused ? 1 : 0)"
                 )
 #endif
@@ -4668,7 +4668,7 @@ struct ContentView: View {
                     .subtracting([.numericPad, .function, .capsLock])
 
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.handleKeyEvent " +
                     "\(debugCommandPaletteKeyEventSummary(event)) " +
                     "normalized=\(debugCommandPaletteModifierFlagsSummary(normalizedFlags))"
@@ -4679,8 +4679,8 @@ struct ContentView: View {
                     if normalizedFlags.isEmpty {
                         let currentText = editor?.string ?? parent.text
 #if DEBUG
-                        mosaicDebugLog("palette.wsDescription.editor.handleKeyEvent action=submit")
-                        mosaicDebugLog(
+                        cotermDebugLog("palette.wsDescription.editor.handleKeyEvent action=submit")
+                        cotermDebugLog(
                             "palette.wsDescription.editor.handleKeyEvent submitText " +
                             "len=\((currentText as NSString).length) " +
                             "text=\"\(debugCommandPaletteTextPreview(currentText))\""
@@ -4694,7 +4694,7 @@ struct ContentView: View {
                     }
                     if normalizedFlags == [.shift] {
 #if DEBUG
-                        mosaicDebugLog("palette.wsDescription.editor.handleKeyEvent action=allowShiftReturn")
+                        cotermDebugLog("palette.wsDescription.editor.handleKeyEvent action=allowShiftReturn")
 #endif
                         return false
                     }
@@ -4702,14 +4702,14 @@ struct ContentView: View {
 
                 if event.keyCode == 53, normalizedFlags.isEmpty {
 #if DEBUG
-                    mosaicDebugLog("palette.wsDescription.editor.handleKeyEvent action=escape")
+                    cotermDebugLog("palette.wsDescription.editor.handleKeyEvent action=escape")
 #endif
                     parent.onEscape()
                     return true
                 }
 
 #if DEBUG
-                mosaicDebugLog("palette.wsDescription.editor.handleKeyEvent action=passThrough")
+                cotermDebugLog("palette.wsDescription.editor.handleKeyEvent action=passThrough")
 #endif
                 return false
             }
@@ -4739,7 +4739,7 @@ struct ContentView: View {
             }
             view.refreshMetrics()
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.editor.make focus=\(isFocused ? 1 : 0) " +
                 "textLen=\((text as NSString).length) " +
                 "height=\(String(format: "%.1f", measuredHeight))"
@@ -4769,7 +4769,7 @@ struct ContentView: View {
             guard let window = nsView.window else {
 #if DEBUG
                 if isFocused {
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "palette.wsDescription.editor.update waitingForWindow focus=1 " +
                         "pending=\(context.coordinator.pendingFocusRequest ? 1 : 0)"
                     )
@@ -4780,7 +4780,7 @@ struct ContentView: View {
             let isFirstResponder = window.firstResponder === nsView.textView
 #if DEBUG
             if isFocused || context.coordinator.pendingFocusRequest {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.update focus=\(isFocused ? 1 : 0) " +
                     "isFirstResponder=\(isFirstResponder ? 1 : 0) " +
                     "pending=\(context.coordinator.pendingFocusRequest ? 1 : 0) " +
@@ -4792,7 +4792,7 @@ struct ContentView: View {
             if isFocused, !isFirstResponder, !context.coordinator.pendingFocusRequest {
                 context.coordinator.pendingFocusRequest = true
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "palette.wsDescription.editor.update scheduleFocus window={\(debugCommandPaletteWindowSummary(window))} " +
                     "fr=\(debugCommandPaletteResponderSummary(window.firstResponder))"
                 )
@@ -5396,7 +5396,7 @@ struct ContentView: View {
     private func commandPaletteCommandsFingerprint(commandsContext: CommandPaletteCommandsContext) -> Int {
         var hasher = Hasher()
         hasher.combine(commandsContext.snapshot.fingerprint())
-        hasher.combine(mosaicConfigStore.configRevision)
+        hasher.combine(cotermConfigStore.configRevision)
         return hasher.finalize()
     }
 
@@ -5471,7 +5471,7 @@ struct ContentView: View {
             switch trailingLabel.style {
             case .shortcut:
                 Text(trailingLabel.text)
-                    .mosaicFont(size: 11, weight: .medium)
+                    .cotermFont(size: 11, weight: .medium)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
@@ -5481,7 +5481,7 @@ struct ContentView: View {
                     )
             case .kind:
                 Text(trailingLabel.text)
-                    .mosaicFont(size: 11, weight: .regular)
+                    .cotermFont(size: 11, weight: .regular)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -5498,7 +5498,7 @@ struct ContentView: View {
                 title,
                 matchedIndices: matchedIndices
             )
-                .mosaicFont(size: 13, weight: .regular)
+                .cotermFont(size: 13, weight: .regular)
                 .lineLimit(1)
             Spacer()
             commandPaletteRenderTrailingLabelView(trailingLabel)
@@ -6158,7 +6158,7 @@ struct ContentView: View {
                 supportsFork = false
             }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.forkProbe panel=\(panelId.uuidString.prefix(5)) " +
                     "indexSnapshot=\(indexSnapshot != nil ? 1 : 0) " +
                     "fallbackSnapshot=\(fallbackSnapshot != nil ? 1 : 0) " +
@@ -6254,7 +6254,7 @@ struct ContentView: View {
     private func commandPaletteCommandsContext(
         terminalOpenTargets: Set<TerminalDirectoryOpenTarget>
     ) -> CommandPaletteCommandsContext {
-        let cliInstalledInPATH = AppDelegate.shared?.isMosaicCLIInstalledInPATH() ?? false
+        let cliInstalledInPATH = AppDelegate.shared?.isCotermCLIInstalledInPATH() ?? false
         var snapshot = commandPaletteContextSnapshot(terminalOpenTargets: terminalOpenTargets)
         snapshot.setBool(CommandPaletteContextKeys.cliInstalledInPATH, cliInstalledInPATH)
         snapshot.setBool(
@@ -6280,7 +6280,7 @@ struct ContentView: View {
 
         for contribution in contributions {
             let configuredPaletteAction = commandPaletteConfigActionID(for: contribution.commandId)
-                .flatMap { mosaicConfigStore.resolvedAction(id: $0) }
+                .flatMap { cotermConfigStore.resolvedAction(id: $0) }
             if let configuredPaletteAction, !configuredPaletteAction.palette {
                 continue
             }
@@ -6330,13 +6330,13 @@ struct ContentView: View {
     private func commandPaletteConfigActionID(for commandId: String) -> String? {
         switch commandId {
         case "palette.newTerminalTab":
-            return MosaicSurfaceTabBarBuiltInAction.newTerminal.configID
+            return CotermSurfaceTabBarBuiltInAction.newTerminal.configID
         case "palette.newBrowserTab":
-            return MosaicSurfaceTabBarBuiltInAction.newBrowser.configID
+            return CotermSurfaceTabBarBuiltInAction.newBrowser.configID
         case "palette.terminalSplitRight":
-            return MosaicSurfaceTabBarBuiltInAction.splitRight.configID
+            return CotermSurfaceTabBarBuiltInAction.splitRight.configID
         case "palette.terminalSplitDown":
-            return MosaicSurfaceTabBarBuiltInAction.splitDown.configID
+            return CotermSurfaceTabBarBuiltInAction.splitDown.configID
         default:
             return nil
         }
@@ -6346,11 +6346,11 @@ struct ContentView: View {
         for contribution: CommandPaletteCommandContribution,
         context: CommandPaletteContextSnapshot
     ) -> String? {
-        if let configuredShortcut = mosaicConfigStore.resolvedAction(id: contribution.commandId)?.shortcut {
+        if let configuredShortcut = cotermConfigStore.resolvedAction(id: contribution.commandId)?.shortcut {
             return configuredShortcut.displayString
         }
         if let configuredPaletteAction = commandPaletteConfigActionID(for: contribution.commandId),
-           let configuredShortcut = mosaicConfigStore.resolvedAction(id: configuredPaletteAction)?.shortcut {
+           let configuredShortcut = cotermConfigStore.resolvedAction(id: configuredPaletteAction)?.shortcut {
             return configuredShortcut.displayString
         }
         if let action = Self.commandPaletteShortcutAction(forCommandID: contribution.commandId) {
@@ -6624,7 +6624,7 @@ struct ContentView: View {
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.installCLI",
-                title: constant(String(localized: "command.installCLI.title", defaultValue: "Shell Command: Install 'mosaic' in PATH")),
+                title: constant(String(localized: "command.installCLI.title", defaultValue: "Shell Command: Install 'coterm' in PATH")),
                 subtitle: constant(String(localized: "command.installCLI.subtitle", defaultValue: "CLI")),
                 keywords: ["install", "cli", "path", "shell", "command", "symlink"],
                 when: { !$0.bool(CommandPaletteContextKeys.cliInstalledInPATH) }
@@ -6633,7 +6633,7 @@ struct ContentView: View {
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.uninstallCLI",
-                title: constant(String(localized: "command.uninstallCLI.title", defaultValue: "Shell Command: Uninstall 'mosaic' from PATH")),
+                title: constant(String(localized: "command.uninstallCLI.title", defaultValue: "Shell Command: Uninstall 'coterm' from PATH")),
                 subtitle: constant(String(localized: "command.uninstallCLI.subtitle", defaultValue: "CLI")),
                 keywords: ["uninstall", "remove", "cli", "path", "shell", "command", "symlink"],
                 when: { $0.bool(CommandPaletteContextKeys.cliInstalledInPATH) }
@@ -6746,8 +6746,8 @@ struct ContentView: View {
         // "Sidebar: <provider>" switch commands for each available view. The
         // built-in views are always offered; `descriptors` adds the hosted
         // extension sidebar only while the experimental Extensions beta is on.
-        for descriptor in MosaicExtensionSidebarSelection.descriptors {
-            let title = MosaicExtensionSidebarSelection.localizedTitle(for: descriptor)
+        for descriptor in CotermExtensionSidebarSelection.descriptors {
+            let title = CotermExtensionSidebarSelection.localizedTitle(for: descriptor)
             let titleFormat = String(localized: "command.switchExtensionSidebar.title", defaultValue: "Sidebar: %@")
             contributions.append(
                 CommandPaletteCommandContribution(
@@ -6842,10 +6842,10 @@ struct ContentView: View {
         )
         contributions.append(
             CommandPaletteCommandContribution(
-                commandId: "palette.openMosaicSettingsFile",
-                title: constant(String(localized: "settings.settingsJSON.openFile", defaultValue: "Open mosaic.json")),
-                subtitle: constant(String(localized: "command.mosaicConfig.subtitle", defaultValue: "mosaic.json")),
-                keywords: ["open", "mosaic", "json", "config", "configuration", "settings", "file", "editor", "dotfile"]
+                commandId: "palette.openCotermSettingsFile",
+                title: constant(String(localized: "settings.settingsJSON.openFile", defaultValue: "Open coterm.json")),
+                subtitle: constant(String(localized: "command.cotermConfig.subtitle", defaultValue: "coterm.json")),
+                keywords: ["open", "coterm", "json", "config", "configuration", "settings", "file", "editor", "dotfile"]
             )
         )
         contributions.append(
@@ -6878,7 +6878,7 @@ struct ContentView: View {
                 title: constant(
                     String(
                         localized: "command.makeDefaultTerminal.title",
-                        defaultValue: "Make mosaic the Default Terminal"
+                        defaultValue: "Make coterm the Default Terminal"
                     )
                 ),
                 subtitle: constant(
@@ -6924,13 +6924,13 @@ struct ContentView: View {
                 commandId: "palette.restartSocketListener",
                 title: constant(String(localized: "command.restartSocketListener.title", defaultValue: "Restart CLI Listener")),
                 subtitle: constant(String(localized: "command.restartSocketListener.subtitle", defaultValue: "Global")),
-                keywords: ["restart", "socket", "listener", "cli", "mosaic", "control"]
+                keywords: ["restart", "socket", "listener", "cli", "coterm", "control"]
             )
         )
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.disableBrowser",
-                title: constant(String(localized: "command.disableBrowser.title", defaultValue: "Disable mosaic Browser")),
+                title: constant(String(localized: "command.disableBrowser.title", defaultValue: "Disable coterm Browser")),
                 subtitle: constant(String(localized: "command.browserAvailability.subtitle", defaultValue: "Browser")),
                 keywords: ["browser", "disable", "external", "default", "open", "auth"],
                 when: { !$0.bool(CommandPaletteContextKeys.browserDisabled) }
@@ -6939,7 +6939,7 @@ struct ContentView: View {
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.enableBrowser",
-                title: constant(String(localized: "command.enableBrowser.title", defaultValue: "Enable mosaic Browser")),
+                title: constant(String(localized: "command.enableBrowser.title", defaultValue: "Enable coterm Browser")),
                 subtitle: constant(String(localized: "command.browserAvailability.subtitle", defaultValue: "Browser")),
                 keywords: ["browser", "enable", "embedded", "open"],
                 when: { $0.bool(CommandPaletteContextKeys.browserDisabled) }
@@ -7710,23 +7710,23 @@ struct ContentView: View {
             )
         )
 
-        let mosaicConfigDefaultSubtitle = String(localized: "command.mosaicConfig.subtitle", defaultValue: "mosaic.json")
-        for issue in mosaicConfigStore.configurationIssues {
+        let cotermConfigDefaultSubtitle = String(localized: "command.cotermConfig.subtitle", defaultValue: "coterm.json")
+        for issue in cotermConfigStore.configurationIssues {
             contributions.append(
                 CommandPaletteCommandContribution(
-                    commandId: commandPaletteMosaicConfigIssueCommandID(issue),
-                    title: constant(commandPaletteMosaicConfigIssueTitle(issue)),
-                    subtitle: constant(commandPaletteMosaicConfigIssueSubtitle(issue)),
-                    keywords: ["mosaic", "config", "json", "schema", "error", "warning"]
+                    commandId: commandPaletteCotermConfigIssueCommandID(issue),
+                    title: constant(commandPaletteCotermConfigIssueTitle(issue)),
+                    subtitle: constant(commandPaletteCotermConfigIssueSubtitle(issue)),
+                    keywords: ["coterm", "config", "json", "schema", "error", "warning"]
                 )
             )
         }
-        for action in mosaicConfigStore.paletteCustomActions() {
-            let actionTitle = sanitizeMosaicConfigPaletteText(action.title)
+        for action in cotermConfigStore.paletteCustomActions() {
+            let actionTitle = sanitizeCotermConfigPaletteText(action.title)
             let subtitleText = action.subtitle
-                .map { sanitizeMosaicConfigPaletteText($0) }
+                .map { sanitizeCotermConfigPaletteText($0) }
                 .flatMap { $0.isEmpty ? nil : $0 }
-                ?? mosaicConfigDefaultSubtitle
+                ?? cotermConfigDefaultSubtitle
             contributions.append(
                 CommandPaletteCommandContribution(
                     commandId: action.id,
@@ -7740,7 +7740,7 @@ struct ContentView: View {
         return contributions
     }
 
-    private func sanitizeMosaicConfigPaletteText(_ text: String) -> String {
+    private func sanitizeCotermConfigPaletteText(_ text: String) -> String {
         let dangerous: Set<Unicode.Scalar> = [
             "\u{200B}", "\u{200C}", "\u{200D}", "\u{200E}", "\u{200F}",
             "\u{202A}", "\u{202B}", "\u{202C}", "\u{202D}", "\u{202E}",
@@ -7751,13 +7751,13 @@ struct ContentView: View {
         return filtered.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private func commandPaletteMosaicConfigIssueCommandID(_ issue: MosaicConfigIssue) -> String {
+    private func commandPaletteCotermConfigIssueCommandID(_ issue: CotermConfigIssue) -> String {
         var hash: UInt64 = 1_469_598_103_934_665_603
         for byte in issue.id.utf8 {
             hash ^= UInt64(byte)
             hash &*= 1_099_511_628_211
         }
-        return "palette.mosaicConfig.issue.\(String(hash, radix: 16))"
+        return "palette.cotermConfig.issue.\(String(hash, radix: 16))"
     }
 
     private func commandPaletteWorkspaceColorCommandID(_ colorName: String) -> String {
@@ -7778,59 +7778,59 @@ struct ContentView: View {
         return "palette.extensionSidebar.\(String(hash, radix: 16))"
     }
 
-    private func commandPaletteMosaicConfigIssueTitle(_ issue: MosaicConfigIssue) -> String {
+    private func commandPaletteCotermConfigIssueTitle(_ issue: CotermConfigIssue) -> String {
         switch issue.kind {
         case .schemaError:
             return String(
-                localized: "command.mosaicConfig.issue.schemaError.title",
-                defaultValue: "mosaic.json Schema Error"
+                localized: "command.cotermConfig.issue.schemaError.title",
+                defaultValue: "coterm.json Schema Error"
             )
         default:
             return String(
-                localized: "command.mosaicConfig.issue.warning.title",
-                defaultValue: "mosaic.json Configuration Warning"
+                localized: "command.cotermConfig.issue.warning.title",
+                defaultValue: "coterm.json Configuration Warning"
             )
         }
     }
 
-    private func commandPaletteMosaicConfigIssueSubtitle(_ issue: MosaicConfigIssue) -> String {
+    private func commandPaletteCotermConfigIssueSubtitle(_ issue: CotermConfigIssue) -> String {
         let rawPath = issue.sourcePath.map {
             NSString(string: $0).abbreviatingWithTildeInPath
         } ?? issue.settingName
-        let path = sanitizeMosaicConfigPaletteText(rawPath)
-        let detail = sanitizeMosaicConfigPaletteText(commandPaletteMosaicConfigIssueDetail(issue))
+        let path = sanitizeCotermConfigPaletteText(rawPath)
+        let detail = sanitizeCotermConfigPaletteText(commandPaletteCotermConfigIssueDetail(issue))
         guard !detail.isEmpty else { return path }
         let format = String(
-            localized: "command.mosaicConfig.issue.subtitle",
+            localized: "command.cotermConfig.issue.subtitle",
             defaultValue: "%@: %@"
         )
         return String(format: format, path, detail)
     }
 
-    private func commandPaletteMosaicConfigIssueDetail(_ issue: MosaicConfigIssue) -> String {
+    private func commandPaletteCotermConfigIssueDetail(_ issue: CotermConfigIssue) -> String {
         switch issue.kind {
         case .schemaError:
             let format = String(
-                localized: "command.mosaicConfig.issue.schemaError.detail",
+                localized: "command.cotermConfig.issue.schemaError.detail",
                 defaultValue: "%@"
             )
             let fallback = String(
-                localized: "command.mosaicConfig.issue.schemaError.fallback",
-                defaultValue: "Invalid mosaic.json"
+                localized: "command.cotermConfig.issue.schemaError.fallback",
+                defaultValue: "Invalid coterm.json"
             )
             return String(format: format, issue.message ?? fallback)
         case .newWorkspaceActionNotFound:
-            let format = String(localized: "command.mosaicConfig.issue.newWorkspaceActionNotFound.detail", defaultValue: "%@ references missing action '%@'")
+            let format = String(localized: "command.cotermConfig.issue.newWorkspaceActionNotFound.detail", defaultValue: "%@ references missing action '%@'")
             return String(format: format, issue.settingName, issue.commandName ?? "")
         case .newWorkspaceCommandNotFound:
             let format = String(
-                localized: "command.mosaicConfig.issue.newWorkspaceCommandNotFound.detail",
+                localized: "command.cotermConfig.issue.newWorkspaceCommandNotFound.detail",
                 defaultValue: "%@ references missing command '%@'"
             )
             return String(format: format, issue.settingName, issue.commandName ?? "")
         case .newWorkspaceCommandRequiresWorkspace:
             let format = String(
-                localized: "command.mosaicConfig.issue.newWorkspaceCommandRequiresWorkspace.detail",
+                localized: "command.cotermConfig.issue.newWorkspaceCommandRequiresWorkspace.detail",
                 defaultValue: "%@ '%@' must reference a workspace command"
             )
             return String(format: format, issue.settingName, issue.commandName ?? "")
@@ -7883,18 +7883,18 @@ struct ContentView: View {
             appDelegate.openNewMainWindow(preferredWindow: appDelegate.mainWindow(for: windowId))
         }
         registry.register(commandId: "palette.installCLI") {
-            AppDelegate.shared?.installMosaicCLIInPath(nil)
+            AppDelegate.shared?.installCotermCLIInPath(nil)
         }
         registry.register(commandId: "palette.uninstallCLI") {
-            AppDelegate.shared?.uninstallMosaicCLIInPath(nil)
+            AppDelegate.shared?.uninstallCotermCLIInPath(nil)
         }
         registry.register(commandId: "palette.newTerminalTab") {
-            if !executeConfiguredAction(id: MosaicSurfaceTabBarBuiltInAction.newTerminal.configID) {
+            if !executeConfiguredAction(id: CotermSurfaceTabBarBuiltInAction.newTerminal.configID) {
                 tabManager.newSurface()
             }
         }
         registry.register(commandId: "palette.newBrowserTab") {
-            if executeConfiguredAction(id: MosaicSurfaceTabBarBuiltInAction.newBrowser.configID) {
+            if executeConfiguredAction(id: CotermSurfaceTabBarBuiltInAction.newBrowser.configID) {
                 return
             }
             // Let command-palette dismissal complete first so omnibar focus
@@ -7941,9 +7941,9 @@ struct ContentView: View {
         // extension sidebar) regardless of the beta flag, so a contribution that
         // was visible when the flag was on still resolves after a runtime flip.
         // Visibility is gated by `descriptors`; the handler set is the superset.
-        for descriptor in MosaicExtensionSidebarSelection.allDescriptors {
+        for descriptor in CotermExtensionSidebarSelection.allDescriptors {
             registry.register(commandId: commandPaletteExtensionSidebarCommandID(descriptor.id)) {
-                MosaicExtensionSidebarSelection.setProviderId(descriptor.id)
+                CotermExtensionSidebarSelection.setProviderId(descriptor.id)
             }
         }
         for mode in RightSidebarMode.allCases {
@@ -7991,32 +7991,32 @@ struct ContentView: View {
         }
         registry.register(commandId: "palette.openSettings") {
 #if DEBUG
-            mosaicDebugLog("palette.openSettings.invoke")
+            cotermDebugLog("palette.openSettings.invoke")
 #endif
             if let appDelegate = AppDelegate.shared {
                 appDelegate.openPreferencesWindow(debugSource: "palette.openSettings")
             } else {
 #if DEBUG
-                mosaicDebugLog("palette.openSettings.missingAppDelegate fallback=1")
+                cotermDebugLog("palette.openSettings.missingAppDelegate fallback=1")
 #endif
                 AppDelegate.presentPreferencesWindow()
             }
         }
-        registry.register(commandId: "palette.openMosaicSettingsFile") {
+        registry.register(commandId: "palette.openCotermSettingsFile") {
 #if DEBUG
-            mosaicDebugLog("palette.openMosaicSettingsFile.invoke")
+            cotermDebugLog("palette.openCotermSettingsFile.invoke")
 #endif
-            openMosaicSettingsFileInEditor()
+            openCotermSettingsFileInEditor()
         }
         registry.register(commandId: "palette.openGhosttySettings") {
 #if DEBUG
-            mosaicDebugLog("palette.openGhosttySettings.invoke")
+            cotermDebugLog("palette.openGhosttySettings.invoke")
 #endif
             GhosttyApp.shared.openConfigurationInTextEdit()
         }
         registry.register(commandId: "palette.mobileConnect") {
 #if DEBUG
-            mosaicDebugLog("palette.mobileConnect.invoke")
+            cotermDebugLog("palette.mobileConnect.invoke")
 #endif
             MobilePairingWindowController.shared.show()
         }
@@ -8346,7 +8346,7 @@ struct ContentView: View {
             }
         }
         registry.register(commandId: "palette.terminalSplitRight") {
-            if !executeConfiguredAction(id: MosaicSurfaceTabBarBuiltInAction.splitRight.configID) {
+            if !executeConfiguredAction(id: CotermSurfaceTabBarBuiltInAction.splitRight.configID) {
                 tabManager.createSplit(direction: .right)
             }
         }
@@ -8369,7 +8369,7 @@ struct ContentView: View {
             forkFocusedAgentConversationToNewWorkspace()
         }
         registry.register(commandId: "palette.terminalSplitDown") {
-            if !executeConfiguredAction(id: MosaicSurfaceTabBarBuiltInAction.splitDown.configID) {
+            if !executeConfiguredAction(id: CotermSurfaceTabBarBuiltInAction.splitDown.configID) {
                 tabManager.createSplit(direction: .down)
             }
         }
@@ -8387,18 +8387,18 @@ struct ContentView: View {
         registry.register(commandId: "palette.equalizeSplits") {
             if let workspace = tabManager.selectedWorkspace, !tabManager.equalizeSplits(tabId: workspace.id) {
 #if DEBUG
-                mosaicDebugLog("palette.equalizeSplits result=noSplitOrFailed workspaceId=\(workspace.id)")
+                cotermDebugLog("palette.equalizeSplits result=noSplitOrFailed workspaceId=\(workspace.id)")
 #endif
             }
         }
 
-        for issue in mosaicConfigStore.configurationIssues {
+        for issue in cotermConfigStore.configurationIssues {
             let captured = issue
-            registry.register(commandId: commandPaletteMosaicConfigIssueCommandID(issue)) {
-                openMosaicConfigIssue(captured)
+            registry.register(commandId: commandPaletteCotermConfigIssueCommandID(issue)) {
+                openCotermConfigIssue(captured)
             }
         }
-        for action in mosaicConfigStore.paletteCustomActions() {
+        for action in cotermConfigStore.paletteCustomActions() {
             let captured = action
             registry.register(commandId: action.id) {
                 executeConfiguredAction(captured)
@@ -8406,7 +8406,7 @@ struct ContentView: View {
         }
     }
 
-    private func openMosaicConfigIssue(_ issue: MosaicConfigIssue) {
+    private func openCotermConfigIssue(_ issue: CotermConfigIssue) {
         guard let sourcePath = issue.sourcePath,
               FileManager.default.fileExists(atPath: sourcePath) else {
             NSSound.beep()
@@ -8417,22 +8417,22 @@ struct ContentView: View {
 
     @discardableResult
     private func executeConfiguredAction(id: String) -> Bool {
-        guard let action = mosaicConfigStore.resolvedAction(id: id) else {
+        guard let action = cotermConfigStore.resolvedAction(id: id) else {
             return false
         }
         return executeConfiguredAction(action)
     }
 
     @discardableResult
-    private func executeConfiguredAction(_ action: MosaicResolvedConfigAction) -> Bool {
+    private func executeConfiguredAction(_ action: CotermResolvedConfigAction) -> Bool {
         let baseCwd = configuredActionBaseCwd()
-        return MosaicConfigExecutor.execute(
+        return CotermConfigExecutor.execute(
             action: action,
-            commands: mosaicConfigStore.loadedCommands,
-            commandSourcePaths: mosaicConfigStore.commandSourcePaths,
+            commands: cotermConfigStore.loadedCommands,
+            commandSourcePaths: cotermConfigStore.commandSourcePaths,
             tabManager: tabManager,
             baseCwd: baseCwd,
-            globalConfigPath: mosaicConfigStore.globalConfigPath
+            globalConfigPath: cotermConfigStore.globalConfigPath
         )
     }
 
@@ -8765,7 +8765,7 @@ struct ContentView: View {
             let newlineCount = commandPaletteWorkspaceDescriptionDraft.reduce(into: 0) { count, character in
                 if character == "\n" { count += 1 }
             }
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.submit.request workspace=\(target.workspaceId.uuidString.prefix(8)) " +
                 "draftLen=\((commandPaletteWorkspaceDescriptionDraft as NSString).length) " +
                 "newlines=\(newlineCount)"
@@ -8780,7 +8780,7 @@ struct ContentView: View {
 
     private func runCommandPaletteCommand(_ command: CommandPaletteCommand) {
 #if DEBUG
-        mosaicDebugLog("palette.run commandId=\(command.id) dismissOnRun=\(command.dismissOnRun ? 1 : 0)")
+        cotermDebugLog("palette.run commandId=\(command.id) dismissOnRun=\(command.dismissOnRun ? 1 : 0)")
 #endif
         let postRunFocusTarget = commandPalettePostRunFocusTarget(for: command)
         recordCommandPaletteUsage(command.id)
@@ -8864,7 +8864,7 @@ struct ContentView: View {
 
     private func openCommandPaletteWorkspaceDescriptionInput() {
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.wsDescription.open begin presented=\(isCommandPalettePresented ? 1 : 0) " +
             "mode=\(debugCommandPaletteModeLabel(commandPaletteMode)) " +
             "window={\(debugCommandPaletteWindowSummary(observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow))}"
@@ -8875,7 +8875,7 @@ struct ContentView: View {
         }
         beginWorkspaceDescriptionFlow()
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.wsDescription.open end presented=\(isCommandPalettePresented ? 1 : 0) " +
             "mode=\(debugCommandPaletteModeLabel(commandPaletteMode)) " +
             "focusFlag=\(commandPaletteShouldFocusWorkspaceDescriptionEditor ? 1 : 0)"
@@ -9089,7 +9089,7 @@ struct ContentView: View {
             let newlineCount = commandPaletteWorkspaceDescriptionDraft.reduce(into: 0) { count, character in
                 if character == "\n" { count += 1 }
             }
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.dismiss workspace=\(target.workspaceId.uuidString.prefix(8)) " +
                 "restoreFocus=\(restoreFocus ? 1 : 0) " +
                 "draftLen=\((commandPaletteWorkspaceDescriptionDraft as NSString).length) " +
@@ -9150,12 +9150,12 @@ struct ContentView: View {
         let clickedFocusTarget = commandPaletteBackdropFocusTarget(atContentPoint: contentPoint)
 #if DEBUG
         if let clickedFocusTarget {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.dismiss.backdrop focusTarget panel=\(clickedFocusTarget.panelId.uuidString.prefix(5)) " +
                 "workspace=\(clickedFocusTarget.workspaceId.uuidString.prefix(5)) intent=\(debugCommandPaletteFocusIntent(clickedFocusTarget.intent))"
             )
         } else {
-            mosaicDebugLog("palette.dismiss.backdrop focusTarget=nil")
+            cotermDebugLog("palette.dismiss.backdrop focusTarget=nil")
         }
 #endif
         dismissCommandPalette(restoreFocus: true, preferredFocusTarget: clickedFocusTarget)
@@ -9203,7 +9203,7 @@ struct ContentView: View {
     }
 
     private func commandPaletteBackdropFocusTarget(for responder: NSResponder) -> CommandPaletteRestoreFocusTarget? {
-        if let terminalView = mosaicOwningGhosttyView(for: responder),
+        if let terminalView = cotermOwningGhosttyView(for: responder),
            let workspaceId = terminalView.tabId,
            let panelId = terminalView.terminalSurface?.id,
            tabManager.tabs.contains(where: { $0.id == workspaceId }) {
@@ -9383,7 +9383,7 @@ struct ContentView: View {
 
     private func resetCommandPaletteWorkspaceDescriptionFocus() {
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.wsDescription.focus.reset schedule presented=\(isCommandPalettePresented ? 1 : 0) " +
             "mode=\(debugCommandPaletteModeLabel(commandPaletteMode)) " +
             "focusFlag=\(commandPaletteShouldFocusWorkspaceDescriptionEditor ? 1 : 0)"
@@ -9391,7 +9391,7 @@ struct ContentView: View {
 #endif
         DispatchQueue.main.async {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.focus.reset apply.before search=\(isCommandPaletteSearchFocused ? 1 : 0) " +
                 "rename=\(isCommandPaletteRenameFocused ? 1 : 0) " +
                 "editor=\(commandPaletteShouldFocusWorkspaceDescriptionEditor ? 1 : 0) " +
@@ -9404,7 +9404,7 @@ struct ContentView: View {
             commandPaletteShouldFocusWorkspaceDescriptionEditor = true
             commandPalettePendingTextSelectionBehavior = nil
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.focus.reset apply.after search=\(isCommandPaletteSearchFocused ? 1 : 0) " +
                 "rename=\(isCommandPaletteRenameFocused ? 1 : 0) " +
                 "editor=\(commandPaletteShouldFocusWorkspaceDescriptionEditor ? 1 : 0) " +
@@ -9567,7 +9567,7 @@ struct ContentView: View {
 #if DEBUG
         guard !didApplyUITestSidebarSelection else { return }
         let env = ProcessInfo.processInfo.environment
-        guard let rawValue = env["MOSAIC_UI_TEST_SIDEBAR_SELECTED_WORKSPACE_INDICES"]?
+        guard let rawValue = env["COTERM_UI_TEST_SIDEBAR_SELECTED_WORKSPACE_INDICES"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
               !rawValue.isEmpty else {
             return
@@ -9651,7 +9651,7 @@ struct ContentView: View {
 
     private func startWorkspaceDescriptionFlow(_ target: CommandPaletteWorkspaceDescriptionTarget) {
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.wsDescription.flow.start workspace=\(target.workspaceId.uuidString.prefix(8)) " +
             "descLen=\((target.currentDescription as NSString).length) " +
             "presented=\(isCommandPalettePresented ? 1 : 0) " +
@@ -9664,7 +9664,7 @@ struct ContentView: View {
         commandPaletteMode = .workspaceDescriptionInput(target)
         resetCommandPaletteWorkspaceDescriptionFocus()
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.wsDescription.flow.armed workspace=\(target.workspaceId.uuidString.prefix(8)) " +
             "height=\(String(format: "%.1f", commandPaletteWorkspaceDescriptionHeight)) " +
             "modeAfter=\(debugCommandPaletteModeLabel(commandPaletteMode))"
@@ -9709,7 +9709,7 @@ struct ContentView: View {
         let newlineCount = proposedDescription.reduce(into: 0) { count, character in
             if character == "\n" { count += 1 }
         }
-        mosaicDebugLog(
+        cotermDebugLog(
             "palette.wsDescription.apply.begin workspace=\(target.workspaceId.uuidString.prefix(8)) " +
             "proposedLen=\((proposedDescription as NSString).length) " +
             "newlines=\(newlineCount) " +
@@ -9723,7 +9723,7 @@ struct ContentView: View {
             let persistedNewlineCount = persisted.reduce(into: 0) { count, character in
                 if character == "\n" { count += 1 }
             }
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.wsDescription.apply.end workspace=\(target.workspaceId.uuidString.prefix(8)) " +
                 "persistedLen=\((persisted as NSString).length) " +
                 "persistedNewlines=\(persistedNewlineCount) " +
@@ -9758,7 +9758,7 @@ struct ContentView: View {
         guard !pullRequests.isEmpty else { return false }
 
         var openedCount = 0
-        if BrowserLinkOpenSettings.openSidebarPullRequestLinksInMosaicBrowser() {
+        if BrowserLinkOpenSettings.openSidebarPullRequestLinksInCotermBrowser() {
             for pullRequest in pullRequests {
                 if tabManager.openBrowser(url: pullRequest.url, insertAtEnd: true) != nil {
                     openedCount += 1
@@ -9885,8 +9885,8 @@ struct SidebarTabItemSettingsSnapshot: Equatable {
     let showsGitBranchIcon: Bool
     let showsSSH: Bool
     let makesPullRequestsClickable: Bool
-    let openPullRequestLinksInMosaicBrowser: Bool
-    let openPortLinksInMosaicBrowser: Bool
+    let openPullRequestLinksInCotermBrowser: Bool
+    let openPortLinksInCotermBrowser: Bool
     let showsNotificationMessage: Bool
     let activeTabIndicatorStyle: WorkspaceIndicatorStyle
     let selectionColorHex: String?
@@ -9911,10 +9911,10 @@ struct SidebarTabItemSettingsSnapshot: Equatable {
         showsGitBranchIcon = Self.bool(defaults: defaults, key: "sidebarShowGitBranchIcon", defaultValue: false)
         showsSSH = Self.bool(defaults: defaults, key: "sidebarShowSSH", defaultValue: SidebarWorkspaceDetailDefaults.showSSH)
         makesPullRequestsClickable = settings.value(for: catalog.sidebar.makePullRequestsClickable)
-        openPullRequestLinksInMosaicBrowser = BrowserLinkOpenSettings.openSidebarPullRequestLinksInMosaicBrowser(
+        openPullRequestLinksInCotermBrowser = BrowserLinkOpenSettings.openSidebarPullRequestLinksInCotermBrowser(
             defaults: defaults
         )
-        openPortLinksInMosaicBrowser = BrowserLinkOpenSettings.openSidebarPortLinksInMosaicBrowser(
+        openPortLinksInCotermBrowser = BrowserLinkOpenSettings.openSidebarPortLinksInCotermBrowser(
             defaults: defaults
         )
 
@@ -9943,11 +9943,11 @@ struct SidebarTabItemSettingsSnapshot: Equatable {
 }
 
 
-enum MosaicExtensionSidebarSelection {
-    static let defaultsKey = "mosaicExtensionSidebar.providerId"
-    static let selectedExtensionNameDefaultsKey = "mosaicExtensionSidebar.selectedExtensionName"
-    static let defaultProviderId = MosaicSidebarProviderDescriptor.defaultWorkspacesID
-    static let hostedExtensionsProviderId = "mosaic.sidebar.extensions"
+enum CotermExtensionSidebarSelection {
+    static let defaultsKey = "cotermExtensionSidebar.providerId"
+    static let selectedExtensionNameDefaultsKey = "cotermExtensionSidebar.selectedExtensionName"
+    static let defaultProviderId = CotermSidebarProviderDescriptor.defaultWorkspacesID
+    static let hostedExtensionsProviderId = "coterm.sidebar.extensions"
 
     /// Synchronous read of the experimental Extensions flag for the on-demand
     /// AppKit/static paths (the toggle menu, the command-palette builder, the
@@ -9969,7 +9969,7 @@ enum MosaicExtensionSidebarSelection {
         return Bool.decodeFromUserDefaults(UserDefaults.standard.object(forKey: key.userDefaultsKey)) ?? key.defaultValue
     }
 
-    static var providers: [any MosaicSidebarProvider] {
+    static var providers: [any CotermSidebarProvider] {
         SidebarExamples.providers
     }
 
@@ -9977,7 +9977,7 @@ enum MosaicExtensionSidebarSelection {
 
     /// Provider-id prefix for user/agent-authored custom sidebars. The
     /// suffix after the prefix is the sidebar's file base name.
-    static let customSidebarProviderPrefix = "mosaic.sidebar.custom."
+    static let customSidebarProviderPrefix = "coterm.sidebar.custom."
 
     /// Synchronous read of the experimental custom-sidebars flag, mirroring
     /// ``isEnabled`` for the AppKit/static paths (the picker menu).
@@ -9994,13 +9994,13 @@ enum MosaicExtensionSidebarSelection {
         if let override = customSidebarsDirectoryOverrideForTesting { return override }
         #endif
         return FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/mosaic/sidebars", isDirectory: true)
+            .appendingPathComponent(".config/coterm/sidebars", isDirectory: true)
     }
 
     /// One provider descriptor per `<name>.swift`/`<name>.json` file in the
     /// sidebars directory (`.swift` preferred when both exist), titled by the
     /// file's base name.
-    static var customSidebarDescriptors: [MosaicSidebarProviderDescriptor] {
+    static var customSidebarDescriptors: [CotermSidebarProviderDescriptor] {
         guard let entries = try? FileManager.default.contentsOfDirectory(
             at: customSidebarsDirectory,
             includingPropertiesForKeys: nil
@@ -10014,10 +10014,10 @@ enum MosaicExtensionSidebarSelection {
             extensionByName[name] = ext
         }
         return extensionByName.keys.sorted().map { name in
-            MosaicSidebarProviderDescriptor(
+            CotermSidebarProviderDescriptor(
                 id: customSidebarProviderPrefix + name,
-                title: MosaicSidebarProviderLocalizedText(key: "sidebar.provider.custom.\(name)", defaultValue: name),
-                subtitle: MosaicSidebarProviderLocalizedText(
+                title: CotermSidebarProviderLocalizedText(key: "sidebar.provider.custom.\(name)", defaultValue: name),
+                subtitle: CotermSidebarProviderLocalizedText(
                     key: "sidebar.provider.custom.subtitle",
                     defaultValue: String(localized: "sidebar.provider.custom.subtitle", defaultValue: "Custom sidebar")
                 ),
@@ -10054,7 +10054,7 @@ enum MosaicExtensionSidebarSelection {
     /// Servers, Last Prompt, Super Compact, Browser Stack). These ship
     /// independently of the experimental Extensions feature, so they stay in
     /// the switcher menu regardless of the beta flag.
-    static var builtInDescriptors: [MosaicSidebarProviderDescriptor] {
+    static var builtInDescriptors: [CotermSidebarProviderDescriptor] {
         [.defaultWorkspaces] + providers.map { $0.descriptor }
     }
 
@@ -10062,7 +10062,7 @@ enum MosaicExtensionSidebarSelection {
     /// extension entry belongs to the experimental Extensions feature, so it is
     /// only offered while that beta is enabled; the built-in views are always
     /// offered.
-    static var descriptors: [MosaicSidebarProviderDescriptor] {
+    static var descriptors: [CotermSidebarProviderDescriptor] {
         var result = isEnabled ? builtInDescriptors + [hostedExtensionsDescriptor] : builtInDescriptors
         if customSidebarsEnabled { result += customSidebarDescriptors }
         return result
@@ -10071,19 +10071,19 @@ enum MosaicExtensionSidebarSelection {
     /// Every descriptor that can ever be selected, ignoring feature gates. Used
     /// to register command-palette handlers so a runtime flag flip always has a
     /// handler to invoke; what is *shown* uses ``descriptors``.
-    static var allDescriptors: [MosaicSidebarProviderDescriptor] {
+    static var allDescriptors: [CotermSidebarProviderDescriptor] {
         builtInDescriptors + [hostedExtensionsDescriptor] + customSidebarDescriptors
     }
 
-    static var hostedExtensionsDescriptor: MosaicSidebarProviderDescriptor {
+    static var hostedExtensionsDescriptor: CotermSidebarProviderDescriptor {
         let selectedName = UserDefaults.standard.string(forKey: selectedExtensionNameDefaultsKey)?.nilIfEmpty
-        return MosaicSidebarProviderDescriptor(
+        return CotermSidebarProviderDescriptor(
             id: hostedExtensionsProviderId,
-            title: MosaicSidebarProviderLocalizedText(
+            title: CotermSidebarProviderLocalizedText(
                 key: "sidebar.provider.extensions.title",
                 defaultValue: selectedName ?? String(localized: "sidebar.provider.extensions.title", defaultValue: "Extension Sidebar")
             ),
-            subtitle: MosaicSidebarProviderLocalizedText(
+            subtitle: CotermSidebarProviderLocalizedText(
                 key: "sidebar.provider.extensions.subtitle",
                 defaultValue: selectedName == nil
                     ? String(localized: "sidebar.provider.extensions.subtitle", defaultValue: "Custom sidebar")
@@ -10094,7 +10094,7 @@ enum MosaicExtensionSidebarSelection {
         )
     }
 
-    static func descriptor(for providerId: String) -> MosaicSidebarProviderDescriptor {
+    static func descriptor(for providerId: String) -> CotermSidebarProviderDescriptor {
         descriptors.first { $0.id == providerId } ?? .defaultWorkspaces
     }
 
@@ -10125,7 +10125,7 @@ enum MosaicExtensionSidebarSelection {
         return provider(for: id) == nil
     }
 
-    static func provider(for providerId: String) -> (any MosaicSidebarProvider)? {
+    static func provider(for providerId: String) -> (any CotermSidebarProvider)? {
         providers.first { $0.descriptor.id == providerId }
     }
 
@@ -10144,11 +10144,11 @@ enum MosaicExtensionSidebarSelection {
         return persistedProviderId
     }
 
-    static func localizedTitle(for descriptor: MosaicSidebarProviderDescriptor) -> String {
+    static func localizedTitle(for descriptor: CotermSidebarProviderDescriptor) -> String {
         localizedText(descriptor.title)
     }
 
-    static func localizedText(_ text: MosaicSidebarProviderLocalizedText) -> String {
+    static func localizedText(_ text: CotermSidebarProviderLocalizedText) -> String {
         NSLocalizedString(
             text.key,
             tableName: "Localizable",
@@ -10176,11 +10176,11 @@ enum MosaicExtensionSidebarSelection {
         for descriptor in descriptors {
             let item = NSMenuItem(
                 title: localizedTitle(for: descriptor),
-                action: #selector(MosaicExtensionSidebarMenuTarget.selectProvider(_:)),
+                action: #selector(CotermExtensionSidebarMenuTarget.selectProvider(_:)),
                 keyEquivalent: ""
             )
             item.representedObject = descriptor.id
-            item.target = MosaicExtensionSidebarMenuTarget.shared
+            item.target = CotermExtensionSidebarMenuTarget.shared
             item.state = selectedProviderId == descriptor.id ? .on : .off
             item.image = NSImage(systemSymbolName: descriptor.systemImageName, accessibilityDescription: nil)
             menu.addItem(item)
@@ -10194,12 +10194,12 @@ enum MosaicExtensionSidebarSelection {
 }
 
 @MainActor
-private final class MosaicExtensionSidebarMenuTarget: NSObject {
-    static let shared = MosaicExtensionSidebarMenuTarget()
+private final class CotermExtensionSidebarMenuTarget: NSObject {
+    static let shared = CotermExtensionSidebarMenuTarget()
 
     @objc func selectProvider(_ sender: NSMenuItem) {
         guard let providerId = sender.representedObject as? String else { return }
-        MosaicExtensionSidebarSelection.setProviderId(providerId)
+        CotermExtensionSidebarSelection.setProviderId(providerId)
     }
 }
 
@@ -10279,7 +10279,7 @@ private final class SidebarTabItemSettingsStore: ObservableObject {
 }
 
 // `SidebarDragState`, `SidebarWorkspaceDragRegistry`, and the DEBUG-only
-// `SidebarDragStateRegistry` now live in the `MosaicSidebar`// package. This app-side convenience keeps the `SidebarDragState()` call site
+// `SidebarDragStateRegistry` now live in the `CotermSidebar`// package. This app-side convenience keeps the `SidebarDragState()` call site
 // unchanged by injecting the process-wide cross-window registry the app owns
 // at its composition root (`AppDelegate`).
 extension SidebarDragState {
@@ -10313,7 +10313,7 @@ struct VerticalTabsSidebar: View {
     // for context-menu actions and pass-down. See SidebarUnreadModel / #2586.
     @EnvironmentObject var sidebarUnread: SidebarUnreadModel
     var notificationStore: TerminalNotificationStore { .shared }
-    @EnvironmentObject var mosaicConfigStore: MosaicConfigStore
+    @EnvironmentObject var cotermConfigStore: CotermConfigStore
     @Binding var selection: SidebarSelection
     @Binding var selectedTabIds: Set<UUID>
     @Binding var lastSidebarSelectionIndex: Int?
@@ -10359,12 +10359,12 @@ struct VerticalTabsSidebar: View {
     /// header's resolved cwd-based config (color/icon/context menu /
     /// newWorkspacePlacement) reads it through the body, so a state
     /// invalidation here forces SwiftUI to re-call
-    /// `mosaicConfigStore.resolveWorkspaceGroupConfig(forCwd:)`. The anchor
+    /// `cotermConfigStore.resolveWorkspaceGroupConfig(forCwd:)`. The anchor
     /// has no TabItemView, so no implicit per-row publisher subscription
     /// would otherwise fire on `cd` while it's not selected.
     @State private var anchorCwdRevision: Int = 0
-    @AppStorage(MosaicExtensionSidebarSelection.defaultsKey)
-    private var selectedExtensionSidebarProviderId = MosaicExtensionSidebarSelection.defaultProviderId
+    @AppStorage(CotermExtensionSidebarSelection.defaultsKey)
+    private var selectedExtensionSidebarProviderId = CotermExtensionSidebarSelection.defaultProviderId
     @LiveSetting(\.betaFeatures.extensions) private var extensionsExperimentalEnabled
     @LiveSetting(\.betaFeatures.customSidebars) private var customSidebarsExperimentalEnabled
     @LiveSetting(\.customSidebars.renderer) private var customSidebarRenderer
@@ -10384,18 +10384,18 @@ struct VerticalTabsSidebar: View {
     // reactive to the flag toggling.
     private var effectiveExtensionSidebarProviderId: String {
         let selected = selectedExtensionSidebarProviderId
-        if selected.hasPrefix(MosaicExtensionSidebarSelection.customSidebarProviderPrefix) {
+        if selected.hasPrefix(CotermExtensionSidebarSelection.customSidebarProviderPrefix) {
             // Touch the @LiveSetting so toggling the flag in Settings still
             // re-renders, but decide with the synchronous UserDefaults read:
             // on a sidebar remount @LiveSetting's initial value lags one tick,
             // which would otherwise flash the default sidebar for a frame
             // before swapping to the custom one.
             _ = customSidebarsExperimentalEnabled
-            return MosaicExtensionSidebarSelection.customSidebarsEnabled
+            return CotermExtensionSidebarSelection.customSidebarsEnabled
                 ? selected
-                : MosaicExtensionSidebarSelection.defaultProviderId
+                : CotermExtensionSidebarSelection.defaultProviderId
         }
-        return MosaicExtensionSidebarSelection.effectiveProviderId(
+        return CotermExtensionSidebarSelection.effectiveProviderId(
             selectedExtensionSidebarProviderId,
             extensionsEnabled: extensionsExperimentalEnabled
         )
@@ -10677,8 +10677,8 @@ struct VerticalTabsSidebar: View {
         // unknown id is a harmless no-op. The previous design gated this on a
         // per-row "laid-out row ids" PreferenceKey whose sidebar-wide reduce
         // fed `@State` writes from inside the layout/preference update cycle,
-        // the mosaic-owned edge in the sidebar layout livelock
-        // (https://github.com/emergent-inc/mosaic/issues/2586). No anchor means
+        // the coterm-owned edge in the sidebar layout livelock
+        // (https://github.com/emergent-inc/coterm/issues/2586). No anchor means
         // SwiftUI scrolls the minimum needed to reveal the row.
         let group = renderContext.workspaceById[selectedWorkspaceId]?.groupId
             .flatMap { renderContext.workspaceGroupById[$0] }
@@ -10813,7 +10813,7 @@ struct VerticalTabsSidebar: View {
         )
 
         ZStack(alignment: .bottomLeading) {
-            if MosaicExtensionSidebarSelection.resolvesToDefaultSidebar(effectiveProviderId: effectiveExtensionSidebarProviderId) {
+            if CotermExtensionSidebarSelection.resolvesToDefaultSidebar(effectiveProviderId: effectiveExtensionSidebarProviderId) {
                 workspaceScrollArea(renderContext: renderContext)
             } else {
                 extensionSidebarScrollArea(renderContext: renderContext)
@@ -10897,7 +10897,7 @@ struct VerticalTabsSidebar: View {
                 reason: "drag_state_change"
             )
 #if DEBUG
-            mosaicDebugLog("sidebar.dragState.sidebar tab=\(debugShortSidebarTabId(newDraggedTabId))")
+            cotermDebugLog("sidebar.dragState.sidebar tab=\(debugShortSidebarTabId(newDraggedTabId))")
 #endif
             if newDraggedTabId != nil {
                 pushSidebarClosedHandCursorIfNeeded()
@@ -10922,7 +10922,7 @@ struct VerticalTabsSidebar: View {
             guard dragState.draggedTabId != nil || dragState.dropIndicator != nil else { return }
             let reason = SidebarDragLifecycleNotification().reason(from: notification)
 #if DEBUG
-            mosaicDebugLog("sidebar.dragClear tab=\(debugShortSidebarTabId(dragState.draggedTabId)) reason=\(reason)")
+            cotermDebugLog("sidebar.dragClear tab=\(debugShortSidebarTabId(dragState.draggedTabId)) reason=\(reason)")
 #endif
             dragState.clearDrag()
         }
@@ -11022,7 +11022,7 @@ struct VerticalTabsSidebar: View {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .workspaceCurrentDirectoryDidChange)) { _ in
                     // Drive a revision counter that the group-header resolver
-                    // reads. Forces SwiftUI to re-invoke `mosaicConfigStore.resolveWorkspaceGroupConfig(forCwd:)`
+                    // reads. Forces SwiftUI to re-invoke `cotermConfigStore.resolveWorkspaceGroupConfig(forCwd:)`
                     // when the anchor's cwd changes while the anchor is not
                     // the selected workspace — otherwise group color/icon/menu
                     // and `+` placement reflect the previous cwd until some
@@ -11095,13 +11095,13 @@ struct VerticalTabsSidebar: View {
 
     @ViewBuilder
     private func extensionSidebarScrollAreaContent(renderContext: WorkspaceListRenderContext) -> some View {
-        if effectiveExtensionSidebarProviderId == MosaicExtensionSidebarSelection.hostedExtensionsProviderId {
-            MosaicInstalledExtensionSidebarHostView(
-                snapshotProvider: { mosaicSidebarSnapshotForCurrentTabs() },
+        if effectiveExtensionSidebarProviderId == CotermExtensionSidebarSelection.hostedExtensionsProviderId {
+            CotermInstalledExtensionSidebarHostView(
+                snapshotProvider: { cotermSidebarSnapshotForCurrentTabs() },
                 snapshotUpdateToken: extensionSidebarUpdateToken,
-                actionHandler: { handleMosaicSidebarExtensionAction($0) },
+                actionHandler: { handleCotermSidebarExtensionAction($0) },
                 onUseDefaultSidebar: {
-                    MosaicExtensionSidebarSelection.setProviderId(MosaicSidebarProviderDescriptor.defaultWorkspacesID)
+                    CotermExtensionSidebarSelection.setProviderId(CotermSidebarProviderDescriptor.defaultWorkspacesID)
                 }
             )
             .onReceive(extensionSidebarImmediateObservationPublisher) { _ in
@@ -11120,8 +11120,8 @@ struct VerticalTabsSidebar: View {
                     bottomHeight: sidebarBottomScrimHeight
                 )
             )
-        } else if effectiveExtensionSidebarProviderId.hasPrefix(MosaicExtensionSidebarSelection.customSidebarProviderPrefix),
-                  let customSidebarURL = MosaicExtensionSidebarSelection.customSidebarFileURL(forProviderId: effectiveExtensionSidebarProviderId) {
+        } else if effectiveExtensionSidebarProviderId.hasPrefix(CotermExtensionSidebarSelection.customSidebarProviderPrefix),
+                  let customSidebarURL = CotermExtensionSidebarSelection.customSidebarFileURL(forProviderId: effectiveExtensionSidebarProviderId) {
             // Periodic tick so the custom sidebar re-renders live (clock,
             // countdowns, and refreshed workspace/data context), mirroring the
             // default sidebar's TimelineView. No banned timers involved.
@@ -11138,7 +11138,7 @@ struct VerticalTabsSidebar: View {
                 CustomSidebarSurface(
                     fileURL: customSidebarURL,
                     dataContext: customSidebarDataContext(now: timeline.date),
-                    dispatch: makeMosaicSidebarActionDispatch(),
+                    dispatch: makeCotermSidebarActionDispatch(),
                     contentInsets: CustomSidebarContentInsets(
                         top: SidebarWorkspaceScrollInsets.workspaceList.top,
                         bottom: SidebarWorkspaceScrollInsets.workspaceList.bottom
@@ -11163,7 +11163,7 @@ struct VerticalTabsSidebar: View {
 
     private func extensionSidebarTimelineContent(
         renderContext: WorkspaceListRenderContext,
-        model: MosaicSidebarProviderRenderModel,
+        model: CotermSidebarProviderRenderModel,
         now: Date
     ) -> some View {
         GeometryReader { geometryProxy in
@@ -11296,29 +11296,29 @@ struct VerticalTabsSidebar: View {
     private func extensionSidebarRenderModel(
         renderContext: WorkspaceListRenderContext,
         now: Date
-    ) -> MosaicSidebarProviderRenderModel {
+    ) -> CotermSidebarProviderRenderModel {
         let _ = extensionSidebarUpdateToken
         let snapshot = extensionSidebarSnapshot(renderContext: renderContext)
         return extensionSidebarRenderModel(snapshot: snapshot, now: now)
     }
 
     private func extensionSidebarRenderModel(
-        snapshot: MosaicSidebarProviderSnapshot,
+        snapshot: CotermSidebarProviderSnapshot,
         now: Date
-    ) -> MosaicSidebarProviderRenderModel {
+    ) -> CotermSidebarProviderRenderModel {
         // Look up the provider directly by the effective id instead of round-
         // tripping through `descriptor(for:)`, which rebuilds the full
         // `descriptors` list (SettingCatalog + custom-sidebars directory scan)
         // on every TimelineView tick. See issue #5970.
         let providerId = effectiveExtensionSidebarProviderId
-        if let provider = MosaicExtensionSidebarSelection.provider(for: providerId) {
-            let context = MosaicSidebarProviderRenderContext(now: now)
-            if let contextualProvider = provider as? any MosaicContextualSidebarProvider {
+        if let provider = CotermExtensionSidebarSelection.provider(for: providerId) {
+            let context = CotermSidebarProviderRenderContext(now: now)
+            if let contextualProvider = provider as? any CotermContextualSidebarProvider {
                 return contextualProvider.render(snapshot: snapshot, context: context)
             }
             return provider.render(snapshot: snapshot)
         }
-        return MosaicSidebarProviderRenderModel(
+        return CotermSidebarProviderRenderModel(
             providerId: providerId,
             snapshotSequence: snapshot.sequence,
             sections: []
@@ -11327,22 +11327,22 @@ struct VerticalTabsSidebar: View {
 
     private func extensionSidebarSnapshot(
         renderContext: WorkspaceListRenderContext
-    ) -> MosaicSidebarProviderSnapshot {
+    ) -> CotermSidebarProviderSnapshot {
         extensionSidebarSnapshot(workspaces: renderContext.tabs)
     }
 
-    private func extensionSidebarSnapshotForCurrentTabs() -> MosaicSidebarProviderSnapshot {
+    private func extensionSidebarSnapshotForCurrentTabs() -> CotermSidebarProviderSnapshot {
         extensionSidebarSnapshot(workspaces: tabManager.tabs)
     }
 
-    private func mosaicSidebarSnapshotForCurrentTabs() -> MosaicSidebarSnapshot {
+    private func cotermSidebarSnapshotForCurrentTabs() -> CotermSidebarSnapshot {
         let snapshot = extensionSidebarSnapshotForCurrentTabs()
-        return MosaicSidebarSnapshot(
+        return CotermSidebarSnapshot(
             sequence: snapshot.sequence,
             windowID: snapshot.windowId,
             selectedWorkspaceID: snapshot.selectedWorkspaceId,
             workspaces: snapshot.workspaces.map { workspace in
-                MosaicSidebarWorkspace(
+                CotermSidebarWorkspace(
                     id: workspace.id,
                     title: workspace.title,
                     detail: workspace.customDescription,
@@ -11354,20 +11354,20 @@ struct VerticalTabsSidebar: View {
 	                    latestNotification: workspace.latestNotificationText,
 	                    listeningPorts: workspace.listeningPorts,
 	                    pullRequestURLs: workspace.pullRequestURLs,
-	                    surfaces: mosaicSidebarSurfaces(for: workspace)
+	                    surfaces: cotermSidebarSurfaces(for: workspace)
 	                )
 	            }
 	        )
 	    }
 
-    private func mosaicSidebarSurfaces(for workspace: MosaicSidebarProviderWorkspace) -> [MosaicSidebarSurface] {
+    private func cotermSidebarSurfaces(for workspace: CotermSidebarProviderWorkspace) -> [CotermSidebarSurface] {
         guard let liveWorkspace = tabManager.tabs.first(where: { $0.id == workspace.id }) else { return [] }
         return liveWorkspace.sidebarOrderedPanelIds().compactMap { panelId in
             guard let panel = liveWorkspace.panels[panelId] else { return nil }
-            return MosaicSidebarSurface(
+            return CotermSidebarSurface(
                 id: panelId,
                 title: liveWorkspace.panelTitle(panelId: panelId) ?? panel.displayTitle,
-                kind: mosaicSidebarSurfaceKind(for: panel.panelType),
+                kind: cotermSidebarSurfaceKind(for: panel.panelType),
                 isFocused: liveWorkspace.focusedPanelId == panelId,
                 isPinned: liveWorkspace.isPanelPinned(panelId),
                 unreadCount: liveWorkspace.manualUnreadPanelIds.contains(panelId) ? 1 : 0,
@@ -11375,7 +11375,7 @@ struct VerticalTabsSidebar: View {
             )
         }
     }
-    private func mosaicSidebarSurfaceKind(for panelType: PanelType) -> MosaicSidebarSurfaceKind {
+    private func cotermSidebarSurfaceKind(for panelType: PanelType) -> CotermSidebarSurfaceKind {
         switch panelType {
         case .terminal:
             return .terminal
@@ -11398,9 +11398,9 @@ struct VerticalTabsSidebar: View {
         }
     }
 
-    private func handleMosaicSidebarExtensionAction(
-        _ action: MosaicSidebarAction
-    ) -> MosaicSidebarActionResult {
+    private func handleCotermSidebarExtensionAction(
+        _ action: CotermSidebarAction
+    ) -> CotermSidebarActionResult {
         switch action {
         case .createWorkspace(let title, let workingDirectory, let select):
             let workspace = tabManager.addWorkspace(
@@ -11409,11 +11409,11 @@ struct VerticalTabsSidebar: View {
                 inheritWorkingDirectory: workingDirectory == nil,
                 select: select
             )
-            return MosaicSidebarActionResult(accepted: true, message: workspace.id.uuidString)
+            return CotermSidebarActionResult(accepted: true, message: workspace.id.uuidString)
 
         case .selectWorkspace(let workspaceId):
             guard let workspace = tabManager.tabs.first(where: { $0.id == workspaceId }) else {
-                return MosaicSidebarActionResult(
+                return CotermSidebarActionResult(
                     accepted: false,
                     message: String(localized: "sidebar.extensions.action.workspaceNotFound", defaultValue: "Workspace not found")
                 )
@@ -11423,7 +11423,7 @@ struct VerticalTabsSidebar: View {
 
         case .closeWorkspace(let workspaceId):
             guard tabManager.closeWorkspaceWithConfirmation(tabId: workspaceId) else {
-                return MosaicSidebarActionResult(
+                return CotermSidebarActionResult(
                     accepted: false,
                     message: String(localized: "sidebar.extensions.action.closeRejected", defaultValue: "Workspace could not be closed")
                 )
@@ -11449,16 +11449,16 @@ struct VerticalTabsSidebar: View {
             if panel == nil, workspace.isRemoteTmuxMirror {
                 // Routed to the remote as a tmux `new-window`; the tab arrives
                 // asynchronously via the mirror, so this is success, not failure.
-                return MosaicSidebarActionResult(
+                return CotermSidebarActionResult(
                     accepted: true,
                     message: String(localized: "sidebar.extensions.action.remoteTmuxWindowRequested", defaultValue: "Remote tmux window requested")
                 )
             }
-            return panel.map { MosaicSidebarActionResult(accepted: true, message: $0.id.uuidString) }
+            return panel.map { CotermSidebarActionResult(accepted: true, message: $0.id.uuidString) }
                 ?? .rejected(String(localized: "sidebar.extensions.action.surfaceCreateRejected", defaultValue: "Surface could not be created"))
 
         case .createBrowserSurface(let workspaceId, let urlString):
-            let validatedURL = mosaicSidebarExtensionOptionalHTTPURL(from: urlString)
+            let validatedURL = cotermSidebarExtensionOptionalHTTPURL(from: urlString)
             guard validatedURL.accepted else {
                 return .rejected(String(localized: "sidebar.extensions.action.urlRejected", defaultValue: "URL could not be opened"))
             }
@@ -11469,7 +11469,7 @@ struct VerticalTabsSidebar: View {
                 tabManager.selectWorkspace(workspace)
             }
             let panelId = tabManager.createBrowserSplit(direction: .right, url: validatedURL.url)
-            return panelId.map { MosaicSidebarActionResult(accepted: true, message: $0.uuidString) }
+            return panelId.map { CotermSidebarActionResult(accepted: true, message: $0.uuidString) }
                 ?? .rejected(String(localized: "sidebar.extensions.action.surfaceCreateRejected", defaultValue: "Surface could not be created"))
 
         case .selectSurface(let workspaceId, let surfaceId):
@@ -11504,10 +11504,10 @@ struct VerticalTabsSidebar: View {
                   let panelId = tabManager.createSplit(tabId: workspaceId, surfaceId: surfaceId, direction: splitDirection) else {
                 return .rejected(String(localized: "sidebar.extensions.action.surfaceCreateRejected", defaultValue: "Surface could not be created"))
             }
-            return MosaicSidebarActionResult(accepted: true, message: panelId.uuidString)
+            return CotermSidebarActionResult(accepted: true, message: panelId.uuidString)
 
         case .splitBrowser(let workspaceId, let surfaceId, let direction, let urlString):
-            let validatedURL = mosaicSidebarExtensionOptionalHTTPURL(from: urlString)
+            let validatedURL = cotermSidebarExtensionOptionalHTTPURL(from: urlString)
             guard validatedURL.accepted else {
                 return .rejected(String(localized: "sidebar.extensions.action.urlRejected", defaultValue: "URL could not be opened"))
             }
@@ -11519,7 +11519,7 @@ struct VerticalTabsSidebar: View {
             tabManager.selectWorkspace(tab)
             tab.focusPanel(surfaceId)
             let panelId = tabManager.createBrowserSplit(direction: splitDirection, url: validatedURL.url)
-            return panelId.map { MosaicSidebarActionResult(accepted: true, message: $0.uuidString) }
+            return panelId.map { CotermSidebarActionResult(accepted: true, message: $0.uuidString) }
                 ?? .rejected(String(localized: "sidebar.extensions.action.surfaceCreateRejected", defaultValue: "Surface could not be created"))
 
         case .toggleSurfaceZoom(let workspaceId, let surfaceId):
@@ -11529,9 +11529,9 @@ struct VerticalTabsSidebar: View {
             return .accepted
 
         case .openURL(let urlString):
-            guard let url = mosaicSidebarExtensionRequiredHTTPURL(from: urlString),
+            guard let url = cotermSidebarExtensionRequiredHTTPURL(from: urlString),
                   NSWorkspace.shared.open(url) else {
-                return MosaicSidebarActionResult(
+                return CotermSidebarActionResult(
                     accepted: false,
                     message: String(localized: "sidebar.extensions.action.urlRejected", defaultValue: "URL could not be opened")
                 )
@@ -11540,17 +11540,17 @@ struct VerticalTabsSidebar: View {
         }
     }
 
-    private func mosaicSidebarExtensionOptionalHTTPURL(from urlString: String?) -> (url: URL?, accepted: Bool) {
+    private func cotermSidebarExtensionOptionalHTTPURL(from urlString: String?) -> (url: URL?, accepted: Bool) {
         guard let urlString, !urlString.isEmpty else {
             return (nil, true)
         }
-        guard let url = mosaicSidebarExtensionRequiredHTTPURL(from: urlString) else {
+        guard let url = cotermSidebarExtensionRequiredHTTPURL(from: urlString) else {
             return (nil, false)
         }
         return (url, true)
     }
 
-    private func mosaicSidebarExtensionRequiredHTTPURL(from urlString: String) -> URL? {
+    private func cotermSidebarExtensionRequiredHTTPURL(from urlString: String) -> URL? {
         guard let url = URL(string: urlString),
               let scheme = url.scheme?.lowercased(),
               scheme == "http" || scheme == "https",
@@ -11561,7 +11561,7 @@ struct VerticalTabsSidebar: View {
         return url
     }
 
-    private func splitDirection(from direction: MosaicSidebarSplitDirection) -> SplitDirection? {
+    private func splitDirection(from direction: CotermSidebarSplitDirection) -> SplitDirection? {
         switch direction {
         case .left:
             return .left
@@ -11574,18 +11574,18 @@ struct VerticalTabsSidebar: View {
         }
     }
 
-    private func extensionSidebarSnapshot(workspaces: [Workspace]) -> MosaicSidebarProviderSnapshot {
-        MosaicSidebarProviderSnapshot(
-            sequence: UInt64(max(0, MosaicEventBus.shared.latestSequence)),
+    private func extensionSidebarSnapshot(workspaces: [Workspace]) -> CotermSidebarProviderSnapshot {
+        CotermSidebarProviderSnapshot(
+            sequence: UInt64(max(0, CotermEventBus.shared.latestSequence)),
             selectedWorkspaceId: tabManager.selectedTabId,
             workspaces: workspaces.map(extensionWorkspaceSnapshot(for:)),
             windowId: windowId
         )
     }
 
-    private func extensionWorkspaceSnapshot(for workspace: Workspace) -> MosaicSidebarProviderWorkspace {
+    private func extensionWorkspaceSnapshot(for workspace: Workspace) -> CotermSidebarProviderWorkspace {
         let rootPath = extensionSidebarRootPath(for: workspace)
-        return MosaicSidebarProviderWorkspace(
+        return CotermSidebarProviderWorkspace(
             id: workspace.id,
             title: workspace.title,
             customDescription: workspace.customDescription,
@@ -11603,7 +11603,7 @@ struct VerticalTabsSidebar: View {
             pullRequestURLs: workspace.sidebarPullRequestsInDisplayOrder().map { $0.url.absoluteString },
             panelDirectories: workspace.sidebarDirectoriesInDisplayOrder(),
             gitBranches: workspace.sidebarGitBranchesInDisplayOrder().map {
-                MosaicSidebarProviderGitBranch(branch: $0.branch, isDirty: $0.isDirty)
+                CotermSidebarProviderGitBranch(branch: $0.branch, isDirty: $0.isDirty)
             }
         )
     }
@@ -11613,7 +11613,7 @@ struct VerticalTabsSidebar: View {
     }
 
     private func extensionBrowserStackSidebar(
-        model: MosaicSidebarProviderRenderModel,
+        model: CotermSidebarProviderRenderModel,
         now: Date
     ) -> some View {
         let rows = model.sections.flatMap(\.rows)
@@ -11668,10 +11668,10 @@ struct VerticalTabsSidebar: View {
 
             TrackedButton("contentview_button_11429", action: onNewTab) {
                 HStack(spacing: 9) {
-                    MosaicSystemSymbolImage(magnified: "plus", pointSize: 15, weight: .regular)
+                    CotermSystemSymbolImage(magnified: "plus", pointSize: 15, weight: .regular)
                         .frame(width: 22, height: 22)
                     Text(String(localized: "sidebar.browserStack.newTab", defaultValue: "New Tab"))
-                        .mosaicFont(size: 13, weight: .regular)
+                        .cotermFont(size: 13, weight: .regular)
                     Spacer(minLength: 0)
                 }
                 .foregroundColor(.secondary)
@@ -11698,19 +11698,19 @@ struct VerticalTabsSidebar: View {
     }
 
     private func extensionBrowserStackGroup(
-        section: MosaicSidebarProviderSection,
+        section: CotermSidebarProviderSection,
         now: Date,
         dropRows: [ExtensionSidebarBrowserStackDropRow]
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                MosaicSystemSymbolImage(magnified: "folder.fill", pointSize: 14, weight: .regular)
+                CotermSystemSymbolImage(magnified: "folder.fill", pointSize: 14, weight: .regular)
                     .foregroundColor(.secondary)
                 Text(extensionSidebarTreeSectionTitle(section.treeSection))
-                    .mosaicFont(size: 13, weight: .medium)
+                    .cotermFont(size: 13, weight: .medium)
                     .foregroundColor(.primary.opacity(0.86))
                     .lineLimit(1)
-                MosaicSystemSymbolImage(magnified: "chevron.down", pointSize: 11, weight: .medium)
+                CotermSystemSymbolImage(magnified: "chevron.down", pointSize: 11, weight: .medium)
                     .foregroundColor(.secondary)
                 Spacer(minLength: 0)
             }
@@ -11743,7 +11743,7 @@ struct VerticalTabsSidebar: View {
     }
 
     private func extensionBrowserStackTile(
-        row: MosaicSidebarProviderRow,
+        row: CotermSidebarProviderRow,
         isSelected: Bool,
         dropRows: [ExtensionSidebarBrowserStackDropRow]
     ) -> some View {
@@ -11774,7 +11774,7 @@ struct VerticalTabsSidebar: View {
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
         .safeHelp(row.title)
-        .mosaicCursorOnHover(.openHand)
+        .cotermCursorOnHover(.openHand)
         .opacity(dragState.draggedTabId == row.workspaceId ? 0.55 : 1)
         .onDrag {
             dragState.beginDragging(tabId: row.workspaceId)
@@ -11814,7 +11814,7 @@ struct VerticalTabsSidebar: View {
     }
 
     private func extensionBrowserStackRow(
-        row: MosaicSidebarProviderRow,
+        row: CotermSidebarProviderRow,
         now: Date,
         compact: Bool = false,
         isSelected: Bool,
@@ -11828,14 +11828,14 @@ struct VerticalTabsSidebar: View {
             HStack(spacing: 9) {
                 extensionBrowserStackIcon(row.leadingIcon, size: compact ? 22 : 24)
                 Text(row.title)
-                    .mosaicFont(size: compact ? 12.5 : 13, weight: .medium)
+                    .cotermFont(size: compact ? 12.5 : 13, weight: .medium)
                     .foregroundColor(isSelected ? .primary : .primary.opacity(0.82))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: 0)
                 if let trailing = extensionSidebarRenderedText(row.trailingText, now: now) {
                     Text(trailing)
-                        .mosaicFont(size: 11, weight: .regular)
+                        .cotermFont(size: 11, weight: .regular)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
@@ -11853,7 +11853,7 @@ struct VerticalTabsSidebar: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .mosaicCursorOnHover(.openHand)
+        .cotermCursorOnHover(.openHand)
         .opacity(dragState.draggedTabId == row.workspaceId ? 0.55 : 1)
         .onDrag {
             dragState.beginDragging(tabId: row.workspaceId)
@@ -11894,19 +11894,19 @@ struct VerticalTabsSidebar: View {
 
     @ViewBuilder
     private func extensionBrowserStackDropIndicator(
-        row: MosaicSidebarProviderRow,
+        row: CotermSidebarProviderRow,
         edge: SidebarDropEdge
     ) -> some View {
         if dragState.dropIndicator == SidebarDropIndicator(tabId: row.workspaceId, edge: edge) {
             Rectangle()
-                .fill(mosaicAccentColor())
+                .fill(cotermAccentColor())
                 .frame(height: 2)
                 .padding(.horizontal, 8)
         }
     }
 
     @ViewBuilder
-    private func extensionBrowserStackReorderMenu(row: MosaicSidebarProviderRow) -> some View {
+    private func extensionBrowserStackReorderMenu(row: CotermSidebarProviderRow) -> some View {
         TrackedButton("contentview_button_11670", String(localized: "contextMenu.moveUp", defaultValue: "Move Up")) {
             moveExtensionBrowserStackWorkspace(row.workspaceId, by: -1)
         }
@@ -11937,9 +11937,9 @@ struct VerticalTabsSidebar: View {
         }
     }
 
-    private func handleExtensionSidebarMutation(_ mutation: MosaicSidebarProviderMutation) -> Bool {
-        let descriptor = MosaicExtensionSidebarSelection.descriptor(for: effectiveExtensionSidebarProviderId)
-        guard let provider = MosaicExtensionSidebarSelection.provider(for: descriptor.id) as? any MosaicMutableSidebarProvider else {
+    private func handleExtensionSidebarMutation(_ mutation: CotermSidebarProviderMutation) -> Bool {
+        let descriptor = CotermExtensionSidebarSelection.descriptor(for: effectiveExtensionSidebarProviderId)
+        guard let provider = CotermExtensionSidebarSelection.provider(for: descriptor.id) as? any CotermMutableSidebarProvider else {
             return false
         }
         do {
@@ -11950,14 +11950,14 @@ struct VerticalTabsSidebar: View {
             return result.ok
         } catch {
 #if DEBUG
-            mosaicDebugLog("extension.sidebar.mutation.failed provider=\(descriptor.id) error=\(error.localizedDescription)")
+            cotermDebugLog("extension.sidebar.mutation.failed provider=\(descriptor.id) error=\(error.localizedDescription)")
 #endif
             return false
         }
     }
 
     private func extensionBrowserStackDropRows(
-        for model: MosaicSidebarProviderRenderModel
+        for model: CotermSidebarProviderRenderModel
     ) -> [ExtensionSidebarBrowserStackDropRow] {
         model.sections.flatMap { section in
             section.rows.map { row in
@@ -11973,7 +11973,7 @@ struct VerticalTabsSidebar: View {
         workspaceId: UUID,
         insertionPosition: Int,
         orderedRows: [ExtensionSidebarBrowserStackDropRow]
-    ) -> MosaicSidebarProviderWorkspaceMove? {
+    ) -> CotermSidebarProviderWorkspaceMove? {
         ExtensionSidebarBrowserStackDropPlanner(orderedRows: orderedRows).move(
             draggedWorkspaceId: workspaceId,
             insertionPosition: insertionPosition
@@ -11981,9 +11981,9 @@ struct VerticalTabsSidebar: View {
     }
 
     private func extensionSidebarWorkspaceSnapshotsById(
-        for rows: [MosaicSidebarProviderRow]
-    ) -> [UUID: MosaicSidebarProviderWorkspace] {
-        var snapshotsById: [UUID: MosaicSidebarProviderWorkspace] = [:]
+        for rows: [CotermSidebarProviderRow]
+    ) -> [UUID: CotermSidebarProviderWorkspace] {
+        var snapshotsById: [UUID: CotermSidebarProviderWorkspace] = [:]
         for row in rows where snapshotsById[row.workspaceId] == nil {
             snapshotsById[row.workspaceId] = extensionWorkspaceSnapshot(for: row.workspaceId)
         }
@@ -11991,7 +11991,7 @@ struct VerticalTabsSidebar: View {
     }
 
     private func extensionBrowserStackIcon(
-        _ icon: MosaicSidebarProviderIcon?,
+        _ icon: CotermSidebarProviderIcon?,
         size: CGFloat
     ) -> some View {
         let shape = icon?.shape ?? .circle
@@ -12004,26 +12004,26 @@ struct VerticalTabsSidebar: View {
                 RoundedRectangle(cornerRadius: size * 0.24, style: .continuous).fill(background)
             }
             if let systemImageName = icon?.systemImageName {
-                MosaicSystemSymbolImage(magnified: systemImageName, pointSize: size * 0.58, weight: .semibold)
+                CotermSystemSymbolImage(magnified: systemImageName, pointSize: size * 0.58, weight: .semibold)
                     .foregroundColor(foreground)
             } else {
                 Text(icon?.text ?? ".")
-                    .mosaicFont(size: size * 0.58, weight: .bold)
+                    .cotermFont(size: size * 0.58, weight: .bold)
                     .foregroundColor(foreground)
             }
         }
         .frame(width: size, height: size)
     }
 
-    private func extensionSidebarRenderedText(_ text: MosaicSidebarProviderText?, now: Date) -> String? {
+    private func extensionSidebarRenderedText(_ text: CotermSidebarProviderText?, now: Date) -> String? {
         guard let text else { return nil }
         switch text {
         case .plain(let value):
             return value
         case .localized(let localized):
-            return MosaicExtensionSidebarSelection.localizedText(localized)
+            return CotermExtensionSidebarSelection.localizedText(localized)
         case .relativeDate(let date, _):
-            return MosaicExtensionRelativeTimeFormatter.string(from: date, to: now)
+            return CotermExtensionRelativeTimeFormatter.string(from: date, to: now)
         }
     }
 
@@ -12042,7 +12042,7 @@ struct VerticalTabsSidebar: View {
 
     @ViewBuilder
     private func extensionSidebarSection(
-        _ section: MosaicSidebarProviderSection,
+        _ section: CotermSidebarProviderSection,
         providerId: String,
         now: Date
     ) -> some View {
@@ -12062,14 +12062,14 @@ struct VerticalTabsSidebar: View {
                         }
                     }
                 }) {
-                    MosaicSystemSymbolImage(magnified: isCollapsed ? "folder" : "folder.fill", pointSize: 13, weight: .regular)
+                    CotermSystemSymbolImage(magnified: isCollapsed ? "folder" : "folder.fill", pointSize: 13, weight: .regular)
                         .offset(y: -0.5)
                 }
                 .buttonStyle(.plain)
                 .safeHelp(String(localized: "sidebar.extension.toggleSection", defaultValue: "Toggle section"))
 
                 Text(extensionSidebarTreeSectionTitle(section.treeSection))
-                    .mosaicFont(size: 12, weight: .regular)
+                    .cotermFont(size: 12, weight: .regular)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -12083,7 +12083,7 @@ struct VerticalTabsSidebar: View {
                     TrackedButton("contentview_button_11843", action: {
                         createExtensionWorktreeWorkspace(for: section.treeSection)
                     }) {
-                        MosaicSystemSymbolImage(magnified: worktreeButtonSymbol, pointSize: 11, weight: .regular)
+                        CotermSystemSymbolImage(magnified: worktreeButtonSymbol, pointSize: 11, weight: .regular)
                             .frame(width: 18, height: 18)
                     }
                     .buttonStyle(.plain)
@@ -12099,14 +12099,14 @@ struct VerticalTabsSidebar: View {
             if !isCollapsed {
                 VStack(alignment: .leading, spacing: 1) {
                     ForEach(section.rows) { row in
-                        MosaicExtensionSidebarWorkspaceRowView(
+                        CotermExtensionSidebarWorkspaceRowView(
                             row: row,
                             workspace: workspaceSnapshotsById[row.workspaceId],
                             providerId: providerId,
                             relativeNow: now,
                             isSelected: row.workspaceId == selectedWorkspaceId,
                             onSelect: selectExtensionSidebarWorkspace,
-                            onOpenWindow: MosaicExtensionSidebarInspectorWindowController.show
+                            onOpenWindow: CotermExtensionSidebarInspectorWindowController.show
                         )
                         .id(row.id)
                         .accessibilityIdentifier("extensionSidebar.workspace.\(row.workspaceId.uuidString)")
@@ -12119,13 +12119,13 @@ struct VerticalTabsSidebar: View {
         }
     }
 
-    private func extensionWorkspaceSnapshot(for workspaceId: UUID) -> MosaicSidebarProviderWorkspace? {
+    private func extensionWorkspaceSnapshot(for workspaceId: UUID) -> CotermSidebarProviderWorkspace? {
         tabManager.tabs.first { $0.id == workspaceId }.map(extensionWorkspaceSnapshot(for:))
     }
 
-    private func extensionSidebarTreeSectionTitle(_ section: MosaicSidebarProviderTreeSection) -> String {
+    private func extensionSidebarTreeSectionTitle(_ section: CotermSidebarProviderTreeSection) -> String {
         if let titleText = section.titleText {
-            return MosaicExtensionSidebarSelection.localizedText(titleText)
+            return CotermExtensionSidebarSelection.localizedText(titleText)
         }
         return section.title
     }
@@ -12138,7 +12138,7 @@ struct VerticalTabsSidebar: View {
         tabManager.selectWorkspace(workspace)
     }
 
-    private func createExtensionWorktreeWorkspace(for section: MosaicSidebarProviderTreeSection) {
+    private func createExtensionWorktreeWorkspace(for section: CotermSidebarProviderTreeSection) {
         guard let projectRootPath = section.projectRootPath,
               !extensionSidebarWorktreeCreationInFlightSectionIds.contains(section.id) else {
             return
@@ -12147,7 +12147,7 @@ struct VerticalTabsSidebar: View {
         extensionSidebarWorktreeCreationInFlightSectionIds.insert(section.id)
         Task {
             do {
-                let result = try await MosaicExtensionWorktreePrototype.createWorktree(projectRootPath: projectRootPath)
+                let result = try await CotermExtensionWorktreePrototype.createWorktree(projectRootPath: projectRootPath)
                 let spawnArgs = result.workspaceSpawnArgs()
                 tabManager.addWorkspace(
                     title: spawnArgs.title,
@@ -12161,7 +12161,7 @@ struct VerticalTabsSidebar: View {
             } catch {
                 NSSound.beep()
 #if DEBUG
-                mosaicDebugLog("extensionSidebar.worktree.failed project=\(projectRootPath) error=\(error.localizedDescription)")
+                cotermDebugLog("extensionSidebar.worktree.failed project=\(projectRootPath) error=\(error.localizedDescription)")
 #endif
             }
             extensionSidebarWorktreeCreationInFlightSectionIds.remove(section.id)
@@ -12189,7 +12189,7 @@ struct VerticalTabsSidebar: View {
             .overlay(alignment: .bottom) {
                 if emptyAreaTopDropIndicatorVisible() {
                     Rectangle()
-                        .fill(mosaicAccentColor())
+                        .fill(cotermAccentColor())
                         .frame(height: 2)
                         .padding(.horizontal, 8)
                         .offset(y: tabRowSpacing / 2)
@@ -12251,12 +12251,12 @@ struct VerticalTabsSidebar: View {
         // LazyVStack is safe here because `dragState` is @Observable:
         // drag mutations at 60fps invalidate only the rows/overlays that
         // read them, never this sidebar body. See SidebarDragState and
-        // https://github.com/emergent-inc/mosaic/issues/2586.
+        // https://github.com/emergent-inc/coterm/issues/2586.
         LazyVStack(spacing: tabRowSpacing) {
             Text(String(localized: "sidebar.sessions.section", defaultValue: "Sessions"))
                 .font(.system(size: 11, weight: .regular, design: .default))
                 .tracking(0.3)
-                .foregroundColor(MosaicSidebarStyle.sectionText)
+                .foregroundColor(CotermSidebarStyle.sectionText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.top, 18)
@@ -12720,7 +12720,7 @@ struct VerticalTabsSidebar: View {
         )
         let onDragStart: () -> NSItemProvider = { [tabId = tab.id] in
             #if DEBUG
-            mosaicDebugLog("sidebar.onDrag tab=\(tabId.uuidString.prefix(5))")
+            cotermDebugLog("sidebar.onDrag tab=\(tabId.uuidString.prefix(5))")
             #endif
             dragState.beginDragging(tabId: tabId)
             return SidebarTabDragPayload.provider(for: tabId)
@@ -12790,7 +12790,7 @@ struct VerticalTabsSidebar: View {
 
         row
             .sidebarWorkspaceFrameAnchor(id: tab.id, isEnabled: shouldCollectWorkspaceDropTargets)
-            .mosaicCursorOnHover(.openHand, enabled: !isBeingDragged)
+            .cotermCursorOnHover(.openHand, enabled: !isBeingDragged)
             .padding(.leading, tab.groupId != nil ? SidebarWorkspaceGroupingMetrics.memberIndent : 0)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
@@ -12917,7 +12917,7 @@ private final class SidebarDragFailsafeMonitor: ObservableObject {
     private func requestClearSoon(reason: String) {
         guard pendingClearTimer == nil else { return }
 #if DEBUG
-        mosaicDebugLog("sidebar.dragFailsafe.schedule reason=\(reason)")
+        cotermDebugLog("sidebar.dragFailsafe.schedule reason=\(reason)")
 #endif
         let timer = DispatchSource.makeTimerSource(queue: .main)
         pendingClearGeneration &+= 1
@@ -12927,7 +12927,7 @@ private final class SidebarDragFailsafeMonitor: ObservableObject {
             Task { @MainActor [weak self] in
                 guard let self, self.pendingClearGeneration == generation else { return }
 #if DEBUG
-                mosaicDebugLog("sidebar.dragFailsafe.fire reason=\(reason)")
+                cotermDebugLog("sidebar.dragFailsafe.fire reason=\(reason)")
 #endif
                 self.pendingClearTimer = nil
                 self.onRequestClear?(reason)
@@ -12975,7 +12975,7 @@ private struct SidebarExternalDropDelegate: DropDelegate {
             hasSidebarDragPayload: hasSidebarPayload
         )
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "sidebar.dropOutside.validate tab=\(debugShortSidebarTabId(draggedTabId)) " +
             "hasType=\(hasSidebarPayload) allowed=\(shouldReset)"
         )
@@ -12985,20 +12985,20 @@ private struct SidebarExternalDropDelegate: DropDelegate {
 
     func dropEntered(info: DropInfo) {
 #if DEBUG
-        mosaicDebugLog("sidebar.dropOutside.entered tab=\(debugShortSidebarTabId(draggedTabId))")
+        cotermDebugLog("sidebar.dropOutside.entered tab=\(debugShortSidebarTabId(draggedTabId))")
 #endif
     }
 
     func dropExited(info: DropInfo) {
 #if DEBUG
-        mosaicDebugLog("sidebar.dropOutside.exited tab=\(debugShortSidebarTabId(draggedTabId))")
+        cotermDebugLog("sidebar.dropOutside.exited tab=\(debugShortSidebarTabId(draggedTabId))")
 #endif
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
         guard validateDrop(info: info) else { return nil }
 #if DEBUG
-        mosaicDebugLog("sidebar.dropOutside.updated tab=\(debugShortSidebarTabId(draggedTabId)) op=move")
+        cotermDebugLog("sidebar.dropOutside.updated tab=\(debugShortSidebarTabId(draggedTabId)) op=move")
 #endif
         // Explicit move proposal avoids AppKit showing a copy (+) cursor.
         return DropProposal(operation: .move)
@@ -13007,7 +13007,7 @@ private struct SidebarExternalDropDelegate: DropDelegate {
     func performDrop(info: DropInfo) -> Bool {
         guard validateDrop(info: info) else { return false }
 #if DEBUG
-        mosaicDebugLog("sidebar.dropOutside.perform tab=\(debugShortSidebarTabId(draggedTabId))")
+        cotermDebugLog("sidebar.dropOutside.perform tab=\(debugShortSidebarTabId(draggedTabId))")
 #endif
         SidebarDragLifecycleNotification().postClearRequest(reason: "outside_sidebar_drop")
         return true
@@ -13060,7 +13060,7 @@ private struct SidebarFooterButtons: View {
                         title: String(localized: "sidebar.extensions.browser.title", defaultValue: "Sidebar Extensions")
                     )
                 }) {
-                    MosaicSystemSymbolImage(magnified: "puzzlepiece.extension", pointSize: 12, weight: .medium)
+                    CotermSystemSymbolImage(magnified: "puzzlepiece.extension", pointSize: 12, weight: .medium)
                         .foregroundStyle(Color(nsColor: .secondaryLabelColor))
                         .frame(width: 22, height: 22, alignment: .center)
                 }
@@ -13072,7 +13072,7 @@ private struct SidebarFooterButtons: View {
                 .background(TitlebarControlAnchorView { extensionBrowserAnchorView = $0 })
             }
             if let updateActionsHost = AppDelegate.shared {
-                UpdatePill(model: updateViewModel, accent: mosaicAccentColor(), actions: updateActionsHost)
+                UpdatePill(model: updateViewModel, accent: cotermAccentColor(), actions: updateActionsHost)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -13085,7 +13085,7 @@ private struct SidebarAccountButton: View {
     private let buttonSize: CGFloat = 22
     private let iconSize: CGFloat = 12
 
-    private var currentUser: MosaicAuthUser? {
+    private var currentUser: CotermAuthUser? {
         coordinator?.currentUser
     }
 
@@ -13159,7 +13159,7 @@ private struct SidebarAccountButton: View {
         .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(helpText)
         .accessibilityIdentifier("SidebarAccountButton")
-        .mosaicCursorOnHover(.pointingHand)
+        .cotermCursorOnHover(.pointingHand)
     }
 
     @ViewBuilder
@@ -13185,13 +13185,13 @@ private struct SidebarAccountButton: View {
     }
 
     private var fallbackIcon: some View {
-        MosaicSystemSymbolImage(systemName: symbolName, pointSize: iconSize, weight: .medium)
+        CotermSystemSymbolImage(systemName: symbolName, pointSize: iconSize, weight: .medium)
             .foregroundStyle(iconColor)
             .frame(width: buttonSize, height: buttonSize, alignment: .center)
     }
 
     private var iconColor: Color {
-        isSignedIn ? mosaicAccentColor() : Color(nsColor: .secondaryLabelColor)
+        isSignedIn ? cotermAccentColor() : Color(nsColor: .secondaryLabelColor)
     }
 
     private func openAccountSettings() {
@@ -13217,7 +13217,7 @@ private struct SidebarTutorialVideoButton: View {
                 TutorialVideoPresentationCenter.shared.requestPresentation(in: NSApp.keyWindow ?? NSApp.mainWindow)
             }
         }) {
-            MosaicSystemSymbolImage(systemName: "questionmark.circle", pointSize: iconSize, weight: .medium)
+            CotermSystemSymbolImage(systemName: "questionmark.circle", pointSize: iconSize, weight: .medium)
                 .foregroundStyle(Color(nsColor: .secondaryLabelColor))
                 .frame(width: buttonSize, height: buttonSize, alignment: .center)
         }
@@ -13226,7 +13226,7 @@ private struct SidebarTutorialVideoButton: View {
         .safeHelp(title)
         .accessibilityLabel(title)
         .accessibilityIdentifier("SidebarTutorialVideoButton")
-        .mosaicCursorOnHover(.pointingHand)
+        .cotermCursorOnHover(.pointingHand)
     }
 }
 
@@ -13241,7 +13241,7 @@ private enum SidebarHelpMenuAction {
 }
 
 private struct SidebarHelpMenuButton: View {
-    private let twitterURL = URL(string: "https://x.com/mosaic_ide")
+    private let twitterURL = URL(string: "https://x.com/coterm_ide")
     private let discordURL = URL(string: "https://discord.gg/zmWHDeZffZ")
     private let helpTitle = String(localized: "sidebar.help.button", defaultValue: "Help")
     private let buttonSize: CGFloat = 22
@@ -13261,7 +13261,7 @@ private struct SidebarHelpMenuButton: View {
         TrackedButton("contentview_button_12962", action: {
             isPopoverPresented.toggle()
         }) {
-            MosaicSystemSymbolImage(systemName: "questionmark.circle", pointSize: iconSize, weight: .medium)
+            CotermSystemSymbolImage(systemName: "questionmark.circle", pointSize: iconSize, weight: .medium)
                 .foregroundStyle(Color(nsColor: .secondaryLabelColor))
                 .frame(width: buttonSize, height: buttonSize, alignment: .center)
         }
@@ -13283,7 +13283,7 @@ private struct SidebarHelpMenuButton: View {
     private var helpPopover: some View {
         VStack(alignment: .leading, spacing: 2) {
             helpOptionButton(
-                title: String(localized: "sidebar.help.welcome", defaultValue: "Welcome to mosaic!"),
+                title: String(localized: "sidebar.help.welcome", defaultValue: "Welcome to coterm!"),
                 action: .welcome,
                 accessibilityIdentifier: "SidebarHelpMenuOptionWelcome",
                 isExternalLink: false
@@ -13349,7 +13349,7 @@ private struct SidebarHelpMenuButton: View {
         }) {
             HStack(spacing: 8) {
                 Text(title)
-                    .mosaicFont(size: 12)
+                    .cotermFont(size: 12)
                 Spacer(minLength: 0)
                 if let shortcutHint {
                     helpOptionShortcutHint(text: shortcutHint)
@@ -13373,13 +13373,13 @@ private struct SidebarHelpMenuButton: View {
         Text(text)
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)
-            .mosaicFont(size: 10, weight: .regular, design: .rounded)
+            .cotermFont(size: 10, weight: .regular, design: .rounded)
             .monospacedDigit()
             .foregroundStyle(Color(nsColor: .secondaryLabelColor))
     }
 
     private func helpOptionTrailingIcon(systemName: String, size: CGFloat = 13) -> some View {
-        MosaicSystemSymbolImage(systemName: systemName, pointSize: size)
+        CotermSystemSymbolImage(systemName: systemName, pointSize: size)
             .foregroundStyle(Color(nsColor: .secondaryLabelColor))
     }
 
@@ -13491,7 +13491,7 @@ private struct SidebarEmptyArea: View {
             .overlay(alignment: .top) {
                 if topDropIndicatorVisible {
                     Rectangle()
-                        .fill(mosaicAccentColor())
+                        .fill(cotermAccentColor())
                         .frame(height: 2)
                         .padding(.horizontal, 8)
                         .offset(y: -(rowSpacing / 2))
@@ -13577,7 +13577,7 @@ private struct ExtensionSidebarBrowserStackEmptyArea: View {
     @Binding var draggedTabId: UUID?
     @Binding var dropIndicator: SidebarDropIndicator?
     let onNewTab: () -> Void
-    let onMove: (MosaicSidebarProviderWorkspaceMove) -> Bool
+    let onMove: (CotermSidebarProviderWorkspaceMove) -> Bool
 
     var body: some View {
         Color.clear
@@ -13594,7 +13594,7 @@ private struct ExtensionSidebarBrowserStackEmptyArea: View {
             .overlay(alignment: .top) {
                 if shouldShowTopDropIndicator {
                     Rectangle()
-                        .fill(mosaicAccentColor())
+                        .fill(cotermAccentColor())
                         .frame(height: 2)
                         .padding(.horizontal, 8)
                         .offset(y: -(rowSpacing / 2))
@@ -13886,14 +13886,14 @@ struct TabItemView: View, Equatable {
     let notificationStore: TerminalNotificationStore
     @Environment(\.colorScheme) private var colorScheme
     // Global font magnification percent, read once per row instead of through a
-    // per-label `MosaicFontModifier`. Each `.mosaicFont(...)` is a custom
+    // per-label `CotermFontModifier`. Each `.cotermFont(...)` is a custom
     // `@Environment`-reading `ViewModifier`; with 100+ workspaces continuously
     // re-rendering rows under agent churn, ~20 of those per row multiplied the
     // SwiftUI `DynamicBody`/environment node count the sidebar must re-evaluate
     // on every render pass (issue #6612, regression from #6554). Reading the
     // percent here and applying a primitive `.font(...)` keeps magnification
     // working while dropping those per-label modifier bodies.
-    @Environment(\.mosaicGlobalFontMagnificationPercent) private var globalFontMagnificationPercent
+    @Environment(\.cotermGlobalFontMagnificationPercent) private var globalFontMagnificationPercent
     let tab: Tab
     let index: Int
     let workspaceShortcutDigit: Int?
@@ -14024,12 +14024,12 @@ struct TabItemView: View, Equatable {
         )
     }
 
-    private var openSidebarPullRequestLinksInMosaicBrowser: Bool {
-        settings.openPullRequestLinksInMosaicBrowser
+    private var openSidebarPullRequestLinksInCotermBrowser: Bool {
+        settings.openPullRequestLinksInCotermBrowser
     }
 
-    private var openSidebarPortLinksInMosaicBrowser: Bool {
-        settings.openPortLinksInMosaicBrowser
+    private var openSidebarPortLinksInCotermBrowser: Bool {
+        settings.openPortLinksInCotermBrowser
     }
 
     private var titleFontWeight: Font.Weight {
@@ -14045,7 +14045,7 @@ struct TabItemView: View, Equatable {
     }
 
     /// Resolves a system font scaled by the global magnification percent,
-    /// matching `MosaicFontModifier` exactly but without introducing a per-label
+    /// matching `CotermFontModifier` exactly but without introducing a per-label
     /// custom `ViewModifier` (and its `@Environment` attribute + `DynamicBody`)
     /// for each `Text` in the row. The row reads the magnification percent once
     /// (`globalFontMagnificationPercent`) and applies a primitive `.font(...)`,
@@ -14087,7 +14087,7 @@ struct TabItemView: View, Equatable {
         case .leftRail:
             return .clear
         case .solidFill:
-            return MosaicSidebarStyle.selectedBorder
+            return CotermSidebarStyle.selectedBorder
         }
     }
 
@@ -14096,11 +14096,11 @@ struct TabItemView: View, Equatable {
     }
 
     private var activePrimaryTextColor: Color {
-        isActive ? MosaicSidebarStyle.primaryText : MosaicSidebarStyle.inactiveText
+        isActive ? CotermSidebarStyle.primaryText : CotermSidebarStyle.inactiveText
     }
 
     private func activeSecondaryColor(_ opacity: Double = 0.75) -> Color {
-        (isActive ? MosaicSidebarStyle.secondaryText : MosaicSidebarStyle.mutedText)
+        (isActive ? CotermSidebarStyle.secondaryText : CotermSidebarStyle.mutedText)
             .opacity(opacity)
     }
 
@@ -14108,7 +14108,7 @@ struct TabItemView: View, Equatable {
         if let hex = sidebarNotificationBadgeColorHex, let nsColor = NSColor(hex: hex) {
             return Color(nsColor: nsColor)
         }
-        return usesInvertedActiveForeground ? activePrimaryTextColor.opacity(0.25) : mosaicAccentColor()
+        return usesInvertedActiveForeground ? activePrimaryTextColor.opacity(0.25) : cotermAccentColor()
     }
 
     private var activeUnreadBadgeTextColor: Color {
@@ -14120,7 +14120,7 @@ struct TabItemView: View, Equatable {
     }
 
     private var activeProgressFillColor: Color {
-        usesInvertedActiveForeground ? activeSecondaryColor(0.8) : mosaicAccentColor()
+        usesInvertedActiveForeground ? activeSecondaryColor(0.8) : cotermAccentColor()
     }
 
     private var shortcutHintEmphasis: Double {
@@ -14271,7 +14271,7 @@ struct TabItemView: View, Equatable {
     }
 
     private var sidebarActiveTileMarker: some View {
-        let color = MosaicSidebarStyle.primaryText.opacity(0.74)
+        let color = CotermSidebarStyle.primaryText.opacity(0.74)
         return VStack(spacing: 2) {
             HStack(spacing: 2) {
                 RoundedRectangle(cornerRadius: 0.8, style: .continuous)
@@ -14333,7 +14333,7 @@ struct TabItemView: View, Equatable {
                 }
 
                 if workspaceSnapshot.isPinned {
-                    MosaicSystemSymbolImage(magnified: "pin.fill", pointSize: scaledFontSize(9), weight: .semibold)
+                    CotermSystemSymbolImage(magnified: "pin.fill", pointSize: scaledFontSize(9), weight: .semibold)
                         .foregroundColor(activeSecondaryColor(0.8))
                         .safeHelp(protectedWorkspaceTooltip)
                 }
@@ -14347,7 +14347,7 @@ struct TabItemView: View, Equatable {
                         localized: "sidebar.mediaActivity.audio.tooltip",
                         defaultValue: "Playing audio"
                     )
-                    MosaicSystemSymbolImage(magnified: "speaker.wave.2.fill", pointSize: scaledFontSize(9), weight: .semibold)
+                    CotermSystemSymbolImage(magnified: "speaker.wave.2.fill", pointSize: scaledFontSize(9), weight: .semibold)
                         .foregroundColor(activeSecondaryColor(0.8))
                         .safeHelp(audioPlayingTooltip)
                         .accessibilityLabel(audioPlayingTooltip)
@@ -14358,7 +14358,7 @@ struct TabItemView: View, Equatable {
                         localized: "sidebar.mediaActivity.microphone.tooltip",
                         defaultValue: "Microphone in use"
                     )
-                    MosaicSystemSymbolImage(magnified: "mic.fill", pointSize: scaledFontSize(9), weight: .semibold)
+                    CotermSystemSymbolImage(magnified: "mic.fill", pointSize: scaledFontSize(9), weight: .semibold)
                         .foregroundColor(.orange)
                         .safeHelp(microphoneInUseTooltip)
                         .accessibilityLabel(microphoneInUseTooltip)
@@ -14369,7 +14369,7 @@ struct TabItemView: View, Equatable {
                         localized: "sidebar.mediaActivity.camera.tooltip",
                         defaultValue: "Camera in use"
                     )
-                    MosaicSystemSymbolImage(magnified: "video.fill", pointSize: scaledFontSize(9), weight: .semibold)
+                    CotermSystemSymbolImage(magnified: "video.fill", pointSize: scaledFontSize(9), weight: .semibold)
                         .foregroundColor(.green)
                         .safeHelp(cameraInUseTooltip)
                         .accessibilityLabel(cameraInUseTooltip)
@@ -14402,11 +14402,11 @@ struct TabItemView: View, Equatable {
                 if canCloseWorkspace {
                     TrackedButton("contentview_button_14022", action: {
                         #if DEBUG
-                        mosaicDebugLog("sidebar.close workspace=\(tab.id.uuidString.prefix(5)) method=button")
+                        cotermDebugLog("sidebar.close workspace=\(tab.id.uuidString.prefix(5)) method=button")
                         #endif
                         tabManager.closeWorkspaceFromTabCloseButton(tab)
                     }) {
-                        MosaicSystemSymbolImage(magnified: "xmark", pointSize: scaledFontSize(9), weight: .medium)
+                        CotermSystemSymbolImage(magnified: "xmark", pointSize: scaledFontSize(9), weight: .medium)
                             .foregroundColor(activeSecondaryColor(0.7))
                             .frame(width: scaledCloseButtonWidth, height: scaledCloseButtonHitSize, alignment: .center)
                             .contentShape(Rectangle())
@@ -14463,7 +14463,7 @@ struct TabItemView: View, Equatable {
         .overlay {
             MiddleClickCapture {
                 #if DEBUG
-                mosaicDebugLog("sidebar.close workspace=\(tab.id.uuidString.prefix(5)) method=middleClick")
+                cotermDebugLog("sidebar.close workspace=\(tab.id.uuidString.prefix(5)) method=middleClick")
                 #endif
                 tabManager.closeWorkspaceWithConfirmation(tab)
             }
@@ -14524,7 +14524,7 @@ struct TabItemView: View, Equatable {
         ) { _ in
 #if DEBUG
             let description = tab.customDescription ?? ""
-            mosaicDebugLog(
+            cotermDebugLog(
                 "sidebar.row.invalidate workspace=\(tab.id.uuidString.prefix(8)) " +
                 "source=immediate " +
                 "title=\"\(debugCommandPaletteTextPreview(tab.title))\" " +
@@ -14544,7 +14544,7 @@ struct TabItemView: View, Equatable {
         ) { _ in
 #if DEBUG
             let description = tab.customDescription ?? ""
-            mosaicDebugLog(
+            cotermDebugLog(
                 "sidebar.row.invalidate workspace=\(tab.id.uuidString.prefix(8)) " +
                 "source=debounced " +
                 "title=\"\(debugCommandPaletteTextPreview(tab.title))\" " +
@@ -14918,10 +14918,10 @@ struct TabItemView: View, Equatable {
 
     private var backgroundColor: Color {
         if isActive || isMultiSelected {
-            return MosaicSidebarStyle.selectedRow
+            return CotermSidebarStyle.selectedRow
         }
         if rowInteractionState.isPointerHovering {
-            return MosaicSidebarStyle.hoverRow
+            return CotermSidebarStyle.hoverRow
         }
         return .clear
     }
@@ -14974,7 +14974,7 @@ struct TabItemView: View, Equatable {
         if modifiers.contains(.shift) { modStr += "shift " }
         if modifiers.contains(.option) { modStr += "opt " }
         if modifiers.contains(.control) { modStr += "ctrl " }
-        mosaicDebugLog("sidebar.select workspace=\(tab.id.uuidString.prefix(5)) modifiers=\(modStr.isEmpty ? "none" : modStr.trimmingCharacters(in: .whitespaces))")
+        cotermDebugLog("sidebar.select workspace=\(tab.id.uuidString.prefix(5)) modifiers=\(modStr.isEmpty ? "none" : modStr.trimmingCharacters(in: .whitespaces))")
         #endif
 
         let workspaceIds = tabManager.tabs.map(\.id)
@@ -15362,7 +15362,7 @@ struct TabItemView: View, Equatable {
 
     private func openPullRequestLink(_ url: URL) {
         updateSelection()
-        if openSidebarPullRequestLinksInMosaicBrowser {
+        if openSidebarPullRequestLinksInCotermBrowser {
             if tabManager.openBrowser(
                 inWorkspace: tab.id,
                 url: url,
@@ -15379,7 +15379,7 @@ struct TabItemView: View, Equatable {
     private func openPortLink(_ port: Int) {
         guard let url = URL(string: "http://localhost:\(port)") else { return }
         updateSelection()
-        if openSidebarPortLinksInMosaicBrowser {
+        if openSidebarPortLinksInCotermBrowser {
             if tabManager.openBrowser(
                 inWorkspace: tab.id,
                 url: url,
@@ -15473,7 +15473,7 @@ struct TabItemView: View, Equatable {
                     .scaleEffect(fontScale)
                     .frame(width: customFrameSize, height: customFrameSize)
             case .closed:
-                MosaicSystemSymbolImage(magnified: "xmark.circle", pointSize: 7 * fontScale, weight: .regular)
+                CotermSystemSymbolImage(magnified: "xmark.circle", pointSize: 7 * fontScale, weight: .regular)
                     .foregroundColor(color)
                     .frame(width: closedFrameSize, height: closedFrameSize)
             }
@@ -15653,7 +15653,7 @@ private struct SidebarWorkspaceDescriptionText: View {
                 Text(displayMarkdown)
             }
         }
-        .mosaicFont(size: 10.5 * fontScale)
+        .cotermFont(size: 10.5 * fontScale)
         .foregroundColor(foregroundColor)
         .multilineTextAlignment(.leading)
         .lineLimit(Self.maxDisplayedLines)
@@ -15667,7 +15667,7 @@ private struct SidebarWorkspaceDescriptionText: View {
             let newlineCount = markdown.reduce(into: 0) { count, character in
                 if character == "\n" { count += 1 }
             }
-            mosaicDebugLog(
+            cotermDebugLog(
                 "sidebar.description.render workspaceState=appear " +
                 "len=\((markdown as NSString).length) " +
                 "newlines=\(newlineCount) " +
@@ -15680,7 +15680,7 @@ private struct SidebarWorkspaceDescriptionText: View {
             let newlineCount = newValue.reduce(into: 0) { count, character in
                 if character == "\n" { count += 1 }
             }
-            mosaicDebugLog(
+            cotermDebugLog(
                 "sidebar.description.render workspaceState=change " +
                 "len=\((newValue as NSString).length) " +
                 "newlines=\(newlineCount) " +
@@ -15763,7 +15763,7 @@ private struct SidebarMetadataRows: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .mosaicFont(size: 10 * fontScale, weight: .semibold)
+                .cotermFont(size: 10 * fontScale, weight: .semibold)
                 .foregroundColor(isActive ? activeSecondaryForegroundColor : .secondary.opacity(0.9))
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -15827,7 +15827,7 @@ private struct SidebarMetadataEntryRow: View {
                 .truncationMode(.tail)
             Spacer(minLength: 0)
         }
-        .mosaicFont(size: 10 * fontScale)
+        .cotermFont(size: 10 * fontScale)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -15851,12 +15851,12 @@ private struct SidebarMetadataEntryRow: View {
         if iconRaw.hasPrefix("emoji:") {
             let value = String(iconRaw.dropFirst("emoji:".count))
             guard !value.isEmpty else { return nil }
-            return AnyView(Text(value).mosaicFont(size: 9 * fontScale))
+            return AnyView(Text(value).cotermFont(size: 9 * fontScale))
         }
         if iconRaw.hasPrefix("text:") {
             let value = String(iconRaw.dropFirst("text:".count))
             guard !value.isEmpty else { return nil }
-            return AnyView(Text(value).mosaicFont(size: 8 * fontScale, weight: .semibold))
+            return AnyView(Text(value).cotermFont(size: 8 * fontScale, weight: .semibold))
         }
         let symbolName: String
         if iconRaw.hasPrefix("sf:") {
@@ -15865,7 +15865,7 @@ private struct SidebarMetadataEntryRow: View {
             symbolName = iconRaw
         }
         guard !symbolName.isEmpty else { return nil }
-        return AnyView(MosaicSystemSymbolImage(magnified: symbolName, pointSize: 8 * fontScale, weight: .medium))
+        return AnyView(CotermSystemSymbolImage(magnified: symbolName, pointSize: 8 * fontScale, weight: .medium))
     }
 
     @ViewBuilder
@@ -15919,7 +15919,7 @@ private struct SidebarMetadataMarkdownBlocks: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .mosaicFont(size: 10 * fontScale, weight: .semibold)
+                .cotermFont(size: 10 * fontScale, weight: .semibold)
                 .foregroundColor(isActive ? activeSecondaryForegroundColor : .secondary.opacity(0.9))
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -15961,7 +15961,7 @@ private struct SidebarMetadataMarkdownBlockRow: View {
                     .foregroundColor(foregroundColor)
             }
         }
-        .mosaicFont(size: 10 * fontScale)
+        .cotermFont(size: 10 * fontScale)
         .multilineTextAlignment(.leading)
         .lineLimit(Self.maxDisplayedLines)
         .truncationMode(.tail)
@@ -15988,10 +15988,10 @@ private struct SidebarMetadataMarkdownBlockRow: View {
 /// deletes) — the row's snapshot-boundary rule forbids reading
 /// `tabManager.workspaceGroups` from inside the contextMenu builder.
 enum SidebarTabDragPayload {
-    static let typeIdentifier = "com.mosaic.sidebar-tab-reorder"
+    static let typeIdentifier = "com.coterm.sidebar-tab-reorder"
     static let dropContentType = UTType(exportedAs: typeIdentifier)
     static let dropContentTypes: [UTType] = [dropContentType]
-    static let prefix = "mosaic.sidebar-tab."
+    static let prefix = "coterm.sidebar-tab."
 
     static func provider(for tabId: UUID) -> NSItemProvider {
         let provider = NSItemProvider()
@@ -16181,7 +16181,7 @@ struct SidebarTabDropDelegate: DropDelegate {
         let hasType = info.hasItemsConforming(to: [SidebarTabDragPayload.typeIdentifier])
         guard hasType, let draggedTabId = effectiveDraggedTabId else {
             #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "sidebar.validateDrop target=\(targetTabId?.uuidString.prefix(5) ?? "end") " +
                 "hasType=\(hasType) hasDrag=false"
             )
@@ -16194,14 +16194,14 @@ struct SidebarTabDropDelegate: DropDelegate {
             // drops (the group stays intact in its window).
             if isCrossWindowGroupAnchorDrag(draggedTabId) {
                 #if DEBUG
-                mosaicDebugLog("sidebar.validateDrop crossWindow=true rejected=groupAnchor")
+                cotermDebugLog("sidebar.validateDrop crossWindow=true rejected=groupAnchor")
                 #endif
                 return false
             }
             // Foreign workspace: any row (or the end strip) in this window is a
             // valid drop target — the workspace will be moved into this window.
             #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "sidebar.validateDrop target=\(targetTabId?.uuidString.prefix(5) ?? "end") " +
                 "hasType=true crossWindow=true"
             )
@@ -16222,7 +16222,7 @@ struct SidebarTabDropDelegate: DropDelegate {
             ).contains(targetTabId)
         }()
         #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "sidebar.validateDrop target=\(targetTabId?.uuidString.prefix(5) ?? "end") " +
             "hasType=\(hasType) hasDrag=true inScope=\(targetIsInReorderScope)"
         )
@@ -16232,7 +16232,7 @@ struct SidebarTabDropDelegate: DropDelegate {
 
     func dropEntered(info: DropInfo) {
         #if DEBUG
-        mosaicDebugLog("sidebar.dropEntered target=\(targetTabId?.uuidString.prefix(5) ?? "end")")
+        cotermDebugLog("sidebar.dropEntered target=\(targetTabId?.uuidString.prefix(5) ?? "end")")
         #endif
         activateForeignDragIfNeeded()
         dragAutoScrollController.updateFromDragLocation()
@@ -16241,7 +16241,7 @@ struct SidebarTabDropDelegate: DropDelegate {
 
     func dropExited(info: DropInfo) {
 #if DEBUG
-        mosaicDebugLog("sidebar.dropExited target=\(targetTabId?.uuidString.prefix(5) ?? "end")")
+        cotermDebugLog("sidebar.dropExited target=\(targetTabId?.uuidString.prefix(5) ?? "end")")
 #endif
         // SwiftUI can emit row exits while a valid drag is still over the
         // sidebar, especially after indicator state invalidates row overlays.
@@ -16253,7 +16253,7 @@ struct SidebarTabDropDelegate: DropDelegate {
         dragAutoScrollController.updateFromDragLocation()
         updateDropIndicator(pointerX: info.location.x, pointerY: plannerPointerY(for: info))
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "sidebar.dropUpdated target=\(targetTabId?.uuidString.prefix(5) ?? "end") " +
             "indicator=\(debugIndicator(dragState.dropIndicator))"
         )
@@ -16277,11 +16277,11 @@ struct SidebarTabDropDelegate: DropDelegate {
             dragAutoScrollController.stop()
         }
         #if DEBUG
-        mosaicDebugLog("sidebar.drop target=\(targetTabId?.uuidString.prefix(5) ?? "end")")
+        cotermDebugLog("sidebar.drop target=\(targetTabId?.uuidString.prefix(5) ?? "end")")
         #endif
         guard let draggedTabId = effectiveDraggedTabId else {
 #if DEBUG
-            mosaicDebugLog("sidebar.drop.abort reason=missingDraggedTab")
+            cotermDebugLog("sidebar.drop.abort reason=missingDraggedTab")
 #endif
             return false
         }
@@ -16318,7 +16318,7 @@ struct SidebarTabDropDelegate: DropDelegate {
         )
         guard let fromIndex = reorderTabIds.firstIndex(of: draggedTabId) else {
 #if DEBUG
-            mosaicDebugLog("sidebar.drop.abort reason=draggedTabMissing tab=\(draggedTabId.uuidString.prefix(5))")
+            cotermDebugLog("sidebar.drop.abort reason=draggedTabMissing tab=\(draggedTabId.uuidString.prefix(5))")
 #endif
             return false
         }
@@ -16331,7 +16331,7 @@ struct SidebarTabDropDelegate: DropDelegate {
             legalInsertionRange: legalInsertionRange
         ) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "sidebar.drop.abort reason=noTargetIndex tab=\(draggedTabId.uuidString.prefix(5)) " +
                 "target=\(targetTabId?.uuidString.prefix(5) ?? "end") indicator=\(debugIndicator(dragState.dropIndicator))"
             )
@@ -16341,13 +16341,13 @@ struct SidebarTabDropDelegate: DropDelegate {
 
         guard fromIndex != targetIndex || explicitGroupId != nil else {
 #if DEBUG
-            mosaicDebugLog("sidebar.drop.noop from=\(fromIndex) to=\(targetIndex)")
+            cotermDebugLog("sidebar.drop.noop from=\(fromIndex) to=\(targetIndex)")
 #endif
             return true
         }
 
 #if DEBUG
-        mosaicDebugLog("sidebar.drop.commit tab=\(draggedTabId.uuidString.prefix(5)) from=\(fromIndex) to=\(targetIndex)")
+        cotermDebugLog("sidebar.drop.commit tab=\(draggedTabId.uuidString.prefix(5)) from=\(fromIndex) to=\(targetIndex)")
 #endif
         let selectionBeforeReorder = selectedTabIds
         let anchorWorkspaceIdBeforeReorder = SidebarWorkspaceSelectionSyncPolicy().anchorWorkspaceId(
@@ -16418,7 +16418,7 @@ struct SidebarTabDropDelegate: DropDelegate {
               // disallowed (also gated in validateDrop).
               !sourceManager.workspaceGroups.contains(where: { $0.anchorWorkspaceId == draggedTabId }) else {
 #if DEBUG
-            mosaicDebugLog("sidebar.drop.crossWindow.abort reason=unresolvedRouteOrGroupAnchor tab=\(draggedTabId.uuidString.prefix(5))")
+            cotermDebugLog("sidebar.drop.crossWindow.abort reason=unresolvedRouteOrGroupAnchor tab=\(draggedTabId.uuidString.prefix(5))")
 #endif
             return false
         }
@@ -16438,7 +16438,7 @@ struct SidebarTabDropDelegate: DropDelegate {
         guard !movingIds.isEmpty else { return false }
 
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "sidebar.drop.crossWindow.commit count=\(movingIds.count) " +
             "to=\(destinationWindowId.uuidString.prefix(5))"
         )
@@ -16620,7 +16620,7 @@ private struct ExtensionSidebarBrowserStackDropDelegate: DropDelegate {
     let targetRowHeight: CGFloat?
     let dragAutoScrollController: SidebarDragAutoScrollController
     @Binding var dropIndicator: SidebarDropIndicator?
-    let onMove: (MosaicSidebarProviderWorkspaceMove) -> Bool
+    let onMove: (CotermSidebarProviderWorkspaceMove) -> Bool
 
     func validateDrop(info: DropInfo) -> Bool {
         info.hasItemsConforming(to: [SidebarTabDragPayload.typeIdentifier])
@@ -16715,7 +16715,7 @@ private struct ExtensionSidebarBrowserStackDropDelegate: DropDelegate {
         draggedWorkspaceId: UUID,
         insertionPosition: Int,
         indicator: SidebarDropIndicator?
-    ) -> MosaicSidebarProviderWorkspaceMove? {
+    ) -> CotermSidebarProviderWorkspaceMove? {
         ExtensionSidebarBrowserStackDropPlanner(orderedRows: orderedRows).move(
             draggedWorkspaceId: draggedWorkspaceId,
             insertionPosition: insertionPosition,
@@ -16736,7 +16736,7 @@ private struct ExtensionSidebarBrowserStackEndDropDelegate: DropDelegate {
     @Binding var draggedTabId: UUID?
     let dragAutoScrollController: SidebarDragAutoScrollController
     @Binding var dropIndicator: SidebarDropIndicator?
-    let onMove: (MosaicSidebarProviderWorkspaceMove) -> Bool
+    let onMove: (CotermSidebarProviderWorkspaceMove) -> Bool
 
     func validateDrop(info: DropInfo) -> Bool {
         info.hasItemsConforming(to: [SidebarTabDragPayload.typeIdentifier])

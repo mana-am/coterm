@@ -36,7 +36,7 @@ func socketAwaitCallback<T>(
     // error) instead of hanging AppKit, and never invoke `start`.
     guard !isMainThread else {
 #if DEBUG
-        mosaicDebugLog("socketAwaitCallback.invalidMainThread timeout=\(timeout)")
+        cotermDebugLog("socketAwaitCallback.invalidMainThread timeout=\(timeout)")
 #endif
         return nil
     }

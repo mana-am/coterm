@@ -1,4 +1,4 @@
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
 
 /// The feed-domain (workstream) witnesses are the byte-faithful bodies of the

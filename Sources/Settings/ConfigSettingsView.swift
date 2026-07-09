@@ -1,15 +1,15 @@
 import AppKit
-import MosaicFoundation
-import MosaicWorkspaces
+import CotermFoundation
+import CotermWorkspaces
 import SwiftUI
 
 struct ConfigSettingsView: View {
     static let windowID = "config-editor"
 
-    @State private var configSource: ConfigSource = .mosaic
+    @State private var configSource: ConfigSource = .coterm
     @State private var snapshots: [ConfigSource: ConfigSourceSnapshot] = [:]
-    @State private var mosaicDraft = ""
-    @State private var mosaicLastLoadedContents = ""
+    @State private var cotermDraft = ""
+    @State private var cotermLastLoadedContents = ""
     @State private var statusMessage = ""
     @State private var statusIsError = false
 
@@ -17,27 +17,27 @@ struct ConfigSettingsView: View {
         snapshots[configSource] ?? configSource.snapshot(environment: .live())
     }
 
-    private var hasUnsavedMosaicChanges: Bool {
-        mosaicDraft != mosaicLastLoadedContents
+    private var hasUnsavedCotermChanges: Bool {
+        cotermDraft != cotermLastLoadedContents
     }
 
     private var currentBannerText: String? {
         switch configSource {
-        case .mosaic:
+        case .coterm:
             return String(
-                localized: "settings.config.banner.mosaic",
-                defaultValue: "This is the mosaic Ghostty config selected for this build. Edit it here, then Save to reload mosaic."
+                localized: "settings.config.banner.coterm",
+                defaultValue: "This is the coterm Ghostty config selected for this build. Edit it here, then Save to reload coterm."
             )
         case .synced:
             if currentSnapshot.hasStandaloneGhosttyConfig {
                 return String(
                     localized: "settings.config.banner.synced",
-                    defaultValue: "This is a generated preview of the effective config. Edit the mosaic tab to change what mosaic reads."
+                    defaultValue: "This is a generated preview of the effective config. Edit the coterm tab to change what coterm reads."
                 )
             }
             return String(
                 localized: "settings.config.banner.syncedNoGhostty",
-                defaultValue: "This is a generated preview of the effective config. No base Ghostty config file was found, so only mosaic overrides are shown."
+                defaultValue: "This is a generated preview of the effective config. No base Ghostty config file was found, so only coterm overrides are shown."
             )
         }
     }
@@ -65,7 +65,7 @@ struct ConfigSettingsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(currentSnapshot.displayPaths, id: \.self) { path in
                     Text(verbatim: path)
-                        .mosaicFont(size: 12, weight: .regular, design: .monospaced)
+                        .cotermFont(size: 12, weight: .regular, design: .monospaced)
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
                 }
@@ -77,11 +77,11 @@ struct ConfigSettingsView: View {
             }
 
             Group {
-                if configSource == .mosaic {
-                    ConfigSettingsTextView(text: $mosaicDraft, isEditable: true)
+                if configSource == .coterm {
+                    ConfigSettingsTextView(text: $cotermDraft, isEditable: true)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .background(editorBackground)
-                        .accessibilityIdentifier("ConfigSettingsMosaicEditor")
+                        .accessibilityIdentifier("ConfigSettingsCotermEditor")
                 } else {
                     ConfigSettingsTextView(text: .constant(currentSnapshot.contents), isEditable: false)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -99,7 +99,7 @@ struct ConfigSettingsView: View {
             HStack(spacing: 8) {
                 if !statusMessage.isEmpty {
                     Text(statusMessage)
-                        .mosaicFont(.caption)
+                        .cotermFont(.caption)
                         .foregroundColor(statusIsError ? .red : .secondary)
                 }
 
@@ -124,10 +124,10 @@ struct ConfigSettingsView: View {
                 .controlSize(.small)
 
                 TrackedButton("configsettingsview_button_126", String(localized: "settings.config.action.save", defaultValue: "Save")) {
-                    saveMosaicConfig()
+                    saveCotermConfig()
                 }
-                .buttonStyle(.mosaicAccent)
-                .disabled(configSource != .mosaic || !hasUnsavedMosaicChanges)
+                .buttonStyle(.cotermAccent)
+                .disabled(configSource != .coterm || !hasUnsavedCotermChanges)
             }
         }
         .padding(16)
@@ -139,14 +139,14 @@ struct ConfigSettingsView: View {
             }
         )
         .onAppear {
-            refreshSnapshots(preserveMosaicDraft: false)
+            refreshSnapshots(preserveCotermDraft: false)
         }
         .onChange(of: configSource) { _ in
             statusMessage = ""
             statusIsError = false
         }
         .onReceive(NotificationCenter.default.publisher(for: .ghosttyConfigDidReload)) { _ in
-            refreshSnapshots(preserveMosaicDraft: true)
+            refreshSnapshots(preserveCotermDraft: true)
         }
     }
 
@@ -176,19 +176,19 @@ struct ConfigSettingsView: View {
     }
 
     private func configureWindow(_ window: NSWindow) {
-        window.identifier = NSUserInterfaceItemIdentifier("mosaic.configEditor")
+        window.identifier = NSUserInterfaceItemIdentifier("coterm.configEditor")
         window.minSize = NSSize(width: 700, height: 500)
         window.tabbingMode = .disallowed
         window.animationBehavior = .utilityWindow
         // The Config editor is a top-level peer window, not a floating
         // inspector: clicking the main window must be able to raise it above
-        // the editor (https://github.com/emergent-inc/mosaic/issues/5081).
-        window.adoptMosaicPeerWindowLevel()
+        // the editor (https://github.com/emergent-inc/coterm/issues/5081).
+        window.adoptCotermPeerWindowLevel()
         window.collectionBehavior.insert(.fullScreenAuxiliary)
     }
 
-    private func refreshSnapshots(preserveMosaicDraft: Bool) {
-        let wasDirty = hasUnsavedMosaicChanges
+    private func refreshSnapshots(preserveCotermDraft: Bool) {
+        let wasDirty = hasUnsavedCotermChanges
         let environment = ConfigSourceEnvironment.live()
         let newSnapshots = Dictionary(
             uniqueKeysWithValues: ConfigSource.allCases.map { source in
@@ -197,15 +197,15 @@ struct ConfigSettingsView: View {
         )
         snapshots = newSnapshots
 
-        let latestMosaicContents = newSnapshots[.mosaic]?.contents ?? ""
-        if !preserveMosaicDraft || !wasDirty {
-            mosaicDraft = latestMosaicContents
+        let latestCotermContents = newSnapshots[.coterm]?.contents ?? ""
+        if !preserveCotermDraft || !wasDirty {
+            cotermDraft = latestCotermContents
         }
-        mosaicLastLoadedContents = latestMosaicContents
+        cotermLastLoadedContents = latestCotermContents
     }
 
     private func reloadFromDisk() {
-        refreshSnapshots(preserveMosaicDraft: false)
+        refreshSnapshots(preserveCotermDraft: false)
         if let appDelegate = AppDelegate.shared {
             appDelegate.reloadConfiguration(source: "settings.configWindow.reload")
         } else {
@@ -218,13 +218,13 @@ struct ConfigSettingsView: View {
         statusIsError = false
     }
 
-    private func saveMosaicConfig() {
+    private func saveCotermConfig() {
         let environment = ConfigSourceEnvironment.live()
 
         do {
-            try environment.writeMosaicConfigContents(mosaicDraft)
-            mosaicLastLoadedContents = mosaicDraft
-            refreshSnapshots(preserveMosaicDraft: true)
+            try environment.writeCotermConfigContents(cotermDraft)
+            cotermLastLoadedContents = cotermDraft
+            refreshSnapshots(preserveCotermDraft: true)
             if let appDelegate = AppDelegate.shared {
                 appDelegate.reloadConfiguration(source: "settings.configWindow.save")
             } else {
@@ -232,26 +232,26 @@ struct ConfigSettingsView: View {
             }
             statusMessage = String(
                 localized: "settings.config.status.saved",
-                defaultValue: "Saved to mosaic config and reloaded."
+                defaultValue: "Saved to coterm config and reloaded."
             )
             statusIsError = false
         } catch {
             NSSound.beep()
             statusMessage = String(
                 localized: "settings.config.status.saveFailed",
-                defaultValue: "Couldn't save the mosaic config."
+                defaultValue: "Couldn't save the coterm config."
             )
             statusIsError = true
         }
     }
 
     private func openCurrentSourceInEditor() {
-        guard let url = materializedMosaicConfigURL() else { return }
+        guard let url = materializedCotermConfigURL() else { return }
         PreferredEditorService(defaults: .standard).open(url)
     }
 
     private func revealCurrentSourceInFinder() {
-        guard let url = materializedMosaicConfigURL() else { return }
+        guard let url = materializedCotermConfigURL() else { return }
         if FileManager.default.fileExists(atPath: url.path) {
             NSWorkspace.shared.activateFileViewerSelecting([url])
         } else {
@@ -259,15 +259,15 @@ struct ConfigSettingsView: View {
         }
     }
 
-    private func materializedMosaicConfigURL() -> URL? {
+    private func materializedCotermConfigURL() -> URL? {
         let environment = ConfigSourceEnvironment.live()
         do {
-            return try environment.materializeMosaicConfigFileIfNeeded()
+            return try environment.materializeCotermConfigFileIfNeeded()
         } catch {
             NSSound.beep()
             statusMessage = String(
                 localized: "settings.config.status.openFailed",
-                defaultValue: "Couldn't open the mosaic config."
+                defaultValue: "Couldn't open the coterm config."
             )
             statusIsError = true
             return nil
@@ -283,7 +283,7 @@ private struct ConfigSettingsBanner: View {
             Image(systemName: "info.circle")
                 .foregroundStyle(.secondary)
             Text(text)
-                .mosaicFont(.footnote)
+                .cotermFont(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -384,8 +384,8 @@ private struct ConfigSettingsTextView: NSViewRepresentable {
 private extension ConfigSource {
     var localizedTitle: String {
         switch self {
-        case .mosaic:
-            return String(localized: "settings.config.source.mosaic", defaultValue: "mosaic")
+        case .coterm:
+            return String(localized: "settings.config.source.coterm", defaultValue: "coterm")
         case .synced:
             return String(localized: "settings.config.source.synced", defaultValue: "synced")
         }

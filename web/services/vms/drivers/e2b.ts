@@ -22,13 +22,13 @@ import {
   type ReusableRpcLease,
 } from "./wsLease";
 
-const MOSAICD_WS_PORT = 7777;
-const MOSAICD_WS_PTY_LEASE_PATH = "/tmp/mosaic/attach-pty-lease.json";
-const MOSAICD_WS_LEGACY_PTY_LEASE_PATH = "/tmp/mosaic/attach-lease.json";
-const MOSAICD_WS_RPC_CLIENT_PATH = "/tmp/mosaic/attach-rpc-client.json";
-const MOSAICD_WS_PTY_LEASE_TTL_SECONDS = 5 * 60;
-const MOSAICD_WS_RPC_LEASE_TTL_SECONDS = 12 * 60 * 60;
-const MOSAICD_WS_RPC_RENEW_BEFORE_SECONDS = 60;
+const COTERMD_WS_PORT = 7777;
+const COTERMD_WS_PTY_LEASE_PATH = "/tmp/coterm/attach-pty-lease.json";
+const COTERMD_WS_LEGACY_PTY_LEASE_PATH = "/tmp/coterm/attach-lease.json";
+const COTERMD_WS_RPC_CLIENT_PATH = "/tmp/coterm/attach-rpc-client.json";
+const COTERMD_WS_PTY_LEASE_TTL_SECONDS = 5 * 60;
+const COTERMD_WS_RPC_LEASE_TTL_SECONDS = 12 * 60 * 60;
+const COTERMD_WS_RPC_RENEW_BEFORE_SECONDS = 60;
 const DEFAULT_SANDBOX_ENVS = { LANG: "C.UTF-8" };
 
 export class E2BProvider implements VMProvider {
@@ -40,11 +40,11 @@ export class E2BProvider implements VMProvider {
       throw new ProviderError("e2b", "create requires a resolved image");
     }
     return withVmSpan(
-      "mosaic.vm.provider.create",
+      "coterm.vm.provider.create",
       {
-        "mosaic.vm.provider": "e2b",
-        "mosaic.vm.operation": "create",
-        "mosaic.vm.image": image,
+        "coterm.vm.provider": "e2b",
+        "coterm.vm.operation": "create",
+        "coterm.vm.image": image,
       },
       async (span) => {
         try {
@@ -52,7 +52,7 @@ export class E2BProvider implements VMProvider {
             envs: DEFAULT_SANDBOX_ENVS,
             network: { allowPublicTraffic: false },
           });
-          span.setAttribute("mosaic.vm.id", sandbox.sandboxId);
+          span.setAttribute("coterm.vm.id", sandbox.sandboxId);
           return {
             provider: "e2b",
             providerVmId: sandbox.sandboxId,
@@ -69,8 +69,8 @@ export class E2BProvider implements VMProvider {
 
   async destroy(vmId: string): Promise<void> {
     await withVmSpan(
-      "mosaic.vm.provider.destroy",
-      { "mosaic.vm.provider": "e2b", "mosaic.vm.operation": "destroy", "mosaic.vm.id": vmId },
+      "coterm.vm.provider.destroy",
+      { "coterm.vm.provider": "e2b", "coterm.vm.operation": "destroy", "coterm.vm.id": vmId },
       async () => {
         await Sandbox.kill(vmId);
       },
@@ -79,8 +79,8 @@ export class E2BProvider implements VMProvider {
 
   async pause(vmId: string): Promise<void> {
     await withVmSpan(
-      "mosaic.vm.provider.pause",
-      { "mosaic.vm.provider": "e2b", "mosaic.vm.operation": "pause", "mosaic.vm.id": vmId },
+      "coterm.vm.provider.pause",
+      { "coterm.vm.provider": "e2b", "coterm.vm.operation": "pause", "coterm.vm.id": vmId },
       async () => {
         await Sandbox.pause(vmId);
       },
@@ -89,8 +89,8 @@ export class E2BProvider implements VMProvider {
 
   async resume(vmId: string): Promise<VMHandle> {
     return withVmSpan(
-      "mosaic.vm.provider.resume",
-      { "mosaic.vm.provider": "e2b", "mosaic.vm.operation": "resume", "mosaic.vm.id": vmId },
+      "coterm.vm.provider.resume",
+      { "coterm.vm.provider": "e2b", "coterm.vm.operation": "resume", "coterm.vm.id": vmId },
       async () => {
         const sbx = await Sandbox.connect(vmId);
         const info = await Sandbox.getInfo(vmId);
@@ -108,18 +108,18 @@ export class E2BProvider implements VMProvider {
   async exec(vmId: string, command: string, opts?: { timeoutMs?: number }): Promise<ExecResult> {
     const timeoutMs = opts?.timeoutMs ?? 30_000;
     return withVmSpan(
-      "mosaic.vm.provider.exec",
+      "coterm.vm.provider.exec",
       {
-        "mosaic.vm.provider": "e2b",
-        "mosaic.vm.operation": "exec",
-        "mosaic.vm.id": vmId,
-        "mosaic.command_length": command.length,
-        "mosaic.timeout_ms": timeoutMs,
+        "coterm.vm.provider": "e2b",
+        "coterm.vm.operation": "exec",
+        "coterm.vm.id": vmId,
+        "coterm.command_length": command.length,
+        "coterm.timeout_ms": timeoutMs,
       },
       async (span) => {
         const sbx = await Sandbox.connect(vmId);
         const r = await sbx.commands.run(command, { timeoutMs });
-        span.setAttribute("mosaic.exec.exit_code", r.exitCode);
+        span.setAttribute("coterm.exec.exit_code", r.exitCode);
         return { exitCode: r.exitCode, stdout: r.stdout, stderr: r.stderr };
       },
     );
@@ -127,12 +127,12 @@ export class E2BProvider implements VMProvider {
 
   async snapshot(vmId: string, name?: string): Promise<SnapshotRef> {
     return withVmSpan(
-      "mosaic.vm.provider.snapshot",
+      "coterm.vm.provider.snapshot",
       {
-        "mosaic.vm.provider": "e2b",
-        "mosaic.vm.operation": "snapshot",
-        "mosaic.vm.id": vmId,
-        "mosaic.snapshot.named": !!name,
+        "coterm.vm.provider": "e2b",
+        "coterm.vm.operation": "snapshot",
+        "coterm.vm.id": vmId,
+        "coterm.snapshot.named": !!name,
       },
       async (span) => {
         const sbx = await Sandbox.connect(vmId);
@@ -143,7 +143,7 @@ export class E2BProvider implements VMProvider {
         if (!id || typeof id !== "string") {
           throw new ProviderError("e2b", `snapshot(${vmId}) returned no snapshot id`, snap);
         }
-        span.setAttribute("mosaic.snapshot.id", id);
+        span.setAttribute("coterm.snapshot.id", id);
         return { id, createdAt: Date.now(), name };
       },
     );
@@ -151,14 +151,14 @@ export class E2BProvider implements VMProvider {
 
   async restore(snapshotId: string): Promise<VMHandle> {
     return withVmSpan(
-      "mosaic.vm.provider.restore",
-      { "mosaic.vm.provider": "e2b", "mosaic.vm.operation": "restore", "mosaic.snapshot.id": snapshotId },
+      "coterm.vm.provider.restore",
+      { "coterm.vm.provider": "e2b", "coterm.vm.operation": "restore", "coterm.snapshot.id": snapshotId },
       async (span) => {
         const sbx = await Sandbox.create(snapshotId, {
           envs: DEFAULT_SANDBOX_ENVS,
           network: { allowPublicTraffic: false },
         });
-        span.setAttribute("mosaic.vm.id", sbx.sandboxId);
+        span.setAttribute("coterm.vm.id", sbx.sandboxId);
         return {
           provider: "e2b",
           providerVmId: sbx.sandboxId,
@@ -172,20 +172,20 @@ export class E2BProvider implements VMProvider {
 
   async openSSH(vmId: string): Promise<SSHEndpoint> {
     return withVmSpan(
-      "mosaic.vm.provider.open_ssh",
-      { "mosaic.vm.provider": "e2b", "mosaic.vm.operation": "open_ssh", "mosaic.vm.id": vmId },
+      "coterm.vm.provider.open_ssh",
+      { "coterm.vm.provider": "e2b", "coterm.vm.operation": "open_ssh", "coterm.vm.id": vmId },
       async () => {
         // E2B sandboxes expose ports only via https://<port>-<sandbox-id>.e2b.app — they don't
         // route raw TCP/22 from outside, so mac client can't SSH directly into an E2B VM.
-        // mosaic's interactive paths (`mosaic vm new` shell, `mosaic vm new --workspace`) require
-        // direct SSH + mosaicd-remote, so we surface a user-facing error. Use --provider freestyle
-        // for interactive work, or `mosaic vm new --provider e2b --detach` for scratch exec.
+        // coterm's interactive paths (`coterm vm new` shell, `coterm vm new --workspace`) require
+        // direct SSH + cotermd-remote, so we surface a user-facing error. Use --provider freestyle
+        // for interactive work, or `coterm vm new --provider e2b --detach` for scratch exec.
         throw new ProviderError(
           "e2b",
           "E2B sandboxes don't support interactive attach (no raw TCP egress). " +
-            "Use `mosaic vm new` without `--provider e2b` (Freestyle is the default), " +
-            "or `mosaic vm new --provider e2b --detach` to create without attach, " +
-            "then `mosaic vm exec <id> -- <cmd>`.",
+            "Use `coterm vm new` without `--provider e2b` (Freestyle is the default), " +
+            "or `coterm vm new --provider e2b --detach` to create without attach, " +
+            "then `coterm vm exec <id> -- <cmd>`.",
         );
       },
     );
@@ -196,7 +196,7 @@ export class E2BProvider implements VMProvider {
     if (options?.requireDaemon && !endpoint.daemon) {
       throw new ProviderError(
         "e2b",
-        `openAttach(${vmId}) requires a mosaicd RPC endpoint, but this sandbox image only exposes the PTY WebSocket. Rebuild it with the current mosaicd-remote image.`,
+        `openAttach(${vmId}) requires a cotermd RPC endpoint, but this sandbox image only exposes the PTY WebSocket. Rebuild it with the current cotermd-remote image.`,
       );
     }
     return endpoint;
@@ -204,17 +204,17 @@ export class E2BProvider implements VMProvider {
 
   async openWebSocketPty(vmId: string): Promise<WebSocketPtyEndpoint> {
     return withVmSpan(
-      "mosaic.vm.provider.open_websocket_pty",
-      { "mosaic.vm.provider": "e2b", "mosaic.vm.operation": "open_websocket_pty", "mosaic.vm.id": vmId },
+      "coterm.vm.provider.open_websocket_pty",
+      { "coterm.vm.provider": "e2b", "coterm.vm.operation": "open_websocket_pty", "coterm.vm.id": vmId },
       async (span) => {
         try {
           const sandbox = await Sandbox.connect(vmId);
           const trafficAccessToken = sandbox.trafficAccessToken?.trim();
           if (!trafficAccessToken) {
-            throw new Error("sandbox is missing a traffic access token; recreate it with the mosaicd WebSocket image");
+            throw new Error("sandbox is missing a traffic access token; recreate it with the cotermd WebSocket image");
           }
           const service = await readWebSocketService(sandbox);
-          const pty = makeWebSocketLease("e2b", "pty", true, MOSAICD_WS_PTY_LEASE_TTL_SECONDS);
+          const pty = makeWebSocketLease("e2b", "pty", true, COTERMD_WS_PTY_LEASE_TTL_SECONDS);
           const encodedPTY = Buffer.from(JSON.stringify(pty.lease)).toString("base64");
           const commands = [
             ensurePrivateDirectoryCommand(service.ptyLeasePath),
@@ -227,7 +227,7 @@ export class E2BProvider implements VMProvider {
             const existingDaemon = await readReusableRpcLease(sandbox, service.rpcLeasePath);
             const newDaemon = existingDaemon
               ? null
-              : makeWebSocketLease("e2b", "rpc", false, MOSAICD_WS_RPC_LEASE_TTL_SECONDS);
+              : makeWebSocketLease("e2b", "rpc", false, COTERMD_WS_RPC_LEASE_TTL_SECONDS);
             daemon = existingDaemon ?? newDaemon!;
             daemonReused = !!existingDaemon;
             if (newDaemon) {
@@ -237,28 +237,28 @@ export class E2BProvider implements VMProvider {
                 ensurePrivateDirectoryCommand(service.rpcLeasePath),
                 `printf '%s' '${encodedDaemon}' | base64 -d > ${shellQuote(service.rpcLeasePath)}`,
                 `chmod 600 ${shellQuote(service.rpcLeasePath)}`,
-                `printf '%s' '${encodedDaemonClient}' | base64 -d > ${shellQuote(MOSAICD_WS_RPC_CLIENT_PATH)}`,
-                `chmod 600 ${shellQuote(MOSAICD_WS_RPC_CLIENT_PATH)}`,
+                `printf '%s' '${encodedDaemonClient}' | base64 -d > ${shellQuote(COTERMD_WS_RPC_CLIENT_PATH)}`,
+                `chmod 600 ${shellQuote(COTERMD_WS_RPC_CLIENT_PATH)}`,
               );
             }
           }
           await sandbox.commands.run(commands.join(" && "), { timeoutMs: 30_000 });
-          span.setAttribute("mosaic.vm.attach.transport", "websocket");
-          span.setAttribute("mosaic.vm.attach.expires_at_unix", pty.expiresAtUnix);
-          span.setAttribute("mosaic.vm.attach.daemon_available", !!daemon);
+          span.setAttribute("coterm.vm.attach.transport", "websocket");
+          span.setAttribute("coterm.vm.attach.expires_at_unix", pty.expiresAtUnix);
+          span.setAttribute("coterm.vm.attach.daemon_available", !!daemon);
           if (daemon) {
-            span.setAttribute("mosaic.vm.attach.daemon_expires_at_unix", daemon.expiresAtUnix);
-            span.setAttribute("mosaic.vm.attach.daemon_reused", daemonReused);
+            span.setAttribute("coterm.vm.attach.daemon_expires_at_unix", daemon.expiresAtUnix);
+            span.setAttribute("coterm.vm.attach.daemon_reused", daemonReused);
           }
           return {
             transport: "websocket",
-            url: `wss://${sandbox.getHost(MOSAICD_WS_PORT)}/terminal`,
+            url: `wss://${sandbox.getHost(COTERMD_WS_PORT)}/terminal`,
             headers: { "e2b-traffic-access-token": trafficAccessToken },
             token: pty.token,
             sessionId: pty.sessionId,
             expiresAtUnix: pty.expiresAtUnix,
             daemon: daemon ? {
-              url: `wss://${sandbox.getHost(MOSAICD_WS_PORT)}/rpc`,
+              url: `wss://${sandbox.getHost(COTERMD_WS_PORT)}/rpc`,
               headers: { "e2b-traffic-access-token": trafficAccessToken },
               token: daemon.token,
               sessionId: daemon.sessionId,
@@ -284,16 +284,16 @@ async function readWebSocketService(sandbox: Sandbox): Promise<{
   rpcLeasePath: string | null;
 }> {
   const result = await sandbox.commands.run(
-    "ps auxww | grep mosaicd-remote | grep -v grep || true",
+    "ps auxww | grep cotermd-remote | grep -v grep || true",
     { timeoutMs: 30_000 },
   );
   const stdout = result.stdout ?? "";
   return {
     ptyLeasePath:
       shellArgValue(stdout, "--auth-lease-file")
-      ?? (stdout.includes(MOSAICD_WS_LEGACY_PTY_LEASE_PATH)
-        ? MOSAICD_WS_LEGACY_PTY_LEASE_PATH
-        : MOSAICD_WS_PTY_LEASE_PATH),
+      ?? (stdout.includes(COTERMD_WS_LEGACY_PTY_LEASE_PATH)
+        ? COTERMD_WS_LEGACY_PTY_LEASE_PATH
+        : COTERMD_WS_PTY_LEASE_PATH),
     rpcLeasePath: shellArgValue(stdout, "--rpc-auth-lease-file"),
   };
 }
@@ -305,8 +305,8 @@ async function readReusableRpcLease(
   const result = await sandbox.commands.run(
     [
       `test -s ${shellQuote(rpcLeasePath)}`,
-      `test -s ${shellQuote(MOSAICD_WS_RPC_CLIENT_PATH)}`,
-      `cat ${shellQuote(MOSAICD_WS_RPC_CLIENT_PATH)}`,
+      `test -s ${shellQuote(COTERMD_WS_RPC_CLIENT_PATH)}`,
+      `cat ${shellQuote(COTERMD_WS_RPC_CLIENT_PATH)}`,
     ].join(" && "),
     { timeoutMs: 30_000 },
   ).catch(() => null);
@@ -316,7 +316,7 @@ async function readReusableRpcLease(
     const parsed = JSON.parse(raw) as unknown;
     if (!isReusableRpcLease(parsed)) return null;
     const nowUnix = Math.floor(Date.now() / 1000);
-    if (parsed.expiresAtUnix <= nowUnix + MOSAICD_WS_RPC_RENEW_BEFORE_SECONDS) return null;
+    if (parsed.expiresAtUnix <= nowUnix + COTERMD_WS_RPC_RENEW_BEFORE_SECONDS) return null;
     return parsed;
   } catch {
     return null;

@@ -1,14 +1,14 @@
 "use strict";
 
 const IMMUTABLE_RELEASE_ASSETS = [
-  "mosaic-macos.dmg",
+  "coterm-macos.dmg",
   "appcast.xml",
-  "mosaicd-remote-darwin-arm64",
-  "mosaicd-remote-darwin-amd64",
-  "mosaicd-remote-linux-arm64",
-  "mosaicd-remote-linux-amd64",
-  "mosaicd-remote-checksums.txt",
-  "mosaicd-remote-manifest.json",
+  "cotermd-remote-darwin-arm64",
+  "cotermd-remote-darwin-amd64",
+  "cotermd-remote-linux-arm64",
+  "cotermd-remote-linux-amd64",
+  "cotermd-remote-checksums.txt",
+  "cotermd-remote-manifest.json",
 ];
 const RELEASE_ASSET_GUARD_STATE = Object.freeze({
   CLEAR: "clear",

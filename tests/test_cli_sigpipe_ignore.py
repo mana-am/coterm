@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression test: mosaic CLI should not exit with SIGPIPE on broken stdout pipes."""
+"""Regression test: coterm CLI should not exit with SIGPIPE on broken stdout pipes."""
 
 from __future__ import annotations
 
@@ -9,24 +9,24 @@ import shutil
 import subprocess
 
 
-def resolve_mosaic_cli() -> str:
-    explicit = os.environ.get("MOSAIC_CLI_BIN") or os.environ.get("MOSAIC_CLI")
+def resolve_coterm_cli() -> str:
+    explicit = os.environ.get("COTERM_CLI_BIN") or os.environ.get("COTERM_CLI")
     if explicit and os.path.exists(explicit) and os.access(explicit, os.X_OK):
         return explicit
 
     candidates: list[str] = []
-    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/mosaic")))
-    candidates.extend(glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic"))
+    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/coterm")))
+    candidates.extend(glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm"))
     candidates = [p for p in candidates if os.path.exists(p) and os.access(p, os.X_OK)]
     if candidates:
         candidates.sort(key=os.path.getmtime, reverse=True)
         return candidates[0]
 
-    in_path = shutil.which("mosaic")
+    in_path = shutil.which("coterm")
     if in_path:
         return in_path
 
-    raise RuntimeError("Unable to find mosaic CLI binary. Set MOSAIC_CLI_BIN.")
+    raise RuntimeError("Unable to find coterm CLI binary. Set COTERM_CLI_BIN.")
 
 
 def run_with_closed_stdout(cli_path: str, *args: str) -> tuple[int, str]:
@@ -48,13 +48,13 @@ def require_zero_exit(cli_path: str, *args: str) -> tuple[bool, str]:
     code, err = run_with_closed_stdout(cli_path, *args)
     if code != 0:
         cmd = " ".join(args)
-        return False, f"`mosaic {cmd}` exited {code} with closed stdout pipe (stderr={err!r})"
+        return False, f"`coterm {cmd}` exited {code} with closed stdout pipe (stderr={err!r})"
     return True, ""
 
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1

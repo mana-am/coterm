@@ -1,6 +1,6 @@
 import AppKit
-import MosaicSettings
-import MosaicWorkspaces
+import CotermSettings
+import CotermWorkspaces
 
 /// Perform the configured action for opening a local file from the file explorer.
 @MainActor

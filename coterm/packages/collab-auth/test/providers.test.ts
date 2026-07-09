@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { HmacAuthProvider } from "../src/hmacProvider";
 import { NoAuthProvider } from "../src/noAuthProvider";
-import { signMosaicToken } from "../src/hmac";
+import { signCotermToken } from "../src/hmac";
 import { nowSeconds } from "../src/common";
 
 const SECRET = "provider-secret";
@@ -57,9 +57,9 @@ describe("HmacAuthProvider", () => {
     expect(await p.authorizeRelayConnect({ room: "ABCD1234", grant: other })).toMatchObject({ ok: false });
   });
 
-  test("authenticateRequest verifies a mosaicv1 access token", async () => {
+  test("authenticateRequest verifies a cotermv1 access token", async () => {
     const p = new HmacAuthProvider({ secret: SECRET });
-    const token = await signMosaicToken(
+    const token = await signCotermToken(
       { kind: "access", userId: "u42", teamIds: ["org1"], selectedTeamId: "org1", exp: nowSeconds() + 900 },
       SECRET,
     );
@@ -70,22 +70,24 @@ describe("HmacAuthProvider", () => {
 
   test("authenticateRequest rejects refresh tokens and unsigned tokens", async () => {
     const p = new HmacAuthProvider({ secret: SECRET });
-    const refresh = await signMosaicToken({ kind: "refresh", userId: "u1", exp: nowSeconds() + 900 }, SECRET);
+    const refresh = await signCotermToken({ kind: "refresh", userId: "u1", exp: nowSeconds() + 900 }, SECRET);
     expect(await p.authenticateRequest(requestWithBearer(refresh))).toBeNull();
-    const wrongSecret = await signMosaicToken({ kind: "access", userId: "u1", exp: nowSeconds() + 900 }, "nope");
+    const wrongSecret = await signCotermToken({ kind: "access", userId: "u1", exp: nowSeconds() + 900 }, "nope");
     expect(await p.authenticateRequest(requestWithBearer(wrongSecret))).toBeNull();
   });
 });
 
 describe("NoAuthProvider", () => {
-  test("authorizeRelayConnect always passes", async () => {
+  test("authorizeRelayConnect requires a grant even in noauth mode", async () => {
     const p = new NoAuthProvider();
-    expect(await p.authorizeRelayConnect()).toMatchObject({ ok: true });
+    expect(await p.authorizeRelayConnect({ room: "ABCD1234", grant: null })).toMatchObject({ ok: false });
+    const grant = await p.mintGrant({ room: "ABCD1234", userId: "u1", iat: nowSeconds(), exp: nowSeconds() + 900 });
+    expect(await p.authorizeRelayConnect({ room: "ABCD1234", grant })).toMatchObject({ ok: true });
   });
 
   test("authenticateRequest decodes an unverified bearer token", async () => {
     const p = new NoAuthProvider();
-    const token = await signMosaicToken({ userId: "guest", teamIds: ["t1"] }, "any-secret");
+    const token = await signCotermToken({ userId: "guest", teamIds: ["t1"] }, "any-secret");
     const principal = await p.authenticateRequest(requestWithBearer(token));
     expect(principal?.userId).toBe("guest");
     expect(principal?.orgIds).toEqual(["t1"]);

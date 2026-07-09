@@ -1,5 +1,5 @@
-import MosaicCommandPalette
-import MosaicSettings
+import CotermCommandPalette
+import CotermSettings
 
 extension KeyboardShortcutSettings.Action {
     enum ShortcutContext: Equatable {

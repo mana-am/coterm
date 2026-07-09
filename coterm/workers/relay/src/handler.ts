@@ -2,14 +2,24 @@ import type { CollabAuthProvider } from "@coterm/collab-auth";
 import {
   json,
   normalizeSessionCode,
+  randomPreviewId,
   randomSessionCode,
+  randomShareSecret,
+  type PreviewCreateResponse,
   type SessionCreateResponse,
 } from "./protocol";
+import {
+  normalizePreviewId,
+  parsePreviewTarget,
+  sha256Hex,
+  type PreviewCreateRequest,
+} from "./preview-protocol";
 
 interface CollaborationSessionStub {
   create(
     sessionCode: string,
-  ): Promise<{ metadata: SessionCreateResponse; created: boolean }>;
+    shareSecret: string,
+  ): Promise<{ metadata: { sessionID: string; sessionCode: string }; created: boolean }>;
   fetch(request: Request): Promise<Response>;
 }
 
@@ -36,10 +46,20 @@ interface CollaborationInboxNamespace {
   get(id: unknown): CollaborationInboxStub;
 }
 
+interface PreviewSessionStub {
+  fetch(request: Request): Promise<Response>;
+}
+
+interface PreviewSessionNamespace {
+  idFromName(name: string): unknown;
+  get(id: unknown): PreviewSessionStub;
+}
+
 export interface CollaborationWorkerEnv {
   COLLABORATION_SESSIONS: CollaborationSessionNamespace;
   COLLABORATION_SESSION_INDEX?: CollaborationSessionIndexNamespace;
   COLLABORATION_INBOX?: CollaborationInboxNamespace;
+  PREVIEW_SESSIONS?: PreviewSessionNamespace;
   COLLABORATION_ADMIN_TOKEN?: string;
 }
 
@@ -97,6 +117,30 @@ export async function collaborationFetch(
     return notifyInbox(request, env);
   }
 
+  if (url.pathname === "/v1/preview/sessions" && request.method === "POST") {
+    return createPreviewSession(request, env, url);
+  }
+
+  const previewHostMatch = url.pathname.match(/^\/v1\/preview\/sessions\/([^/]+)\/host$/);
+  if (previewHostMatch && request.method === "GET") {
+    return routePreview(previewHostMatch[1], "/host", request, env);
+  }
+
+  const previewMetadataMatch = url.pathname.match(/^\/v1\/preview\/sessions\/([^/]+)\/metadata$/);
+  if (previewMetadataMatch && request.method === "GET") {
+    return routePreview(previewMetadataMatch[1], "/metadata", request, env);
+  }
+
+  const previewProxyMatch = url.pathname.match(/^\/v1\/preview\/sessions\/([^/]+)\/proxy(\/.*)?$/);
+  if (previewProxyMatch) {
+    return routePreview(previewProxyMatch[1], `/proxy${previewProxyMatch[2] ?? "/"}`, request, env);
+  }
+
+  const previewCloseMatch = url.pathname.match(/^\/v1\/preview\/sessions\/([^/]+)$/);
+  if (previewCloseMatch && request.method === "DELETE") {
+    return routePreview(previewCloseMatch[1], "/close", request, env);
+  }
+
   const metadataMatch = url.pathname.match(
     /^\/v1\/collaboration\/sessions\/([^/]+)\/metadata$/,
   );
@@ -128,7 +172,103 @@ export async function collaborationFetch(
     return stub.fetch(request);
   }
 
+  const previewCookie = parsePreviewCookie(request.headers.get("cookie"));
+  if (previewCookie !== null) {
+    const fallbackUrl = new URL(request.url);
+    fallbackUrl.searchParams.set("t", previewCookie.token);
+    return routePreview(previewCookie.previewId, `/proxy${fallbackUrl.pathname}`, new Request(fallbackUrl, request), env);
+  }
+
   return json({ error: "not_found" }, 404);
+}
+
+function parsePreviewCookie(header: string | null): { previewId: string; token: string } | null {
+  if (!header) return null;
+  const preview = header
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith("coterm_preview="));
+  if (!preview) return null;
+  const value = decodeURIComponent(preview.slice("coterm_preview=".length));
+  const separator = value.indexOf(".");
+  if (separator < 0) return null;
+  const previewId = normalizePreviewId(value.slice(0, separator));
+  const token = value.slice(separator + 1);
+  return previewId === null || token === "" ? null : { previewId, token };
+}
+
+async function createPreviewSession(
+  request: Request,
+  env: CollaborationWorkerEnv,
+  relayURL: URL,
+): Promise<Response> {
+  if (!env.PREVIEW_SESSIONS) return json({ error: "preview_disabled" }, 404);
+  let body: Record<string, unknown>;
+  try {
+    const parsed = await request.json();
+    body = parsed !== null && typeof parsed === "object" ? parsed as Record<string, unknown> : {};
+  } catch {
+    return json({ error: "invalid_json" }, 400);
+  }
+  const room = normalizeSessionCode(typeof body.room === "string" ? body.room : "");
+  if (room === null) return json({ error: "invalid_session_code" }, 400);
+  const shareSecret = typeof body.shareSecret === "string" ? body.shareSecret.trim() : "";
+  if (shareSecret === "") return json({ error: "missing_share_secret" }, 400);
+  const target = parsePreviewTarget(body.target);
+  if (target === null) return json({ error: "invalid_preview_target" }, 400);
+  const verified = await verifySessionShareSecret(env, room, shareSecret);
+  if (!verified) return json({ error: "forbidden" }, 403);
+
+  const previewId = randomPreviewId();
+  const hostToken = randomShareSecret();
+  const viewerToken = randomShareSecret();
+  const stub = env.PREVIEW_SESSIONS.get(env.PREVIEW_SESSIONS.idFromName(previewId));
+  const createBody: PreviewCreateRequest = { previewId, room, target, hostToken, viewerToken };
+  const response = await stub.fetch(new Request("https://coterm-preview.local/create", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(createBody),
+  }));
+  if (!response.ok) return response;
+  const url = new URL(`/v1/preview/sessions/${previewId}/proxy/`, relayURL.origin);
+  url.searchParams.set("t", viewerToken);
+  const result: PreviewCreateResponse = {
+    previewId,
+    hostToken,
+    viewerToken,
+    url: url.href,
+  };
+  return json(result, 201);
+}
+
+async function routePreview(
+  rawPreviewId: string,
+  internalPath: string,
+  request: Request,
+  env: CollaborationWorkerEnv,
+): Promise<Response> {
+  if (!env.PREVIEW_SESSIONS) return json({ error: "preview_disabled" }, 404);
+  const previewId = normalizePreviewId(decodeURIComponent(rawPreviewId));
+  if (previewId === null) return json({ error: "invalid_preview_id" }, 400);
+  const inputUrl = new URL(request.url);
+  const routedUrl = new URL(`https://coterm-preview.local${internalPath}${inputUrl.search}`);
+  const stub = env.PREVIEW_SESSIONS.get(env.PREVIEW_SESSIONS.idFromName(previewId));
+  return stub.fetch(new Request(routedUrl, request));
+}
+
+async function verifySessionShareSecret(
+  env: CollaborationWorkerEnv,
+  room: string,
+  shareSecret: string,
+): Promise<boolean> {
+  const stub = env.COLLABORATION_SESSIONS.get(env.COLLABORATION_SESSIONS.idFromName(room));
+  const response = await stub.fetch(new Request("https://coterm-collaboration-session.local/metadata", {
+    method: "GET",
+  }));
+  if (!response.ok) return false;
+  const body = await response.json() as { metadata?: { shareSecretHash?: unknown } };
+  const expectedHash = typeof body.metadata?.shareSecretHash === "string" ? body.metadata.shareSecretHash : "";
+  return expectedHash !== "" && expectedHash === await sha256Hex(shareSecret);
 }
 
 // Report whether a session's relay room still exists, so www can prune stale
@@ -149,7 +289,7 @@ async function sessionLiveness(
   );
   try {
     const response = await stub.fetch(
-      new Request("https://mosaic-collaboration-session.local/metadata", {
+      new Request("https://coterm-collaboration-session.local/metadata", {
         method: "GET",
       }),
     );
@@ -210,7 +350,7 @@ async function notifyInbox(
     env.COLLABORATION_INBOX.idFromName(inviteeUserId),
   );
   const response = await stub.fetch(
-    new Request("https://mosaic-collaboration-inbox.local/notify", {
+    new Request("https://coterm-collaboration-inbox.local/notify", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ reason }),
@@ -225,11 +365,12 @@ async function createUniqueSession(
 ): Promise<SessionCreateResponse> {
   while (true) {
     const sessionCode = randomSessionCode();
+    const shareSecret = randomShareSecret();
     const stub = env.COLLABORATION_SESSIONS.get(
       env.COLLABORATION_SESSIONS.idFromName(sessionCode),
     );
-    const result = await stub.create(sessionCode);
-    if (result.created) return result.metadata;
+    const result = await stub.create(sessionCode, shareSecret);
+    if (result.created) return { ...result.metadata, shareSecret };
   }
 }
 
@@ -243,10 +384,13 @@ async function recordIndexedSession(
   );
   try {
     await stub.fetch(
-      new Request("https://mosaic-collaboration-index.local/sessions", {
+      new Request("https://coterm-collaboration-index.local/sessions", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(metadata),
+        body: JSON.stringify({
+          sessionID: metadata.sessionID,
+          sessionCode: metadata.sessionCode,
+        }),
       }),
     );
   } catch (error) {
@@ -260,7 +404,7 @@ function requireAdminToken(
 ): Response | null {
   const expectedToken = env.COLLABORATION_ADMIN_TOKEN?.trim();
   if (!expectedToken) return json({ error: "admin_index_disabled" }, 404);
-  const providedToken = request.headers.get("x-mosaic-admin-token")?.trim();
+  const providedToken = request.headers.get("x-coterm-admin-token")?.trim();
   if (providedToken !== expectedToken) return json({ error: "forbidden" }, 403);
   return null;
 }
@@ -274,7 +418,7 @@ async function listIndexedSessions(
   const stub = env.COLLABORATION_SESSION_INDEX.get(
     env.COLLABORATION_SESSION_INDEX.idFromName(SESSION_INDEX_OBJECT_NAME),
   );
-  const indexURL = new URL("https://mosaic-collaboration-index.local/sessions");
+  const indexURL = new URL("https://coterm-collaboration-index.local/sessions");
   indexURL.search = url.search;
   const response = await stub.fetch(new Request(indexURL, { method: "GET" }));
   const body = (await response.json()) as {
@@ -361,7 +505,7 @@ async function sessionMetadataResponse(
   const id = env.COLLABORATION_SESSIONS.idFromName(sessionCode);
   const stub = env.COLLABORATION_SESSIONS.get(id);
   return stub.fetch(
-    new Request("https://mosaic-collaboration-session.local/metadata", {
+    new Request("https://coterm-collaboration-session.local/metadata", {
       method: "GET",
     }),
   );
@@ -376,7 +520,7 @@ async function indexedSessionRecord(
     env.COLLABORATION_SESSION_INDEX.idFromName(SESSION_INDEX_OBJECT_NAME),
   );
   const response = await stub.fetch(
-    new Request("https://mosaic-collaboration-index.local/sessions?limit=500", {
+    new Request("https://coterm-collaboration-index.local/sessions?limit=500", {
       method: "GET",
     }),
   );

@@ -1,5 +1,5 @@
-import MosaicAuthCore
-import MosaicAuthRuntime
+import CotermAuthCore
+import CotermAuthRuntime
 import Foundation
 import Observation
 

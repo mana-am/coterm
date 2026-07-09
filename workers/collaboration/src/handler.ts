@@ -51,7 +51,7 @@ export async function collaborationFetch(
   const url = new URL(request.url);
 
   if (url.pathname === "/healthz") {
-    return json({ ok: true, service: "mosaic-collaboration" });
+    return json({ ok: true, service: "coterm-collaboration" });
   }
 
   if (
@@ -135,7 +135,7 @@ async function sessionLiveness(
   );
   try {
     const response = await stub.fetch(
-      new Request("https://mosaic-collaboration-session.local/metadata", {
+      new Request("https://coterm-collaboration-session.local/metadata", {
         method: "GET",
       }),
     );
@@ -196,7 +196,7 @@ async function notifyInbox(
     env.COLLABORATION_INBOX.idFromName(inviteeUserId),
   );
   const response = await stub.fetch(
-    new Request("https://mosaic-collaboration-inbox.local/notify", {
+    new Request("https://coterm-collaboration-inbox.local/notify", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ reason }),
@@ -229,7 +229,7 @@ async function recordIndexedSession(
   );
   try {
     await stub.fetch(
-      new Request("https://mosaic-collaboration-index.local/sessions", {
+      new Request("https://coterm-collaboration-index.local/sessions", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(metadata),
@@ -246,7 +246,7 @@ function requireAdminToken(
 ): Response | null {
   const expectedToken = env.COLLABORATION_ADMIN_TOKEN?.trim();
   if (!expectedToken) return json({ error: "admin_index_disabled" }, 404);
-  const providedToken = request.headers.get("x-mosaic-admin-token")?.trim();
+  const providedToken = request.headers.get("x-coterm-admin-token")?.trim();
   if (providedToken !== expectedToken) return json({ error: "forbidden" }, 403);
   return null;
 }
@@ -260,7 +260,7 @@ async function listIndexedSessions(
   const stub = env.COLLABORATION_SESSION_INDEX.get(
     env.COLLABORATION_SESSION_INDEX.idFromName(SESSION_INDEX_OBJECT_NAME),
   );
-  const indexURL = new URL("https://mosaic-collaboration-index.local/sessions");
+  const indexURL = new URL("https://coterm-collaboration-index.local/sessions");
   indexURL.search = url.search;
   const response = await stub.fetch(new Request(indexURL, { method: "GET" }));
   const body = (await response.json()) as {
@@ -347,7 +347,7 @@ async function sessionMetadataResponse(
   const id = env.COLLABORATION_SESSIONS.idFromName(sessionCode);
   const stub = env.COLLABORATION_SESSIONS.get(id);
   return stub.fetch(
-    new Request("https://mosaic-collaboration-session.local/metadata", {
+    new Request("https://coterm-collaboration-session.local/metadata", {
       method: "GET",
     }),
   );
@@ -362,7 +362,7 @@ async function indexedSessionRecord(
     env.COLLABORATION_SESSION_INDEX.idFromName(SESSION_INDEX_OBJECT_NAME),
   );
   const response = await stub.fetch(
-    new Request("https://mosaic-collaboration-index.local/sessions?limit=500", {
+    new Request("https://coterm-collaboration-index.local/sessions?limit=500", {
       method: "GET",
     }),
   );

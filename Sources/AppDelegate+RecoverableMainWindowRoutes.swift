@@ -1,6 +1,6 @@
 import AppKit
-import MosaicTerminalCore
-import MosaicTerminal
+import CoterminalCore
+import Coterminal
 import ObjectiveC.runtime
 
 @MainActor
@@ -39,7 +39,7 @@ private struct MainWindowRouteSnapshot {
 private var mainWindowRouteLedgerKey: UInt8 = 0
 
 // The retire sweep is the MainWindowRouteRetiring witness: the terminal
-// surface registry (MosaicTerminalEngine) calls it through the seam instead of
+// surface registry (CoterminalEngine) calls it through the seam instead of
 // reaching up to AppDelegate.shared.
 extension AppDelegate: MainWindowRouteRetiring {}
 
@@ -119,7 +119,7 @@ extension AppDelegate {
         let after = mainWindowRouteLedger.routesByWindowId.count
 #if DEBUG
         if after != before {
-            mosaicDebugLog("recoverableRoute.prune reason=\(reason) removed=\(before - after) remaining=\(after)")
+            cotermDebugLog("recoverableRoute.prune reason=\(reason) removed=\(before - after) remaining=\(after)")
         }
 #endif
     }
@@ -127,7 +127,7 @@ extension AppDelegate {
     func forgetRecoverableMainWindowRoute(windowId: UUID) {
         if mainWindowRouteLedger.routesByWindowId.removeValue(forKey: windowId) != nil {
 #if DEBUG
-            mosaicDebugLog("recoverableRoute.forget windowId=\(String(windowId.uuidString.prefix(8)))")
+            cotermDebugLog("recoverableRoute.forget windowId=\(String(windowId.uuidString.prefix(8)))")
 #endif
         }
     }
@@ -142,7 +142,7 @@ extension AppDelegate {
             order: mainWindowRouteLedger.issueOrder()
         )
 #if DEBUG
-        mosaicDebugLog("recoverableRoute.remember windowId=\(String(windowId.uuidString.prefix(8)))")
+        cotermDebugLog("recoverableRoute.remember windowId=\(String(windowId.uuidString.prefix(8)))")
 #endif
     }
 
@@ -358,7 +358,7 @@ extension AppDelegate {
     /// in O(1), instead of scanning the tab list per notification row, which was
     /// O(notifications × tabs). Resolution mirrors `tabTitle(for:)`: window
     /// contexts win, then the active `tabManager` covers any tab not yet present
-    /// in a context. See https://github.com/emergent-inc/mosaic/issues/5794.
+    /// in a context. See https://github.com/emergent-inc/coterm/issues/5794.
     func tabTitlesByTabId() -> [UUID: String] {
         var titles: [UUID: String] = [:]
         for context in mainWindowContexts.values {

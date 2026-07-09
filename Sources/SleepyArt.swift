@@ -1,10 +1,10 @@
-import MosaicSettingsUI
+import CotermSettingsUI
 import Foundation
 
 // MARK: - Pixel art assets
 
 enum SleepyArt {
-    /// Shared face anchors for the grid mascots (mosaic/cat/ghost).
+    /// Shared face anchors for the grid mascots (coterm/cat/ghost).
     static let closedEyes: [(Int, Int)] = [(4, 7), (7, 7), (5, 8), (6, 8), (8, 7), (11, 7), (9, 8), (10, 8)]
     static let openEyes: [(Int, Int)] = [(5, 7), (6, 7), (5, 8), (6, 8), (9, 7), (10, 7), (9, 8), (10, 8)]
     static let mouthTop: [(Int, Int)] = [(7, 10), (8, 10)]
@@ -12,7 +12,7 @@ enum SleepyArt {
 
     static func mascotRows(_ mascot: SleepyMascot) -> [String] {
         switch mascot {
-        case .mosaic: return mosaicMascot
+        case .coterm: return cotermMascot
         case .cat: return catMascot
         case .ghost: return ghostMascot
         case .logoFace: return []
@@ -20,7 +20,7 @@ enum SleepyArt {
     }
 
     /// Head + droopy nightcap (16x16).
-    static let mosaicMascot: [String] = [
+    static let cotermMascot: [String] = [
         "............WW..",
         "..........PPWW..",
         "........PPPPP...",
@@ -79,9 +79,9 @@ enum SleepyArt {
         "..OOO.OOO.OOO...",
     ]
 
-    /// Compact beveled mosaic cube (11x11): highlight (H) top, main (C) face,
+    /// Compact beveled coterm cube (11x11): highlight (H) top, main (C) face,
     /// shadow (c) face. Doubles as the left eye of the logoFace mascot.
-    static let mosaicLogo: [String] = [
+    static let cotermLogo: [String] = [
         ".....H.....",
         "...HHHHH...",
         ".HHHHHHHHH.",

@@ -14,6 +14,14 @@ export interface RelayEnvelope {
 export interface SessionCreateResponse {
   sessionID: string;
   sessionCode: string;
+  shareSecret: string;
+}
+
+export interface PreviewCreateResponse {
+  previewId: string;
+  hostToken: string;
+  viewerToken: string;
+  url: string;
 }
 
 export function json(body: unknown, status = 200): Response {
@@ -64,6 +72,21 @@ export function randomSessionCode(): string {
   const values = new Uint8Array(8);
   crypto.getRandomValues(values);
   return [...values].map((value) => alphabet[value % alphabet.length]).join("");
+}
+
+export function randomShareSecret(): string {
+  const values = new Uint8Array(32);
+  crypto.getRandomValues(values);
+  let binary = "";
+  for (const value of values) binary += String.fromCharCode(value);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+export function randomPreviewId(): string {
+  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  const values = new Uint8Array(12);
+  crypto.getRandomValues(values);
+  return `p_${[...values].map((value) => alphabet[value % alphabet.length]).join("")}`;
 }
 
 export function normalizeSessionCode(value: string): string | null {

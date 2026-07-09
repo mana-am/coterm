@@ -1,6 +1,6 @@
 import Darwin
 import Foundation
-import MosaicSettings
+import CotermSettings
 
 enum CLIExecutableLocator {
     static func currentExecutableURL() -> URL? {
@@ -87,11 +87,11 @@ enum CLISocketPathResolver {
         case inaccessible(errnoCode: Int32)
     }
 
-    private static let stableSocketFileName = "mosaic.sock"
-    static let legacyDefaultSocketPath = "/tmp/mosaic.sock"
-    private static let fallbackSocketPath = "/tmp/mosaic-debug.sock"
-    private static let nightlySocketPath = "/tmp/mosaic-nightly.sock"
-    private static let stagingSocketPath = "/tmp/mosaic-staging.sock"
+    private static let stableSocketFileName = "coterm.sock"
+    static let legacyDefaultSocketPath = "/tmp/coterm.sock"
+    private static let fallbackSocketPath = "/tmp/coterm-debug.sock"
+    private static let nightlySocketPath = "/tmp/coterm-nightly.sock"
+    private static let stagingSocketPath = "/tmp/coterm-staging.sock"
 
     static func defaultSocketPath(
         bundleIdentifier: String?,
@@ -117,12 +117,12 @@ enum CLISocketPathResolver {
 
     private static func userScopedStableSocketPath(currentUserID: uid_t = getuid()) -> String {
         stableSocketDirectoryURL()?
-            .appendingPathComponent("mosaic-\(currentUserID).sock", isDirectory: false)
+            .appendingPathComponent("coterm-\(currentUserID).sock", isDirectory: false)
             .path ?? legacyUserScopedStableSocketPath(currentUserID: currentUserID)
     }
 
     private static func legacyUserScopedStableSocketPath(currentUserID: uid_t = getuid()) -> String {
-        "/tmp/mosaic-\(currentUserID).sock"
+        "/tmp/coterm-\(currentUserID).sock"
     }
 
     static func isImplicitDefaultPath(
@@ -246,7 +246,7 @@ enum CLISocketPathResolver {
         case .dev(slug: .some):
             let bundleId = bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             return bundleId == SocketPathMarkerFiles.defaultBaseDebugBundleIdentifier
-                && normalized(environment["MOSAIC_TAG"]) != nil
+                && normalized(environment["COTERM_TAG"]) != nil
         case .stable, .nightly, .staging:
             return false
         }
@@ -275,7 +275,7 @@ enum CLISocketPathResolver {
                 continue
             }
             discovered.reserveCapacity(min(limit, discovered.count + entries.count))
-            for name in entries where name.hasPrefix("mosaic-debug-") && name.hasSuffix(".sock") {
+            for name in entries where name.hasPrefix("coterm-debug-") && name.hasSuffix(".sock") {
                 let path = URL(fileURLWithPath: directory)
                     .appendingPathComponent(name, isDirectory: false)
                     .path
@@ -482,9 +482,9 @@ enum CLISocketPathResolver {
         }
 
 #if DEBUG
-        return "mosaic.com.emergent.app.debug"
+        return "coterm.com.emergent.app.debug"
 #else
-        return "mosaic.com.emergent.app"
+        return "coterm.com.emergent.app"
 #endif
     }
 
@@ -496,13 +496,13 @@ enum CLISocketPathResolver {
 
     /// The directory holding the control socket and its marker files.
     ///
-    /// Resolves to ``MosaicStateDirectory`` (`~/.local/state/mosaic`), matching the
+    /// Resolves to ``CotermStateDirectory`` (`~/.local/state/coterm`), matching the
     /// app's `SocketControlSettings.stableSocketDirectoryURL()`. This keeps the
     /// CLI off the app's TCC-protected Application Support data on the agent hook
-    /// path (https://github.com/emergent-inc/mosaic/issues/5146). The CLI is a
+    /// path (https://github.com/emergent-inc/coterm/issues/5146). The CLI is a
     /// composition root, so it names the concrete `FileManager.default` here.
     private static func stableSocketDirectoryURL() -> URL? {
-        MosaicStateDirectory.url(homeDirectory: FileManager.default.homeDirectoryForCurrentUser)
+        CotermStateDirectory.url(homeDirectory: FileManager.default.homeDirectoryForCurrentUser)
     }
 
     private static func socketDiscoveryDirectories() -> [String] {

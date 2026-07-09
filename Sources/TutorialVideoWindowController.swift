@@ -51,7 +51,7 @@ final class TutorialVideoPresentationCenter {
 }
 
 extension Notification.Name {
-    static let tutorialVideoPresentationRequested = Notification.Name("mosaic.tutorialVideo.presentationRequested")
+    static let tutorialVideoPresentationRequested = Notification.Name("coterm.tutorialVideo.presentationRequested")
 }
 
 enum TutorialVideoPresentationKind {
@@ -129,7 +129,7 @@ struct TutorialVideoView: View {
     @State private var isPlaying = true
     @State private var poster: NSImage?
 
-    private let title = String(localized: "tutorial.video.title", defaultValue: "Welcome to Mosaic")
+    private let title = String(localized: "tutorial.video.title", defaultValue: "Welcome to Coterm")
     private let subtitle = String(
         localized: "tutorial.video.subtitle",
         defaultValue: "A quick tour of the essentials"
@@ -171,7 +171,7 @@ struct TutorialVideoView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Image("MosaicLogo")
+                Image("CotermLogo")
                     .resizable()
                     .scaledToFit()
                     .frame(height: 26)
@@ -224,7 +224,7 @@ struct TutorialVideoView: View {
             .safeHelp(label)
             .accessibilityLabel(label)
             .accessibilityIdentifier("TutorialVideoPlayButton")
-            .mosaicCursorOnHover(.pointingHand)
+            .cotermCursorOnHover(.pointingHand)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -281,17 +281,17 @@ struct TutorialVideoView: View {
         .safeHelp(label)
         .accessibilityLabel(label)
         .accessibilityIdentifier("TutorialVideoCloseButton")
-        .mosaicCursorOnHover(.pointingHand)
+        .cotermCursorOnHover(.pointingHand)
     }
 }
 
 private struct TutorialVideoMissingResourceView: View {
     var body: some View {
         VStack(spacing: 12) {
-            MosaicSystemSymbolImage(systemName: "exclamationmark.triangle", pointSize: 28, weight: .medium)
+            CotermSystemSymbolImage(systemName: "exclamationmark.triangle", pointSize: 28, weight: .medium)
                 .foregroundStyle(Color(nsColor: .secondaryLabelColor))
             Text(String(localized: "tutorial.video.missing", defaultValue: "The tutorial video is missing from this app build."))
-                .mosaicFont(size: 13)
+                .cotermFont(size: 13)
                 .foregroundStyle(Color(nsColor: .secondaryLabelColor))
                 .multilineTextAlignment(.center)
         }

@@ -1,6 +1,6 @@
 import { locales } from "./routing";
 
-const BASE = "https://mosaic.inc";
+const BASE = "https://coterm.cc";
 
 /**
  * Build the full alternates object (canonical + hreflang languages)

@@ -11,36 +11,36 @@ import urllib.parse
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
     fixed = os.path.expanduser(
-        "~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic"
+        "~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm"
     )
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
     candidates = glob.glob(
-        os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"),
+        os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"),
         recursive=True,
     )
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
@@ -50,14 +50,14 @@ def _run_cli(cli: str, *args: str) -> subprocess.CompletedProcess[str]:
     proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"CLI failed ({' '.join(cmd)}): {merged}")
+        raise cotermError(f"CLI failed ({' '.join(cmd)}): {merged}")
     return proc
 
 
 def main() -> int:
     cli = _find_cli_binary()
 
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         opened = c._call("browser.open_split", {"url": "about:blank"}) or {}
         target = str(opened.get("surface_id") or opened.get("surface_ref") or "")
         _must(target != "", f"browser.open_split returned no surface handle: {opened}")
@@ -65,7 +65,7 @@ def main() -> int:
         html = """
 <!doctype html>
 <html>
-  <head><title>mosaic-browser-cli-regression</title></head>
+  <head><title>coterm-browser-cli-regression</title></head>
   <body>
     <main>
       <h1>browser cli regression</h1>
@@ -124,7 +124,7 @@ def main() -> int:
         _must(screenshot_url.startswith("file://"), f"Expected screenshot file URL in JSON payload: {payload}")
         _must(Path(screenshot_path).is_file(), f"Expected screenshot file to exist: {payload}")
 
-        out_dir = Path(tempfile.mkdtemp(prefix="mosaic-browser-screenshot-cli-")) / "nested" / "dir"
+        out_dir = Path(tempfile.mkdtemp(prefix="coterm-browser-screenshot-cli-")) / "nested" / "dir"
         out_path = out_dir / "capture.png"
         screenshot_out_proc = _run_cli(
             cli,

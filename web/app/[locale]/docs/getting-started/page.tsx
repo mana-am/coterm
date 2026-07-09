@@ -36,10 +36,10 @@ export default function GettingStartedPage() {
       <p>{t("dmgDesc")}</p>
 
       <DocsHeading level={3} id="homebrew">{t("homebrew")}</DocsHeading>
-      <CodeBlock lang="bash">{`brew tap emergent-inc/mosaic
-brew install --cask mosaic`}</CodeBlock>
+      <CodeBlock lang="bash">{`brew tap emergent-inc/coterm
+brew install --cask coterm`}</CodeBlock>
       <p>{t("updateLater")}</p>
-      <CodeBlock lang="bash">{`brew upgrade --cask mosaic`}</CodeBlock>
+      <CodeBlock lang="bash">{`brew upgrade --cask coterm`}</CodeBlock>
 
       <Callout>
         {t.rich("firstLaunchCallout", {
@@ -57,10 +57,10 @@ brew install --cask mosaic`}</CodeBlock>
 
       <DocsHeading level={2} id="cli-setup">{t("cliSetup")}</DocsHeading>
       <p>{t("cliDesc")}</p>
-      <CodeBlock lang="bash">{`sudo ln -sf "/Applications/Mosaic.app/Contents/Resources/bin/mosaic" /usr/local/bin/mosaic`}</CodeBlock>
+      <CodeBlock lang="bash">{`sudo ln -sf "/Applications/Coterm.app/Contents/Resources/bin/coterm" /usr/local/bin/coterm`}</CodeBlock>
       <p>{t("cliThen")}</p>
-      <CodeBlock lang="bash">{`mosaic list-workspaces
-mosaic notify --title "Build Complete" --body "Your build finished"`}</CodeBlock>
+      <CodeBlock lang="bash">{`coterm list-workspaces
+coterm notify --title "Build Complete" --body "Your build finished"`}</CodeBlock>
 
       <DocsHeading level={2} id="auto-updates">{t("autoUpdates")}</DocsHeading>
       <p>{t("autoUpdatesDesc")}</p>

@@ -1,5 +1,5 @@
 import Foundation
-import MosaicCore
+import CotermCore
 
 enum RemoteLoopbackRuntimeBridge {
     static let runtimeBridgeScriptSource: String = {
@@ -32,8 +32,8 @@ enum RemoteLoopbackRuntimeBridge {
           if (effectiveHost !== normalizedAliasHost && !effectiveHost.endsWith(`.${normalizedAliasHost}`)) {
             return true;
           }
-          if (window.__mosaicRemoteLoopbackRuntimeBridgeInstalled) return true;
-          window.__mosaicRemoteLoopbackRuntimeBridgeInstalled = true;
+          if (window.__cotermRemoteLoopbackRuntimeBridgeInstalled) return true;
+          window.__cotermRemoteLoopbackRuntimeBridgeInstalled = true;
 
           const loopbackAliasHost = (host) => {
             const normalizedHost = normalizeHost(host);
@@ -72,7 +72,7 @@ enum RemoteLoopbackRuntimeBridge {
             return parsed.href;
           };
 
-          Object.defineProperty(window, '__mosaicRewriteRemoteLoopbackURL', {
+          Object.defineProperty(window, '__cotermRewriteRemoteLoopbackURL', {
             value: rewriteLoopbackURL,
             configurable: true,
           });
@@ -100,30 +100,30 @@ enum RemoteLoopbackRuntimeBridge {
 
           const NativeWebSocket = window.WebSocket;
           if (typeof NativeWebSocket === 'function') {
-            const MosaicWebSocket = function(url, protocols) {
+            const CotermWebSocket = function(url, protocols) {
               const rewrittenURL = rewriteLoopbackURL(url);
               if (protocols === undefined) {
                 return new NativeWebSocket(rewrittenURL);
               }
               return new NativeWebSocket(rewrittenURL, protocols);
             };
-            MosaicWebSocket.prototype = NativeWebSocket.prototype;
-            Object.setPrototypeOf(MosaicWebSocket, NativeWebSocket);
-            window.WebSocket = MosaicWebSocket;
+            CotermWebSocket.prototype = NativeWebSocket.prototype;
+            Object.setPrototypeOf(CotermWebSocket, NativeWebSocket);
+            window.WebSocket = CotermWebSocket;
           }
 
           const NativeEventSource = window.EventSource;
           if (typeof NativeEventSource === 'function') {
-            const MosaicEventSource = function(url, eventSourceInitDict) {
+            const CotermEventSource = function(url, eventSourceInitDict) {
               const rewrittenURL = rewriteLoopbackURL(url);
               if (eventSourceInitDict === undefined) {
                 return new NativeEventSource(rewrittenURL);
               }
               return new NativeEventSource(rewrittenURL, eventSourceInitDict);
             };
-            MosaicEventSource.prototype = NativeEventSource.prototype;
-            Object.setPrototypeOf(MosaicEventSource, NativeEventSource);
-            window.EventSource = MosaicEventSource;
+            CotermEventSource.prototype = NativeEventSource.prototype;
+            Object.setPrototypeOf(CotermEventSource, NativeEventSource);
+            window.EventSource = CotermEventSource;
           }
 
           return true;

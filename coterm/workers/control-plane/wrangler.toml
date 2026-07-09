@@ -1,5 +1,5 @@
-# Open-source mosaic collaboration control-plane — the /api/collab/* surface the
-# Swift client talks to. This layer does not exist in the upstream mosaic repo (it
+# Open-source coterm collaboration control-plane — the /api/collab/* surface the
+# Swift client talks to. This layer does not exist in the upstream coterm repo (it
 # lived in a closed www service tied to Clerk + Stripe); it is reconstructed here
 # from the client contract, with entitlements/identity supplied by the pluggable
 # auth provider instead of Clerk/Stripe.
@@ -13,7 +13,7 @@ workers_dev = true
 enabled = true
 
 [vars]
-COLLAB_AUTH_MODE = "noauth"
+COLLAB_AUTH_MODE = "hmac"
 # Where the control-plane tells clients to reach the relay, and where it
 # pre-creates rooms / probes liveness / fans out inbox nudges.
 # Set this to YOUR deployed relay URL before deploying the control-plane

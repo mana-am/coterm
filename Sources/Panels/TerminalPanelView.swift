@@ -2,11 +2,11 @@ import SwiftUI
 import Foundation
 import AppKit
 import Bonsplit
-import MosaicAppKitSupportUI
-import MosaicTestSupport
-import MosaicCollaboration
-import MosaicTerminal
-import MosaicFoundation
+import CotermAppKitSupportUI
+import CotermTestSupport
+import CotermCollaboration
+import Coterminal
+import CotermFoundation
 import UniformTypeIdentifiers
 
 /// Shared styling for the terminal-header collaboration chips (session pill,
@@ -222,7 +222,7 @@ struct TerminalPanelView: View {
     private func agentRoomLabel(state: AgentRoomHeaderState) -> some View {
         if state.isConnected, let displayNumber = state.displayNumber {
             Text(CollaborationStrings.agentRoomLabel(number: displayNumber))
-                .mosaicFont(size: 11)
+                .cotermFont(size: 11)
                 .foregroundStyle(agentRoomLabelForeground(state: state))
                 .lineLimit(1)
                 .help(agentRoomHelp(state: state))
@@ -302,12 +302,12 @@ struct TerminalPanelView: View {
             }
         }) {
             HStack(spacing: 5) {
-                MosaicSystemSymbolImage(systemName: "person.2", pointSize: 10, weight: .semibold)
+                CotermSystemSymbolImage(systemName: "person.2", pointSize: 10, weight: .semibold)
                     .accessibilityHidden(true)
                 Text(pillModel.showsParticipantCount
                     ? String.localizedStringWithFormat("%d", pillModel.totalParticipantCount)
                     : label)
-                    .mosaicFont(size: 10, weight: .semibold)
+                    .cotermFont(size: 10, weight: .semibold)
                     .lineLimit(1)
             }
             .foregroundStyle(foregroundColor)
@@ -339,7 +339,7 @@ struct TerminalPanelView: View {
         .onAppear {
             incomingInviteCount = CollaborationRuntime.shared.incomingSharedSessions.count
         }
-        .mosaicCursorOnHover(.pointingHand)
+        .cotermCursorOnHover(.pointingHand)
         .popover(item: $incomingInviteAlert, arrowEdge: .bottom) { invite in
             TerminalIncomingInviteAlertContent(
                 invite: invite,
@@ -418,7 +418,7 @@ struct TerminalPanelView: View {
 
     private func incomingInviteBadge(count: Int) -> some View {
         Text(count > 9 ? "9+" : String(count))
-            .mosaicFont(size: 8, weight: .bold)
+            .cotermFont(size: 8, weight: .bold)
             .foregroundStyle(Color.white)
             .padding(.horizontal, 4)
             .frame(minWidth: 14, minHeight: 14)
@@ -453,7 +453,7 @@ struct TerminalPanelView: View {
                 Image(systemName: icon)
                     .font(.system(size: 9, weight: .semibold))
                 Text(label)
-                    .mosaicFont(size: 10, weight: .semibold)
+                    .cotermFont(size: 10, weight: .semibold)
                     .lineLimit(1)
             }
             .foregroundStyle(foregroundColor)
@@ -475,7 +475,7 @@ struct TerminalPanelView: View {
         .onHover { hovering in
             isTerminalShareButtonHovered = hovering
         }
-        .mosaicCursorOnHover(.pointingHand, enabled: !state.isMirrored)
+        .cotermCursorOnHover(.pointingHand, enabled: !state.isMirrored)
         .popover(isPresented: $isTerminalRecipientPopoverPresented, arrowEdge: .bottom) {
             TerminalCollaborationRecipientPopoverContent(
                 recipients: CollaborationRuntime.shared.recipientSnapshots(for: panel),
@@ -549,7 +549,7 @@ struct TerminalPanelView: View {
     private func agentRoomDragHintPopup(isConnected: Bool) -> some View {
         if isAgentRoomButtonHovered, !isConnected {
             Text(CollaborationStrings.agentRoomDragHint)
-                .mosaicFont(size: 11, weight: .regular)
+                .cotermFont(size: 11, weight: .regular)
                 .foregroundStyle(Color.secondary)
                 .padding(.horizontal, 7)
                 .padding(.vertical, 3)
@@ -624,11 +624,11 @@ private struct TerminalIncomingInviteAlertContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                MosaicSystemSymbolImage(systemName: "person.crop.circle.badge.plus", pointSize: 14, weight: .semibold)
+                CotermSystemSymbolImage(systemName: "person.crop.circle.badge.plus", pointSize: 14, weight: .semibold)
                     .foregroundStyle(Color.accentColor)
                     .accessibilityHidden(true)
                 Text(CollaborationStrings.incomingInviteAlertTitle)
-                    .mosaicFont(size: 12, weight: .semibold)
+                    .cotermFont(size: 12, weight: .semibold)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -636,7 +636,7 @@ private struct TerminalIncomingInviteAlertContent: View {
                 ownerName: invite.ownerName ?? invite.ownerUserId,
                 orgName: invite.orgName ?? ""
             ))
-            .mosaicFont(size: 11)
+            .cotermFont(size: 11)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
@@ -645,12 +645,12 @@ private struct TerminalIncomingInviteAlertContent: View {
                 TrackedButton("session_incoming_alert_join", CollaborationStrings.incomingSessionJoin) {
                     onJoin()
                 }
-                .buttonStyle(.mosaicAccentRegular)
+                .buttonStyle(.cotermAccentRegular)
 
                 TrackedButton("session_incoming_alert_dismiss", CollaborationStrings.incomingInviteAlertDismiss) {
                     onDismiss()
                 }
-                .buttonStyle(.mosaicSecondaryRegular)
+                .buttonStyle(.cotermSecondaryRegular)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -684,14 +684,14 @@ private struct TerminalCollaborationSessionPopoverContent: View {
                     .accessibilityHidden(true)
 
                 Text(CollaborationStrings.sessionPopoverTitle)
-                    .mosaicFont(size: 12, weight: .semibold)
+                    .cotermFont(size: 12, weight: .semibold)
             }
 
             if incomingSessionCount > 0 {
                 TrackedButton("session_incoming_open", CollaborationStrings.incomingSessionsButton(count: incomingSessionCount)) {
                     onOpenIncomingSessions()
                 }
-                .buttonStyle(.mosaicAccentRegular)
+                .buttonStyle(.cotermAccentRegular)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -702,11 +702,11 @@ private struct TerminalCollaborationSessionPopoverContent: View {
                     Text(directorySharingEnabled
                         ? CollaborationStrings.directorySessionActive
                         : CollaborationStrings.sessionCodeLabel(code: sessionCode))
-                        .mosaicFont(size: 11, weight: .semibold)
+                        .cotermFont(size: 11, weight: .semibold)
                         .textSelection(.enabled)
                     if participants.isEmpty {
                         Text(isConnected ? CollaborationStrings.sessionConnectedDetail(peerSummary: peerSummary) : CollaborationStrings.sessionJoinedDetail)
-                            .mosaicFont(size: 11)
+                            .cotermFont(size: 11)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -715,7 +715,7 @@ private struct TerminalCollaborationSessionPopoverContent: View {
                 if !participants.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(CollaborationStrings.sessionParticipantsTitle(count: participants.count))
-                            .mosaicFont(size: 11, weight: .semibold)
+                            .cotermFont(size: 11, weight: .semibold)
                         ForEach(participants) { participant in
                             HStack(spacing: 7) {
                                 CollaborationParticipantAvatarImage(
@@ -726,7 +726,7 @@ private struct TerminalCollaborationSessionPopoverContent: View {
                                     fallbackUsesRoundedDesign: false
                                 )
                                 Text(participant.displayName)
-                                    .mosaicFont(size: 11)
+                                    .cotermFont(size: 11)
                                     .lineLimit(1)
                             }
                         }
@@ -739,7 +739,7 @@ private struct TerminalCollaborationSessionPopoverContent: View {
                     TrackedButton("session_share_teammate", CollaborationStrings.addTeammate) {
                         onShareWithTeammate()
                     }
-                    .buttonStyle(.mosaicAccentRegular)
+                    .buttonStyle(.cotermAccentRegular)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
@@ -749,7 +749,7 @@ private struct TerminalCollaborationSessionPopoverContent: View {
                 TrackedButton("session_end", CollaborationStrings.leaveSession) {
                     onLeave()
                 }
-                .buttonStyle(.mosaicSecondaryRegular)
+                .buttonStyle(.cotermSecondaryRegular)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             } else if directorySharingEnabled {
@@ -760,7 +760,7 @@ private struct TerminalCollaborationSessionPopoverContent: View {
                     TrackedButton("session_share_teammate_create", CollaborationStrings.shareWithTeammate) {
                         onCreate()
                     }
-                    .buttonStyle(.mosaicAccentRegular)
+                    .buttonStyle(.cotermAccentRegular)
                     .keyboardShortcut(.defaultAction)
 
                     // Team plans keep code joining for external/code sessions;
@@ -777,7 +777,7 @@ private struct TerminalCollaborationSessionPopoverContent: View {
                     TrackedButton("session_create", CollaborationStrings.createSession) {
                         onCreate()
                     }
-                    .buttonStyle(.mosaicAccentRegular)
+                    .buttonStyle(.cotermAccentRegular)
                     .keyboardShortcut(.defaultAction)
 
                     // Enterprise (org-locked) plans disable codes entirely, so
@@ -847,7 +847,7 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
                     .accessibilityHidden(true)
 
                 Text(CollaborationStrings.terminalRecipientsShareTitle)
-                    .mosaicFont(size: 12, weight: .semibold)
+                    .cotermFont(size: 12, weight: .semibold)
             }
 
             if model.showsInviteAction {
@@ -866,7 +866,7 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
                     }
                 } else {
                     Text(CollaborationStrings.terminalRecipientsEmpty)
-                        .mosaicFont(size: 11)
+                        .cotermFont(size: 11)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
 
@@ -875,14 +875,14 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
                             TrackedButton("invite_code_copy", CollaborationStrings.copyInviteCode) {
                                 onCopyInviteCode()
                             }
-                            .buttonStyle(.mosaicAccentRegular)
+                            .buttonStyle(.cotermAccentRegular)
                             .keyboardShortcut(.defaultAction)
                             .fixedSize()
                         } else {
                             TrackedButton("session_share_teammate", CollaborationStrings.shareWithTeammate) {
                                 onShareWithTeammate()
                             }
-                            .buttonStyle(.mosaicAccentRegular)
+                            .buttonStyle(.cotermAccentRegular)
                             .keyboardShortcut(.defaultAction)
                             .fixedSize()
                         }
@@ -900,10 +900,10 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
                     ForEach(recipients) { recipient in
                         Toggle(isOn: binding(for: recipient.participantID)) {
                             Text(recipient.displayName)
-                                .mosaicFont(size: 11)
+                                .cotermFont(size: 11)
                                 .lineLimit(1)
                         }
-                        .toggleStyle(.mosaicAccentCheckbox)
+                        .toggleStyle(.cotermAccentCheckbox)
                     }
                 }
 
@@ -1259,13 +1259,13 @@ private struct AgentHibernationPlaceholderView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            MosaicSystemSymbolImage(magnified: "pause.circle", pointSize: 34, weight: .regular)
+            CotermSystemSymbolImage(magnified: "pause.circle", pointSize: 34, weight: .regular)
                 .foregroundStyle(.secondary)
             VStack(spacing: 4) {
                 Text(String(localized: "terminal.agentHibernation.title", defaultValue: "Agent hibernated"))
-                    .mosaicFont(.headline)
+                    .cotermFont(.headline)
                 Text(state.agentDisplayName)
-                    .mosaicFont(.subheadline)
+                    .cotermFont(.subheadline)
                     .foregroundStyle(.secondary)
                 Text(
                     String.localizedStringWithFormat(
@@ -1273,13 +1273,13 @@ private struct AgentHibernationPlaceholderView: View {
                         lastActivityText
                     )
                 )
-                .mosaicFont(.caption)
+                .cotermFont(.caption)
                 .foregroundStyle(.tertiary)
             }
             TrackedButton("terminalpanelview_button_859", String(localized: "terminal.agentHibernation.resume", defaultValue: "Resume")) {
                 onResume()
             }
-            .buttonStyle(.mosaicAccent)
+            .buttonStyle(.cotermAccent)
             .accessibilityIdentifier("AgentHibernationResumeButton")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1315,7 +1315,7 @@ private struct TerminalViewportGeometryReporter: ViewModifier {
 @MainActor
 private func recordTerminalViewportGeometryForUITest(proxy: GeometryProxy, panel: TerminalPanel) {
     let env = ProcessInfo.processInfo.environment
-    guard env["MOSAIC_UI_TEST_TERMINAL_VIEWPORT_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+    guard env["COTERM_UI_TEST_TERMINAL_VIEWPORT_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
         return
     }
 
@@ -1331,7 +1331,7 @@ private func recordTerminalViewportGeometryForUITest(proxy: GeometryProxy, panel
         hostedFrameInContent = .zero
     }
 
-    _ = UITestCaptureSink().mutateJSONObjectIfConfigured(envKey: "MOSAIC_UI_TEST_TERMINAL_VIEWPORT_PATH") { payload in
+    _ = UITestCaptureSink().mutateJSONObjectIfConfigured(envKey: "COTERM_UI_TEST_TERMINAL_VIEWPORT_PATH") { payload in
         payload["terminalViewportPanelId"] = panel.id.uuidString
         payload["terminalViewportPanelWidth"] = terminalViewportFormat(proxy.size.width)
         payload["terminalViewportPanelHeight"] = terminalViewportFormat(proxy.size.height)
@@ -1385,10 +1385,10 @@ struct PanelAppearance {
     }
 
     static func fromConfig(_ config: GhosttyConfig, usesTransparentWindow: Bool) -> PanelAppearance {
-        let backgroundColor = MosaicChromePalette.workspaceBackgroundColor
+        let backgroundColor = CotermChromePalette.workspaceBackgroundColor
         return PanelAppearance(
             backgroundColor: backgroundColor,
-            foregroundColor: mosaicReadableForegroundNSColor(
+            foregroundColor: cotermReadableForegroundNSColor(
                 preferred: config.foregroundColor,
                 on: backgroundColor
             ),

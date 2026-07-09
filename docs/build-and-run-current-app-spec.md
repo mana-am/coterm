@@ -2,12 +2,12 @@
 
 Last updated: June 30, 2026
 
-This document defines the supported ways to build mosaic from this repository:
+This document defines the supported ways to build coterm from this repository:
 
 1. A tagged isolated Debug app for local development and agent verification.
 2. The signed, notarized macOS DMG that real users download and run.
 
-The public installable is not a Debug build. It is the `mosaic-macos.dmg` asset produced by the stable release pipeline and attached to a GitHub Release tag.
+The public installable is not a Debug build. It is the `coterm-macos.dmg` asset produced by the stable release pipeline and attached to a GitHub Release tag.
 
 ## Outcomes
 
@@ -15,7 +15,7 @@ The public installable is not a Debug build. It is the `mosaic-macos.dmg` asset 
 
 Use this when validating a worktree change on the same machine.
 
-- Product: `Mosaic DEV <tag>.app`
+- Product: `Coterm DEV <tag>.app`
 - Configuration: Debug
 - Bundle ID: tag-scoped debug bundle ID
 - Socket: tag-scoped debug socket
@@ -26,20 +26,20 @@ Use this when validating a worktree change on the same machine.
 
 Use this when producing the app others download.
 
-- Product: `mosaic-macos.dmg`
-- Contents: signed and notarized `Mosaic.app`
+- Product: `coterm-macos.dmg`
+- Contents: signed and notarized `Coterm.app`
 - Configuration: Release, universal macOS app
-- Bundle ID: `mosaic.com.emergent.app`
+- Bundle ID: `coterm.com.emergent.app`
 - Update feed: Sparkle `appcast.xml`
-- Download URL: `https://download.mosaic.inc/mosaic-macos.dmg`
+- Download URL: `https://download.coterm.cc/coterm-macos.dmg`
 - Release trigger: push a `v*` tag to GitHub
 
 Nightly has the same shape but a different channel:
 
-- Product: `mosaic-nightly-macos.dmg`
-- Contents: signed and notarized `Mosaic NIGHTLY.app`
-- Bundle ID: `mosaic.com.emergent.app.nightly`
-- Update feed: `https://updates.mosaic.inc/nightly/appcast.xml`
+- Product: `coterm-nightly-macos.dmg`
+- Contents: signed and notarized `Coterm NIGHTLY.app`
+- Bundle ID: `coterm.com.emergent.app.nightly`
+- Update feed: `https://updates.coterm.cc/nightly/appcast.xml`
 - Release target: the mutable `nightly` GitHub Release
 
 ## Public Stable Release Path
@@ -93,7 +93,7 @@ Optional or adjacent release operations use:
 - `HOMEBREW_TAP_TOKEN`
 - `SENTRY_AUTH_TOKEN`
 
-The signing identity must be a Developer ID Application identity for emergent.inc. The release provisioning profile must match `mosaic.com.emergent.app` and include required entitlements such as WebAuthn.
+The signing identity must be a Developer ID Application identity for emergent.inc. The release provisioning profile must match `coterm.com.emergent.app` and include required entitlements such as WebAuthn.
 
 ### Tag And Trigger
 
@@ -102,7 +102,7 @@ Create and push a stable semver tag:
 ```bash
 git tag vX.Y.Z
 git push origin vX.Y.Z
-gh run watch --repo emergent-inc/mosaic
+gh run watch --repo emergent-inc/coterm
 ```
 
 The public release path is tag-triggered. `workflow_dispatch` on `release.yml` is useful for dry-run artifacts, but it does not publish the public GitHub Release in the same way as a `v*` tag push.
@@ -115,14 +115,14 @@ The public release path is tag-triggered. `workflow_dispatch` on `release.yml` i
 
 `scripts/release_asset_guard.js` checks immutable release assets:
 
-- `mosaic-macos.dmg`
+- `coterm-macos.dmg`
 - `appcast.xml`
-- `mosaicd-remote-darwin-arm64`
-- `mosaicd-remote-darwin-amd64`
-- `mosaicd-remote-linux-arm64`
-- `mosaicd-remote-linux-amd64`
-- `mosaicd-remote-checksums.txt`
-- `mosaicd-remote-manifest.json`
+- `cotermd-remote-darwin-arm64`
+- `cotermd-remote-darwin-amd64`
+- `cotermd-remote-linux-arm64`
+- `cotermd-remote-linux-amd64`
+- `cotermd-remote-checksums.txt`
+- `cotermd-remote-manifest.json`
 
 If every immutable asset already exists for the tag, CI skips rebuild/upload. If only some assets exist, CI fails and requires manual cleanup or a new tag. Do not overwrite release assets casually; a published DMG and appcast are part of the update contract.
 
@@ -143,13 +143,13 @@ The workflow deliberately installs `create-dmg` so self-hosted runners do not ne
 The app is built as a universal Release app:
 
 ```text
-build-universal/Build/Products/Release/Mosaic.app
+build-universal/Build/Products/Release/Coterm.app
 ```
 
 The workflow injects Sparkle metadata into `Info.plist`:
 
 - `SUPublicEDKey` derived from `SPARKLE_PRIVATE_KEY`
-- `SUFeedURL` set to `https://updates.mosaic.inc/stable/appcast.xml`
+- `SUFeedURL` set to `https://updates.coterm.cc/stable/appcast.xml`
 
 The workflow also embeds release channel metadata and removes Sparkle sandbox XPC services that do not apply to this non-sandboxed app.
 
@@ -158,13 +158,13 @@ The workflow also embeds release channel metadata and removes Sparkle sandbox XP
 The release profile from `APPLE_RELEASE_PROVISIONING_PROFILE_BASE64` is decoded and embedded at:
 
 ```text
-Mosaic.app/Contents/embedded.provisionprofile
+Coterm.app/Contents/embedded.provisionprofile
 ```
 
 CI validates that the profile app identifier matches `APPLE_TEAM_ID` plus the release bundle id:
 
 ```text
-T342J8UQGV.mosaic.com.emergent.app
+T342J8UQGV.coterm.com.emergent.app
 ```
 
 ### 5. Sign The App
@@ -172,17 +172,17 @@ T342J8UQGV.mosaic.com.emergent.app
 The app is signed with:
 
 ```bash
-./scripts/sign-mosaic-bundle.sh "$APP_PATH" mosaic.release.entitlements "$APPLE_SIGNING_IDENTITY"
+./scripts/sign-coterm-bundle.sh "$APP_PATH" coterm.release.entitlements "$APPLE_SIGNING_IDENTITY"
 ```
 
 The signing certificate is imported into an ephemeral `build.keychain`, and Apple Developer ID intermediate certificates are imported before signing.
 
 ### 6. Notarize The App
 
-CI submits a zip of `Mosaic.app` to Apple notarization:
+CI submits a zip of `Coterm.app` to Apple notarization:
 
 ```bash
-xcrun notarytool submit mosaic-notary.zip --wait
+xcrun notarytool submit coterm-notary.zip --wait
 ```
 
 After Apple accepts it, CI staples and validates the app:
@@ -198,8 +198,8 @@ spctl -a -vv --type execute "$APP_PATH"
 The workflow verifies the app before packaging:
 
 ```bash
-MOSAIC_SMOKE_ALLOW_UNSUPPORTED_GUI=1 MOSAIC_SMOKE_DEBUG_LOGS=1 ./scripts/smoke-launch-macos-app.sh "$APP_PATH"
-MOSAIC_SMOKE_DIRECT_EXEC=1 MOSAIC_SMOKE_DEBUG_LOGS=1 ./scripts/smoke-launch-macos-app.sh "$APP_PATH"
+COTERM_SMOKE_ALLOW_UNSUPPORTED_GUI=1 COTERM_SMOKE_DEBUG_LOGS=1 ./scripts/smoke-launch-macos-app.sh "$APP_PATH"
+COTERM_SMOKE_DIRECT_EXEC=1 COTERM_SMOKE_DEBUG_LOGS=1 ./scripts/smoke-launch-macos-app.sh "$APP_PATH"
 ./scripts/verify-app-bundle-channel-metadata.sh "$APP_PATH" stable
 ./scripts/smoke-installable-artifact.sh --channel stable "$APP_PATH"
 ```
@@ -212,23 +212,23 @@ CI creates the drag-to-install disk image:
 
 ```bash
 create-dmg --no-code-sign "$APP_PATH" .
-mv ./mosaic*.dmg mosaic-macos.dmg
+mv ./coterm*.dmg coterm-macos.dmg
 ```
 
 Then it signs and notarizes the DMG container itself:
 
 ```bash
-codesign --force --timestamp --keychain build.keychain --sign "$APPLE_SIGNING_IDENTITY" mosaic-macos.dmg
-codesign --verify --verbose=2 mosaic-macos.dmg
-xcrun notarytool submit mosaic-macos.dmg --wait
-xcrun stapler staple mosaic-macos.dmg
-xcrun stapler validate mosaic-macos.dmg
+codesign --force --timestamp --keychain build.keychain --sign "$APPLE_SIGNING_IDENTITY" coterm-macos.dmg
+codesign --verify --verbose=2 coterm-macos.dmg
+xcrun notarytool submit coterm-macos.dmg --wait
+xcrun stapler staple coterm-macos.dmg
+xcrun stapler validate coterm-macos.dmg
 ```
 
 Finally, it mounts and validates the final user artifact:
 
 ```bash
-./scripts/smoke-installable-artifact.sh --channel stable mosaic-macos.dmg
+./scripts/smoke-installable-artifact.sh --channel stable coterm-macos.dmg
 ```
 
 That final smoke is important: it checks what users download, not just the intermediate app bundle.
@@ -238,7 +238,7 @@ That final smoke is important: it checks what users download, not just the inter
 CI generates the stable update feed:
 
 ```bash
-./scripts/sparkle_generate_appcast.sh mosaic-macos.dmg "$GITHUB_REF_NAME" appcast.xml
+./scripts/sparkle_generate_appcast.sh coterm-macos.dmg "$GITHUB_REF_NAME" appcast.xml
 ```
 
 The appcast must reference the published DMG and must be signed with `SPARKLE_PRIVATE_KEY`.
@@ -247,7 +247,7 @@ The appcast must reference the published DMG and must be signed with `SPARKLE_PR
 
 On a `v*` tag push, CI uploads these assets to the GitHub Release:
 
-- `mosaic-macos.dmg`
+- `coterm-macos.dmg`
 - `appcast.xml`
 - remote daemon binaries
 - remote daemon checksums and manifest
@@ -255,7 +255,7 @@ On a `v*` tag push, CI uploads these assets to the GitHub Release:
 The README, localized READMEs, and web download code all assume the stable DMG is available at:
 
 ```text
-https://download.mosaic.inc/mosaic-macos.dmg
+https://download.coterm.cc/coterm-macos.dmg
 ```
 
 ### 11. Mirror Stable Appcast To R2
@@ -263,81 +263,55 @@ https://download.mosaic.inc/mosaic-macos.dmg
 If the tag is the highest semver release, CI mirrors `appcast.xml` to:
 
 ```text
-https://updates.mosaic.inc/stable/appcast.xml
+https://updates.coterm.cc/stable/appcast.xml
 ```
 
 Backport tags do not overwrite the stable R2 appcast.
 
 ### 12. Update Homebrew
 
-After the release workflow succeeds, `.github/workflows/update-homebrew.yml` updates the `emergent-inc/homebrew-mosaic` cask. The cask points at:
+After the release workflow succeeds, `.github/workflows/update-homebrew.yml` updates the `emergent-inc/homebrew-coterm` cask. The cask points at:
 
 ```text
-https://download.mosaic.inc/releases/v#{version}/mosaic-macos.dmg
+https://download.coterm.cc/releases/v#{version}/coterm-macos.dmg
 ```
 
 and pins the DMG SHA256.
 
-## Multiplayer Relay Requirement
+## Self-host Collaboration Requirement
 
-The public app is only "ready for others" if the collaboration relay is deployed and smoke-tested.
+Downloadable builds do not default to a hosted collaboration relay. Users must
+configure their own self-hosted relay/control-plane/presence URLs. The macOS
+client converts configured `https://` relay URLs to `wss://` for WebSocket
+joins.
 
-The relay lives in `workers/collaboration` and deploys through `.github/workflows/collaboration.yml`.
+The active self-host backend lives in `coterm/`:
 
-### Production Relay
+- `coterm/workers/relay`
+- `coterm/workers/control-plane`
+- `coterm/workers/presence`
 
-Downloadable builds default to:
-
-```text
-https://mosaic-collaboration-worker.dorsa-rohani.workers.dev
-```
-
-The macOS client converts `https://` relay URLs to `wss://` for WebSocket joins.
-
-### Relay CI
-
-Pull requests touching the worker run:
+Use the one-command deploy path in `coterm/docs/self-hosting.md` for real user
+installs:
 
 ```bash
-bun run --cwd workers/collaboration typecheck
-bun run --cwd workers/collaboration test
-bun run --cwd workers/collaboration check
+cd coterm
+bun install
+bun run deploy:self-host
 ```
 
-Pushes to `main` deploy to Cloudflare when these secrets exist:
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-
-`wrangler deploy` applies Durable Object migrations from `wrangler.toml` atomically with the Worker upload.
-
-### Relay Smoke
-
-After deploy, CI runs:
+For backend changes, run the focused checks in the touched `coterm/workers/*`
+package. For relay/preview changes, the minimum local proof is:
 
 ```bash
-bun run --cwd workers/collaboration smoke:relay
+cd coterm/workers/relay
+bun test
+bun run typecheck
 ```
 
-The smoke test performs:
-
-- health check
-- session creation
-- two WebSocket peer joins
-- heartbeat handling
-- document frame forwarding
-
-Manual smoke against production:
-
-```bash
-bun run --cwd workers/collaboration smoke:relay https://mosaic-collaboration-worker.dorsa-rohani.workers.dev
-```
-
-Manual smoke against local Wrangler:
-
-```bash
-MOSAIC_COLLABORATION_RELAY_URL=http://localhost:8787 bun run --cwd workers/collaboration smoke:relay
-```
+The root `workers/collaboration` service is the legacy hosted Phase 1 relay. Do
+not use it as the implementation target for new self-host collaboration or
+preview-sharing work.
 
 ## Local Manual Release Fallback
 
@@ -350,7 +324,7 @@ Prefer tag-triggered CI for public releases. The local fallback is:
 It expects:
 
 ```bash
-source ~/.secrets/mosaicterm.env
+source ~/.secrets/coterm.env
 export SPARKLE_PRIVATE_KEY
 ```
 
@@ -366,7 +340,7 @@ and requires these tools on the local machine:
 
 The local script handles GhosttyKit build, Release app build, Sparkle key injection, codesigning, app notarization, DMG creation, DMG notarization, appcast generation, GitHub release upload, and Homebrew cask update.
 
-Use the local script only when intentionally doing a maintainer-local release. CI and local release behavior are similar but not identical: CI embeds the release provisioning profile, uses `mosaic.release.entitlements`, enforces release asset guarding, downloads prebuilt GhosttyKit, and runs the current artifact smoke checks.
+Use the local script only when intentionally doing a maintainer-local release. CI and local release behavior are similar but not identical: CI embeds the release provisioning profile, uses `coterm.release.entitlements`, enforces release asset guarding, downloads prebuilt GhosttyKit, and runs the current artifact smoke checks.
 
 ## Nightly Installable
 
@@ -375,22 +349,22 @@ Nightly releases are produced by `.github/workflows/nightly.yml`.
 Nightly creates:
 
 ```text
-mosaic-nightly-macos.dmg
+coterm-nightly-macos.dmg
 ```
 
 and uploads it to the mutable `nightly` GitHub Release:
 
 ```text
-https://download.mosaic.inc/nightly/mosaic-nightly-macos.dmg
+https://download.coterm.cc/nightly/coterm-nightly-macos.dmg
 ```
 
 Nightly uses:
 
-- bundle ID `mosaic.com.emergent.app.nightly`
-- app display name `Mosaic NIGHTLY`
-- `mosaic.nightly.entitlements`
+- bundle ID `coterm.com.emergent.app.nightly`
+- app display name `Coterm NIGHTLY`
+- `coterm.nightly.entitlements`
 - `APPLE_NIGHTLY_PROVISIONING_PROFILE_BASE64`
-- Sparkle feed `https://updates.mosaic.inc/nightly/appcast.xml`
+- Sparkle feed `https://updates.coterm.cc/nightly/appcast.xml`
 
 The nightly workflow signs, notarizes, staples, validates, smoke-launches, mounts the DMG, verifies the artifact, generates appcasts, and mirrors the nightly appcast to R2.
 
@@ -405,7 +379,7 @@ Use a tagged Debug reload when validating source changes locally:
 The tag creates an isolated app name, bundle ID, socket, sidebar extension point, and derived data path. For the `run-current` tag, the expected build product is:
 
 ```text
-~/Library/Developer/Xcode/DerivedData/mosaic-run-current/Build/Products/Debug/Mosaic DEV run-current.app
+~/Library/Developer/Xcode/DerivedData/coterm-run-current/Build/Products/Debug/Coterm DEV run-current.app
 ```
 
 If `xcode-select -p` points at Command Line Tools, `xcodebuild` will fail with:
@@ -426,24 +400,24 @@ A successful run prints:
 ==> reload succeeded
 
 App path:
-  /Users/dorsa/Library/Developer/Xcode/DerivedData/mosaic-run-current/Build/Products/Debug/Mosaic DEV run-current.app
+  /Users/dorsa/Library/Developer/Xcode/DerivedData/coterm-run-current/Build/Products/Debug/Coterm DEV run-current.app
 ```
 
 To share the launched app in chat, convert that `App path:` line to a `file://` URL and URL-encode spaces as `%20`:
 
 ```markdown
-[run-current: file:///Users/dorsa/Library/Developer/Xcode/DerivedData/mosaic-run-current/Build/Products/Debug/mosaic%20DEV%20run-current.app](file:///Users/dorsa/Library/Developer/Xcode/DerivedData/mosaic-run-current/Build/Products/Debug/mosaic%20DEV%20run-current.app)
+[run-current: file:///Users/dorsa/Library/Developer/Xcode/DerivedData/coterm-run-current/Build/Products/Debug/coterm%20DEV%20run-current.app](file:///Users/dorsa/Library/Developer/Xcode/DerivedData/coterm-run-current/Build/Products/Debug/coterm%20DEV%20run-current.app)
 ```
 
 Do not hardcode the path for other tags or machines. Always use the path printed by `reload.sh`.
 
-For tagged CLI dogfood, set `MOSAIC_TAG=<tag>` and use:
+For tagged CLI dogfood, set `COTERM_TAG=<tag>` and use:
 
 ```bash
-MOSAIC_TAG=<tag> scripts/mosaic-debug-cli.sh list-workspaces
+COTERM_TAG=<tag> scripts/coterm-debug-cli.sh list-workspaces
 ```
 
-Do not use `/tmp/mosaic-cli` for tagged dogfood.
+Do not use `/tmp/coterm-cli` for tagged dogfood.
 
 ## Local Debug DMG For Trusted Sharing
 
@@ -453,7 +427,7 @@ The working shape mirrors the known-openable local `v1.dmg` style:
 
 - DMG container: unsigned
 - DMG root: exactly one `.app`
-- App bundle name: keep the tagged Debug app name, for example `Mosaic DEV session-code-ui.app`
+- App bundle name: keep the tagged Debug app name, for example `Coterm DEV session-code-ui.app`
 - No `Applications` symlink
 - No copied app from an already-mounted DMG
 - Source app: the freshly rebuilt DerivedData product from `reload.sh`
@@ -474,15 +448,15 @@ Stage the rebuilt `.app` as the only root entry, then create a compressed read-o
 
 ```bash
 TAG="session-code-ui"
-APP_PATH="$HOME/Library/Developer/Xcode/DerivedData/mosaic-${TAG}/Build/Products/Debug/Mosaic DEV ${TAG}.app"
+APP_PATH="$HOME/Library/Developer/Xcode/DerivedData/coterm-${TAG}/Build/Products/Debug/Coterm DEV ${TAG}.app"
 OUT_DIR="build/local-dmg"
 STAGING="$OUT_DIR/${TAG}-v1-style-staging"
-DMG="$OUT_DIR/mosaic-${TAG}-v1-style.dmg"
+DMG="$OUT_DIR/coterm-${TAG}-v1-style.dmg"
 
 rm -rf "$STAGING" "$DMG"
 mkdir -p "$STAGING"
-ditto "$APP_PATH" "$STAGING/Mosaic DEV ${TAG}.app"
-hdiutil create -volname "mosaic ${TAG//-/ }" -srcfolder "$STAGING" -ov -format UDZO "$DMG"
+ditto "$APP_PATH" "$STAGING/Coterm DEV ${TAG}.app"
+hdiutil create -volname "coterm ${TAG//-/ }" -srcfolder "$STAGING" -ov -format UDZO "$DMG"
 rm -rf "$STAGING"
 shasum -a 256 "$DMG"
 ```
@@ -501,20 +475,20 @@ hdiutil detach /dev/diskXsY
 Mount the new DMG and validate the app inside the mounted image, not just the DerivedData source app:
 
 ```bash
-hdiutil attach -readonly -nobrowse "build/local-dmg/mosaic-session-code-ui-v1-style.dmg"
-MOSAIC_INSTALLABLE_REQUIRE_NOTARIZATION=0 MOSAIC_INSTALLABLE_REQUIRE_SPCTL=0 \
+hdiutil attach -readonly -nobrowse "build/local-dmg/coterm-session-code-ui-v1-style.dmg"
+COTERM_INSTALLABLE_REQUIRE_NOTARIZATION=0 COTERM_INSTALLABLE_REQUIRE_SPCTL=0 \
   ./scripts/smoke-installable-artifact.sh --channel debug \
-  "/Volumes/mosaic session code ui/Mosaic DEV session-code-ui.app"
-open -n "/Volumes/mosaic session code ui/Mosaic DEV session-code-ui.app"
+  "/Volumes/coterm session code ui/Coterm DEV session-code-ui.app"
+open -n "/Volumes/coterm session code ui/Coterm DEV session-code-ui.app"
 ```
 
 The debug artifact smoke should report:
 
 ```text
-installable artifact smoke OK: bundle=mosaic.com.emergent.app.debug.<tag> version=<version> build=<build>
+installable artifact smoke OK: bundle=coterm.com.emergent.app.debug.<tag> version=<version> build=<build>
 ```
 
-If Finder reports `kLSNoExecutableErr`, compare the mounted app's `Info.plist` `CFBundleExecutable` with the file in `Contents/MacOS/`, verify it is executable (`0755`), detach all stale mosaic volumes, and retry with a new DMG filename and volume name.
+If Finder reports `kLSNoExecutableErr`, compare the mounted app's `Info.plist` `CFBundleExecutable` with the file in `Contents/MacOS/`, verify it is executable (`0755`), detach all stale coterm volumes, and retry with a new DMG filename and volume name.
 
 ## Verification Checklist
 
@@ -530,13 +504,14 @@ Before tagging a stable release:
 
 After release CI finishes:
 
-1. GitHub Release contains `mosaic-macos.dmg` and `appcast.xml`.
-2. `mosaic-macos.dmg` downloads from `https://download.mosaic.inc/mosaic-macos.dmg`.
-3. `xcrun stapler validate mosaic-macos.dmg` passes on the downloaded artifact.
-4. `scripts/smoke-installable-artifact.sh --channel stable mosaic-macos.dmg` passes.
+1. GitHub Release contains `coterm-macos.dmg` and `appcast.xml`.
+2. `coterm-macos.dmg` downloads from `https://download.coterm.cc/coterm-macos.dmg`.
+3. `xcrun stapler validate coterm-macos.dmg` passes on the downloaded artifact.
+4. `scripts/smoke-installable-artifact.sh --channel stable coterm-macos.dmg` passes.
 5. Sparkle appcast exists and references the new DMG.
 6. Homebrew cask update completes, or any intentional skip is documented.
-7. Production collaboration relay create/connect smoke passes.
+7. If collaboration changed, the active `coterm/` self-host backend checks pass
+   and the release notes do not imply an official hosted collaboration service.
 
 ## Failure Handling
 
@@ -552,10 +527,10 @@ Possibly there are two concurrent builds running in the same filesystem location
 Wait for any existing build using the same tag to finish:
 
 ```bash
-while pgrep -f 'xcodebuild .*mosaic-run-current' >/dev/null; do sleep 5; done
+while pgrep -f 'xcodebuild .*coterm-run-current' >/dev/null; do sleep 5; done
 ```
 
-Then rerun the tagged reload command. Avoid starting a second build against the same `mosaic-<tag>` derived data path while another one is active.
+Then rerun the tagged reload command. Avoid starting a second build against the same `coterm-<tag>` derived data path while another one is active.
 
 ### Partial Release Assets
 
@@ -581,6 +556,6 @@ If release CI cannot find the prebuilt GhosttyKit for the current submodule SHA,
 2. Do not commit `*.dmg` files.
 3. Do not commit generated Worker `dist/` output.
 4. Do not overwrite stable release assets unless doing a documented emergency reroll.
-5. Do not use bare `xcodebuild` or untagged `Mosaic DEV.app` for local agent verification.
-6. Do not claim multiplayer is ready unless the production relay deploy and create/connect smoke pass.
+5. Do not use bare `xcodebuild` or untagged `Coterm DEV.app` for local agent verification.
+6. Do not claim multiplayer is ready unless the self-host relay deploy and create/connect smoke pass.
 7. Do not update download URLs unless every user-facing download surface is updated consistently.

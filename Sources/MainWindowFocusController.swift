@@ -1,6 +1,6 @@
 import AppKit
-import MosaicFoundation
-import MosaicTerminal
+import CotermFoundation
+import Coterminal
 
 @MainActor
 final class MainWindowFocusController {
@@ -821,7 +821,7 @@ final class MainWindowFocusController {
     }
 
     private func terminalFocusRequest(for responder: NSResponder?) -> TerminalFocusRequest? {
-        guard let ghosttyView = mosaicOwningGhosttyView(for: responder),
+        guard let ghosttyView = cotermOwningGhosttyView(for: responder),
               let workspaceId = ghosttyView.tabId,
               let panelId = ghosttyView.terminalSurface?.id else {
             return nil

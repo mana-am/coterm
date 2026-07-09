@@ -1,32 +1,32 @@
 export const blogPosts = [
   {
-    slug: "mosaic-home",
-    key: "mosaicHome",
-    title: "mosaic home",
+    slug: "coterm-home",
+    key: "cotermHome",
+    title: "coterm home",
     date: "2026-06-23",
     summary:
-      "We're not adding worktrees to mosaic. It's a primitive, so you can script your own worktrees, multiple checkouts, or remote dev and make it feel like home.",
+      "We're not adding worktrees to coterm. It's a primitive, so you can script your own worktrees, multiple checkouts, or remote dev and make it feel like home.",
   },
   {
-    slug: "mosaic-history",
-    key: "mosaicHistory",
-    title: "mosaic history",
+    slug: "coterm-history",
+    key: "cotermHistory",
+    title: "coterm history",
     date: "2026-06-02",
     summary:
       "Reopen closed terminals, browsers, workspaces, and agent sessions with Cmd+Shift+T, and retrace your focus with Cmd+[ and Cmd+].",
   },
   {
-    slug: "mosaic-finder",
-    key: "mosaicFinder",
-    title: "Introducing mosaic Finder",
+    slug: "coterm-finder",
+    key: "cotermFinder",
+    title: "Introducing Coterm Finder",
     date: "2026-05-22",
     summary:
-      "mosaic now has a file explorer that previews videos, images, PDFs, and markdown files.",
+      "Coterm now has a file explorer that previews videos, images, PDFs, and markdown files.",
   },
   {
-    slug: "mosaic-vault",
-    key: "mosaicVault",
-    title: "mosaic Vault",
+    slug: "coterm-vault",
+    key: "cotermVault",
+    title: "coterm Vault",
     date: "2026-05-22",
     summary:
       "Search Codex, Claude Code, OpenCode, and Pi sessions from the Vault pane and drag them into your workspace.",
@@ -34,31 +34,31 @@ export const blogPosts = [
   {
     slug: "passkey-auth",
     key: "passkeyAuth",
-    title: "Passkey auth in the mosaic browser",
+    title: "Passkey auth in the Coterm browser",
     date: "2026-05-22",
     summary:
-      "mosaic's embedded browser supports passkey authentication and can import cookies from other browsers with mosaic browser import.",
+      "coterm's embedded browser supports passkey authentication and can import cookies from other browsers with Coterm browser import.",
   },
   {
     slug: "task-manager",
     key: "taskManager",
-    title: "Task Manager in mosaic",
+    title: "Task Manager in Coterm",
     date: "2026-05-22",
     summary:
-      "Use mosaic top or Task Manager from the command palette to see CPU and RAM usage for your coding agents.",
+      "Use coterm top or Task Manager from the command palette to see CPU and RAM usage for your coding agents.",
   },
   {
     slug: "markdown-viewer",
     key: "markdownViewer",
-    title: "A better markdown viewer in mosaic",
+    title: "A better markdown viewer in Coterm",
     date: "2026-05-22",
     summary:
-      "Open README.md with mosaic open or drag markdown files from the right sidebar.",
+      "Open README.md with coterm open or drag markdown files from the right sidebar.",
   },
   {
     slug: "unread-shortcuts",
     key: "unreadShortcuts",
-    title: "Unread workspace shortcuts in mosaic",
+    title: "Unread workspace shortcuts in Coterm",
     date: "2026-05-22",
     summary:
       "Cmd+Control+U cycles through unread workspaces while keeping them unread, and Cmd+Option+U toggles read state.",
@@ -66,42 +66,42 @@ export const blogPosts = [
   {
     slug: "session-restore",
     key: "sessionRestore",
-    title: "Session restore in mosaic",
+    title: "Session restore in Coterm",
     date: "2026-05-13",
     summary:
-      "mosaic restores layout, scrollback, browser history, and supported agent sessions when hooks have captured a resume token.",
+      "coterm restores layout, scrollback, browser history, and supported agent sessions when hooks have captured a resume token.",
   },
   {
-    slug: "mosaic-ssh",
-    key: "mosaicSsh",
-    title: "mosaic SSH",
+    slug: "coterm-ssh",
+    key: "cotermSsh",
+    title: "Coterm SSH",
     date: "2026-03-30",
     summary:
       "One command gives you persistent remote sessions, browser panes that reach remote ports, and agent notifications that come home.",
   },
   {
-    slug: "mosaic-claude-teams",
-    key: "mosaicClaudeTeams",
-    title: "Claude Code teammate agents as native mosaic panes",
+    slug: "coterm-claude-teams",
+    key: "cotermClaudeTeams",
+    title: "Claude Code teammate agents as native coterm panes",
     date: "2026-03-30",
     summary:
-      "Claude Code's teammate mode requires tmux. mosaic fakes it so teammates become native splits with sidebar metadata and notifications.",
+      "Claude Code's teammate mode requires tmux. coterm fakes it so teammates become native splits with sidebar metadata and notifications.",
   },
   {
-    slug: "mosaic-omo",
-    key: "mosaicOmo",
-    title: "oh-my-openagent subagents as native mosaic panes",
+    slug: "coterm-omo",
+    key: "cotermOmo",
+    title: "oh-my-openagent subagents as native coterm panes",
     date: "2026-03-30",
     summary:
-      "oh-my-openagent (formerly oh-my-opencode) orchestrates parallel specialist agents across Claude, GPT, and Gemini. mosaic omo turns their tmux panes into native splits.",
+      "oh-my-openagent (formerly oh-my-opencode) orchestrates parallel specialist agents across Claude, GPT, and Gemini. coterm omo turns their tmux panes into native splits.",
   },
   {
     slug: "gpl",
     key: "gpl",
-    title: "mosaic is now GPL",
+    title: "coterm is now GPL",
     date: "2026-03-30",
     summary:
-      "mosaic relicensed from AGPL-3.0 to GPL-3.0.",
+      "coterm relicensed from AGPL-3.0 to GPL-3.0.",
   },
   {
     slug: "cmd-shift-u",
@@ -109,28 +109,28 @@ export const blogPosts = [
     title: "Cmd+Shift+U",
     date: "2026-03-04",
     summary:
-      "How Cmd+Shift+U navigates between finished agents across workspaces in mosaic.",
+      "How Cmd+Shift+U navigates between finished agents across workspaces in coterm.",
   },
   {
-    slug: "zen-of-mosaic",
-    key: "zenOfMosaic",
-    title: "The Zen of mosaic",
+    slug: "zen-of-coterm",
+    key: "zenOfCoterm",
+    title: "The Zen of Coterm",
     date: "2026-02-27",
     summary:
-      "mosaic is a primitive, not a solution. It gives you composable pieces and your workflow is up to you.",
+      "Coterm is a primitive, not a solution. It gives you composable pieces and your workflow is up to you.",
   },
   {
     slug: "show-hn-launch",
     key: "showHnLaunch",
-    title: "Launching mosaic on Show HN",
+    title: "Launching coterm on Show HN",
     date: "2026-02-21",
     summary:
-      "mosaic hit #2 on Hacker News, got shared by Mitchell Hashimoto, and went viral in Japan.",
+      "Coterm hit #2 on Hacker News, got shared by Mitchell Hashimoto, and went viral in Japan.",
   },
   {
-    slug: "introducing-mosaic",
-    key: "introducingMosaic",
-    title: "Introducing mosaic",
+    slug: "introducing-coterm",
+    key: "introducingCoterm",
+    title: "Introducing Coterm",
     date: "2026-02-12",
     summary:
       "A native macOS terminal built on Ghostty, designed for running multiple AI coding agents side by side.",

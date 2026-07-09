@@ -1,32 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="Mosaic STAGING"
-BUNDLE_ID="mosaic.com.emergent.app.staging"
-BASE_APP_NAME="mosaic"
+APP_NAME="Coterm STAGING"
+BUNDLE_ID="coterm.com.emergent.app.staging"
+BASE_APP_NAME="coterm"
 DERIVED_DATA=""
 NAME_SET=0
 BUNDLE_SET=0
 DERIVED_SET=0
 TAG=""
-# Matches MosaicStateDirectory (non-TCC ~/.local/state/mosaic) where the app/CLI now
-# read the last-socket-path markers (https://github.com/emergent-inc/mosaic/issues/5146).
+# Matches CotermStateDirectory (non-TCC ~/.local/state/coterm) where the app/CLI now
+# read the last-socket-path markers (https://github.com/emergent-inc/coterm/issues/5146).
 # Resolve the real account home via getpwuid (the same syscall
 # homeDirectoryForCurrentUser uses) rather than $HOME, which a shell can override.
 # perl ships with macOS and returns the full home path even when it contains spaces;
 # `dscl ... | awk` mis-parses such paths because dscl wraps a value with spaces onto
 # a second line. `|| true` keeps the lookup from aborting the script under
 # `set -euo pipefail`; an empty result falls back to $HOME.
-_mosaic_account_home="$(perl -e 'print((getpwuid($<))[7])' 2>/dev/null || true)"
-LAST_SOCKET_PATH_DIR="${_mosaic_account_home:-$HOME}/.local/state/mosaic"
+_coterm_account_home="$(perl -e 'print((getpwuid($<))[7])' 2>/dev/null || true)"
+LAST_SOCKET_PATH_DIR="${_coterm_account_home:-$HOME}/.local/state/coterm"
 
 write_last_socket_path() {
   local socket_path="$1"
   local marker_name="staging-last-socket-path"
-  local tmp_marker="/tmp/mosaic-staging-last-socket-path"
+  local tmp_marker="/tmp/coterm-staging-last-socket-path"
   if [[ -n "${STAGING_SLUG:-}" ]]; then
     marker_name="staging-${STAGING_SLUG}-last-socket-path"
-    tmp_marker="/tmp/mosaic-staging-${STAGING_SLUG}-last-socket-path"
+    tmp_marker="/tmp/coterm-staging-${STAGING_SLUG}-last-socket-path"
   fi
   mkdir -p "$LAST_SOCKET_PATH_DIR"
   echo "$socket_path" > "${LAST_SOCKET_PATH_DIR}/${marker_name}" || true
@@ -36,8 +36,8 @@ write_last_socket_path() {
 staging_slug_from_bundle_id() {
   local bundle_id="$1"
   local suffix=""
-  if [[ "$bundle_id" == "mosaic.com.emergent.app.staging."* ]]; then
-    suffix="${bundle_id#mosaic.com.emergent.app.staging.}"
+  if [[ "$bundle_id" == "coterm.com.emergent.app.staging."* ]]; then
+    suffix="${bundle_id#coterm.com.emergent.app.staging.}"
   fi
   sanitize_path "$suffix"
 }
@@ -46,8 +46,8 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/reloads.sh [options]
 
-Release build with isolated "Mosaic STAGING" identity. Runs side-by-side with
-the production mosaic app.
+Release build with isolated "Coterm STAGING" identity. Runs side-by-side with
+the production coterm app.
 
 Options:
   --tag <name>           Short tag for parallel builds (e.g., feature-xyz-lol).
@@ -133,19 +133,19 @@ if [[ -n "$TAG" ]]; then
     exit 1
   fi
   if [[ "$NAME_SET" -eq 0 ]]; then
-    APP_NAME="Mosaic STAGING ${TAG}"
+    APP_NAME="Coterm STAGING ${TAG}"
   fi
   if [[ "$BUNDLE_SET" -eq 0 ]]; then
-    BUNDLE_ID="mosaic.com.emergent.app.staging.${TAG_ID}"
+    BUNDLE_ID="coterm.com.emergent.app.staging.${TAG_ID}"
   fi
   if [[ "$DERIVED_SET" -eq 0 ]]; then
-    DERIVED_DATA="/tmp/mosaic-staging-${TAG_SLUG}"
+    DERIVED_DATA="/tmp/coterm-staging-${TAG_SLUG}"
   fi
 fi
 
 XCODEBUILD_ARGS=(
-  -project mosaic.xcodeproj
-  -scheme mosaic
+  -project coterm.xcodeproj
+  -scheme coterm
   -configuration Release
   -destination 'platform=macOS'
 )
@@ -205,7 +205,7 @@ fi
 
 # Staging always copies the built app and patches the plist to set an isolated
 # socket path, bundle id, and display name. This prevents conflicts with the
-# production mosaic app.
+# production coterm app.
 STAGING_APP_PATH="$(dirname "$APP_PATH")/${APP_NAME}.app"
 rm -rf "$STAGING_APP_PATH"
 cp -R "$APP_PATH" "$STAGING_APP_PATH"
@@ -221,30 +221,30 @@ if [[ -f "$INFO_PLIST" ]]; then
   # Inject staging socket paths via LSEnvironment so the Release binary
   # (which defaults to the per-user stable socket) uses isolated sockets instead.
   STAGING_SLUG="$(staging_slug_from_bundle_id "$BUNDLE_ID")"
-  APP_SUPPORT_DIR="$HOME/Library/Application Support/mosaic"
+  APP_SUPPORT_DIR="$HOME/Library/Application Support/coterm"
   if [[ -n "$STAGING_SLUG" ]]; then
-    MOSAICD_SOCKET="${APP_SUPPORT_DIR}/mosaicd-${STAGING_SLUG}.sock"
-    MOSAIC_SOCKET_PATH_VALUE="/tmp/mosaic-staging-${STAGING_SLUG}.sock"
+    COTERMD_SOCKET="${APP_SUPPORT_DIR}/cotermd-${STAGING_SLUG}.sock"
+    COTERM_SOCKET_PATH_VALUE="/tmp/coterm-staging-${STAGING_SLUG}.sock"
   else
-    MOSAICD_SOCKET="${APP_SUPPORT_DIR}/mosaicd-staging.sock"
-    MOSAIC_SOCKET_PATH_VALUE="/tmp/mosaic-staging.sock"
+    COTERMD_SOCKET="${APP_SUPPORT_DIR}/cotermd-staging.sock"
+    COTERM_SOCKET_PATH_VALUE="/tmp/coterm-staging.sock"
   fi
-  write_last_socket_path "$MOSAIC_SOCKET_PATH_VALUE"
+  write_last_socket_path "$COTERM_SOCKET_PATH_VALUE"
   /usr/libexec/PlistBuddy -c "Add :LSEnvironment dict" "$INFO_PLIST" 2>/dev/null || true
-  /usr/libexec/PlistBuddy -c "Set :LSEnvironment:MOSAIC_BUNDLE_ID \"${BUNDLE_ID}\"" "$INFO_PLIST" 2>/dev/null \
-    || /usr/libexec/PlistBuddy -c "Add :LSEnvironment:MOSAIC_BUNDLE_ID string \"${BUNDLE_ID}\"" "$INFO_PLIST"
-  /usr/libexec/PlistBuddy -c "Set :LSEnvironment:MOSAICD_UNIX_PATH \"${MOSAICD_SOCKET}\"" "$INFO_PLIST" 2>/dev/null \
-    || /usr/libexec/PlistBuddy -c "Add :LSEnvironment:MOSAICD_UNIX_PATH string \"${MOSAICD_SOCKET}\"" "$INFO_PLIST"
-  /usr/libexec/PlistBuddy -c "Set :LSEnvironment:MOSAIC_SOCKET_PATH \"${MOSAIC_SOCKET_PATH_VALUE}\"" "$INFO_PLIST" 2>/dev/null \
-    || /usr/libexec/PlistBuddy -c "Add :LSEnvironment:MOSAIC_SOCKET_PATH string \"${MOSAIC_SOCKET_PATH_VALUE}\"" "$INFO_PLIST"
-  if [[ -S "$MOSAICD_SOCKET" ]]; then
-    for PID in $(lsof -t "$MOSAICD_SOCKET" 2>/dev/null); do
+  /usr/libexec/PlistBuddy -c "Set :LSEnvironment:COTERM_BUNDLE_ID \"${BUNDLE_ID}\"" "$INFO_PLIST" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Add :LSEnvironment:COTERM_BUNDLE_ID string \"${BUNDLE_ID}\"" "$INFO_PLIST"
+  /usr/libexec/PlistBuddy -c "Set :LSEnvironment:COTERMD_UNIX_PATH \"${COTERMD_SOCKET}\"" "$INFO_PLIST" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Add :LSEnvironment:COTERMD_UNIX_PATH string \"${COTERMD_SOCKET}\"" "$INFO_PLIST"
+  /usr/libexec/PlistBuddy -c "Set :LSEnvironment:COTERM_SOCKET_PATH \"${COTERM_SOCKET_PATH_VALUE}\"" "$INFO_PLIST" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Add :LSEnvironment:COTERM_SOCKET_PATH string \"${COTERM_SOCKET_PATH_VALUE}\"" "$INFO_PLIST"
+  if [[ -S "$COTERMD_SOCKET" ]]; then
+    for PID in $(lsof -t "$COTERMD_SOCKET" 2>/dev/null); do
       kill "$PID" 2>/dev/null || true
     done
-    rm -f "$MOSAICD_SOCKET"
+    rm -f "$COTERMD_SOCKET"
   fi
-  if [[ -S "$MOSAIC_SOCKET_PATH_VALUE" ]]; then
-    rm -f "$MOSAIC_SOCKET_PATH_VALUE"
+  if [[ -S "$COTERM_SOCKET_PATH_VALUE" ]]; then
+    rm -f "$COTERM_SOCKET_PATH_VALUE"
   fi
   /usr/bin/codesign --force --sign - --timestamp=none --generate-entitlement-der "$STAGING_APP_PATH" >/dev/null 2>&1 || true
 fi
@@ -256,33 +256,33 @@ sleep 0.3
 # Kill any running staging instance; allow side-by-side with the main and dev apps.
 pkill -f "${APP_NAME}.app/Contents/MacOS/${BASE_APP_NAME}" || true
 sleep 0.3
-MOSAICD_SRC="$PWD/mosaicd/zig-out/bin/mosaicd"
-if [[ -d "$PWD/mosaicd" ]]; then
-  (cd "$PWD/mosaicd" && zig build -Doptimize=ReleaseFast)
+COTERMD_SRC="$PWD/cotermd/zig-out/bin/cotermd"
+if [[ -d "$PWD/cotermd" ]]; then
+  (cd "$PWD/cotermd" && zig build -Doptimize=ReleaseFast)
 fi
-if [[ -x "$MOSAICD_SRC" ]]; then
+if [[ -x "$COTERMD_SRC" ]]; then
   BIN_DIR="$APP_PATH/Contents/Resources/bin"
   mkdir -p "$BIN_DIR"
-  cp "$MOSAICD_SRC" "$BIN_DIR/mosaicd"
-  chmod +x "$BIN_DIR/mosaicd"
+  cp "$COTERMD_SRC" "$BIN_DIR/cotermd"
+  chmod +x "$BIN_DIR/cotermd"
 fi
-# Avoid inheriting mosaic/ghostty environment variables from the terminal that
-# runs this script (often inside another mosaic instance), which can cause
+# Avoid inheriting coterm/ghostty environment variables from the terminal that
+# runs this script (often inside another coterm instance), which can cause
 # socket and resource-path conflicts.
 OPEN_CLEAN_ENV=(
   env
-  -u MOSAIC_SOCKET_PATH
-  -u MOSAIC_TAB_ID
-  -u MOSAIC_PANEL_ID
-  -u MOSAICD_UNIX_PATH
-  -u MOSAIC_TAG
-  -u MOSAIC_BUNDLE_ID
-  -u MOSAIC_SHELL_INTEGRATION
+  -u COTERM_SOCKET_PATH
+  -u COTERM_TAB_ID
+  -u COTERM_PANEL_ID
+  -u COTERMD_UNIX_PATH
+  -u COTERM_TAG
+  -u COTERM_BUNDLE_ID
+  -u COTERM_SHELL_INTEGRATION
   -u GHOSTTY_BIN_DIR
   -u GHOSTTY_RESOURCES_DIR
   -u GHOSTTY_SHELL_FEATURES
   # Dev shells (including CI/Codex) often force-disable paging by exporting these.
-  # Don't leak that into mosaic, otherwise `git diff` won't page even with PAGER=less.
+  # Don't leak that into coterm, otherwise `git diff` won't page even with PAGER=less.
   -u GIT_PAGER
   -u GH_PAGER
   -u TERMINFO
@@ -291,7 +291,7 @@ OPEN_CLEAN_ENV=(
 
 # Always inject staging socket paths via env to ensure they take effect
 # (LSEnvironment requires app restart to pick up plist changes).
-"${OPEN_CLEAN_ENV[@]}" MOSAIC_BUNDLE_ID="$BUNDLE_ID" MOSAIC_SOCKET_PATH="$MOSAIC_SOCKET_PATH_VALUE" MOSAICD_UNIX_PATH="$MOSAICD_SOCKET" open -g "$APP_PATH"
+"${OPEN_CLEAN_ENV[@]}" COTERM_BUNDLE_ID="$BUNDLE_ID" COTERM_SOCKET_PATH="$COTERM_SOCKET_PATH_VALUE" COTERMD_UNIX_PATH="$COTERMD_SOCKET" open -g "$APP_PATH"
 
 # Safety: ensure only one instance is running.
 sleep 0.2

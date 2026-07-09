@@ -1,13 +1,13 @@
 # Swift Auxiliary Window Close Shortcuts
 
-Standalone mosaic-owned windows must have one close-shortcut owner so Cmd+W closes or hides the active window instead of falling through to workspace panel closing.
+Standalone coterm-owned windows must have one close-shortcut owner so Cmd+W closes or hides the active window instead of falling through to workspace panel closing.
 
 Report a failure when the diff introduces or materially changes:
 
-- A user-visible `NSWindow`, `NSPanel`, `NSWindowController`, SwiftUI `Window`, or SwiftUI `WindowGroup` without a stable `mosaic.*` window identifier.
-- A `mosaic.*` window identifier assignment that is missing from `mosaicAuxiliaryWindowIdentifiers` in `Sources/mosaicApp.swift`.
-- A new standalone debug, settings, preview, task, editor, browser, file, import, config, or inspector window that can become key but is not covered by `mosaicWindowShouldOwnCloseShortcut`.
-- A custom Cmd+W, `performKeyEquivalent`, or close-menu workaround that bypasses the shared `mosaicWindowShouldOwnCloseShortcut` routing instead of registering the window identifier.
+- A user-visible `NSWindow`, `NSPanel`, `NSWindowController`, SwiftUI `Window`, or SwiftUI `WindowGroup` without a stable `coterm.*` window identifier.
+- A `coterm.*` window identifier assignment that is missing from `cotermAuxiliaryWindowIdentifiers` in `Sources/cotermApp.swift`.
+- A new standalone debug, settings, preview, task, editor, browser, file, import, config, or inspector window that can become key but is not covered by `cotermWindowShouldOwnCloseShortcut`.
+- A custom Cmd+W, `performKeyEquivalent`, or close-menu workaround that bypasses the shared `cotermWindowShouldOwnCloseShortcut` routing instead of registering the window identifier.
 
 Allowed cases:
 
@@ -16,4 +16,4 @@ Allowed cases:
 - Test-only fixture windows.
 - Existing unregistered windows that the PR does not introduce or worsen, though mention them if they are adjacent to the changed window code.
 
-When reporting, include the window/controller/file, the missing identifier or owner registration, and the expected shared path: assign a stable `mosaic.*` identifier and register user-closable windows in `mosaicAuxiliaryWindowIdentifiers`. If the hard CI lint already catches the exact literal assignment, point to `scripts/lint_auxiliary_window_close_shortcuts.py`; otherwise explain why the bot rule caught a more flexible pattern.
+When reporting, include the window/controller/file, the missing identifier or owner registration, and the expected shared path: assign a stable `coterm.*` identifier and register user-closable windows in `cotermAuxiliaryWindowIdentifiers`. If the hard CI lint already catches the exact literal assignment, point to `scripts/lint_auxiliary_window_close_shortcuts.py`; otherwise explain why the bot rule caught a more flexible pattern.

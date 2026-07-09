@@ -28,7 +28,7 @@ The sidebar layout, top to bottom:
 
 ### From the keyboard (`⌃⌘G` or `⌘⇧G`)
 
-Press `⌃⌘G` to create a new empty workspace group. mosaic inserts a fresh anchor workspace as the group header and auto-names it `Group 1`, `Group 2`, … (rename anytime via the header context menu).
+Press `⌃⌘G` to create a new empty workspace group. coterm inserts a fresh anchor workspace as the group header and auto-names it `Group 1`, `Group 2`, … (rename anytime via the header context menu).
 
 Select two or more workspaces in the sidebar, press `⌘⇧G`. A fresh anchor workspace is inserted above the selection; all selected workspaces become children. The group is auto-named `Group 1`, `Group 2`, … (rename anytime via the header context menu). `⌘⇧G` collides with React Grab's default; the group handler only consumes the chord when there is an explicit sidebar multi-selection of at least two workspaces, so React Grab still fires in single-selection and browser/terminal contexts. Rebind in Settings → Keyboard if you'd rather the two not share a key.
 
@@ -40,7 +40,7 @@ Right-click any workspace in the sidebar, choose **New Empty Workspace Group** f
 
 ### From the group header context menu
 
-Right-click an existing group's header for: **Rename Group…**, **Pin / Unpin Group**, **Edit Group Config…** (opens `~/.config/mosaic/mosaic.json`), **Open Workspace Groups Docs**, **Ungroup (Keep Workspaces)**, **Delete Group (Close Workspaces)**. Delete is destructive and prompts for confirmation; ungroup keeps the workspaces and just removes the container.
+Right-click an existing group's header for: **Rename Group…**, **Pin / Unpin Group**, **Edit Group Config…** (opens `~/.config/coterm/coterm.json`), **Open Workspace Groups Docs**, **Ungroup (Keep Workspaces)**, **Delete Group (Close Workspaces)**. Delete is destructive and prompts for confirmation; ungroup keeps the workspaces and just removes the container.
 
 ### From the `+` button on a group header
 
@@ -50,24 +50,24 @@ Pressing `⌘N` while the active workspace is a group anchor or group member als
 
 ## CLI
 
-All group operations are scriptable via `mosaic workspace-group <subcommand>`. The hyphenated form ships first; once the broader `mosaic workspace <noun>` namespace lands, `mosaic workspace group ...` will be the canonical form with the hyphenated form kept as an alias forever.
+All group operations are scriptable via `coterm workspace-group <subcommand>`. The hyphenated form ships first; once the broader `coterm workspace <noun>` namespace lands, `coterm workspace group ...` will be the canonical form with the hyphenated form kept as an alias forever.
 
 ### Subcommands
 
 ```bash
-mosaic workspace-group list [--json]
-mosaic workspace-group create --name "emergent.inc" [--cwd ~/projects/emergent.inc] [--from <id>,<id>]
-mosaic workspace-group ungroup <group-id>
-mosaic workspace-group delete  <group-id>   # destructive: closes every member workspace
-mosaic workspace-group rename <group-id> --name "new name"
-mosaic workspace-group collapse <group-id>
-mosaic workspace-group expand <group-id>
-mosaic workspace-group pin <group-id>
-mosaic workspace-group unpin <group-id>
-mosaic workspace-group add --group <group-id> --workspace <workspace-id>
-mosaic workspace-group remove --workspace <workspace-id>
-mosaic workspace-group set-anchor --group <group-id> --workspace <workspace-id>
-mosaic workspace-group new-workspace <group-id> [--placement afterCurrent|top|end]
+coterm workspace-group list [--json]
+coterm workspace-group create --name "emergent.inc" [--cwd ~/projects/emergent.inc] [--from <id>,<id>]
+coterm workspace-group ungroup <group-id>
+coterm workspace-group delete  <group-id>   # destructive: closes every member workspace
+coterm workspace-group rename <group-id> --name "new name"
+coterm workspace-group collapse <group-id>
+coterm workspace-group expand <group-id>
+coterm workspace-group pin <group-id>
+coterm workspace-group unpin <group-id>
+coterm workspace-group add --group <group-id> --workspace <workspace-id>
+coterm workspace-group remove --workspace <workspace-id>
+coterm workspace-group set-anchor --group <group-id> --workspace <workspace-id>
+coterm workspace-group new-workspace <group-id> [--placement afterCurrent|top|end]
 ```
 
 `create` returns a group handle (`workspace_group:N` by default). Pass `--json` for the full structured payload.
@@ -77,24 +77,24 @@ mosaic workspace-group new-workspace <group-id> [--placement afterCurrent|top|en
 Group the three currently selected workspaces under a name:
 
 ```bash
-mosaic workspace-group create --name emergent.inc
+coterm workspace-group create --name emergent.inc
 ```
 
 Spin up a new workspace inside an existing group (e.g. wired to a worktree script):
 
 ```bash
-mosaic workspace-group new-workspace workspace_group:1
+coterm workspace-group new-workspace workspace_group:1
 ```
 
 List groups in the focused window:
 
 ```bash
-mosaic workspace-group list
+coterm workspace-group list
 ```
 
 ## Configuration
 
-Per-group configuration is keyed by the anchor's working directory in `~/.config/mosaic/mosaic.json` (this surface lands in a follow-up; the file location is reserved). The intent:
+Per-group configuration is keyed by the anchor's working directory in `~/.config/coterm/coterm.json` (this surface lands in a follow-up; the file location is reserved). The intent:
 
 ```jsonc
 {
@@ -107,12 +107,12 @@ Per-group configuration is keyed by the anchor's working directory in `~/.config
     //   "end"                    - after the trailing member
     "newWorkspacePlacement": "afterCurrent",
     "byCwd": {
-      "/Users/you/emergentinc/mosaic": {
+      "/Users/you/emergentinc/coterm": {
         "color": "#7A4FD8",
         "icon": "ladybug.fill",
         "newWorkspacePlacement": "top",
         "contextMenu": [
-          // Entries reference actions defined elsewhere in mosaic.json (in the
+          // Entries reference actions defined elsewhere in coterm.json (in the
           // global `actions` block) or built-in actions like "newWorkspace".
           { "action": "newWorktreeAction", "title": "New Worktree" },
           { "action": "newWorkspace" }
@@ -130,9 +130,9 @@ Per-group configuration is keyed by the anchor's working directory in `~/.config
 Matching: keys containing `*` or `?` are globs; otherwise they are path prefixes. Longest match wins.
 
 Resolution order for group new-workspace placement:
-1. Explicit `--placement afterCurrent|top|end` on `mosaic workspace-group new-workspace`, or `"placement"` in the v2 `workspace.group.new_workspace` params.
+1. Explicit `--placement afterCurrent|top|end` on `coterm workspace-group new-workspace`, or `"placement"` in the v2 `workspace.group.new_workspace` params.
 2. The per-cwd entry above.
-3. Global default via Settings > App > Group New Workspace Placement or `workspaceGroups.newWorkspacePlacement` in `mosaic.json` (defaults to `afterCurrent`).
+3. Global default via Settings > App > Group New Workspace Placement or `workspaceGroups.newWorkspacePlacement` in `coterm.json` (defaults to `afterCurrent`).
 
 `Cmd-N` inside a group uses the active group workspace as the placement reference. The group header `+` button and CLI path use the anchor as the reference, so `afterCurrent` behaves like `top` there.
 
@@ -143,8 +143,8 @@ When the sidebar is in iMessage mode (latest unread floats to top), the intended
 - `sortInsideGroups` (default `true`): workspaces inside each group sort by latest unread; group section position is unchanged.
 - `floatGroups` (default `false`): the whole group section reorders by its most-recent unread member.
 
-Neither knob is wired up yet. The current build keeps the sidebar's existing iMessage-mode behavior unchanged regardless of groups. A follow-up will add the `sidebar.imessageMode.*` keys to `mosaic.json`, the schema, and the Settings UI; this section is documented here so the eventual JSON shape is decided up front.
+Neither knob is wired up yet. The current build keeps the sidebar's existing iMessage-mode behavior unchanged regardless of groups. A follow-up will add the `sidebar.imessageMode.*` keys to `coterm.json`, the schema, and the Settings UI; this section is documented here so the eventual JSON shape is decided up front.
 
 ## Persistence
 
-Groups (name, anchor, pin state, collapse state, color, icon) round-trip through `~/Library/Application Support/mosaic/session-<bundle-id>.json` alongside workspaces. Membership lives on `Workspace.groupId`. Writes are atomic via the existing `SessionPersistenceStore` rename-into-place pattern.
+Groups (name, anchor, pin state, collapse state, color, icon) round-trip through `~/Library/Application Support/coterm/session-<bundle-id>.json` alongside workspaces. Membership lives on `Workspace.groupId`. Writes are atomic via the existing `SessionPersistenceStore` rename-into-place pattern.

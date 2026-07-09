@@ -1,11 +1,11 @@
-import MosaicExtensionKit
+import CotermExtensionKit
 import SwiftUI
 
 @main
-final class SampleSidebarExtension: @MainActor MosaicSidebarExtension {
-    static let manifest = MosaicExtensionManifest(
-        id: "co.emergent.inc.MosaicExtKitSampleSidebarApp.Extension",
-        displayName: String(localized: "sampleSidebar.manifest.displayName", defaultValue: "MOSAIC Sample Sidebar Extension"),
+final class SampleSidebarExtension: @MainActor CotermSidebarExtension {
+    static let manifest = CotermExtensionManifest(
+        id: "co.emergent.inc.CotermExtKitSampleSidebarApp.Extension",
+        displayName: String(localized: "sampleSidebar.manifest.displayName", defaultValue: "COTERM Sample Sidebar Extension"),
         readScopes: [
             .workspaceList,
             .workspaceMetadata,
@@ -31,11 +31,11 @@ final class SampleSidebarExtension: @MainActor MosaicSidebarExtension {
         SampleSidebarView(model: model)
     }
 
-    func update(context: MosaicSidebarContext) {
+    func update(context: CotermSidebarContext) {
         model.update(context: context)
     }
 
-    func connectionStatusDidChange(_ status: MosaicSidebarConnectionStatus) {
+    func connectionStatusDidChange(_ status: CotermSidebarConnectionStatus) {
         model.connectionStatusDidChange(status)
     }
 }

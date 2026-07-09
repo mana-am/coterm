@@ -1,5 +1,5 @@
 import AppKit
-import MosaicWorkspaces
+import CotermWorkspaces
 import Foundation
 
 // MARK: - Mobile workspace list (iOS-facing payloads)

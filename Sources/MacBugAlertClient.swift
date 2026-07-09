@@ -14,7 +14,7 @@ actor MacBugAlertClient {
         isEnabled: @escaping @Sendable () -> Bool = {
             guard TelemetrySettings.enabledForCurrentLaunch else { return false }
             #if DEBUG
-            return ProcessInfo.processInfo.environment["MOSAIC_BUG_ALERTS_ENABLE"] == "1"
+            return ProcessInfo.processInfo.environment["COTERM_BUG_ALERTS_ENABLE"] == "1"
             #else
             return true
             #endif
@@ -52,7 +52,7 @@ actor MacBugAlertClient {
         request.timeoutInterval = 2
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let sharedSecret {
-            request.setValue(sharedSecret, forHTTPHeaderField: "X-Mosaic-Bug-Alerts-Secret")
+            request.setValue(sharedSecret, forHTTPHeaderField: "X-Coterm-Bug-Alerts-Secret")
         }
         request.httpBody = body
 
@@ -68,14 +68,14 @@ actor MacBugAlertClient {
     }
 
     private static func defaultEndpoint() -> URL {
-        if let override = ProcessInfo.processInfo.environment["MOSAIC_BUG_ALERTS_API_URL"],
+        if let override = ProcessInfo.processInfo.environment["COTERM_BUG_ALERTS_API_URL"],
            let url = URL(string: override.trimmingCharacters(in: .whitespacesAndNewlines)) {
             return url
         }
-        return URL(string: "https://mosaic.inc/api/bug-alerts")!
+        return URL(string: "https://coterm.cc/api/bug-alerts")!
     }
 
     private static func defaultSharedSecret() -> String? {
-        ProcessInfo.processInfo.environment["MOSAIC_BUG_ALERTS_SHARED_SECRET"]
+        ProcessInfo.processInfo.environment["COTERM_BUG_ALERTS_SHARED_SECRET"]
     }
 }

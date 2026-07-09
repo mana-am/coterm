@@ -1,13 +1,13 @@
-import MosaicCanvas
-import MosaicPanes
-import MosaicSettings
+import CotermCanvas
+import CotermPanes
+import CotermSettings
 
 extension AppDelegate {
     @discardableResult
     func performBrowserSplitShortcut(direction: SplitDirection) -> Bool {
         guard BrowserAvailabilitySettings.isEnabled() else {
 #if DEBUG
-            mosaicDebugLog("split.browser.shortcut blocked reason=browser_disabled")
+            cotermDebugLog("split.browser.shortcut blocked reason=browser_disabled")
 #endif
             return false
         }
@@ -36,7 +36,7 @@ extension AppDelegate {
         }
         let selectedTabBefore = tabManager?.selectedTabId?.uuidString.prefix(5) ?? "nil"
         let focusedPanelBefore = tabManager?.selectedWorkspace?.focusedPanelId?.uuidString.prefix(5) ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.browser.shortcut pre dir=\(directionLabel) " +
             "tab=\(selectedTabBefore) focusedPanel=\(focusedPanelBefore)"
         )
@@ -44,7 +44,7 @@ extension AppDelegate {
 
         guard let panelId = tabManager?.createBrowserSplit(direction: direction) else {
 #if DEBUG
-            mosaicDebugLog("split.browser.shortcut failed dir=\(directionLabel)")
+            cotermDebugLog("split.browser.shortcut failed dir=\(directionLabel)")
 #endif
             return false
         }
@@ -52,7 +52,7 @@ extension AppDelegate {
 #if DEBUG
         let selectedTabAfter = tabManager?.selectedTabId?.uuidString.prefix(5) ?? "nil"
         let focusedPanelAfter = tabManager?.selectedWorkspace?.focusedPanelId?.uuidString.prefix(5) ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.browser.shortcut post dir=\(directionLabel) " +
             "created=\(panelId.uuidString.prefix(5)) tab=\(selectedTabAfter) focusedPanel=\(focusedPanelAfter)"
         )

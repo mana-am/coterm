@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/emergent-inc/coterm/main/web/data/coterm-settings.schema.json",
+  "$ref": "https://raw.githubusercontent.com/emergent-inc/coterm/main/web/data/coterm.schema.json",
+  "description": "Compatibility schema URL for existing configs. Use coterm.schema.json for new coterm.json files."
+}

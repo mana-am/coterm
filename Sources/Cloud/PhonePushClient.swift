@@ -1,4 +1,4 @@
-import MosaicAuthRuntime
+import CotermAuthRuntime
 import Foundation
 
 /// UserDefaults keys for the phone-forwarding feature. Default OFF: the Mac
@@ -15,7 +15,7 @@ enum PhonePushSettings {
     static let forwardModeKey = "forwardNotificationsToPhoneMode"
 }
 
-/// Forwards macOS terminal notifications to the user's iPhone via the mosaic web
+/// Forwards macOS terminal notifications to the user's iPhone via the coterm web
 /// API (`POST /api/notifications/push`), which relays them through APNs. Gated
 /// by ``PhonePushSettings/forwardEnabledKey`` (off by default) and only invoked
 /// from the not-suppressed desktop-delivery path, so it mirrors what the Mac
@@ -140,7 +140,7 @@ final class PhonePushClient {
             let presence = presenceCache.decision(from: presenceMonitor)
             guard Self.shouldForward(mode: mode, presence: presence) else {
 #if DEBUG
-                mosaicDebugLog("phonepush.suppressed reason=macActive verdict=\(presence.verdict)")
+                cotermDebugLog("phonepush.suppressed reason=macActive verdict=\(presence.verdict)")
 #endif
                 return false
             }
@@ -238,7 +238,7 @@ final class PhonePushClient {
         ]
         switch payload.kind {
         case .notify:
-            bodyDict["title"] = payload.hideContent ? "mosaic" : payload.title
+            bodyDict["title"] = payload.hideContent ? "coterm" : payload.title
             bodyDict["subtitle"] = payload.hideContent ? "" : payload.subtitle
             bodyDict["body"] = payload.hideContent ? "New terminal activity" : payload.body
             if let workspaceId = payload.workspaceId { bodyDict["workspaceId"] = workspaceId }
@@ -254,9 +254,9 @@ final class PhonePushClient {
         req.httpMethod = "POST"
         req.timeoutInterval = 10
         req.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Mosaic-Refresh-Token")
+        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Coterm-Refresh-Token")
         if let teamID, !teamID.isEmpty {
-            req.setValue(teamID, forHTTPHeaderField: "X-Mosaic-Team-Id")
+            req.setValue(teamID, forHTTPHeaderField: "X-Coterm-Team-Id")
         }
         req.setValue("application/json", forHTTPHeaderField: "content-type")
         req.httpBody = try? JSONSerialization.data(withJSONObject: bodyDict, options: [])
@@ -264,7 +264,7 @@ final class PhonePushClient {
         do {
             let (_, response) = try await session.data(for: req)
             if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-                NSLog("mosaic.phonepush failed kind=%@ status=%d", payload.kind.rawValue, http.statusCode)
+                NSLog("coterm.phonepush failed kind=%@ status=%d", payload.kind.rawValue, http.statusCode)
             }
         } catch {
             // best-effort; phone forwarding must never disrupt the Mac.

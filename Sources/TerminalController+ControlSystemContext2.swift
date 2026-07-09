@@ -1,6 +1,6 @@
 import AppKit
 import Bonsplit
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
 
 /// The system-domain action witnesses (`workspace.action`, `surface.action` /

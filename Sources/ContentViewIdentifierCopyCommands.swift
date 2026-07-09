@@ -1,4 +1,4 @@
-import MosaicCommandPalette
+import CotermCommandPalette
 import AppKit
 import Foundation
 

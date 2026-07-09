@@ -10,7 +10,7 @@ struct BrowserPDFDocumentToolbarButtons: View {
             TrackedButton("browserpdfdocumenttoolbarbuttons_button_10", action: {
                 panel.downloadRenderedPDFDocument()
             }) {
-                MosaicSystemSymbolImage(systemName: "square.and.arrow.down", pointSize: iconPointSize, weight: .medium)
+                CotermSystemSymbolImage(systemName: "square.and.arrow.down", pointSize: iconPointSize, weight: .medium)
                     .frame(width: hitSize, height: hitSize, alignment: .center)
                     .contentShape(Rectangle())
             }
@@ -21,7 +21,7 @@ struct BrowserPDFDocumentToolbarButtons: View {
             TrackedButton("browserpdfdocumenttoolbarbuttons_button_21", action: {
                 panel.printRenderedPDFDocument()
             }) {
-                MosaicSystemSymbolImage(systemName: "printer", pointSize: iconPointSize, weight: .medium)
+                CotermSystemSymbolImage(systemName: "printer", pointSize: iconPointSize, weight: .medium)
                     .frame(width: hitSize, height: hitSize, alignment: .center)
                     .contentShape(Rectangle())
             }

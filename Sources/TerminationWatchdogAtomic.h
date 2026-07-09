@@ -1,14 +1,14 @@
-#ifndef MOSAIC_TERMINATION_WATCHDOG_ATOMIC_H
-#define MOSAIC_TERMINATION_WATCHDOG_ATOMIC_H
+#ifndef COTERM_TERMINATION_WATCHDOG_ATOMIC_H
+#define COTERM_TERMINATION_WATCHDOG_ATOMIC_H
 
 #include <stdbool.h>
 #include <stdatomic.h>
 
 typedef struct {
     atomic_bool isArmed;
-} MosaicTerminationWatchdogLatch;
+} CoterminationWatchdogLatch;
 
-MosaicTerminationWatchdogLatch MosaicTerminationWatchdogLatchMake(void);
-bool MosaicTerminationWatchdogLatchClaim(MosaicTerminationWatchdogLatch *latch);
+CoterminationWatchdogLatch CoterminationWatchdogLatchMake(void);
+bool CoterminationWatchdogLatchClaim(CoterminationWatchdogLatch *latch);
 
 #endif

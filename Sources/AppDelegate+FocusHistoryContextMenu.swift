@@ -1,5 +1,5 @@
 import AppKit
-import MosaicWorkspaces
+import CotermWorkspaces
 
 private let focusHistoryContextMenuPreviewLimit = 12
 

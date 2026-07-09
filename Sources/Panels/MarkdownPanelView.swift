@@ -1,5 +1,5 @@
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 import SwiftUI
 import WebKit
 
@@ -170,20 +170,20 @@ struct MarkdownPanelView: View {
     private var fileUnavailableView: some View {
         VStack(spacing: 12) {
             Image(systemName: "doc.questionmark")
-                .mosaicFont(size: 40)
+                .cotermFont(size: 40)
                 .foregroundColor(.secondary)
             Text(String(localized: "markdown.fileUnavailable.title", defaultValue: "File unavailable"))
-                .mosaicFont(.headline)
+                .cotermFont(.headline)
                 .foregroundColor(.primary)
             Text(panel.filePath)
-                .mosaicFont(size: 12, design: .monospaced)
+                .cotermFont(size: 12, design: .monospaced)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 24)
             Text(String(localized: "markdown.fileUnavailable.message", defaultValue: "The file may have been moved or deleted."))
-                .mosaicFont(.caption)
+                .cotermFont(.caption)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -281,7 +281,7 @@ private struct MarkdownPanelToolbar: View {
         HStack(spacing: 8) {
             if let confirmation {
                 Text(confirmation)
-                    .mosaicFont(size: 11, weight: .medium)
+                    .cotermFont(size: 11, weight: .medium)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .transition(.opacity)

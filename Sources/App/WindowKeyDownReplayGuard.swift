@@ -1,7 +1,7 @@
 import AppKit
 
 /// Identity of a key event currently being force-dispatched into a responder's
-/// `keyDown(with:)` by `NSWindow.mosaic_performKeyEquivalent(with:)`.
+/// `keyDown(with:)` by `NSWindow.coterm_performKeyEquivalent(with:)`.
 ///
 /// Forwarding keyDown can re-enter `performKeyEquivalent` with the same event
 /// while the dispatch is still on the stack: WebKit replays unhandled keys
@@ -9,14 +9,14 @@ import AppKit
 /// re-enters `performKeyEquivalent`. Without a replay guard at the dispatch
 /// chokepoint the same event ping-pongs between the swizzle and the focused
 /// responder until the main-thread stack overflows
-/// (https://github.com/emergent-inc/mosaic/issues/5887).
+/// (https://github.com/emergent-inc/coterm/issues/5887).
 ///
 /// Identity is the event's stable field tuple rather than object identity so
 /// the guard still holds if AppKit/WebKit re-deliver the event as an equal
 /// copy. Key autorepeat produces distinct events (fresh timestamps), so
 /// repeat typing is never throttled. The dispatching window's number is part
 /// of the identity so windows cannot suppress each other's dispatches.
-private struct MosaicForceDispatchedKeyEventIdentity: Hashable {
+private struct CotermForceDispatchedKeyEventIdentity: Hashable {
     let windowNumber: Int
     let eventType: UInt
     let keyCode: UInt16
@@ -29,11 +29,11 @@ private struct MosaicForceDispatchedKeyEventIdentity: Hashable {
 /// before `keyDown(with:)` and removed when the dispatch unwinds, so WebKit's
 /// legitimate replay of an unhandled key (which arrives after the original
 /// dispatch has fully unwound) is still force-dispatched normally.
-private var mosaicInFlightForceDispatchedKeyEventIdentities = Set<MosaicForceDispatchedKeyEventIdentity>()
+private var cotermInFlightForceDispatchedKeyEventIdentities = Set<CotermForceDispatchedKeyEventIdentity>()
 
 extension NSWindow {
     /// Single chokepoint for every direct `keyDown(with:)` force-dispatch made
-    /// by `mosaic_performKeyEquivalent(with:)`.
+    /// by `coterm_performKeyEquivalent(with:)`.
     ///
     /// Dispatches `event` into `target`'s `keyDown(with:)` unless the same
     /// event is already being force-dispatched lower on this window's call
@@ -41,29 +41,29 @@ extension NSWindow {
     /// `false` back must decline the event (fall through to default AppKit
     /// handling) instead of dispatching themselves; re-dispatching the same
     /// in-flight event is the infinite key-routing loop from
-    /// https://github.com/emergent-inc/mosaic/issues/5887.
-    func mosaicForceDispatchKeyDownOnce(
+    /// https://github.com/emergent-inc/coterm/issues/5887.
+    func cotermForceDispatchKeyDownOnce(
         _ event: NSEvent,
         to target: NSResponder,
         reason: @autoclosure () -> String
     ) -> Bool {
-        let identity = MosaicForceDispatchedKeyEventIdentity(
+        let identity = CotermForceDispatchedKeyEventIdentity(
             windowNumber: self.windowNumber,
             eventType: event.type.rawValue,
             keyCode: event.keyCode,
             modifierFlags: event.modifierFlags.rawValue,
             timestamp: event.timestamp
         )
-        guard !mosaicInFlightForceDispatchedKeyEventIdentities.contains(identity) else {
+        guard !cotermInFlightForceDispatchedKeyEventIdentities.contains(identity) else {
 #if DEBUG
-            mosaicDebugLog("  → \(reason()) reentry; declining force-dispatch of in-flight key event")
+            cotermDebugLog("  → \(reason()) reentry; declining force-dispatch of in-flight key event")
 #endif
             return false
         }
-        mosaicInFlightForceDispatchedKeyEventIdentities.insert(identity)
-        defer { mosaicInFlightForceDispatchedKeyEventIdentities.remove(identity) }
+        cotermInFlightForceDispatchedKeyEventIdentities.insert(identity)
+        defer { cotermInFlightForceDispatchedKeyEventIdentities.remove(identity) }
 #if DEBUG
-        mosaicDebugLog("  → \(reason()) routed to firstResponder.keyDown")
+        cotermDebugLog("  → \(reason()) routed to firstResponder.keyDown")
 #endif
         target.keyDown(with: event)
         return true

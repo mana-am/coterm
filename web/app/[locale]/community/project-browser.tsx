@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import type { AwesomeMosaicProject } from "./awesome-mosaic-projects";
+import type { AwesomeCotermProject } from "./awesome-coterm-projects";
 
 type CategorySummary = {
   category: string;
@@ -36,16 +36,16 @@ function isPresent(value: string | undefined): value is string {
 
 function compareProjectNames(
   collator: Intl.Collator,
-  left: AwesomeMosaicProject,
-  right: AwesomeMosaicProject,
+  left: AwesomeCotermProject,
+  right: AwesomeCotermProject,
 ) {
   return collator.compare(left.name, right.name);
 }
 
 function compareProjectStars(
   collator: Intl.Collator,
-  left: AwesomeMosaicProject,
-  right: AwesomeMosaicProject,
+  left: AwesomeCotermProject,
+  right: AwesomeCotermProject,
 ) {
   const starDelta = (right.stars ?? -1) - (left.stars ?? -1);
   if (starDelta !== 0) {
@@ -56,7 +56,7 @@ function compareProjectStars(
 }
 
 function projectMatchesQuery(
-  project: AwesomeMosaicProject,
+  project: AwesomeCotermProject,
   description: string,
   query: string,
   categoryLabels: ReadonlyMap<string, string>,
@@ -87,7 +87,7 @@ function ProjectCard({
   categoryLabels,
   numberFormatter,
 }: {
-  project: AwesomeMosaicProject;
+  project: AwesomeCotermProject;
   description: string;
   categoryLabels: ReadonlyMap<string, string>;
   numberFormatter: Intl.NumberFormat;
@@ -159,7 +159,7 @@ export function CommunityProjectBrowser({
   projects,
   categorySummaries,
 }: {
-  projects: readonly AwesomeMosaicProject[];
+  projects: readonly AwesomeCotermProject[];
   categorySummaries: readonly CategorySummary[];
 }) {
   const t = useTranslations("community");

@@ -1,7 +1,7 @@
 import AppKit
 import Bonsplit
-import MosaicAppKitSupportUI
-import MosaicTerminal
+import CotermAppKitSupportUI
+import Coterminal
 import SwiftUI
 
 /// Right-sidebar Dock. Renders the global Dock `BonsplitController` tree
@@ -215,7 +215,7 @@ private struct DockTrustView: View {
             TrackedButton("dockpanelview_button_215", String(localized: "dock.trust.action", defaultValue: "Trust and Start")) {
                 onTrust()
             }
-            .buttonStyle(.mosaicAccent)
+            .buttonStyle(.cotermAccent)
         }
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -273,7 +273,7 @@ final class DockKeyboardFocusView: NSView {
     func ownsKeyboardFocus(_ responder: NSResponder) -> Bool {
         if responder === self { return true }
         if let window, ownsDockBrowserFocus?(responder, window) == true { return true }
-        guard let ghosttyView = mosaicOwningGhosttyView(for: responder),
+        guard let ghosttyView = cotermOwningGhosttyView(for: responder),
               let surfaceId = ghosttyView.terminalSurface?.id else {
             return false
         }

@@ -1,6 +1,6 @@
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
-import MosaicSidebar
+import CotermSidebar
 
 /// The live-app half of the v1 sidebar metadata commands (`set_status` /
 /// `report_meta` / `report_meta_block` / agent PID + lifecycle / `log` /
@@ -110,10 +110,10 @@ extension TerminalController: ControlSidebarContext {
             return true
         }
         guard let tab = controlSidebarResolveMutationTab(target),
-              MosaicVaultAgentRegistration.isValidID(key) else {
+              CotermVaultAgentRegistration.isValidID(key) else {
             return false
         }
-        let registry = MosaicVaultAgentRegistry.load(
+        let registry = CotermVaultAgentRegistry.load(
             workingDirectory: controlSidebarAgentLifecycleRegistryWorkingDirectory(tab: tab, panelId: panelID)
         )
         return registry.registration(id: key) != nil

@@ -40,7 +40,7 @@ export default function TextBoxPage() {
 
       <h2>{t("configTitle")}</h2>
       <p>{t("configDesc")}</p>
-      <CodeBlock title="~/.config/mosaic/mosaic.json" lang="json">{`{
+      <CodeBlock title="~/.config/coterm/coterm.json" lang="json">{`{
   "terminal": {
     "showTextBoxOnNewTerminals": true,
     "focusTextBoxOnNewTerminals": false,

@@ -1,11 +1,11 @@
 import SwiftUI
 import Foundation
 import AppKit
-import MosaicAppKitSupportUI
-import MosaicFoundation
+import CotermAppKitSupportUI
+import CotermFoundation
 import Bonsplit
-import MosaicWorkspaces
-import MosaicTerminal
+import CotermWorkspaces
+import Coterminal
 enum TmuxOverlayExperimentTarget: String, CaseIterable, Codable, Sendable {
     case surface
     case bonsplitPane
@@ -674,7 +674,7 @@ extension WorkspaceContentView {
         if !found {
             let ts = ISO8601DateFormatter().string(from: Date())
             let line = "[\(ts)] PANEL NOT FOUND for tabId=\(tab.id) ws=\(workspace.id) panelCount=\(workspace.panels.count)\n"
-            let logPath = "/tmp/mosaic-panel-debug.log"
+            let logPath = "/tmp/coterm-panel-debug.log"
             if let handle = FileHandle(forWritingAtPath: logPath) {
                 defer { try? handle.close() }
                 guard (try? handle.seekToEnd()) != nil else { return }
@@ -703,7 +703,7 @@ struct EmptyPanelView: View {
 
         var body: some View {
             Text(text)
-                .mosaicFont(size: 11, weight: .semibold, design: .rounded)
+                .cotermFont(size: 11, weight: .semibold, design: .rounded)
                 .foregroundStyle(.white.opacity(0.9))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
@@ -717,7 +717,7 @@ struct EmptyPanelView: View {
 
     private func createTerminal() {
         #if DEBUG
-        mosaicDebugLog("emptyPane.newTerminal pane=\(paneId.id.uuidString.prefix(5))")
+        cotermDebugLog("emptyPane.newTerminal pane=\(paneId.id.uuidString.prefix(5))")
         #endif
         focusPane()
         _ = workspace.newTerminalSurface(inPane: paneId, inheritWorkingDirectoryFallback: true)
@@ -725,7 +725,7 @@ struct EmptyPanelView: View {
 
     private func createBrowser() {
         #if DEBUG
-        mosaicDebugLog("emptyPane.newBrowser pane=\(paneId.id.uuidString.prefix(5))")
+        cotermDebugLog("emptyPane.newBrowser pane=\(paneId.id.uuidString.prefix(5))")
         #endif
         focusPane()
         _ = workspace.newBrowserSurface(inPane: paneId)
@@ -751,13 +751,13 @@ struct EmptyPanelView: View {
         let button = TrackedButton("workspacecontentview_button_751", action: action) {
             HStack(spacing: 10) {
                 HStack(spacing: 6) {
-                    MosaicSystemSymbolImage(systemName: systemImage, pointSize: 13)
+                    CotermSystemSymbolImage(systemName: systemImage, pointSize: 13)
                     Text(title)
                 }
                 ShortcutHint(text: shortcut.displayString)
             }
         }
-        .buttonStyle(.mosaicAccent)
+        .buttonStyle(.cotermAccent)
 
         if let key = shortcut.keyEquivalent {
             button.keyboardShortcut(key, modifiers: shortcut.eventModifiers)
@@ -768,11 +768,11 @@ struct EmptyPanelView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            MosaicSystemSymbolImage(magnified: "terminal.fill", pointSize: 48)
+            CotermSystemSymbolImage(magnified: "terminal.fill", pointSize: 48)
                 .foregroundStyle(.tertiary)
 
             Text(String(localized: "emptyPanel.title", defaultValue: "Empty Panel"))
-                .mosaicFont(.headline)
+                .cotermFont(.headline)
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 12) {
@@ -792,7 +792,7 @@ struct EmptyPanelView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: MosaicChromePalette.workspaceBackgroundColor))
+        .background(Color(nsColor: CotermChromePalette.workspaceBackgroundColor))
 #if DEBUG
         .onAppear {
             DebugUIEventCounters.emptyPanelAppearCount += 1

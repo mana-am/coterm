@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-CPU usage test for mosaic.
+CPU usage test for coterm.
 
-This test monitors mosaic's CPU usage during idle periods to catch
+This test monitors coterm's CPU usage during idle periods to catch
 performance regressions like runaway animations or continuous view updates.
 
-Run this test after launching mosaic:
+Run this test after launching coterm:
     python3 tests/test_cpu_usage.py
 
 The test will fail if idle CPU is *sustained* above threshold.
@@ -48,17 +48,17 @@ SUSPICIOUS_PATTERNS = [
 ]
 
 
-def get_mosaic_pid() -> Optional[int]:
-    """Get the PID of the running mosaic process."""
+def get_coterm_pid() -> Optional[int]:
+    """Get the PID of the running coterm process."""
     result = subprocess.run(
-        ["pgrep", "-f", r"mosaic\.app/Contents/MacOS/Mosaic$"],
+        ["pgrep", "-f", r"coterm\.app/Contents/MacOS/Coterm$"],
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
         # Try DEV build
         result = subprocess.run(
-            ["pgrep", "-f", r"Mosaic DEV\.app/Contents/MacOS/Mosaic"],
+            ["pgrep", "-f", r"Coterm DEV\.app/Contents/MacOS/Coterm"],
             capture_output=True,
             text=True,
         )
@@ -131,17 +131,17 @@ def wait_for_idle_precheck(pid: int) -> bool:
 
 def main():
     print("=" * 60)
-    print("mosaic CPU Usage Test")
+    print("coterm CPU Usage Test")
     print("=" * 60)
 
-    # Find mosaic process
-    pid = get_mosaic_pid()
+    # Find coterm process
+    pid = get_coterm_pid()
     if pid is None:
-        print("\n❌ SKIP: mosaic is not running")
-        print("Start mosaic and run this test again.")
+        print("\n❌ SKIP: Coterm is not running")
+        print("Start coterm and run this test again.")
         return 0  # Not a failure, just skip
 
-    print(f"\nFound mosaic process: PID {pid}")
+    print(f"\nFound coterm process: PID {pid}")
 
     # Wait for app to settle
     print(f"Waiting {SETTLE_TIME}s for app to settle...")
@@ -196,7 +196,7 @@ def main():
                 print(f"  - {issue}")
 
         # Save sample for debugging
-        sample_file = Path("/tmp/mosaic_cpu_test_sample.txt")
+        sample_file = Path("/tmp/coterm_cpu_test_sample.txt")
         sample_file.write_text(sample_output)
         print(f"\nFull sample saved to: {sample_file}")
 
@@ -205,7 +205,7 @@ def main():
         lines = sample_output.split("\n")
         relevant_lines = [
             l for l in lines
-            if "mosaic" in l and ("body" in l or "Animation" in l or "Timer" in l)
+            if "coterm" in l and ("body" in l or "Animation" in l or "Timer" in l)
         ][:10]
         for line in relevant_lines:
             print(f"  {line.strip()[:100]}")

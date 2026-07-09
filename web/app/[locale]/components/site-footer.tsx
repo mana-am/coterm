@@ -38,7 +38,7 @@ export async function SiteFooter() {
     {
       heading: t("social"),
       links: [
-        { label: t("github"), href: "https://github.com/emergent-inc/mosaic" },
+        { label: t("github"), href: "https://github.com/emergent-inc/coterm" },
         { label: t("twitter"), href: "https://twitter.com/emergentinc" },
         { label: t("discord"), href: "https://discord.gg/xsgFEVrWCZ" },
         { label: t("contact"), href: "mailto:contact@emergent.inc" },
@@ -88,7 +88,7 @@ export async function SiteFooter() {
               ·
             </span>
             <a
-              href="https://github.com/emergent-inc/mosaic"
+              href="https://github.com/emergent-inc/coterm"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

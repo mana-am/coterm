@@ -15,29 +15,29 @@ import {
 
 describe("Cloud VM image build helpers", () => {
   test("disabled tool env values skip the tool install", () => {
-    const previous = process.env.MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC;
-    process.env.MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC = "none";
+    const previous = process.env.COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC;
+    process.env.COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC = "none";
     try {
       expect(cloudAgentToolPackageSpecs().some((tool) => tool.name === "claude")).toBe(false);
     } finally {
       if (previous === undefined) {
-        delete process.env.MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC;
+        delete process.env.COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC;
       } else {
-        process.env.MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC = previous;
+        process.env.COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC = previous;
       }
     }
   });
 
   test("enabled tool specs must be pinned to exact versions", () => {
-    const previous = process.env.MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC;
-    process.env.MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC = "@anthropic-ai/claude-code";
+    const previous = process.env.COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC;
+    process.env.COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC = "@anthropic-ai/claude-code";
     try {
       expect(() => cloudAgentToolPackageSpecs()).toThrow("must be pinned");
     } finally {
       if (previous === undefined) {
-        delete process.env.MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC;
+        delete process.env.COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC;
       } else {
-        process.env.MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC = previous;
+        process.env.COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC = previous;
       }
     }
   });
@@ -53,7 +53,7 @@ describe("Cloud VM image build helpers", () => {
   });
 
   test("positive integer env overrides fail closed when malformed", () => {
-    const key = "MOSAIC_TEST_POSITIVE_INT";
+    const key = "COTERM_TEST_POSITIVE_INT";
     const previous = process.env[key];
     try {
       delete process.env[key];
@@ -77,7 +77,7 @@ describe("Cloud VM image build helpers", () => {
   });
 
   test("semver env overrides fail closed when malformed", () => {
-    const key = "MOSAIC_TEST_SEMVER";
+    const key = "COTERM_TEST_SEMVER";
     const previous = process.env[key];
     try {
       delete process.env[key];
@@ -99,18 +99,18 @@ describe("Cloud VM image build helpers", () => {
 
   test("Bun install command is version-pinned and checksum-verified", () => {
     const bunInstall = cloudToolInstallCommands().find((command) =>
-      command.includes("mosaic-bun-install.txt")
+      command.includes("coterm-bun-install.txt")
     );
     expect(bunInstall).toContain("bun-v1.3.13");
     expect(bunInstall).toContain("SHASUMS256.txt.asc");
     expect(bunInstall).toContain("sha256sum -c");
   });
 
-  test("image smoke checks exercise the mosaic browser entrypoint without a daemon", () => {
+  test("image smoke checks exercise the Coterm browser entrypoint without a daemon", () => {
     const browserSmoke = cloudImageSmokeTestCommands().find((command) =>
-      command.includes("mosaic-browser-help.txt")
+      command.includes("coterm-browser-help.txt")
     );
-    expect(browserSmoke).toContain("--socket /tmp/mosaic-browser-smoke.sock browser");
+    expect(browserSmoke).toContain("--socket /tmp/coterm-browser-smoke.sock browser");
     expect(browserSmoke).toContain("requires a subcommand");
   });
 
@@ -128,13 +128,13 @@ describe("Cloud VM image build helpers", () => {
           snapshots: [
             {
               snapshotId: "sh-old",
-              name: "mosaicd-ws-review",
+              name: "cotermd-ws-review",
               state: "ready",
               createdAt: "2026-05-09T04:00:00.000Z",
             },
             {
               snapshotId: "sh-new",
-              name: "mosaicd-ws-review",
+              name: "cotermd-ws-review",
               state: "ready",
               createdAt: "2026-05-09T05:00:00.000Z",
             },
@@ -145,7 +145,7 @@ describe("Cloud VM image build helpers", () => {
 
     const recovered = await waitForFreestyleSnapshotByName(
       freestyle as never,
-      "mosaicd-ws-review",
+      "cotermd-ws-review",
       "2026-05-09T04:30:00.000Z",
       100,
     );
@@ -160,7 +160,7 @@ describe("Cloud VM image build helpers", () => {
           snapshots: [
             {
               snapshotId: "sh-stale",
-              name: "mosaicd-ws-review",
+              name: "cotermd-ws-review",
               state: "ready",
               createdAt: "2026-05-09T04:00:00.000Z",
             },
@@ -170,7 +170,7 @@ describe("Cloud VM image build helpers", () => {
 
     const recovered = await waitForFreestyleSnapshotByName(
       freestyle as never,
-      "mosaicd-ws-review",
+      "cotermd-ws-review",
       "2026-05-09T04:30:00.000Z",
       10,
     );
@@ -179,7 +179,7 @@ describe("Cloud VM image build helpers", () => {
   });
 
   test("snapshot recovery uses Freestyle authenticated fetch transport", async () => {
-    const name = "mosaicd-ws-auth";
+    const name = "cotermd-ws-auth";
     let requestUrl = "";
     let requestHeaders = new Headers();
     const freestyle = new Freestyle({

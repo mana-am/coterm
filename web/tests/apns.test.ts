@@ -5,7 +5,7 @@ import { describe, expect, test } from "bun:test";
 import {
   apnsHostForEnvironment,
   buildApnsPayload,
-  MOSAIC_APNS_CATEGORY,
+  COTERM_APNS_CATEGORY,
   shouldPruneToken,
 } from "../services/apns/payload";
 import { summarizeApnsSendResults } from "../services/apns/response";
@@ -29,17 +29,17 @@ describe("apns payload", () => {
       workspaceId: "ws-1",
       surfaceId: "sf-2",
       macDeviceId: "mac-3",
-    }) as { aps: Record<string, unknown>; mosaic: Record<string, string> };
+    }) as { aps: Record<string, unknown>; coterm: Record<string, string> };
 
     expect(payload.aps.alert).toEqual({ title: "claude", subtitle: "issue-118", body: "Agent finished" });
     expect(payload.aps["interruption-level"]).toBe("time-sensitive");
     expect(payload.aps.sound).toBe("default");
-    expect(payload.mosaic).toEqual({ workspaceId: "ws-1", surfaceId: "sf-2", macDeviceId: "mac-3" });
+    expect(payload.coterm).toEqual({ workspaceId: "ws-1", surfaceId: "sf-2", macDeviceId: "mac-3" });
   });
 
-  test("omits mosaic block when no ids", () => {
+  test("omits coterm block when no ids", () => {
     const payload = buildApnsPayload({ title: "t", body: "b" }) as Record<string, unknown>;
-    expect("mosaic" in payload).toBe(false);
+    expect("coterm" in payload).toBe(false);
   });
 
   test("carries the stable notification id and dismiss-sync category", () => {
@@ -48,12 +48,12 @@ describe("apns payload", () => {
       body: "Agent finished",
       workspaceId: "ws-1",
       notificationId: "n-42",
-    }) as { aps: Record<string, unknown>; mosaic: Record<string, string> };
+    }) as { aps: Record<string, unknown>; coterm: Record<string, string> };
 
-    // The category is what arms iOS customDismissAction; the mosaic key lets an
+    // The category is what arms iOS customDismissAction; the coterm key lets an
     // iOS swipe tell the Mac which notification was dismissed.
-    expect(payload.aps.category).toBe(MOSAIC_APNS_CATEGORY);
-    expect(payload.mosaic).toEqual({ workspaceId: "ws-1", notificationId: "n-42" });
+    expect(payload.aps.category).toBe(COTERM_APNS_CATEGORY);
+    expect(payload.coterm).toEqual({ workspaceId: "ws-1", notificationId: "n-42" });
   });
 
   test("keeps the notification id even when content is hidden (id is not content)", () => {
@@ -62,11 +62,11 @@ describe("apns payload", () => {
       body: "secret output",
       notificationId: "n-9",
       hideContent: true,
-    }) as { aps: { alert: Record<string, string>; category: string }; mosaic: Record<string, string> };
+    }) as { aps: { alert: Record<string, string>; category: string }; coterm: Record<string, string> };
 
-    expect(payload.aps.alert.title).toBe("mosaic");
-    expect(payload.aps.category).toBe(MOSAIC_APNS_CATEGORY);
-    expect(payload.mosaic).toEqual({ notificationId: "n-9" });
+    expect(payload.aps.alert.title).toBe("coterm");
+    expect(payload.aps.category).toBe(COTERM_APNS_CATEGORY);
+    expect(payload.coterm).toEqual({ notificationId: "n-9" });
   });
 
   test("hideContent redacts terminal content but keeps a generic compatibility body and deep-link", () => {
@@ -76,17 +76,17 @@ describe("apns payload", () => {
       body: "rm -rf secret output",
       workspaceId: "ws-9",
       hideContent: true,
-    }) as { aps: { alert: Record<string, string> }; mosaic: Record<string, string> };
+    }) as { aps: { alert: Record<string, string> }; coterm: Record<string, string> };
 
-    expect(payload.aps.alert.title).toBe("mosaic");
+    expect(payload.aps.alert.title).toBe("coterm");
     expect(payload.aps.alert.body).toBe("An agent needs your attention");
     expect(payload.aps.alert.subtitle).toBeUndefined();
-    expect(payload.mosaic).toEqual({ workspaceId: "ws-9" });
+    expect(payload.coterm).toEqual({ workspaceId: "ws-9" });
   });
 
-  test("empty title falls back to mosaic", () => {
+  test("empty title falls back to coterm", () => {
     const payload = buildApnsPayload({ title: "   ", body: "b" }) as { aps: { alert: { title: string } } };
-    expect(payload.aps.alert.title).toBe("mosaic");
+    expect(payload.aps.alert.title).toBe("coterm");
   });
 
   test("stamps aps.badge with the authoritative unread count on a notify push", () => {
@@ -111,13 +111,13 @@ describe("apns payload", () => {
       body: "",
       dismissedIds: ["n-1", "n-2"],
       badgeCount: 0,
-    }) as { aps: Record<string, unknown>; mosaic: Record<string, unknown> };
+    }) as { aps: Record<string, unknown>; coterm: Record<string, unknown> };
 
     expect(payload.aps).toEqual({ "content-available": 1, badge: 0 });
     // Nothing visible: no alert, no sound, no category.
     expect("alert" in payload.aps).toBe(false);
     expect("sound" in payload.aps).toBe(false);
-    expect(payload.mosaic).toEqual({ dismissedIds: ["n-1", "n-2"] });
+    expect(payload.coterm).toEqual({ dismissedIds: ["n-1", "n-2"] });
   });
 });
 
@@ -157,23 +157,23 @@ describe("apns response", () => {
 });
 
 describe("apns route policy", () => {
-  test("allows only mosaic iOS bundle IDs and derives the APNs environment", () => {
-    expect(normalizeApnsBundle("mosaic.com.emergent.app")).toEqual({
-      bundleId: "mosaic.com.emergent.app",
+  test("allows only coterm iOS bundle IDs and derives the APNs environment", () => {
+    expect(normalizeApnsBundle("coterm.com.emergent.app")).toEqual({
+      bundleId: "coterm.com.emergent.app",
       environment: "production",
     });
-    expect(normalizeApnsBundle("dev.mosaic.app.beta")).toEqual({
-      bundleId: "dev.mosaic.app.beta",
+    expect(normalizeApnsBundle("dev.coterm.app.beta")).toEqual({
+      bundleId: "dev.coterm.app.beta",
       environment: "production",
     });
-    expect(normalizeApnsBundle("dev.mosaic.ios.push1")).toEqual({
-      bundleId: "dev.mosaic.ios.push1",
+    expect(normalizeApnsBundle("dev.coterm.ios.push1")).toEqual({
+      bundleId: "dev.coterm.ios.push1",
       environment: "sandbox",
     });
 
     expect(normalizeApnsBundle("com.example.app")).toBeNull();
-    expect(normalizeApnsBundle("dev.mosaic.ios.bad_topic")).toBeNull();
-    expect(normalizeApnsBundle("dev.mosaic.ios.-bad")).toBeNull();
+    expect(normalizeApnsBundle("dev.coterm.ios.bad_topic")).toBeNull();
+    expect(normalizeApnsBundle("dev.coterm.ios.-bad")).toBeNull();
   });
 
   test("bounds and trims push payloads before sending to APNs", () => {
@@ -432,8 +432,8 @@ describe("apns sender transport", () => {
     const resultPromise = sendApnsNotification(
       { keyP8: p8, keyId: "KID-CONCURRENT", teamId: "TEAM456" },
       [
-        { deviceToken: "a".repeat(64), bundleId: "dev.mosaic.ios.push1", environment: "sandbox" },
-        { deviceToken: "b".repeat(64), bundleId: "mosaic.com.emergent.app", environment: "production" },
+        { deviceToken: "a".repeat(64), bundleId: "dev.coterm.ios.push1", environment: "sandbox" },
+        { deviceToken: "b".repeat(64), bundleId: "coterm.com.emergent.app", environment: "production" },
       ],
       { title: "agent", body: "done" },
       1000,
@@ -510,8 +510,8 @@ describe("apns sender transport", () => {
     const results = await sendApnsNotification(
       { keyP8: p8, keyId: "KID-PARTIAL", teamId: "TEAM456" },
       [
-        { deviceToken: "a".repeat(64), bundleId: "dev.mosaic.ios.push1", environment: "sandbox" },
-        { deviceToken: "b".repeat(64), bundleId: "mosaic.com.emergent.app", environment: "production" },
+        { deviceToken: "a".repeat(64), bundleId: "dev.coterm.ios.push1", environment: "sandbox" },
+        { deviceToken: "b".repeat(64), bundleId: "coterm.com.emergent.app", environment: "production" },
       ],
       { title: "agent", body: "done" },
       1000,
@@ -574,8 +574,8 @@ describe("apns sender transport", () => {
     const results = await sendApnsNotification(
       { keyP8: p8, keyId: "KID-SAME-HOST-PARTIAL", teamId: "TEAM456" },
       [
-        { deviceToken: "a".repeat(64), bundleId: "mosaic.com.emergent.app", environment: "production" },
-        { deviceToken: "b".repeat(64), bundleId: "dev.mosaic.app.beta", environment: "production" },
+        { deviceToken: "a".repeat(64), bundleId: "coterm.com.emergent.app", environment: "production" },
+        { deviceToken: "b".repeat(64), bundleId: "dev.coterm.app.beta", environment: "production" },
       ],
       { title: "agent", body: "done" },
       1000,
@@ -623,7 +623,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-COLLAPSE", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "mosaic.com.emergent.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "coterm.com.emergent.app", environment: "production" }],
       { title: "agent", body: "done", notificationId: "n-7" },
       1000,
       transport,
@@ -667,7 +667,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-NO-COLLAPSE", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "mosaic.com.emergent.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "coterm.com.emergent.app", environment: "production" }],
       { title: "agent", body: "done" },
       1000,
       transport,
@@ -711,7 +711,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-DISMISS", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "mosaic.com.emergent.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "coterm.com.emergent.app", environment: "production" }],
       {
         kind: "dismiss",
         title: "",
@@ -765,7 +765,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-NOTIFY-PRIO", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "mosaic.com.emergent.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "coterm.com.emergent.app", environment: "production" }],
       { title: "agent", body: "done", badgeCount: 2 },
       1000,
       transport,

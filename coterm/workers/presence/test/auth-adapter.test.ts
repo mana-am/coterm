@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { signMosaicToken, nowSeconds } from "@coterm/collab-auth";
+import { signCotermToken, nowSeconds } from "@coterm/collab-auth";
 import {
   cacheDeadline,
   requestedTeamIdFromRequest,
@@ -26,7 +26,7 @@ describe("pure helpers", () => {
   });
 
   test("requestedTeamIdFromRequest reads header then query", () => {
-    const fromHeader = new Request("https://p.local/x", { headers: { "x-mosaic-team-id": "teamH" } });
+    const fromHeader = new Request("https://p.local/x", { headers: { "x-coterm-team-id": "teamH" } });
     expect(requestedTeamIdFromRequest(fromHeader)).toBe("teamH");
     const fromQuery = new Request("https://p.local/x?teamId=teamQ");
     expect(requestedTeamIdFromRequest(fromQuery)).toBe("teamQ");
@@ -37,7 +37,7 @@ describe("verifyRequest (hmac mode)", () => {
   const env = { COLLAB_AUTH_MODE: "hmac", COLLAB_AUTH_SECRET: SECRET };
 
   test("maps a valid access token to an AuthedUser", async () => {
-    const token = await signMosaicToken(
+    const token = await signCotermToken(
       { kind: "access", userId: "u1", teamIds: ["t1"], selectedTeamId: "t1", exp: nowSeconds() + 900 },
       SECRET,
     );

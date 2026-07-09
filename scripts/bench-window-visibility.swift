@@ -205,25 +205,25 @@ private func resolvedBundleIdentifier(appURL: URL, requestedBundleIdentifier: St
 }
 
 private let directLaunchEnvironmentKeysToRemove = [
-    "MOSAIC_SOCKET",
-    "MOSAIC_SOCKET_PATH",
-    "MOSAIC_SOCKET_MODE",
-    "MOSAIC_TAB_ID",
-    "MOSAIC_PANEL_ID",
-    "MOSAIC_SURFACE_ID",
-    "MOSAIC_WORKSPACE_ID",
-    "MOSAICD_UNIX_PATH",
-    "MOSAIC_TAG",
-    "MOSAIC_PORT",
-    "MOSAIC_PORT_END",
-    "MOSAIC_PORT_RANGE",
-    "MOSAIC_DEBUG_LOG",
-    "MOSAIC_BUNDLE_ID",
-    "MOSAIC_BUNDLED_CLI_PATH",
-    "MOSAIC_DISABLE_SESSION_RESTORE",
-    "MOSAIC_SHELL_INTEGRATION",
-    "MOSAIC_SHELL_INTEGRATION_DIR",
-    "MOSAIC_LOAD_GHOSTTY_ZSH_INTEGRATION",
+    "COTERM_SOCKET",
+    "COTERM_SOCKET_PATH",
+    "COTERM_SOCKET_MODE",
+    "COTERM_TAB_ID",
+    "COTERM_PANEL_ID",
+    "COTERM_SURFACE_ID",
+    "COTERM_WORKSPACE_ID",
+    "COTERMD_UNIX_PATH",
+    "COTERM_TAG",
+    "COTERM_PORT",
+    "COTERM_PORT_END",
+    "COTERM_PORT_RANGE",
+    "COTERM_DEBUG_LOG",
+    "COTERM_BUNDLE_ID",
+    "COTERM_BUNDLED_CLI_PATH",
+    "COTERM_DISABLE_SESSION_RESTORE",
+    "COTERM_SHELL_INTEGRATION",
+    "COTERM_SHELL_INTEGRATION_DIR",
+    "COTERM_LOAD_GHOSTTY_ZSH_INTEGRATION",
     "GHOSTTY_BIN_DIR",
     "GHOSTTY_RESOURCES_DIR",
     "GHOSTTY_SHELL_FEATURES",
@@ -243,7 +243,7 @@ private func directLaunchEnvironment(appURL: URL, bundleIdentifier: String) -> [
        let launchEnvironment = bundle.infoDictionary?["LSEnvironment"] as? [String: String] {
         environment.merge(launchEnvironment) { _, newValue in newValue }
     }
-    environment["MOSAIC_BUNDLE_ID"] = environment["MOSAIC_BUNDLE_ID"] ?? bundleIdentifier
+    environment["COTERM_BUNDLE_ID"] = environment["COTERM_BUNDLE_ID"] ?? bundleIdentifier
     return environment
 }
 
@@ -263,7 +263,7 @@ private func directLaunchLogURL(bundleIdentifier: String) -> URL {
         .map { character in character.isLetter || character.isNumber ? character : "-" }
         .reduce(into: "") { $0.append($1) }
     return URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("mosaic-window-visibility-\(safeIdentifier).log")
+        .appendingPathComponent("coterm-window-visibility-\(safeIdentifier).log")
 }
 
 private func launchApplicationProcess(appURL: URL, bundleIdentifier: String) -> NSRunningApplication? {

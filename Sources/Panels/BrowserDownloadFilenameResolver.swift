@@ -1,7 +1,7 @@
 import Foundation
 import CoreServices
 import ImageIO
-import MosaicSettings
+import CotermSettings
 import UniformTypeIdentifiers
 
 nonisolated struct BrowserDownloadFilenameResolver: Sendable {
@@ -287,7 +287,7 @@ nonisolated struct BrowserDownloadFilenameResolver: Sendable {
 }
 
 extension URL {
-    func mosaicApplyWebDownloadQuarantine(sourceURL: URL?) throws {
+    func cotermApplyWebDownloadQuarantine(sourceURL: URL?) throws {
         guard let sourceURL,
               !sourceURL.isFileURL else {
             return
@@ -296,13 +296,13 @@ extension URL {
         var quarantineProperties: [String: Any] = [
             kLSQuarantineTypeKey as String: kLSQuarantineTypeWebDownload as String,
             kLSQuarantineTimeStampKey as String: Date(),
-            kLSQuarantineAgentNameKey as String: Self.mosaicDownloadQuarantineAgentName(),
+            kLSQuarantineAgentNameKey as String: Self.cotermDownloadQuarantineAgentName(),
         ]
         if let bundleIdentifier = Bundle.main.bundleIdentifier,
            !bundleIdentifier.isEmpty {
             quarantineProperties[kLSQuarantineAgentBundleIdentifierKey as String] = bundleIdentifier
         }
-        if let sanitizedSourceURL = Self.mosaicSanitizedDownloadSourceURL(sourceURL) {
+        if let sanitizedSourceURL = Self.cotermSanitizedDownloadSourceURL(sourceURL) {
             quarantineProperties[kLSQuarantineDataURLKey as String] = sanitizedSourceURL
             quarantineProperties[kLSQuarantineOriginURLKey as String] = sanitizedSourceURL
         }
@@ -313,15 +313,15 @@ extension URL {
         try fileURL.setResourceValues(resourceValues)
     }
 
-    private static func mosaicDownloadQuarantineAgentName() -> String {
+    private static func cotermDownloadQuarantineAgentName() -> String {
         let candidate = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
             ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
-            ?? "mosaic"
+            ?? "coterm"
         let trimmed = candidate.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "mosaic" : trimmed
+        return trimmed.isEmpty ? "coterm" : trimmed
     }
 
-    private static func mosaicSanitizedDownloadSourceURL(_ sourceURL: URL) -> URL? {
+    private static func cotermSanitizedDownloadSourceURL(_ sourceURL: URL) -> URL? {
         let scheme = sourceURL.scheme?.lowercased()
         guard scheme == "http" || scheme == "https",
               var components = URLComponents(url: sourceURL, resolvingAgainstBaseURL: false) else {

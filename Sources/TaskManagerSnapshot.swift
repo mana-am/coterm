@@ -1,7 +1,7 @@
 import Foundation
 
-struct MosaicTaskManagerSnapshot {
-    static let empty = MosaicTaskManagerSnapshot(
+struct CotermTaskManagerSnapshot {
+    static let empty = CotermTaskManagerSnapshot(
         rows: [],
         agentRows: [],
         aggregateRows: [],
@@ -11,13 +11,13 @@ struct MosaicTaskManagerSnapshot {
         memoryDiagnostic: nil
     )
 
-    let rows: [MosaicTaskManagerRow]
-    let agentRows: [MosaicTaskManagerRow]
-    let aggregateRows: [MosaicTaskManagerRow]
-    let childMemoryRows: [MosaicTaskManagerRow]
-    let total: MosaicTaskManagerResources
+    let rows: [CotermTaskManagerRow]
+    let agentRows: [CotermTaskManagerRow]
+    let aggregateRows: [CotermTaskManagerRow]
+    let childMemoryRows: [CotermTaskManagerRow]
+    let total: CotermTaskManagerResources
     let sampledAt: Date?
-    let memoryDiagnostic: MosaicTaskManagerMemoryDiagnostic?
+    let memoryDiagnostic: CotermTaskManagerMemoryDiagnostic?
 
     var hasLoadedResourceUsage: Bool {
         sampledAt != nil
@@ -32,17 +32,17 @@ struct MosaicTaskManagerSnapshot {
         guard let sampledAt else {
             return String(localized: "taskManager.updated.never", defaultValue: "Never")
         }
-        return MosaicTaskManagerFormat.time(sampledAt)
+        return CotermTaskManagerFormat.time(sampledAt)
     }
 
     init(
-        rows: [MosaicTaskManagerRow],
-        agentRows: [MosaicTaskManagerRow] = [],
-        aggregateRows: [MosaicTaskManagerRow],
-        childMemoryRows: [MosaicTaskManagerRow] = [],
-        total: MosaicTaskManagerResources,
+        rows: [CotermTaskManagerRow],
+        agentRows: [CotermTaskManagerRow] = [],
+        aggregateRows: [CotermTaskManagerRow],
+        childMemoryRows: [CotermTaskManagerRow] = [],
+        total: CotermTaskManagerResources,
         sampledAt: Date?,
-        memoryDiagnostic: MosaicTaskManagerMemoryDiagnostic? = nil
+        memoryDiagnostic: CotermTaskManagerMemoryDiagnostic? = nil
     ) {
         self.rows = rows
         self.agentRows = agentRows
@@ -54,11 +54,11 @@ struct MosaicTaskManagerSnapshot {
     }
 
     init(
-        rows: [MosaicTaskManagerRow],
-        agentRows: [MosaicTaskManagerRow] = [],
-        total: MosaicTaskManagerResources,
+        rows: [CotermTaskManagerRow],
+        agentRows: [CotermTaskManagerRow] = [],
+        total: CotermTaskManagerResources,
         sampledAt: Date?,
-        memoryDiagnostic: MosaicTaskManagerMemoryDiagnostic? = nil
+        memoryDiagnostic: CotermTaskManagerMemoryDiagnostic? = nil
     ) {
         self.init(
             rows: rows,
@@ -73,10 +73,10 @@ struct MosaicTaskManagerSnapshot {
 
     init(payload: [String: Any]) {
         let sample = payload["sample"] as? [String: Any] ?? [:]
-        self.sampledAt = MosaicTaskManagerFormat.iso8601Date(sample["sampled_at"] as? String)
-        self.total = MosaicTaskManagerResources(payload["totals"] as? [String: Any] ?? [:])
+        self.sampledAt = CotermTaskManagerFormat.iso8601Date(sample["sampled_at"] as? String)
+        self.total = CotermTaskManagerResources(payload["totals"] as? [String: Any] ?? [:])
 
-        var rows: [MosaicTaskManagerRow] = []
+        var rows: [CotermTaskManagerRow] = []
         let windows = payload["windows"] as? [[String: Any]] ?? []
         for window in windows {
             Self.appendWindow(window, to: &rows)
@@ -91,12 +91,12 @@ struct MosaicTaskManagerSnapshot {
         self.aggregateRows = programTotalPayloads.isEmpty
             ? Self.programAggregateRows(from: self.rows)
             : Self.programAggregateRows(fromPayloads: programTotalPayloads)
-        let memoryDiagnostic = MosaicTaskManagerMemoryDiagnostic(payload["memory_diagnostic"] as? [String: Any])
+        let memoryDiagnostic = CotermTaskManagerMemoryDiagnostic(payload["memory_diagnostic"] as? [String: Any])
         self.memoryDiagnostic = memoryDiagnostic
         self.childMemoryRows = Self.childMemoryRows(from: memoryDiagnostic)
     }
 
-    private static func childMemoryRows(from diagnostic: MosaicTaskManagerMemoryDiagnostic?) -> [MosaicTaskManagerRow] {
+    private static func childMemoryRows(from diagnostic: CotermTaskManagerMemoryDiagnostic?) -> [CotermTaskManagerRow] {
         guard let diagnostic else { return [] }
         return diagnostic.groups.map { group in
             let attribution = group.topAttribution
@@ -107,13 +107,13 @@ struct MosaicTaskManagerSnapshot {
                 processCountDetail(group.processCount),
                 attributionDetail(attribution)
             ].compactMap { $0 }
-            return MosaicTaskManagerRow(
+            return CotermTaskManagerRow(
                 id: "childMemoryAggregate:\(group.id)",
                 kind: .childMemoryAggregate,
                 level: 0,
                 title: group.name,
                 detail: detailParts.joined(separator: " / "),
-                resources: MosaicTaskManagerResources(
+                resources: CotermTaskManagerResources(
                     cpuPercent: 0,
                     residentBytes: group.rssBytes,
                     memoryBytes: group.rssBytes,
@@ -132,7 +132,7 @@ struct MosaicTaskManagerSnapshot {
         }
     }
 
-    private static func attributionDetail(_ attribution: MosaicTaskManagerMemoryAttribution?) -> String? {
+    private static func attributionDetail(_ attribution: CotermTaskManagerMemoryAttribution?) -> String? {
         guard let attribution else {
             return String(localized: "taskManager.memory.unattributed", defaultValue: "Unattributed")
         }
@@ -161,13 +161,13 @@ struct MosaicTaskManagerSnapshot {
         return parts.joined(separator: " / ")
     }
 
-    private static func agentRows(from payloads: [[String: Any]]) -> [MosaicTaskManagerRow] {
+    private static func agentRows(from payloads: [[String: Any]]) -> [CotermTaskManagerRow] {
         payloads.compactMap { payload in
             guard let id = nonEmptyString(payload["id"]),
                   let title = nonEmptyString(payload["display_name"]) else { return nil }
-            let resources = MosaicTaskManagerResources(payload["resources"] as? [String: Any] ?? [:])
+            let resources = CotermTaskManagerResources(payload["resources"] as? [String: Any] ?? [:])
             guard resources.processCount > 0 else { return nil }
-            return MosaicTaskManagerRow(
+            return CotermTaskManagerRow(
                 id: "codingAgentAggregate:\(id)",
                 kind: .codingAgentAggregate,
                 level: 0,
@@ -186,7 +186,7 @@ struct MosaicTaskManagerSnapshot {
         }
     }
 
-    private static func agentAssetNameByProcessID(from agentRows: [MosaicTaskManagerRow]) -> [Int: String] {
+    private static func agentAssetNameByProcessID(from agentRows: [CotermTaskManagerRow]) -> [Int: String] {
         var assetNameByProcessID: [Int: String] = [:]
         for row in agentRows {
             guard let assetName = row.agentAssetName else { continue }
@@ -198,9 +198,9 @@ struct MosaicTaskManagerSnapshot {
     }
 
     private static func rowsWithAgentAssets(
-        _ rows: [MosaicTaskManagerRow],
+        _ rows: [CotermTaskManagerRow],
         assetNameByProcessID: [Int: String]
-    ) -> [MosaicTaskManagerRow] {
+    ) -> [CotermTaskManagerRow] {
         guard !assetNameByProcessID.isEmpty else { return rows }
         return rows.map { row in
             if row.agentAssetName != nil {
@@ -240,7 +240,7 @@ struct MosaicTaskManagerSnapshot {
         var residentBytes: Int64 = 0
         var processIds: [Int] = []
 
-        mutating func append(_ row: MosaicTaskManagerRow) {
+        mutating func append(_ row: CotermTaskManagerRow) {
             guard let processId = row.processId else { return }
             cpuPercent += row.resources.cpuPercent
             memoryBytes = Self.clampedAdd(memoryBytes, row.resources.memoryBytes)
@@ -254,7 +254,7 @@ struct MosaicTaskManagerSnapshot {
         }
     }
 
-    private static func programAggregateRows(from rows: [MosaicTaskManagerRow]) -> [MosaicTaskManagerRow] {
+    private static func programAggregateRows(from rows: [CotermTaskManagerRow]) -> [CotermTaskManagerRow] {
         var aggregatesByKey: [String: ProgramAggregate] = [:]
         var seenProcessIds: Set<Int> = []
 
@@ -276,13 +276,13 @@ struct MosaicTaskManagerSnapshot {
             .sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
             .map { aggregate in
                 let processIds = aggregate.processIds.sorted()
-                return MosaicTaskManagerRow(
+                return CotermTaskManagerRow(
                     id: "programAggregate:\(aggregate.title.lowercased())",
                     kind: .programAggregate,
                     level: 0,
                     title: aggregate.title,
                     detail: processCountDetail(processIds.count),
-                    resources: MosaicTaskManagerResources(
+                    resources: CotermTaskManagerResources(
                         cpuPercent: aggregate.cpuPercent,
                         residentBytes: aggregate.residentBytes,
                         memoryBytes: aggregate.memoryBytes,
@@ -301,13 +301,13 @@ struct MosaicTaskManagerSnapshot {
             }
     }
 
-    private static func programAggregateRows(fromPayloads payloads: [[String: Any]]) -> [MosaicTaskManagerRow] {
+    private static func programAggregateRows(fromPayloads payloads: [[String: Any]]) -> [CotermTaskManagerRow] {
         payloads.compactMap { payload in
             guard let title = nonEmptyString(payload["name"]) else { return nil }
-            let resources = MosaicTaskManagerResources(payload["resources"] as? [String: Any] ?? [:])
+            let resources = CotermTaskManagerResources(payload["resources"] as? [String: Any] ?? [:])
             guard resources.processCount > 0 else { return nil }
             let id = nonEmptyString(payload["id"]) ?? title.lowercased()
-            return MosaicTaskManagerRow(
+            return CotermTaskManagerRow(
                 id: "programAggregate:\(id)",
                 kind: .programAggregate,
                 level: 0,
@@ -336,7 +336,7 @@ struct MosaicTaskManagerSnapshot {
         ), Int64(processCount))
     }
 
-    private static func appendWindow(_ window: [String: Any], to rows: inout [MosaicTaskManagerRow]) {
+    private static func appendWindow(_ window: [String: Any], to rows: inout [CotermTaskManagerRow]) {
         let handle = displayHandle(window)
         var detailParts: [String] = []
         if bool(window["key"]) {
@@ -365,7 +365,7 @@ struct MosaicTaskManagerSnapshot {
         }
     }
 
-    private static func appendWorkspace(_ workspace: [String: Any], to rows: inout [MosaicTaskManagerRow]) {
+    private static func appendWorkspace(_ workspace: [String: Any], to rows: inout [CotermTaskManagerRow]) {
         let workspaceId = uuid(workspace["id"])
         let title = nonEmptyString(workspace["title"]) ?? displayHandle(workspace)
         var detailParts: [String] = []
@@ -398,7 +398,7 @@ struct MosaicTaskManagerSnapshot {
     private static func appendTag(
         _ tag: [String: Any],
         workspaceId: UUID?,
-        to rows: inout [MosaicTaskManagerRow]
+        to rows: inout [CotermTaskManagerRow]
     ) {
         let key = nonEmptyString(tag["key"]) ?? String(localized: "taskManager.row.unknownTag", defaultValue: "Unknown tag")
         let value = nonEmptyString(tag["value"])
@@ -424,7 +424,7 @@ struct MosaicTaskManagerSnapshot {
         }
     }
 
-    private static func appendPane(_ pane: [String: Any], workspaceId: UUID?, to rows: inout [MosaicTaskManagerRow]) {
+    private static func appendPane(_ pane: [String: Any], workspaceId: UUID?, to rows: inout [CotermTaskManagerRow]) {
         let handle = displayHandle(pane)
         rows.append(row(
             pane,
@@ -441,7 +441,7 @@ struct MosaicTaskManagerSnapshot {
         }
     }
 
-    private static func appendSurface(_ surface: [String: Any], workspaceId: UUID?, to rows: inout [MosaicTaskManagerRow]) {
+    private static func appendSurface(_ surface: [String: Any], workspaceId: UUID?, to rows: inout [CotermTaskManagerRow]) {
         let type = (nonEmptyString(surface["type"]) ?? "unknown").lowercased()
         let title = nonEmptyString(surface["title"]) ?? displayHandle(surface)
         let surfaceId = uuid(surface["id"])
@@ -493,7 +493,7 @@ struct MosaicTaskManagerSnapshot {
         _ webview: [String: Any],
         workspaceId: UUID?,
         surfaceId: UUID?,
-        to rows: inout [MosaicTaskManagerRow]
+        to rows: inout [CotermTaskManagerRow]
     ) {
         let title = nonEmptyString(webview["title"])
             ?? String(localized: "taskManager.row.webview", defaultValue: "WebView")
@@ -539,7 +539,7 @@ struct MosaicTaskManagerSnapshot {
         workspaceId: UUID?,
         surfaceId: UUID? = nil,
         terminalSurfaceId: UUID?,
-        to rows: inout [MosaicTaskManagerRow]
+        to rows: inout [CotermTaskManagerRow]
     ) {
         let pid = int(process["pid"])
         let title = nonEmptyString(process["name"])
@@ -549,7 +549,7 @@ struct MosaicTaskManagerSnapshot {
             String(localized: "taskManager.row.pid", defaultValue: "PID \($0)")
         } ?? ""
         let processRootIds = pid.map { [$0] } ?? []
-        let metadataSurfaceId = uuid(process["mosaic_surface_id"])
+        let metadataSurfaceId = uuid(process["coterm_surface_id"])
         let processSurfaceId = surfaceId ?? metadataSurfaceId
         let processTerminalSurfaceId = terminalSurfaceId ?? (surfaceId == nil ? metadataSurfaceId : nil)
         let processRow = row(
@@ -587,7 +587,7 @@ struct MosaicTaskManagerSnapshot {
 
     private static func row(
         _ payload: [String: Any],
-        kind: MosaicTaskManagerRow.Kind,
+        kind: CotermTaskManagerRow.Kind,
         level: Int,
         title: String,
         detail: String,
@@ -600,14 +600,14 @@ struct MosaicTaskManagerSnapshot {
         rootProcessIds: [Int]? = nil,
         foregroundProcessGroupIds: [Int]? = nil,
         agentAssetName: String? = nil
-    ) -> MosaicTaskManagerRow {
-        MosaicTaskManagerRow(
+    ) -> CotermTaskManagerRow {
+        CotermTaskManagerRow(
             id: rowID(payload, kind: kind, context: context),
             kind: kind,
             level: level,
             title: title,
             detail: detail,
-            resources: MosaicTaskManagerResources(payload["resources"] as? [String: Any] ?? [:]),
+            resources: CotermTaskManagerResources(payload["resources"] as? [String: Any] ?? [:]),
             isDimmed: isDimmed,
             workspaceId: workspaceId,
             surfaceId: surfaceId,
@@ -621,7 +621,7 @@ struct MosaicTaskManagerSnapshot {
 
     private static func rowID(
         _ payload: [String: Any],
-        kind: MosaicTaskManagerRow.Kind,
+        kind: CotermTaskManagerRow.Kind,
         context: String? = nil
     ) -> String {
         if kind == .process, let context {

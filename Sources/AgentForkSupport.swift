@@ -1,6 +1,6 @@
-import MosaicFoundation
+import CotermFoundation
 import Foundation
-import MosaicAgentLaunch
+import CotermAgentLaunch
 import Darwin
 
 /// Coordinates cancellation with `Process.run()`: Foundation raises an

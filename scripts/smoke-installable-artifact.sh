@@ -10,9 +10,9 @@ For a DMG, the script mounts it read-only, discovers the contained .app, verifie
 the app, then detaches the image.
 
 Environment:
-  MOSAIC_INSTALLABLE_REQUIRE_NOTARIZATION=0  Skip stapler validation.
-  MOSAIC_INSTALLABLE_REQUIRE_SPCTL=0         Skip Gatekeeper assessment.
-  MOSAIC_INSTALLABLE_RUN_CLI=0               Skip bundled CLI help/version smoke.
+  COTERM_INSTALLABLE_REQUIRE_NOTARIZATION=0  Skip stapler validation.
+  COTERM_INSTALLABLE_REQUIRE_SPCTL=0         Skip Gatekeeper assessment.
+  COTERM_INSTALLABLE_RUN_CLI=0               Skip bundled CLI help/version smoke.
 EOF
 }
 
@@ -54,16 +54,16 @@ fi
 
 case "$CHANNEL" in
   stable)
-    EXPECTED_BUNDLE_ID="mosaic.com.emergent.app"
-    EXPECTED_APP_NAME="Mosaic"
+    EXPECTED_BUNDLE_ID="coterm.com.emergent.app"
+    EXPECTED_APP_NAME="Coterm"
     ;;
   nightly)
-    EXPECTED_BUNDLE_ID="mosaic.com.emergent.app.nightly"
-    EXPECTED_APP_NAME="Mosaic NIGHTLY"
+    EXPECTED_BUNDLE_ID="coterm.com.emergent.app.nightly"
+    EXPECTED_APP_NAME="Coterm NIGHTLY"
     ;;
   debug)
-    EXPECTED_BUNDLE_ID_PREFIX="mosaic.com.emergent.app.debug."
-    EXPECTED_APP_NAME_PREFIX="Mosaic DEV "
+    EXPECTED_BUNDLE_ID_PREFIX="coterm.com.emergent.app.debug."
+    EXPECTED_APP_NAME_PREFIX="Coterm DEV "
     ;;
   *)
     echo "error: unknown channel '$CHANNEL'" >&2
@@ -72,9 +72,9 @@ case "$CHANNEL" in
     ;;
 esac
 
-REQUIRE_NOTARIZATION="${MOSAIC_INSTALLABLE_REQUIRE_NOTARIZATION:-1}"
-REQUIRE_SPCTL="${MOSAIC_INSTALLABLE_REQUIRE_SPCTL:-1}"
-RUN_CLI="${MOSAIC_INSTALLABLE_RUN_CLI:-1}"
+REQUIRE_NOTARIZATION="${COTERM_INSTALLABLE_REQUIRE_NOTARIZATION:-1}"
+REQUIRE_SPCTL="${COTERM_INSTALLABLE_REQUIRE_SPCTL:-1}"
+RUN_CLI="${COTERM_INSTALLABLE_RUN_CLI:-1}"
 MOUNT_DIR=""
 DEVICE=""
 
@@ -181,7 +181,7 @@ if [[ ! -x "$EXECUTABLE_PATH" ]]; then
   exit 1
 fi
 
-CLI_PATH="$APP_PATH/Contents/Resources/bin/mosaic"
+CLI_PATH="$APP_PATH/Contents/Resources/bin/coterm"
 if [[ ! -x "$CLI_PATH" ]]; then
   echo "error: bundled CLI missing or not executable at $CLI_PATH" >&2
   exit 1
@@ -199,7 +199,7 @@ if [[ "$CHANNEL" != "debug" ]]; then
     exit 1
   fi
   if command -v security >/dev/null; then
-    TMP_PROFILE_PLIST="$(mktemp -t mosaic-profile.XXXXXX.plist)"
+    TMP_PROFILE_PLIST="$(mktemp -t coterm-profile.XXXXXX.plist)"
     security cms -D -i "$PROFILE_PATH" > "$TMP_PROFILE_PLIST"
     APP_IDENTIFIER="$(plist_value "$TMP_PROFILE_PLIST" "Entitlements:com.apple.application-identifier")"
     rm -f "$TMP_PROFILE_PLIST"

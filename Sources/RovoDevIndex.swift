@@ -1,4 +1,4 @@
-import MosaicAgentLaunch
+import CotermAgentLaunch
 import Foundation
 
 extension SessionIndexStore {

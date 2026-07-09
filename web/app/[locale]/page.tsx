@@ -64,13 +64,13 @@ function HomeContent() {
           <BrandLogoLink className="shrink-0">
             <img
               src="/logo.png"
-              alt="Mosaic icon"
+              alt="Coterm icon"
               width={48}
               height={48}
               className="rounded-xl"
             />
           </BrandLogoLink>
-          <h1 className="text-2xl font-semibold tracking-tight">Mosaic</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Coterm</h1>
         </div>
 
         {/* Tagline */}
@@ -167,7 +167,7 @@ function HomeContent() {
               <span>
                 <strong className="font-medium">
                   <a
-                    href="https://github.com/emergent-inc/mosaic#founders-edition"
+                    href="https://github.com/emergent-inc/coterm#founders-edition"
                     className={linkClass}
                   >
                     {t("feature.ios")}
@@ -226,7 +226,7 @@ function HomeContent() {
                 {t.rich("faqIosA", {
                   foundersLink: (chunks) => (
                     <a
-                      href="https://github.com/emergent-inc/mosaic#founders-edition"
+                      href="https://github.com/emergent-inc/coterm#founders-edition"
                       className={linkClass}
                     >
                       {chunks}
@@ -326,7 +326,7 @@ function HomeContent() {
                 {t.rich("faqSkillsA", {
                   skillsLink: (chunks) => (
                     <a
-                      href="https://github.com/emergent-inc/mosaic-skills"
+                      href="https://github.com/emergent-inc/coterm-skills"
                       className={linkClass}
                     >
                       {chunks}
@@ -409,7 +409,7 @@ function HomeContent() {
                 {t.rich("faqFreeA", {
                   link: (chunks) => (
                     <a
-                      href="https://github.com/emergent-inc/mosaic"
+                      href="https://github.com/emergent-inc/coterm"
                       className={linkClass}
                     >
                       {chunks}
@@ -424,7 +424,7 @@ function HomeContent() {
                 {t.rich("faqSupportA", {
                   foundersLink: (chunks) => (
                     <a
-                      href="https://github.com/emergent-inc/mosaic#founders-edition"
+                      href="https://github.com/emergent-inc/coterm#founders-edition"
                       className={linkClass}
                     >
                       {chunks}
@@ -439,7 +439,7 @@ function HomeContent() {
                 {t.rich("faqFeatureA", {
                   issuesLink: (chunks) => (
                     <a
-                      href="https://github.com/emergent-inc/mosaic/issues"
+                      href="https://github.com/emergent-inc/coterm/issues"
                       className={linkClass}
                     >
                       {chunks}
@@ -447,7 +447,7 @@ function HomeContent() {
                   ),
                   prLink: (chunks) => (
                     <a
-                      href="https://github.com/emergent-inc/mosaic/pulls"
+                      href="https://github.com/emergent-inc/coterm/pulls"
                       className={linkClass}
                     >
                       {chunks}
@@ -455,7 +455,7 @@ function HomeContent() {
                   ),
                   mailLink: (chunks) => (
                     <a
-                      href="mailto:contact@emergent.inc?subject=%5BMosaic%20feature%20request%20landing%5D&body=Hi%20Mosaic%20team%2C%20"
+                      href="mailto:contact@emergent.inc?subject=%5BCoterm%20feature%20request%20landing%5D&body=Hi%20Coterm%20team%2C%20"
                       className={linkClass}
                     >
                       {chunks}

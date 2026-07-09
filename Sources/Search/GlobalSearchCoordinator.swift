@@ -30,7 +30,7 @@ final class GlobalSearchCoordinator {
                 try await index.deleteAll()
             } catch {
 #if DEBUG
-                mosaicDebugLog("globalSearch.index.clear failed error=\(error.localizedDescription)")
+                cotermDebugLog("globalSearch.index.clear failed error=\(error.localizedDescription)")
 #endif
             }
 
@@ -60,7 +60,7 @@ final class GlobalSearchCoordinator {
             return try await index.search(query, limit: 20)
         } catch {
 #if DEBUG
-            mosaicDebugLog("globalSearch.search failed error=\(error.localizedDescription)")
+            cotermDebugLog("globalSearch.search failed error=\(error.localizedDescription)")
 #endif
             return []
         }
@@ -91,7 +91,7 @@ final class GlobalSearchCoordinator {
                 try await index.upsert(titleDocument)
             } catch {
 #if DEBUG
-                mosaicDebugLog("globalSearch.title.upsert failed panel=\(context.panelID.uuidString.prefix(5)) error=\(error.localizedDescription)")
+                cotermDebugLog("globalSearch.title.upsert failed panel=\(context.panelID.uuidString.prefix(5)) error=\(error.localizedDescription)")
 #endif
             }
 
@@ -136,7 +136,7 @@ final class GlobalSearchCoordinator {
             } catch {
                 guard !Task.isCancelled else { return }
 #if DEBUG
-                mosaicDebugLog("globalSearch.panel.purge failed panel=\(panelID.uuidString.prefix(5)) error=\(error.localizedDescription)")
+                cotermDebugLog("globalSearch.panel.purge failed panel=\(panelID.uuidString.prefix(5)) error=\(error.localizedDescription)")
 #endif
             }
         }
@@ -180,7 +180,7 @@ final class GlobalSearchCoordinator {
                 indexState = .failed
             }
 #if DEBUG
-            mosaicDebugLog("globalSearch.index.open failed error=\(error.localizedDescription)")
+            cotermDebugLog("globalSearch.index.open failed error=\(error.localizedDescription)")
 #endif
             return nil
         }

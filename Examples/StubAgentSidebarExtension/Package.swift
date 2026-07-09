@@ -13,13 +13,13 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Packages/macOS/MosaicExtensionKit"),
+        .package(path: "../../Packages/macOS/CotermExtensionKit"),
     ],
     targets: [
         .target(
             name: "StubAgentSidebarExtension",
             dependencies: [
-                .product(name: "MosaicExtensionKit", package: "MosaicExtensionKit"),
+                .product(name: "CotermExtensionKit", package: "CotermExtensionKit"),
             ],
             resources: [
                 .process("Resources"),

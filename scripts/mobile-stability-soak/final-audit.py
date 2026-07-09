@@ -128,10 +128,10 @@ def main() -> int:
         if not pid or command is None:
             failures.append(f"{label}.pid {pid} is not live")
             continue
-        if label == "mac" and "Mosaic DEV swmob.app/Contents/MacOS/Mosaic DEV" not in command:
-            failures.append(f"{label}.pid {pid} does not look like tagged macOS mosaic")
-        if label in {"iphone", "ipad"} and "Mosaic.app/mosaic" not in command:
-            failures.append(f"{label}.pid {pid} does not look like mosaic")
+        if label == "mac" and "Coterm DEV swmob.app/Contents/MacOS/Coterm DEV" not in command:
+            failures.append(f"{label}.pid {pid} does not look like tagged macOS coterm")
+        if label in {"iphone", "ipad"} and "Coterm.app/coterm" not in command:
+            failures.append(f"{label}.pid {pid} does not look like coterm")
 
     payload = {
         "achieved": not failures,

@@ -1,5 +1,5 @@
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 import SwiftUI
 
 enum RenderableSystemSymbol {
@@ -173,8 +173,8 @@ enum RenderableSystemSymbol {
     #endif
 }
 
-struct MosaicSystemSymbolImage: View {
-    @Environment(\.mosaicGlobalFontMagnificationPercent) private var globalFontPercent
+struct CotermSystemSymbolImage: View {
+    @Environment(\.cotermGlobalFontMagnificationPercent) private var globalFontPercent
 
     let systemName: String
     let pointSize: CGFloat

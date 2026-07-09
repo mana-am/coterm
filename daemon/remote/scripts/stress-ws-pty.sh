@@ -4,21 +4,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REMOTE_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
-duration="${MOSAIC_PTY_STRESS_DURATION:-12h}"
-fuzztime="${MOSAIC_PTY_FUZZTIME:-5m}"
-log_every="${MOSAIC_PTY_STRESS_LOG_EVERY:-60}"
-test_timeout="${MOSAIC_PTY_TEST_TIMEOUT:-2m}"
-package="./cmd/mosaicd-remote"
+duration="${COTERM_PTY_STRESS_DURATION:-12h}"
+fuzztime="${COTERM_PTY_FUZZTIME:-5m}"
+log_every="${COTERM_PTY_STRESS_LOG_EVERY:-60}"
+test_timeout="${COTERM_PTY_TEST_TIMEOUT:-2m}"
+package="./cmd/cotermd-remote"
 stress_filter='TestWebSocketPTY(StressSessionCleanupAndBoundedScrollback|ReconnectKeepsSessionProcess|MultiAttachUsesSmallestResize|RunsShellOverBinaryFrames)'
 stress_tmp="$(mktemp -d)"
 trap 'rm -rf "$stress_tmp"' EXIT
-stress_bin="$stress_tmp/mosaicd-remote.test"
+stress_bin="$stress_tmp/cotermd-remote.test"
 
 cd "$REMOTE_DIR"
 export GOTOOLCHAIN="${GOTOOLCHAIN:-go1.24.7+auto}"
 
 if [[ ! "$log_every" =~ ^[1-9][0-9]*$ ]]; then
-  echo "invalid MOSAIC_PTY_STRESS_LOG_EVERY: $log_every" >&2
+  echo "invalid COTERM_PTY_STRESS_LOG_EVERY: $log_every" >&2
   exit 2
 fi
 

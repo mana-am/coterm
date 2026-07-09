@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   return withApiRouteSpan(
     request,
     "/api/waitlist",
-    { "mosaic.subsystem": "waitlist", "mosaic.waitlist.operation": "notify" },
+    { "coterm.subsystem": "waitlist", "coterm.waitlist.operation": "notify" },
     async (span): Promise<Response> => {
       // Rate-limit the whole public endpoint up front, before the DNS lookups
       // below. The validate phase resolves a user-supplied domain (MX + A/AAAA),
@@ -57,11 +57,11 @@ export async function POST(request: Request) {
       // rule. Only active on Vercel.
       if (process.env.VERCEL === "1") {
         const { error, rateLimited } = await checkRateLimit(
-          env.MOSAIC_FEEDBACK_RATE_LIMIT_ID,
+          env.COTERM_FEEDBACK_RATE_LIMIT_ID,
           { request },
         );
         setSpanAttributes(span, {
-          "mosaic.rate_limited": rateLimited || error === "blocked",
+          "coterm.rate_limited": rateLimited || error === "blocked",
         });
         if (rateLimited || error === "blocked") {
           return jsonError("Rate limit exceeded", 429);
@@ -81,8 +81,8 @@ export async function POST(request: Request) {
       }
       const { email, platforms, location, notify } = parsed.data;
       setSpanAttributes(span, {
-        "mosaic.waitlist.platform_count": platforms.length,
-        "mosaic.waitlist.location": location,
+        "coterm.waitlist.platform_count": platforms.length,
+        "coterm.waitlist.location": location,
       });
 
       // Reject addresses whose domain can't receive mail (typos, fake domains,
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       // failures resolve to "unknown" and fail open so a resolver hiccup never
       // blocks a real signup.
       const deliverable = await checkEmailDeliverable(email);
-      setSpanAttributes(span, { "mosaic.waitlist.email_check": deliverable });
+      setSpanAttributes(span, { "coterm.waitlist.email_check": deliverable });
       if (deliverable === "invalid") {
         return ok({ valid: false });
       }

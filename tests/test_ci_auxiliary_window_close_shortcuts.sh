@@ -11,9 +11,9 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 mkdir -p "$TMP_DIR/Sources"
 
-cat > "$TMP_DIR/Sources/mosaicApp.swift" <<'SWIFT'
-private let mosaicAuxiliaryWindowIdentifiers: Set<String> = [
-    "mosaic.settings",
+cat > "$TMP_DIR/Sources/cotermApp.swift" <<'SWIFT'
+private let cotermAuxiliaryWindowIdentifiers: Set<String> = [
+    "coterm.settings",
 ]
 SWIFT
 
@@ -21,13 +21,13 @@ cat > "$TMP_DIR/Sources/NewWindow.swift" <<'SWIFT'
 import AppKit
 
 /*
-window.identifier = NSUserInterfaceItemIdentifier("mosaic.blockCommentOnly")
+window.identifier = NSUserInterfaceItemIdentifier("coterm.blockCommentOnly")
 */
 
 func makeWindow() {
     let window = NSWindow()
     window.identifier =
-        NSUserInterfaceItemIdentifier("mosaic.newWindow")
+        NSUserInterfaceItemIdentifier("coterm.newWindow")
 }
 SWIFT
 
@@ -35,16 +35,16 @@ if python3 scripts/lint_auxiliary_window_close_shortcuts.py --repo-root "$TMP_DI
     echo "Expected missing auxiliary-window close owner to fail" >&2
     exit 1
 fi
-grep -q "mosaic.newWindow" "$TMP_DIR/missing.out"
+grep -q "coterm.newWindow" "$TMP_DIR/missing.out"
 grep -q "Sources/NewWindow.swift:9" "$TMP_DIR/missing.out"
 
-cat > "$TMP_DIR/Sources/mosaicApp.swift" <<'SWIFT'
-private let mosaicAuxiliaryWindowIdentifiers: Set<String> = [
-    // "mosaic.newWindow",
+cat > "$TMP_DIR/Sources/cotermApp.swift" <<'SWIFT'
+private let cotermAuxiliaryWindowIdentifiers: Set<String> = [
+    // "coterm.newWindow",
     /*
-    "mosaic.newWindow",
+    "coterm.newWindow",
     */
-    "mosaic.settings",
+    "coterm.settings",
 ]
 SWIFT
 
@@ -52,14 +52,14 @@ if python3 scripts/lint_auxiliary_window_close_shortcuts.py --repo-root "$TMP_DI
     echo "Expected commented-out auxiliary-window close owner to be ignored" >&2
     exit 1
 fi
-grep -q "mosaic.newWindow" "$TMP_DIR/commented-owner.out"
+grep -q "coterm.newWindow" "$TMP_DIR/commented-owner.out"
 
-cat > "$TMP_DIR/Sources/mosaicApp.swift" <<'SWIFT'
-private let mosaicAuxiliaryWindowIdentifiers: Set<String> = [
+cat > "$TMP_DIR/Sources/cotermApp.swift" <<'SWIFT'
+private let cotermAuxiliaryWindowIdentifiers: Set<String> = [
     // MARK: - Main Windows [user-closable]
     // This comment intentionally contains a lone ] bracket.
-    "mosaic.newWindow",
-    "mosaic.settings",
+    "coterm.newWindow",
+    "coterm.settings",
 ]
 SWIFT
 
@@ -71,18 +71,18 @@ import AppKit
 func makeWindow() {
     let window = NSWindow()
     /*
-    window.identifier = NSUserInterfaceItemIdentifier("mosaic.blockCommentOnly")
+    window.identifier = NSUserInterfaceItemIdentifier("coterm.blockCommentOnly")
     */
-    // window.identifier = NSUserInterfaceItemIdentifier("mosaic.commentOnly")
+    // window.identifier = NSUserInterfaceItemIdentifier("coterm.commentOnly")
     _ = window
 }
 SWIFT
 
 python3 scripts/lint_auxiliary_window_close_shortcuts.py --repo-root "$TMP_DIR"
 
-cat > "$TMP_DIR/Sources/mosaicApp.swift" <<'SWIFT'
-private let mosaicAuxiliaryWindowIdentifiers: Set<String> = [
-    "mosaic.settings",
+cat > "$TMP_DIR/Sources/cotermApp.swift" <<'SWIFT'
+private let cotermAuxiliaryWindowIdentifiers: Set<String> = [
+    "coterm.settings",
 ]
 SWIFT
 
@@ -91,7 +91,7 @@ import AppKit
 
 func makeWindow() {
     let window = NSWindow()
-    window.identifier = NSUserInterfaceItemIdentifier("mosaic.bootstrap")
+    window.identifier = NSUserInterfaceItemIdentifier("coterm.bootstrap")
 }
 SWIFT
 
@@ -99,9 +99,9 @@ python3 scripts/lint_auxiliary_window_close_shortcuts.py --repo-root "$TMP_DIR"
 
 # Identifier assigned through a named constant (the MobilePairingWindowController
 # pattern) must be resolved and enforced, not silently skipped.
-cat > "$TMP_DIR/Sources/mosaicApp.swift" <<'SWIFT'
-private let mosaicAuxiliaryWindowIdentifiers: Set<String> = [
-    "mosaic.settings",
+cat > "$TMP_DIR/Sources/cotermApp.swift" <<'SWIFT'
+private let cotermAuxiliaryWindowIdentifiers: Set<String> = [
+    "coterm.settings",
 ]
 SWIFT
 
@@ -109,7 +109,7 @@ cat > "$TMP_DIR/Sources/NewWindow.swift" <<'SWIFT'
 import AppKit
 
 final class ConstantWindowController {
-    static let windowIdentifier = "mosaic.constantWindow"
+    static let windowIdentifier = "coterm.constantWindow"
 
     func makeWindow() {
         let window = NSWindow()
@@ -122,13 +122,13 @@ if python3 scripts/lint_auxiliary_window_close_shortcuts.py --repo-root "$TMP_DI
     echo "Expected constant-assigned auxiliary-window identifier to fail when missing" >&2
     exit 1
 fi
-grep -q "mosaic.constantWindow" "$TMP_DIR/constant.out"
+grep -q "coterm.constantWindow" "$TMP_DIR/constant.out"
 grep -q "Sources/NewWindow.swift:8" "$TMP_DIR/constant.out"
 
-cat > "$TMP_DIR/Sources/mosaicApp.swift" <<'SWIFT'
-private let mosaicAuxiliaryWindowIdentifiers: Set<String> = [
-    "mosaic.constantWindow",
-    "mosaic.settings",
+cat > "$TMP_DIR/Sources/cotermApp.swift" <<'SWIFT'
+private let cotermAuxiliaryWindowIdentifiers: Set<String> = [
+    "coterm.constantWindow",
+    "coterm.settings",
 ]
 SWIFT
 

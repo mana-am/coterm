@@ -34,7 +34,7 @@ struct TrackedButton<Label: View>: View {
 
 /// A prominent button style that fills with the app's accent color and draws
 /// its label in white so the text stays legible on the accent fill.
-struct MosaicAccentButtonStyle: ButtonStyle {
+struct CotermAccentButtonStyle: ButtonStyle {
     let labelFontWeight: Font.Weight
 
     init(labelFontWeight: Font.Weight = .semibold) {
@@ -42,10 +42,10 @@ struct MosaicAccentButtonStyle: ButtonStyle {
     }
 
     func makeBody(configuration: Configuration) -> some View {
-        MosaicAccentButtonLabel(configuration: configuration, labelFontWeight: labelFontWeight)
+        CotermAccentButtonLabel(configuration: configuration, labelFontWeight: labelFontWeight)
     }
 
-    private struct MosaicAccentButtonLabel: View {
+    private struct CotermAccentButtonLabel: View {
         let configuration: ButtonStyleConfiguration
         let labelFontWeight: Font.Weight
         @Environment(\.isEnabled) private var isEnabled
@@ -66,19 +66,19 @@ struct MosaicAccentButtonStyle: ButtonStyle {
     }
 }
 
-extension ButtonStyle where Self == MosaicAccentButtonStyle {
+extension ButtonStyle where Self == CotermAccentButtonStyle {
     /// Accent-filled prominent button with white label text.
-    static var mosaicAccent: MosaicAccentButtonStyle { MosaicAccentButtonStyle() }
+    static var cotermAccent: CotermAccentButtonStyle { CotermAccentButtonStyle() }
 
     /// Accent-filled prominent button with a regular-weight label.
-    static var mosaicAccentRegular: MosaicAccentButtonStyle {
-        MosaicAccentButtonStyle(labelFontWeight: .regular)
+    static var cotermAccentRegular: CotermAccentButtonStyle {
+        CotermAccentButtonStyle(labelFontWeight: .regular)
     }
 }
 
 /// Secondary prominent button: neutral grey bezel with white label text. Used for
-/// non-primary actions that should read as less emphatic than `.mosaicAccent`.
-struct MosaicSecondaryButtonStyle: ButtonStyle {
+/// non-primary actions that should read as less emphatic than `.cotermAccent`.
+struct CotermSecondaryButtonStyle: ButtonStyle {
     let labelFontWeight: Font.Weight
 
     init(labelFontWeight: Font.Weight = .semibold) {
@@ -86,10 +86,10 @@ struct MosaicSecondaryButtonStyle: ButtonStyle {
     }
 
     func makeBody(configuration: Configuration) -> some View {
-        MosaicSecondaryButtonLabel(configuration: configuration, labelFontWeight: labelFontWeight)
+        CotermSecondaryButtonLabel(configuration: configuration, labelFontWeight: labelFontWeight)
     }
 
-    private struct MosaicSecondaryButtonLabel: View {
+    private struct CotermSecondaryButtonLabel: View {
         let configuration: ButtonStyleConfiguration
         let labelFontWeight: Font.Weight
         @Environment(\.isEnabled) private var isEnabled
@@ -110,19 +110,19 @@ struct MosaicSecondaryButtonStyle: ButtonStyle {
     }
 }
 
-extension ButtonStyle where Self == MosaicSecondaryButtonStyle {
+extension ButtonStyle where Self == CotermSecondaryButtonStyle {
     /// Grey secondary button with white label text.
-    static var mosaicSecondary: MosaicSecondaryButtonStyle { MosaicSecondaryButtonStyle() }
+    static var cotermSecondary: CotermSecondaryButtonStyle { CotermSecondaryButtonStyle() }
 
     /// Grey secondary button with a regular-weight label.
-    static var mosaicSecondaryRegular: MosaicSecondaryButtonStyle {
-        MosaicSecondaryButtonStyle(labelFontWeight: .regular)
+    static var cotermSecondaryRegular: CotermSecondaryButtonStyle {
+        CotermSecondaryButtonStyle(labelFontWeight: .regular)
     }
 }
 
 /// A checkbox toggle style that fills the box with the accent color when on and
 /// draws the checkmark in white so the glyph stays legible on the accent fill.
-struct MosaicAccentCheckboxToggleStyle: ToggleStyle {
+struct CotermAccentCheckboxToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
         Button {
             configuration.isOn.toggle()
@@ -153,9 +153,9 @@ struct MosaicAccentCheckboxToggleStyle: ToggleStyle {
     }
 }
 
-extension ToggleStyle where Self == MosaicAccentCheckboxToggleStyle {
+extension ToggleStyle where Self == CotermAccentCheckboxToggleStyle {
     /// Accent-filled checkbox with a white checkmark.
-    static var mosaicAccentCheckbox: MosaicAccentCheckboxToggleStyle { MosaicAccentCheckboxToggleStyle() }
+    static var cotermAccentCheckbox: CotermAccentCheckboxToggleStyle { CotermAccentCheckboxToggleStyle() }
 }
 
 extension TrackedButton where Label == Text {

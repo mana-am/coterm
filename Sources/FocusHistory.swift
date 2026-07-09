@@ -1,9 +1,9 @@
-import MosaicWorkspaces
+import CotermWorkspaces
 import Foundation
 
 // The focus-history value types (FocusHistoryEntry, FocusHistoryRecord,
 // FocusHistoryMenuDirection/Position/Item/Snapshot) and the snapshot merge
-// (FocusHistoryMenuSnapshot.recentlyFocused) live in MosaicWorkspaceNavigation.
+// (FocusHistoryMenuSnapshot.recentlyFocused) live in CotermWorkspaceNavigation.
 // Only the localized menu formatting stays app-side.
 
 enum FocusHistoryMenuFormatter {

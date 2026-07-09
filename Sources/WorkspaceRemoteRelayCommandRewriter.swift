@@ -1,4 +1,4 @@
-import MosaicRemoteWorkspace
+import CotermRemoteWorkspace
 import Foundation
 
 /// App-side conformance to the relay's command-rewrite seam: forwards to the

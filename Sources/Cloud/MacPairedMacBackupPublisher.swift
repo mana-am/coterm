@@ -1,9 +1,9 @@
-import MosaicMobileCore
-import MosaicAuthRuntime
+import CotermMobileCore
+import CotermAuthRuntime
 import Foundation
 import os
 
-private let macPairedMacPublishLog = Logger(subsystem: "mosaic.com.emergent.app", category: "MacPairedMacPublish")
+private let macPairedMacPublishLog = Logger(subsystem: "coterm.com.emergent.app", category: "MacPairedMacPublish")
 
 /// DEV convenience: publishes THIS Mac's own attach route into the signed-in
 /// user's per-user `pairedMacs` Durable Object backup (`POST /v1/sync/paired-macs`
@@ -23,7 +23,7 @@ private let macPairedMacPublishLog = Logger(subsystem: "mosaic.com.emergent.app"
 final class MacPairedMacBackupPublisher {
     static let shared = MacPairedMacBackupPublisher()
 
-    static let envKey = "MOSAIC_MAC_PAIRED_MAC_SELF_PUBLISH"
+    static let envKey = "COTERM_MAC_PAIRED_MAC_SELF_PUBLISH"
     static let defaultsKey = "macPairedMacSelfPublish"
 
     private let session: URLSession = .shared
@@ -121,9 +121,9 @@ final class MacPairedMacBackupPublisher {
         req.httpMethod = "POST"
         req.timeoutInterval = 10
         req.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Mosaic-Refresh-Token")
+        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Coterm-Refresh-Token")
         if let teamID, !teamID.isEmpty {
-            req.setValue(teamID, forHTTPHeaderField: "X-Mosaic-Team-Id")
+            req.setValue(teamID, forHTTPHeaderField: "X-Coterm-Team-Id")
         }
         req.setValue("application/json", forHTTPHeaderField: "content-type")
         req.httpBody = payload

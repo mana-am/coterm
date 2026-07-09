@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from claude_teams_test_utils import resolve_mosaic_cli
+from claude_teams_test_utils import resolve_coterm_cli
 
 
 def make_executable(path: Path, content: str) -> None:
@@ -28,12 +28,12 @@ def main() -> int:
         return 0
 
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-opencode-plugin-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-opencode-plugin-") as td:
         root = Path(td)
         config_dir = root / "opencode"
         config_dir.mkdir(parents=True, exist_ok=True)
@@ -44,8 +44,8 @@ def main() -> int:
                     "plugin": [
                         "oh-my-opencode",
                         ["existing-plugin", {"enabled": True}],
-                        "mosaic-session",
-                        "./plugins/mosaic-session.js",
+                        "coterm-session",
+                        "./plugins/coterm-session.js",
                     ]
                 }
             ),
@@ -69,16 +69,16 @@ def main() -> int:
             print(f"stderr={install.stderr.strip()}")
             return 1
 
-        plugin_path = config_dir / "plugins" / "mosaic-session.js"
+        plugin_path = config_dir / "plugins" / "coterm-session.js"
         if not plugin_path.exists():
             print(f"FAIL: expected plugin at {plugin_path}")
             return 1
-        feed_plugin_path = config_dir / "plugins" / "mosaic-feed.js"
+        feed_plugin_path = config_dir / "plugins" / "coterm-feed.js"
         if not feed_plugin_path.exists():
             print(f"FAIL: expected feed plugin at {feed_plugin_path}")
             return 1
-        if "mosaic-feed-plugin-marker" not in feed_plugin_path.read_text(encoding="utf-8"):
-            print(f"FAIL: expected mosaic feed marker in {feed_plugin_path}")
+        if "coterm-feed-plugin-marker" not in feed_plugin_path.read_text(encoding="utf-8"):
+            print(f"FAIL: expected coterm feed marker in {feed_plugin_path}")
             return 1
 
         try:
@@ -94,13 +94,13 @@ def main() -> int:
             entry
             for entry in plugins
             if (entry if isinstance(entry, str) else entry[0] if isinstance(entry, list) and entry else "")
-            == "mosaic-session"
+            == "coterm-session"
         ]
         if stale:
-            print(f"FAIL: expected stale mosaic plugin registrations removed, got {plugins!r}")
+            print(f"FAIL: expected stale coterm plugin registrations removed, got {plugins!r}")
             return 1
-        if "./plugins/mosaic-session.js" not in plugins:
-            print(f"FAIL: expected local mosaic session plugin registration, got {plugins!r}")
+        if "./plugins/coterm-session.js" not in plugins:
+            print(f"FAIL: expected local coterm session plugin registration, got {plugins!r}")
             return 1
         if "oh-my-opencode" not in plugins or ["existing-plugin", {"enabled": True}] not in plugins:
             print(f"FAIL: installer did not preserve existing plugin entries: {plugins!r}")
@@ -122,51 +122,51 @@ def main() -> int:
                 print(f"exit={debug.returncode}")
                 print(debug_output[-4000:])
                 return 1
-            if "path=mosaic-session loading plugin" in debug_output:
-                print("FAIL: opencode tried to resolve mosaic-session as a package")
+            if "path=coterm-session loading plugin" in debug_output:
+                print("FAIL: opencode tried to resolve coterm-session as a package")
                 print(debug_output[-4000:])
                 return 1
             if f"file://{plugin_path}" not in debug_output:
-                print("FAIL: opencode did not auto-load mosaic session plugin file")
+                print("FAIL: opencode did not auto-load coterm session plugin file")
                 print(debug_output[-4000:])
                 return 1
 
-        fake_mosaic = root / "fake-mosaic"
-        fake_args_log = root / "fake-mosaic-args.log"
-        fake_stdin_log = root / "fake-mosaic-stdin.log"
-        fake_env_log = root / "fake-mosaic-env.log"
-        plugin_copy_path = config_dir / "plugins" / "mosaic-session-copy.js"
+        fake_coterm = root / "fake-coterm"
+        fake_args_log = root / "fake-coterm-args.log"
+        fake_stdin_log = root / "fake-coterm-stdin.log"
+        fake_env_log = root / "fake-coterm-env.log"
+        plugin_copy_path = config_dir / "plugins" / "coterm-session-copy.js"
         shutil.copyfile(plugin_path, plugin_copy_path)
         make_executable(
-            fake_mosaic,
+            fake_coterm,
             """#!/usr/bin/env bash
 set -euo pipefail
-printf '%s\\n' "$*" >> "$FAKE_MOSAIC_ARGS_LOG"
-cat >> "$FAKE_MOSAIC_STDIN_LOG"
-printf '\\n---\\n' >> "$FAKE_MOSAIC_STDIN_LOG"
+printf '%s\\n' "$*" >> "$FAKE_COTERM_ARGS_LOG"
+cat >> "$FAKE_COTERM_STDIN_LOG"
+printf '\\n---\\n' >> "$FAKE_COTERM_STDIN_LOG"
 {
-  printf 'kind=%s\\n' "${MOSAIC_AGENT_LAUNCH_KIND-}"
-  printf 'cwd=%s\\n' "${MOSAIC_AGENT_LAUNCH_CWD-}"
-  printf 'argv=%s\\n' "${MOSAIC_AGENT_LAUNCH_ARGV_B64-}"
-} >> "$FAKE_MOSAIC_ENV_LOG"
+  printf 'kind=%s\\n' "${COTERM_AGENT_LAUNCH_KIND-}"
+  printf 'cwd=%s\\n' "${COTERM_AGENT_LAUNCH_CWD-}"
+  printf 'argv=%s\\n' "${COTERM_AGENT_LAUNCH_ARGV_B64-}"
+} >> "$FAKE_COTERM_ENV_LOG"
 """,
         )
 
         check_env = env.copy()
-        check_env["MOSAIC_TEST_OPENCODE_PLUGIN_PATH"] = str(plugin_path)
-        check_env["MOSAIC_TEST_OPENCODE_PLUGIN_COPY_PATH"] = str(plugin_copy_path)
-        check_env["MOSAIC_SURFACE_ID"] = "surface-opencode-test"
-        check_env["MOSAIC_OPENCODE_MOSAIC_BIN"] = str(fake_mosaic)
-        check_env["FAKE_MOSAIC_ARGS_LOG"] = str(fake_args_log)
-        check_env["FAKE_MOSAIC_STDIN_LOG"] = str(fake_stdin_log)
-        check_env["FAKE_MOSAIC_ENV_LOG"] = str(fake_env_log)
+        check_env["COTERM_TEST_OPENCODE_PLUGIN_PATH"] = str(plugin_path)
+        check_env["COTERM_TEST_OPENCODE_PLUGIN_COPY_PATH"] = str(plugin_copy_path)
+        check_env["COTERM_SURFACE_ID"] = "surface-opencode-test"
+        check_env["COTERM_OPENCODE_COTERM_BIN"] = str(fake_coterm)
+        check_env["FAKE_COTERM_ARGS_LOG"] = str(fake_args_log)
+        check_env["FAKE_COTERM_STDIN_LOG"] = str(fake_stdin_log)
+        check_env["FAKE_COTERM_ENV_LOG"] = str(fake_env_log)
         check_source = """
-const pluginPath = process.env.MOSAIC_TEST_OPENCODE_PLUGIN_PATH;
-const pluginCopyPath = process.env.MOSAIC_TEST_OPENCODE_PLUGIN_COPY_PATH;
+const pluginPath = process.env.COTERM_TEST_OPENCODE_PLUGIN_PATH;
+const pluginCopyPath = process.env.COTERM_TEST_OPENCODE_PLUGIN_COPY_PATH;
 const mod = await import(pluginPath);
 const duplicateMod = await import(pluginCopyPath);
-if (typeof mod.MosaicSessionRestore !== "function") {
-  throw new Error("missing MosaicSessionRestore export");
+if (typeof mod.CotermSessionRestore !== "function") {
+  throw new Error("missing CotermSessionRestore export");
 }
 if (typeof mod.default !== "function") {
   throw new Error("missing default export");

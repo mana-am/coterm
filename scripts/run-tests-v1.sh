@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This runner is intended for the UTM macOS VM (ssh mosaic-vm).
-# It is intentionally guarded so we don't accidentally kill the host user's mosaic instances.
-if [ "$(id -un)" != "mosaic" ]; then
-  echo "ERROR: This script is intended to be run on the mosaic-vm (user: mosaic)." >&2
-  echo "Run via: ssh mosaic-vm 'cd /Users/mosaic/mosaic && ./scripts/run-tests-v1.sh'" >&2
+# This runner is intended for the UTM macOS VM (ssh coterm-vm).
+# It is intentionally guarded so we don't accidentally kill the host user's coterm instances.
+if [ "$(id -un)" != "coterm" ]; then
+  echo "ERROR: This script is intended to be run on the coterm-vm (user: coterm)." >&2
+  echo "Run via: ssh coterm-vm 'cd /Users/coterm/coterm && ./scripts/run-tests-v1.sh'" >&2
   exit 2
 fi
 
 cd "$(dirname "$0")/.."
 
-DERIVED_DATA_PATH="$HOME/Library/Developer/Xcode/DerivedData/mosaic-tests-v1"
-APP="$DERIVED_DATA_PATH/Build/Products/Debug/Mosaic DEV.app"
+DERIVED_DATA_PATH="$HOME/Library/Developer/Xcode/DerivedData/coterm-tests-v1"
+APP="$DERIVED_DATA_PATH/Build/Products/Debug/Coterm DEV.app"
 RUN_TAG="tests-v1"
 
 echo "== build =="
@@ -21,22 +21,22 @@ echo "== build =="
 # module file ... was built".
 rm -rf "$DERIVED_DATA_PATH/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules" || true
 xcodebuild \
-  -project mosaic.xcodeproj \
-  -scheme mosaic \
+  -project coterm.xcodeproj \
+  -scheme coterm \
   -configuration Debug \
   -destination "platform=macOS" \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   build >/dev/null
 
 if [ ! -d "$APP" ]; then
-  echo "ERROR: Mosaic DEV.app not found at expected path: $APP" >&2
+  echo "ERROR: Coterm DEV.app not found at expected path: $APP" >&2
   exit 1
 fi
 
 cleanup() {
-  pkill -x "Mosaic DEV" || true
-  pkill -x "Mosaic" || true
-  rm -f /tmp/mosaic*.sock || true
+  pkill -x "Coterm DEV" || true
+  pkill -x "Coterm" || true
+  rm -f /tmp/coterm*.sock || true
 }
 
 launch_and_wait() {
@@ -44,19 +44,19 @@ launch_and_wait() {
   # Wait briefly for the previous instance to fully terminate; LaunchServices can flake if we
   # relaunch too quickly.
   for _ in {1..50}; do
-    pgrep -x "Mosaic DEV" >/dev/null 2>&1 || break
+    pgrep -x "Coterm DEV" >/dev/null 2>&1 || break
     sleep 0.1
   done
 
   # Force socket mode for deterministic automation runs, independent of prior user settings.
-  defaults write mosaic.com.emergent.app.debug socketControlMode -string full >/dev/null 2>&1 || true
+  defaults write coterm.com.emergent.app.debug socketControlMode -string full >/dev/null 2>&1 || true
 
   # Launch directly with UI test mode enabled so startup follows deterministic test codepaths.
-  MOSAIC_TAG="$RUN_TAG" MOSAIC_UI_TEST_MODE=1 "$APP/Contents/MacOS/Mosaic DEV" >/dev/null 2>&1 &
+  COTERM_TAG="$RUN_TAG" COTERM_UI_TEST_MODE=1 "$APP/Contents/MacOS/Coterm DEV" >/dev/null 2>&1 &
 
   SOCK=""
   for _ in {1..120}; do
-    SOCK=$(ls -t /tmp/mosaic-debug*.sock /tmp/mosaic*.sock 2>/dev/null | head -1 || true)
+    SOCK=$(ls -t /tmp/coterm-debug*.sock /tmp/coterm*.sock 2>/dev/null | head -1 || true)
     if [ -n "$SOCK" ] && [ -S "$SOCK" ]; then
       break
     fi
@@ -64,13 +64,13 @@ launch_and_wait() {
   done
 
   if [ -z "$SOCK" ] || [ ! -S "$SOCK" ]; then
-    echo "ERROR: Socket not ready (looked for /tmp/mosaic*.sock)" >&2
+    echo "ERROR: Socket not ready (looked for /tmp/coterm*.sock)" >&2
     exit 1
   fi
-  export MOSAIC_SOCKET_PATH="$SOCK"
+  export COTERM_SOCKET_PATH="$SOCK"
 
   # Ensure LaunchServices has a visible/main window attached for rendering checks.
-  MOSAIC_TAG="$RUN_TAG" open "$APP" >/dev/null 2>&1 || true
+  COTERM_TAG="$RUN_TAG" open "$APP" >/dev/null 2>&1 || true
   sleep 0.5
 
   echo "== wait ready =="
@@ -80,14 +80,14 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.getcwd(), "tests"))
-from mosaic import mosaic  # type: ignore
+from coterm import coterm  # type: ignore
 
 deadline = time.time() + 30.0
 last = None
 client = None
 while time.time() < deadline:
     try:
-        client = mosaic()
+        client = coterm()
         client.connect()
         break
     except Exception as e:
@@ -121,7 +121,7 @@ probe_deadline = time.time() + 10.0
 while time.time() < probe_deadline:
     probe = None
     try:
-        probe = mosaic()
+        probe = coterm()
         probe.connect()
         if not probe.ping():
             raise RuntimeError("ping returned false")

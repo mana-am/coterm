@@ -12,12 +12,12 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-	<key>MosaicDevTag</key>
-	<string>$(MOSAIC_DEV_TAG)</string>
-	<key>MosaicGitSHA</key>
-	<string>$(MOSAIC_GIT_SHA)</string>
-	<key>MosaicPresenceBaseURL</key>
-	<string>$(MOSAIC_PRESENCE_BASE_URL)</string>
+	<key>CotermDevTag</key>
+	<string>$(COTERM_DEV_TAG)</string>
+	<key>CotermGitSHA</key>
+	<string>$(COTERM_GIT_SHA)</string>
+	<key>CotermPresenceBaseURL</key>
+	<string>$(COTERM_PRESENCE_BASE_URL)</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
@@ -30,22 +30,22 @@
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLName</key>
-			<string>dev.mosaic.ios.attach</string>
+			<string>dev.coterm.ios.attach</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<!-- Channel-specific pairing scheme (MOSAIC_IOS_URL_SCHEME in
+				<!-- Channel-specific pairing scheme (COTERM_IOS_URL_SCHEME in
 				     Config/Shared.xcconfig + Config/Release.xcconfig): dev builds
-				     register mosaic-ios-dev, Release (beta/prod) registers mosaic-ios,
+				     register coterm-ios-dev, Release (beta/prod) registers coterm-ios,
 				     so a beta/prod QR scanned with the Camera app can never open a
 				     dev build. Keep the values in sync with CmxPairingURLScheme. -->
-				<string>$(MOSAIC_IOS_URL_SCHEME)</string>
+				<string>$(COTERM_IOS_URL_SCHEME)</string>
 			</array>
 		</dict>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLName</key>
-			<string>dev.mosaic.ios.stack-auth</string>
+			<string>dev.coterm.ios.stack-auth</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>stack-auth-mobile-oauth-url</string>
@@ -59,9 +59,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Scan Mosaic pairing QR codes from your Mac terminal.</string>
+	<string>Scan Coterm pairing QR codes from your Mac terminal.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Connect to your Mac on the local network for Mosaic mobile pairing and terminal sync.</string>
+	<string>Connect to your Mac on the local network for Coterm mobile pairing and terminal sync.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Record audio to transcribe your voice into the message box.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

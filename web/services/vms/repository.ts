@@ -102,7 +102,7 @@ export type VmRepositoryShape = {
   }[]) => Effect.Effect<void, VmDatabaseError>;
 };
 
-export class VmRepository extends Context.Tag("mosaic/VmRepository")<
+export class VmRepository extends Context.Tag("coterm/VmRepository")<
   VmRepository,
   VmRepositoryShape
 >() {}

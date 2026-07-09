@@ -1,5 +1,5 @@
 import Foundation
-import MosaicFoundation
+import CotermFoundation
 
 struct ConfigSourceEnvironment {
     let homeDirectoryURL: URL
@@ -9,7 +9,7 @@ struct ConfigSourceEnvironment {
 
     init(
         homeDirectoryURL: URL,
-        currentBundleIdentifier: String? = MosaicGhosttyConfigPathResolver.releaseBundleIdentifier,
+        currentBundleIdentifier: String? = CotermGhosttyConfigPathResolver.releaseBundleIdentifier,
         previewDirectoryURL: URL? = nil,
         fileManager: FileManager = .default
     ) {
@@ -18,7 +18,7 @@ struct ConfigSourceEnvironment {
         self.fileManager = fileManager
         self.currentBundleIdentifier = currentBundleIdentifier
         self.previewDirectoryURL = previewDirectoryURL?.standardizedFileURL
-            ?? MosaicGhosttyConfigPathResolver().configDirectoryURL(
+            ?? CotermGhosttyConfigPathResolver().configDirectoryURL(
                 currentBundleIdentifier: currentBundleIdentifier,
                 appSupportDirectory: standardizedHome
                     .appendingPathComponent("Library", isDirectory: true)
@@ -34,8 +34,8 @@ struct ConfigSourceEnvironment {
         )
     }
 
-    var mosaicConfigURL: URL {
-        MosaicGhosttyConfigPathResolver().activeOrEditableConfigURL(
+    var cotermConfigURL: URL {
+        CotermGhosttyConfigPathResolver().activeOrEditableConfigURL(
             currentBundleIdentifier: currentBundleIdentifier,
             appSupportDirectory: appSupportDirectoryURL,
             fileManager: fileManager
@@ -67,27 +67,27 @@ struct ConfigSourceEnvironment {
         previewDirectoryURL.appendingPathComponent("config.synced-preview", isDirectory: false)
     }
 
-    func materializeMosaicConfigFileIfNeeded() throws -> URL {
-        let url = mosaicConfigURL
+    func materializeCotermConfigFileIfNeeded() throws -> URL {
+        let url = cotermConfigURL
         guard !fileManager.fileExists(atPath: url.path) else { return url }
-        try writeMosaicConfigContents("", to: url)
+        try writeCotermConfigContents("", to: url)
         return url
     }
 
     func materializedGhosttySettingsEditorURLs() throws -> [URL] {
-        let mosaicURL = try materializeMosaicConfigFileIfNeeded()
+        let cotermURL = try materializeCotermConfigFileIfNeeded()
 
         var collector = GhosttySettingsConfigFileCollector(
             fileManager: fileManager,
             homeDirectoryURL: homeDirectoryURL
         )
-        collector.append(mosaicURL)
+        collector.append(cotermURL)
 
         for url in standaloneGhosttyDisplayCandidates where isRegularFile(at: url) {
             collector.append(url)
         }
 
-        for url in MosaicGhosttyConfigPathResolver().loadConfigURLs(
+        for url in CotermGhosttyConfigPathResolver().loadConfigURLs(
             currentBundleIdentifier: currentBundleIdentifier,
             appSupportDirectory: appSupportDirectoryURL,
             fileManager: fileManager
@@ -99,14 +99,14 @@ struct ConfigSourceEnvironment {
         return collector.urls
     }
 
-    func writeMosaicConfigContents(_ contents: String) throws {
-        let url = mosaicConfigURL
-        try writeMosaicConfigContents(contents, to: url)
+    func writeCotermConfigContents(_ contents: String) throws {
+        let url = cotermConfigURL
+        try writeCotermConfigContents(contents, to: url)
     }
 
-    func writeMosaicConfigSetting(key: String, value: String) throws {
-        let url = try materializeMosaicConfigFileIfNeeded()
-        try MosaicGhosttyConfigSettingEditor().writeSetting(
+    func writeCotermConfigSetting(key: String, value: String) throws {
+        let url = try materializeCotermConfigFileIfNeeded()
+        try CotermGhosttyConfigSettingEditor().writeSetting(
             key: key,
             value: value,
             to: url,
@@ -114,7 +114,7 @@ struct ConfigSourceEnvironment {
         )
     }
 
-    private func writeMosaicConfigContents(_ contents: String, to url: URL) throws {
+    private func writeCotermConfigContents(_ contents: String, to url: URL) throws {
         let writeURL = configWriteURL(for: url)
         try fileManager.createDirectory(
             at: writeURL.deletingLastPathComponent(),
@@ -199,19 +199,19 @@ struct ConfigSourceSnapshot {
 }
 
 enum ConfigSource: String, CaseIterable, Identifiable {
-    case mosaic
+    case coterm
     case synced
 
     var id: Self { self }
 
     var isEditable: Bool {
-        self == .mosaic
+        self == .coterm
     }
 
     func snapshot(environment: ConfigSourceEnvironment = .live()) -> ConfigSourceSnapshot {
         switch self {
-        case .mosaic:
-            let url = environment.mosaicConfigURL
+        case .coterm:
+            let url = environment.cotermConfigURL
             return ConfigSourceSnapshot(
                 source: self,
                 primaryURL: url,
@@ -226,7 +226,7 @@ enum ConfigSource: String, CaseIterable, Identifiable {
             let hasStandaloneGhosttyConfig = environment.isRegularFile(at: ghosttyURL)
             let renderedContents = Self.renderSyncedPreview(
                 ghosttyURL: hasStandaloneGhosttyConfig ? ghosttyURL : nil,
-                mosaicURLs: MosaicGhosttyConfigPathResolver().loadConfigURLs(
+                cotermURLs: CotermGhosttyConfigPathResolver().loadConfigURLs(
                     currentBundleIdentifier: environment.currentBundleIdentifier,
                     appSupportDirectory: environment.appSupportDirectoryURL,
                     fileManager: environment.fileManager
@@ -276,14 +276,14 @@ enum ConfigSource: String, CaseIterable, Identifiable {
 
     private static func renderSyncedPreview(
         ghosttyURL: URL?,
-        mosaicURLs: [URL],
+        cotermURLs: [URL],
         environment: ConfigSourceEnvironment
     ) -> String {
-        // Preserve Ghostty key order, then overlay mosaic entries using last-wins precedence.
+        // Preserve Ghostty key order, then overlay coterm entries using last-wins precedence.
         var effectiveEntriesByKey: [String: ParsedConfigEntry] = [:]
         var orderedKeys: [String] = []
 
-        for sourceURL in ([ghosttyURL].compactMap { $0 } + mosaicURLs) {
+        for sourceURL in ([ghosttyURL].compactMap { $0 } + cotermURLs) {
             for entry in parsedEntries(from: sourceURL) {
                 if effectiveEntriesByKey[entry.key] == nil {
                     orderedKeys.append(entry.key)

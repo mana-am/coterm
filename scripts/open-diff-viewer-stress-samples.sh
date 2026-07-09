@@ -8,7 +8,7 @@ Usage: scripts/open-diff-viewer-stress-samples.sh [sample|all] [--cli PATH] [--r
 Clone large public repositories, check out sample refs, then open the diff
 through the normal local git codepath:
 
-  mosaic diff --branch --base <base-ref>
+  coterm diff --branch --base <base-ref>
 
 Samples:
   bun-rust      Bun Zig-to-Rust rewrite, oven-sh/bun pull 30412
@@ -18,16 +18,16 @@ Samples:
   all           Open every sample
 
 Environment:
-  MOSAIC_WORKSPACE_ID and MOSAIC_SURFACE_ID choose the target workspace/surface.
-  MOSAIC_DIFF_STRESS_ROOT overrides the clone cache root. Each sample family gets
-  its own parent directory so the normal mosaic repo switcher does not treat
+  COTERM_WORKSPACE_ID and COTERM_SURFACE_ID choose the target workspace/surface.
+  COTERM_DIFF_STRESS_ROOT overrides the clone cache root. Each sample family gets
+  its own parent directory so the normal coterm repo switcher does not treat
   unrelated stress repos as sibling production repos.
 EOF
 }
 
 SAMPLE="bun-rust"
-CLI="mosaic"
-ROOT="${MOSAIC_DIFF_STRESS_ROOT:-/tmp/mosaic-diff-viewer-stress}"
+CLI="coterm"
+ROOT="${COTERM_DIFF_STRESS_ROOT:-/tmp/coterm-diff-viewer-stress}"
 
 if [ $# -gt 0 ]; then
   case "$1" in
@@ -85,9 +85,9 @@ sample_dir() {
 
 sample_fetch_args() {
   case "$1" in
-    bun-rust) echo "0d9b296af33f2b851fcbf4df3e9ec89751734ba4 pull/30412/head:refs/remotes/mosaic-stress/bun-rust" ;;
-    node-v8) echo "4d8834fbef690bf71dc9eb6bdd9edfb0783b3c5d pull/62526/head:refs/remotes/mosaic-stress/node-v8" ;;
-    node-v8-14-1) echo "0817b40c1b2938cff3c30f026d0ad4b255beb11d pull/59805/head:refs/remotes/mosaic-stress/node-v8-14-1" ;;
+    bun-rust) echo "0d9b296af33f2b851fcbf4df3e9ec89751734ba4 pull/30412/head:refs/remotes/coterm-stress/bun-rust" ;;
+    node-v8) echo "4d8834fbef690bf71dc9eb6bdd9edfb0783b3c5d pull/62526/head:refs/remotes/coterm-stress/node-v8" ;;
+    node-v8-14-1) echo "0817b40c1b2938cff3c30f026d0ad4b255beb11d pull/59805/head:refs/remotes/coterm-stress/node-v8-14-1" ;;
     linux-v6) echo "refs/tags/v6.0:refs/tags/v6.0 refs/tags/v6.7:refs/tags/v6.7" ;;
     *) return 1 ;;
   esac
@@ -95,9 +95,9 @@ sample_fetch_args() {
 
 sample_head_ref() {
   case "$1" in
-    bun-rust) echo "refs/remotes/mosaic-stress/bun-rust" ;;
-    node-v8) echo "refs/remotes/mosaic-stress/node-v8" ;;
-    node-v8-14-1) echo "refs/remotes/mosaic-stress/node-v8-14-1" ;;
+    bun-rust) echo "refs/remotes/coterm-stress/bun-rust" ;;
+    node-v8) echo "refs/remotes/coterm-stress/node-v8" ;;
+    node-v8-14-1) echo "refs/remotes/coterm-stress/node-v8-14-1" ;;
     linux-v6) echo "refs/tags/v6.7" ;;
     *) return 1 ;;
   esac
@@ -115,10 +115,10 @@ sample_base_ref() {
 
 sample_branch() {
   case "$1" in
-    bun-rust) echo "mosaic-stress-bun-rust" ;;
-    node-v8) echo "mosaic-stress-node-v8" ;;
-    node-v8-14-1) echo "mosaic-stress-node-v8-14-1" ;;
-    linux-v6) echo "mosaic-stress-linux-v6" ;;
+    bun-rust) echo "coterm-stress-bun-rust" ;;
+    node-v8) echo "coterm-stress-node-v8" ;;
+    node-v8-14-1) echo "coterm-stress-node-v8-14-1" ;;
+    linux-v6) echo "coterm-stress-linux-v6" ;;
     *) return 1 ;;
   esac
 }
@@ -161,11 +161,11 @@ open_sample() {
   git -C "$repo_dir" checkout -B "$branch" "$head_ref"
 
   local args=(diff --branch --base "$base_ref" --title "$title" --layout split --no-focus)
-  if [ -n "${MOSAIC_WORKSPACE_ID:-}" ]; then
-    args+=(--workspace "$MOSAIC_WORKSPACE_ID")
+  if [ -n "${COTERM_WORKSPACE_ID:-}" ]; then
+    args+=(--workspace "$COTERM_WORKSPACE_ID")
   fi
-  if [ -n "${MOSAIC_SURFACE_ID:-}" ]; then
-    args+=(--surface "$MOSAIC_SURFACE_ID")
+  if [ -n "${COTERM_SURFACE_ID:-}" ]; then
+    args+=(--surface "$COTERM_SURFACE_ID")
   fi
 
   echo "opening $name through local git: cd $repo_dir && $CLI ${args[*]}"

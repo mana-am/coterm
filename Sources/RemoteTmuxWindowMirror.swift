@@ -1,12 +1,12 @@
 import AppKit
 import Bonsplit
-import MosaicTerminal
+import Coterminal
 import Foundation
 import Observation
 
 /// Owns the per-pane ``TerminalPanel``s and current layout for ONE mirrored tmux
-/// window, so a single mosaic tab can render the tmux window's full multi-pane
-/// split layout side by side — with the native mosaic pane chrome (each pane is a
+/// window, so a single coterm tab can render the tmux window's full multi-pane
+/// split layout side by side — with the native coterm pane chrome (each pane is a
 /// real ``TerminalPanel`` rendered via ``TerminalPanelView``).
 ///
 /// Created lazily by ``RemoteTmuxSessionMirror`` the first time a window has more
@@ -104,11 +104,11 @@ final class RemoteTmuxWindowMirror {
 
     @ObservationIgnored private var lastClientSize: (cols: Int, rows: Int)?
 
-    /// Tells tmux to size this session's windows to the rendered mosaic area, so
+    /// Tells tmux to size this session's windows to the rendered coterm area, so
     /// captured/live pane content matches the on-screen grid. Derives cols/rows
     /// from the content pixel area and a live pane's cell size; sends
     /// `refresh-client -C` only when the grid actually changes (no feedback loop:
-    /// the mosaic area doesn't change when tmux reflows).
+    /// the coterm area doesn't change when tmux reflows).
     /// Returns `true` once the pane surface is live and the size was applied (sent, or
     /// already current via the `lastClientSize` dedup); `false` when no pane has
     /// reported its cell size yet, so the caller should retry. Idempotent.

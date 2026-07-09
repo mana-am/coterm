@@ -1,5 +1,5 @@
 import Foundation
-import MosaicCore
+import CotermCore
 
 extension BrowserPanel {
     static func restorableDisplayURL(

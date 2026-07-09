@@ -74,33 +74,33 @@ export default function WorkspaceGroupsPage() {
       <p>{t("cliDesc")}</p>
 
       <DocsHeading level={3} id="subcommands">{t("cliSubcommandsTitle")}</DocsHeading>
-      <CodeBlock lang="bash">{`mosaic workspace-group list [--json]
-mosaic workspace-group create --name "emergent.inc" [--cwd ~/projects/emergent.inc] [--from <id>,<id>]
-mosaic workspace-group ungroup <group-id>
-mosaic workspace-group delete  <group-id>
-mosaic workspace-group rename <group-id> --name "new name"
-mosaic workspace-group collapse <group-id>
-mosaic workspace-group expand <group-id>
-mosaic workspace-group pin <group-id>
-mosaic workspace-group unpin <group-id>
-mosaic workspace-group add --group <group-id> --workspace <workspace-id>
-mosaic workspace-group remove --workspace <workspace-id>
-mosaic workspace-group set-anchor --group <group-id> --workspace <workspace-id>
-mosaic workspace-group new-workspace <group-id> [--placement afterCurrent|top|end]
-mosaic workspace-group set-color <group-id> --hex "#7A4FD8"
-mosaic workspace-group set-icon  <group-id> --symbol ladybug.fill
-mosaic workspace-group move <group-id> (--to-index <n> | --before <group-id> | --after <group-id>)
-mosaic workspace-group focus <group-id>`}</CodeBlock>
+      <CodeBlock lang="bash">{`coterm workspace-group list [--json]
+coterm workspace-group create --name "emergent.inc" [--cwd ~/projects/emergent.inc] [--from <id>,<id>]
+coterm workspace-group ungroup <group-id>
+coterm workspace-group delete  <group-id>
+coterm workspace-group rename <group-id> --name "new name"
+coterm workspace-group collapse <group-id>
+coterm workspace-group expand <group-id>
+coterm workspace-group pin <group-id>
+coterm workspace-group unpin <group-id>
+coterm workspace-group add --group <group-id> --workspace <workspace-id>
+coterm workspace-group remove --workspace <workspace-id>
+coterm workspace-group set-anchor --group <group-id> --workspace <workspace-id>
+coterm workspace-group new-workspace <group-id> [--placement afterCurrent|top|end]
+coterm workspace-group set-color <group-id> --hex "#7A4FD8"
+coterm workspace-group set-icon  <group-id> --symbol ladybug.fill
+coterm workspace-group move <group-id> (--to-index <n> | --before <group-id> | --after <group-id>)
+coterm workspace-group focus <group-id>`}</CodeBlock>
       <p>{t("cliCreateNote")}</p>
       <p>{t("cliFlagsNote")}</p>
 
       <DocsHeading level={3} id="examples">{t("cliExamplesTitle")}</DocsHeading>
       <p>{t("cliExampleGroup")}</p>
-      <CodeBlock lang="bash">{`mosaic workspace-group create --name emergent.inc`}</CodeBlock>
+      <CodeBlock lang="bash">{`coterm workspace-group create --name emergent.inc`}</CodeBlock>
       <p>{t("cliExampleNew")}</p>
-      <CodeBlock lang="bash">{`mosaic workspace-group new-workspace workspace_group:1`}</CodeBlock>
+      <CodeBlock lang="bash">{`coterm workspace-group new-workspace workspace_group:1`}</CodeBlock>
       <p>{t("cliExampleList")}</p>
-      <CodeBlock lang="bash">{`mosaic workspace-group list`}</CodeBlock>
+      <CodeBlock lang="bash">{`coterm workspace-group list`}</CodeBlock>
 
       <DocsHeading level={2} id="configuration">{t("configTitle")}</DocsHeading>
       <p>{t("configNote")}</p>

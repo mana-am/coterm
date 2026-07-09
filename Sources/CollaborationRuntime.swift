@@ -1,8 +1,8 @@
 import AppKit
-import MosaicAgentChat
-import MosaicMobileCore
-import MosaicCollaboration
-import MosaicFoundation
+import CotermAgentChat
+import CotermMobileCore
+import CotermCollaboration
+import CotermFoundation
 import Foundation
 import ImageIO
 import Observation
@@ -54,6 +54,17 @@ struct CollaborationDocumentHeaderState: Equatable {
 private struct CollaborationCreateSessionResponse: Decodable {
     let sessionID: String
     let sessionCode: String
+    let shareSecret: String?
+}
+
+private struct CollaborationShareToken {
+    let code: String
+    let shareSecret: String?
+
+    var pasteboardValue: String {
+        guard let shareSecret, !shareSecret.isEmpty else { return code }
+        return "\(code).\(shareSecret)"
+    }
 }
 
 private struct CollaborationPeerWire: Codable {
@@ -847,8 +858,8 @@ private struct DirectoryMemberCacheEntry {
 @Observable
 final class CollaborationRuntime {
     static let shared = CollaborationRuntime()
-    static let agentRoomWirePasteboardTypeIdentifier = "com.mosaic.agent-room-wire"
-    private static let defaultRelayURLString = "https://mosaic-collaboration-worker.dorsa-rohani.workers.dev"
+    static let agentRoomWirePasteboardTypeIdentifier = "com.coterm.agent-room-wire"
+    private static let defaultRelayURLString = ""
     private static let terminalInitialRenderGridScrollbackLines = 10_000
     private static let joinAcknowledgementTimeout: Duration = .seconds(5)
     private static let inviteCodeStore = CollaborationInviteCodeStore()
@@ -864,9 +875,10 @@ final class CollaborationRuntime {
     private(set) var relayURLString = CollaborationRuntime.initialRelayURLString
 
     /// The relay base URL to start from: a self-hosted override (env or
-    /// `~/.mosaic-dev.env`) when present, otherwise the built-in default.
+    /// `~/.coterm-dev.env`) when present. Coterm does not ship a hosted
+    /// collaboration relay default.
     private static var initialRelayURLString: String {
-        AuthEnvironment.collaborationRelayURLOverride ?? defaultRelayURLString
+        AuthEnvironment.collaborationRelayURLOverride ?? ""
     }
     private(set) var sessionCode: String?
     private(set) var connectionLabel = CollaborationStrings.disconnected
@@ -1006,18 +1018,18 @@ final class CollaborationRuntime {
     /// Mirrors whose content was rendered before any real grid lock arrived
     /// (the gate's fallback opened). A late lock resyncs them with a reseed.
     private var mirroredContentAppliedUnlockedIDs: Set<String> = []
-    /// Seed-lifecycle debug logging; enable with `MOSAIC_COLLAB_SEED_DEBUG=1`
+    /// Seed-lifecycle debug logging; enable with `COTERM_COLLAB_SEED_DEBUG=1`
     /// to correlate host seed production with viewer application/presentation
     /// when diagnosing a blank mirror.
     private static let seedDebugEnabled =
-        ProcessInfo.processInfo.environment["MOSAIC_COLLAB_SEED_DEBUG"] == "1"
+        ProcessInfo.processInfo.environment["COTERM_COLLAB_SEED_DEBUG"] == "1"
 
     static func seedLog(_ message: @autoclosure () -> String) {
         guard seedDebugEnabled else { return }
         NSLog("[COLLABSEED] %@", message())
     }
 
-    /// Echo-timing debug logging; enable with `MOSAIC_COLLAB_ECHO_TIMING=1`
+    /// Echo-timing debug logging; enable with `COTERM_COLLAB_ECHO_TIMING=1`
     /// to measure the shared-terminal echo path. On the host it records when a
     /// PTY output chunk is handed to the socket; on the viewer it records the
     /// apply path (inline fast-path vs ordered chain) and the inter-arrival
@@ -1025,7 +1037,7 @@ final class CollaborationRuntime {
     /// typing; tight clusters separated by gaps mean the "stall then burst"
     /// regression is still queuing echoes somewhere.
     private static let echoTimingEnabled =
-        ProcessInfo.processInfo.environment["MOSAIC_COLLAB_ECHO_TIMING"] == "1"
+        ProcessInfo.processInfo.environment["COTERM_COLLAB_ECHO_TIMING"] == "1"
 
     static func echoLog(_ message: @autoclosure () -> String) {
         guard echoTimingEnabled else { return }
@@ -1034,7 +1046,7 @@ final class CollaborationRuntime {
         // Also mirror into the debug event log file: NSLog from app processes
         // does not reliably land in `log show`, and the file gives ms-precision
         // timestamps alongside the existing collab.terminal.input.* lines.
-        mosaicDebugLog("COLLABECHO \(message())")
+        cotermDebugLog("COLLABECHO \(message())")
         #endif
     }
 
@@ -1068,12 +1080,12 @@ final class CollaborationRuntime {
     private var sessionStartedAtBySessionCode: [String: TimeInterval] = [:]
     private var isPresentingStartDialog = false
     /// Rooms, members (cursors), events, and indexed transcript turns persist
-    /// under `~/.mosaicterm` so shared context survives an app relaunch. The
+    /// under `~/.coterm` so shared context survives an app relaunch. The
     /// in-memory-only store previously erased every room ledger on restart,
     /// which silently disconnected wired agents from their shared history.
     private let agentRoomStore = ClaudeRoomStore(
         persistenceURL: FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".mosaicterm", isDirectory: true)
+            .appendingPathComponent(".coterm", isDirectory: true)
             .appendingPathComponent("agent-rooms.json", isDirectory: false)
     )
     private let agentRoomDigestBuilder = ClaudeRoomDigestBuilder()
@@ -1112,7 +1124,7 @@ final class CollaborationRuntime {
     @ObservationIgnored private var terminalSurfaceReadyObserver: NSObjectProtocol?
 
     private init() {
-        let displayName = NSFullUserName().isEmpty ? Host.current().localizedName ?? "mosaic" : NSFullUserName()
+        let displayName = NSFullUserName().isEmpty ? Host.current().localizedName ?? "coterm" : NSFullUserName()
         localAvatarSeed = NSUserName().trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty ?? displayName
         if let guestID = CollaborationGuestSession.guestID {
             // Offline guest mode: the chosen id is the identity, no account.
@@ -1206,11 +1218,23 @@ final class CollaborationRuntime {
 
     private static func normalizedRelayURL(from value: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? defaultRelayURLString : trimmed
+        return trimmed
     }
 
     private static func normalizedSessionCode(from value: String) -> String {
         inviteCodeStore.normalizedSessionCode(from: value)
+    }
+
+    fileprivate static func normalizedShareToken(from value: String) -> CollaborationShareToken {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let separators = CharacterSet(charactersIn: ".:#| \n\t")
+        let parts = trimmed
+            .components(separatedBy: separators)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        let code = normalizedSessionCode(from: parts.first ?? trimmed)
+        let secret = parts.dropFirst().first { $0.count >= 32 }
+        return CollaborationShareToken(code: code, shareSecret: secret)
     }
 
     private var activeConnection: CollaborationRelayConnection? {
@@ -3120,7 +3144,7 @@ final class CollaborationRuntime {
             ?? TerminalController.shared.tabManager?.tabs.first
 
         if let workspace {
-            properties.merge(workspace.mosaicAnalyticsLayoutProperties(snapshotReason: reason)) { _, new in new }
+            properties.merge(workspace.cotermAnalyticsLayoutProperties(snapshotReason: reason)) { _, new in new }
             let sharedPaneCount = workspace.bonsplitController.allPaneIds.filter { paneId in
                 workspace.bonsplitController.tabs(inPane: paneId).contains { tab in
                     guard let panelId = workspace.panelIdFromSurfaceId(tab.id) else { return false }
@@ -3205,7 +3229,7 @@ final class CollaborationRuntime {
     /// surface has a Claude hook session record on disk (and its transcript
     /// path). A member without one is a dead link — its hooks never registered,
     /// so it neither publishes to nor receives from the room. Exposed through
-    /// `mosaic agent-room status` so a silently unplugged agent is diagnosable.
+    /// `coterm agent-room status` so a silently unplugged agent is diagnosable.
     private func agentRoomStatusRoomPayload(_ room: ClaudeRoomSnapshot) -> [String: Any] {
         var payload = agentRoomPayload(room)
         payload["members"] = room.members.map { member -> [String: Any] in
@@ -3538,7 +3562,7 @@ final class CollaborationRuntime {
         )
         guard let roomID else {
             #if DEBUG
-            mosaicDebugLog("agentRoom.post dropped: no active room (from raw=\(rawFromSurfaceID ?? "nil") resolved=\(fromSurfaceUUID?.uuidString ?? "nil"))")
+            cotermDebugLog("agentRoom.post dropped: no active room (from raw=\(rawFromSurfaceID ?? "nil") resolved=\(fromSurfaceUUID?.uuidString ?? "nil"))")
             #endif
             return [
                 "posted": false,
@@ -3551,7 +3575,7 @@ final class CollaborationRuntime {
         let fromMemberID = fromSurfaceUUID.flatMap { agentRoomMemberIDsBySurfaceID[$0] }
         #if DEBUG
         if fromSurfaceUUID.flatMap({ agentRoomIDsBySurfaceID[$0] }) != roomID {
-            mosaicDebugLog("agentRoom.post: from surface \(fromSurfaceID ?? "nil") is not a mapped member of room \(roomID); event still posts but peers may be unreachable")
+            cotermDebugLog("agentRoom.post: from surface \(fromSurfaceID ?? "nil") is not a mapped member of room \(roomID); event still posts but peers may be unreachable")
         }
         #endif
         let result = await agentRoomStore.appendEvent(
@@ -3904,8 +3928,8 @@ final class CollaborationRuntime {
     }
 
     /// Resolves the Claude hook session to bind a surface to, straight from the
-    /// on-disk hook store (`~/.mosaicterm/claude-hook-sessions.json`, written by
-    /// `mosaic hooks claude ...`).
+    /// on-disk hook store (`~/.coterm/claude-hook-sessions.json`, written by
+    /// `coterm hooks claude ...`).
     ///
     /// Prefers the surface's *currently active* session (the live Claude that
     /// last drove hooks in that pane) so wiring binds to the running agent
@@ -3913,7 +3937,7 @@ final class CollaborationRuntime {
     /// to the newest session that carries a transcript path.
     static func claudeHookSessionRef(surfaceID: String) -> ClaudeHookSessionRef? {
         let file = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".mosaicterm", isDirectory: true)
+            .appendingPathComponent(".coterm", isDirectory: true)
             .appendingPathComponent("claude-hook-sessions.json", isDirectory: false)
         guard let data = try? Data(contentsOf: file),
               let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -4277,8 +4301,8 @@ final class CollaborationRuntime {
     private func runJoinCodeDialog() -> String? {
         let panel = CollaborationJoinSessionPanel()
         guard let rawCode = panel.run() else { return nil }
-        let code = Self.normalizedSessionCode(from: rawCode)
-        return code.isEmpty ? nil : code
+        let token = Self.normalizedShareToken(from: rawCode)
+        return token.code.isEmpty ? nil : rawCode
     }
 
     private func configureCollaborationAlertChrome(_ alert: NSAlert) {
@@ -4330,7 +4354,12 @@ final class CollaborationRuntime {
             )
             trackCollaborationLayoutSnapshot(reason: "session_created", sessionCode: response.sessionCode)
             await progress.dismiss()
-            presentCreatedSessionDialog(code: response.sessionCode)
+            presentCreatedSessionDialog(
+                token: CollaborationShareToken(
+                    code: response.sessionCode,
+                    shareSecret: response.shareSecret
+                )
+            )
         } catch {
             await progress.dismiss()
             lastErrorMessage = error.localizedDescription
@@ -4404,7 +4433,12 @@ final class CollaborationRuntime {
             if collaborationEntitlements.directorySharing {
                 presentTeammateDirectorySharePicker()
             } else {
-                presentCreatedSessionDialog(code: response.sessionCode)
+                presentCreatedSessionDialog(
+                    token: CollaborationShareToken(
+                        code: response.sessionCode,
+                        shareSecret: response.shareSecret
+                    )
+                )
             }
         } catch {
             await progress?.dismiss()
@@ -4471,7 +4505,12 @@ final class CollaborationRuntime {
             let response = await performCreateSessionConnectShare(terminal: terminal)
             await progress.dismiss()
             if let response {
-                presentCreatedSessionDialog(code: response.sessionCode)
+                presentCreatedSessionDialog(
+                    token: CollaborationShareToken(
+                        code: response.sessionCode,
+                        shareSecret: response.shareSecret
+                    )
+                )
             }
         }
     }
@@ -4537,12 +4576,16 @@ final class CollaborationRuntime {
         }
     }
 
-    private func presentCreatedSessionDialog(code: String) {
-        let normalizedCode = Self.normalizedSessionCode(from: code)
-        let panel = CollaborationSessionCreatedPanel(code: normalizedCode)
+    private func presentCreatedSessionDialog(token: CollaborationShareToken) {
+        let normalizedCode = Self.normalizedSessionCode(from: token.code)
+        let shareToken = CollaborationShareToken(
+            code: normalizedCode,
+            shareSecret: token.shareSecret
+        ).pasteboardValue
+        let panel = CollaborationSessionCreatedPanel(code: shareToken)
         guard panel.run() == .alertFirstButtonReturn else { return }
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(normalizedCode, forType: .string)
+        NSPasteboard.general.setString(shareToken, forType: .string)
         #if DEBUG
         print("[PostHog] firing: invite_code_copied")
         #endif
@@ -4563,12 +4606,27 @@ final class CollaborationRuntime {
         code: String,
         entrypoint: CollaborationAnalyticsEntrypoint
     ) async -> CollaborationRelayConnection? {
-        let normalizedCode = Self.normalizedSessionCode(from: code)
+        let token = Self.normalizedShareToken(from: code)
+        let normalizedCode = token.code
         #if DEBUG
         print("[PostHog] firing: collaboration_session_join_started")
         #endif
         PostHogAnalytics.shared.capture("collaboration_session_join_started")
-        await acquireCodeJoinGrantIfPossible(code: normalizedCode)
+        guard await acquireCodeJoinGrantIfPossible(code: normalizedCode, shareSecret: token.shareSecret) else {
+            lastErrorMessage = CollaborationStrings.joinApprovalRequired
+            connectionLabel = CollaborationStrings.connectionFailed
+            trackCollaboration(
+                .sessionJoined,
+                entrypoint: entrypoint,
+                result: .failed,
+                properties: [
+                    "session_code_present": !normalizedCode.isEmpty,
+                    "error_kind": "collaboration.join_approval_required",
+                ],
+                flush: true
+            )
+            return nil
+        }
         let connection = await connect(sessionID: normalizedCode, code: normalizedCode)
         if connection == nil {
             #if DEBUG
@@ -4610,14 +4668,13 @@ final class CollaborationRuntime {
     }
 
     private func createSession() async throws -> CollaborationCreateSessionResponse {
-        // Preferred path: www is authoritative. It checks the org plan, mints a
-        // signed session descriptor + owner join grant, and returns the relay
-        // room/code. Falls back to the legacy relay create when the user has no
-        // resolvable org/token or the backend is unavailable.
-        if let created = (try? await createSessionViaBackend()) ?? nil {
-            return created
+        // The self-hosted control-plane is authoritative. It checks sharing
+        // policy, records the owner, mints the owner grant, and returns the
+        // long share secret. Do not fall back to code-only relay creation.
+        guard let created = try await createSessionViaBackend() else {
+            throw CollaborationRuntimeError.selfHostedBackendRequired
         }
-        return try await createSessionViaRelay()
+        return created
     }
 
     private func createSessionViaBackend() async throws -> CollaborationCreateSessionResponse? {
@@ -4632,17 +4689,19 @@ final class CollaborationRuntime {
         // the pre-created code and still does all auth/grant work; if the
         // relay is unreachable (or www predates the `code` parameter), www
         // falls back to creating the room itself exactly as before.
-        let precreatedCode = (try? await createSessionViaRelay())?.sessionCode
+        let precreated = try? await createSessionViaRelay()
         let created = try await collaborationBackendClient.createSession(
             accessToken: token,
             orgId: orgID,
             relayURL: relayURLString,
-            precreatedCode: precreatedCode
+            precreatedCode: precreated?.sessionCode,
+            precreatedShareSecret: precreated?.shareSecret
         )
         applyBackendCreatedSession(created)
         return CollaborationCreateSessionResponse(
             sessionID: created.room,
-            sessionCode: created.code ?? created.room
+            sessionCode: created.code ?? created.room,
+            shareSecret: created.shareSecret
         )
     }
 
@@ -4712,24 +4771,28 @@ final class CollaborationRuntime {
         grantsByRoom[normalizedRoomKey(room)] ?? grantsByRoom[room]
     }
 
-    /// Before joining by code, ask www for a signed grant so the relay admits
-    /// the connection once grants are enforced. Legacy relays accept code-only
-    /// joins, so a failure here is non-fatal.
-    private func acquireCodeJoinGrantIfPossible(code: String) async {
+    /// Before joining by share token, ask the self-hosted control-plane for a
+    /// signed grant so the relay admits the connection. A missing grant is fatal:
+    /// Coterm must not fall back to code-only joins.
+    private func acquireCodeJoinGrantIfPossible(code: String, shareSecret: String?) async -> Bool {
+        if grant(forRoom: code) != nil { return true }
+        guard let shareSecret, !shareSecret.isEmpty else { return false }
         guard grant(forRoom: code) == nil,
-              let token = await collaborationAccessToken() else { return }
+              let token = await collaborationAccessToken() else { return false }
         do {
             let result = try await collaborationBackendClient.joinByCode(
                 accessToken: token,
                 code: code,
+                shareSecret: shareSecret,
                 relayURL: relayURLString
             )
             if !result.relayURL.isEmpty {
                 relayURLString = Self.normalizedRelayURL(from: result.relayURL)
             }
             storeGrant(result.grant, forRoom: result.room)
+            return true
         } catch {
-            // Non-fatal: proceed without a grant (legacy code-only join).
+            return false
         }
     }
 
@@ -5919,7 +5982,7 @@ final class CollaborationRuntime {
         guard !data.isEmpty || !pendingPrefix.isEmpty else { return nil }
         #if DEBUG
         let originalPendingCount = pendingPrefix.count
-        mosaicDebugLog(
+        cotermDebugLog(
             "collab.terminal.input.raw direction=\(direction) terminal=\(terminalID) " +
             "pending=\(originalPendingCount) data=\(debugByteSummary(data))"
         )
@@ -5936,7 +5999,7 @@ final class CollaborationRuntime {
             if let prefixLength = incompleteTerminalGeneratedReportPrefixLength(bytes, from: index) {
                 pendingPrefix = Data(bytes[index..<(index + prefixLength)])
                 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "collab.terminal.input.buffer direction=\(direction) terminal=\(terminalID) " +
                     "prefix=\(debugByteSummary(pendingPrefix))"
                 )
@@ -5945,7 +6008,7 @@ final class CollaborationRuntime {
             } else if let reportLength = terminalGeneratedReportLength(bytes, from: index) {
                 #if DEBUG
                 let report = Data(bytes[index..<(index + reportLength)])
-                mosaicDebugLog(
+                cotermDebugLog(
                     "collab.terminal.input.drop direction=\(direction) terminal=\(terminalID) " +
                     "report=\(debugByteSummary(report))"
                 )
@@ -5958,7 +6021,7 @@ final class CollaborationRuntime {
         }
         let filteredData = filtered.isEmpty ? nil : Data(filtered)
         #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "collab.terminal.input.forward direction=\(direction) terminal=\(terminalID) " +
             "data=\(debugByteSummary(filteredData ?? Data())) pending=\(pendingPrefix.count)"
         )
@@ -7495,6 +7558,7 @@ private struct CollaborationPeerJoinedWire: Decodable {
 private enum CollaborationRuntimeError: LocalizedError {
     case invalidRelayURL
     case relayRejected
+    case selfHostedBackendRequired
     case notConnected
 
     var errorDescription: String? {
@@ -7503,6 +7567,8 @@ private enum CollaborationRuntimeError: LocalizedError {
             return CollaborationStrings.invalidRelayURL
         case .relayRejected:
             return CollaborationStrings.relayRejected
+        case .selfHostedBackendRequired:
+            return CollaborationStrings.selfHostedBackendRequired
         case .notConnected:
             return CollaborationStrings.disconnected
         }
@@ -7897,7 +7963,7 @@ enum CollaborationStrings {
     }
 
     static var copyCode: String {
-        String(localized: "collaboration.action.copyCode", defaultValue: "Copy Code")
+        String(localized: "collaboration.action.copyCode", defaultValue: "Copy Token")
     }
 
     static var sessionCreatedTitle: String {
@@ -7912,11 +7978,11 @@ enum CollaborationStrings {
     }
 
     static var joinMessage: String {
-        String(localized: "collaboration.join.message", defaultValue: "Enter the session code from the collaborator.")
+        String(localized: "collaboration.join.message", defaultValue: "Enter the full share token from the collaborator.")
     }
 
     static var signInRequiredTitle: String {
-        String(localized: "collaboration.signInRequired.title", defaultValue: "Sign into Mosaic")
+        String(localized: "collaboration.signInRequired.title", defaultValue: "Sign into Coterm")
     }
 
     static var signIn: String {
@@ -7924,11 +7990,25 @@ enum CollaborationStrings {
     }
 
     static var sessionCodePlaceholder: String {
-        String(localized: "collaboration.join.sessionCodePlaceholder", defaultValue: "Session code")
+        String(localized: "collaboration.join.sessionCodePlaceholder", defaultValue: "Share token")
     }
 
     static var invalidRelayURL: String {
         String(localized: "collaboration.error.invalidRelayURL", defaultValue: "Invalid relay URL.")
+    }
+
+    static var selfHostedBackendRequired: String {
+        String(
+            localized: "collaboration.error.selfHostedBackendRequired",
+            defaultValue: "Configure your self-hosted Coterm collaboration backend before sharing."
+        )
+    }
+
+    static var joinApprovalRequired: String {
+        String(
+            localized: "collaboration.error.joinApprovalRequired",
+            defaultValue: "Join request sent. The room owner must approve before you can enter."
+        )
     }
 
     static var relayRejected: String {
@@ -7936,7 +8016,7 @@ enum CollaborationStrings {
     }
 }
 
-/// Styles native AppKit alert buttons that use Mosaic's yellow accent background.
+/// Styles native AppKit alert buttons that use Coterm's yellow accent background.
 /// `NSAlert` default buttons do not reliably honor only `attributedTitle`, so set
 /// the control tint as well as the attributed fallback.
 @MainActor
@@ -8281,7 +8361,7 @@ private final class CollaborationMessagePanel {
     }
 
     private func stylePrimaryButton(_ button: NSButton) {
-        button.bezelColor = NSColor(hex: MosaicChromePalette.accentHex) ?? .controlAccentColor
+        button.bezelColor = NSColor(hex: CotermChromePalette.accentHex) ?? .controlAccentColor
         applyCollaborationAccentAlertButtonTitleStyle(
             button,
             font: NSFont.systemFont(ofSize: 16, weight: .regular)
@@ -8439,7 +8519,7 @@ private final class CollaborationSignInRequiredPanel {
     }
 
     private func stylePrimaryButton(_ button: NSButton) {
-        button.bezelColor = NSColor(hex: MosaicChromePalette.accentHex) ?? .controlAccentColor
+        button.bezelColor = NSColor(hex: CotermChromePalette.accentHex) ?? .controlAccentColor
         applyCollaborationAccentAlertButtonTitleStyle(
             button,
             font: NSFont.systemFont(ofSize: 16, weight: .regular)
@@ -8489,9 +8569,7 @@ private final class CollaborationJoinSessionPanel {
     private let window: NSPanel
     private var response: NSApplication.ModalResponse = .alertSecondButtonReturn
     private var code = ""
-    private let entryView = CollaborationInviteCodeEntryView(
-        accessibilityLabel: CollaborationStrings.sessionCodePlaceholder
-    )
+    private let tokenField = NSTextField(string: "")
     private var actionBoxes: [ButtonActionBox] = []
     private static let contentWidth: CGFloat = 464
 
@@ -8546,17 +8624,13 @@ private final class CollaborationJoinSessionPanel {
         stack.addArrangedSubview(messageField)
         stack.setCustomSpacing(32, after: messageField)
 
-        // The vertical stack uses .leading alignment, which pins every arranged
-        // row's leading edge; centering an arranged subview with spacer views
-        // or a centerX constraint fights that pin and Auto Layout resolves the
-        // conflict by inflating the window. Center inside a fixed-width plain
-        // container instead (see CollaborationSessionCreatedPanel).
-        entryView.translatesAutoresizingMaskIntoConstraints = false
-        let codeContainer = NSView()
-        codeContainer.translatesAutoresizingMaskIntoConstraints = false
-        codeContainer.addSubview(entryView)
-        stack.addArrangedSubview(codeContainer)
-        stack.setCustomSpacing(34, after: codeContainer)
+        tokenField.placeholderString = CollaborationStrings.sessionCodePlaceholder
+        tokenField.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
+        tokenField.controlSize = .large
+        tokenField.lineBreakMode = .byTruncatingMiddle
+        tokenField.translatesAutoresizingMaskIntoConstraints = false
+        stack.addArrangedSubview(tokenField)
+        stack.setCustomSpacing(34, after: tokenField)
 
         let buttonRow = NSStackView()
         buttonRow.orientation = .horizontal
@@ -8580,13 +8654,6 @@ private final class CollaborationJoinSessionPanel {
         buttonContainer.addSubview(buttonRow)
         stack.addArrangedSubview(buttonContainer)
 
-        entryView.onSubmit = { [weak self] in
-            self?.submitIfComplete()
-        }
-        entryView.onCancel = { [weak self] in
-            self?.finish(.alertSecondButtonReturn)
-        }
-
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
             stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
@@ -8597,10 +8664,8 @@ private final class CollaborationJoinSessionPanel {
             iconView.heightAnchor.constraint(equalToConstant: 64),
             titleField.widthAnchor.constraint(equalToConstant: Self.contentWidth),
             messageField.widthAnchor.constraint(equalToConstant: Self.contentWidth),
-            codeContainer.widthAnchor.constraint(equalToConstant: Self.contentWidth),
-            codeContainer.heightAnchor.constraint(equalToConstant: 56),
-            entryView.centerXAnchor.constraint(equalTo: codeContainer.centerXAnchor),
-            entryView.centerYAnchor.constraint(equalTo: codeContainer.centerYAnchor),
+            tokenField.widthAnchor.constraint(equalToConstant: Self.contentWidth),
+            tokenField.heightAnchor.constraint(equalToConstant: 36),
             buttonContainer.widthAnchor.constraint(equalToConstant: Self.contentWidth),
             buttonContainer.heightAnchor.constraint(equalToConstant: 36),
             buttonRow.centerXAnchor.constraint(equalTo: buttonContainer.centerXAnchor),
@@ -8618,7 +8683,7 @@ private final class CollaborationJoinSessionPanel {
         guard let parent = NSApp.keyWindow ?? NSApp.mainWindow else {
             window.center()
             window.makeKeyAndOrderFront(nil)
-            window.makeFirstResponder(entryView)
+            window.makeFirstResponder(tokenField)
             NSApp.runModal(for: window)
             window.orderOut(nil)
             return response == .alertFirstButtonReturn ? code : nil
@@ -8626,7 +8691,7 @@ private final class CollaborationJoinSessionPanel {
 
         parent.beginSheet(window)
         window.makeKey()
-        window.makeFirstResponder(entryView)
+        window.makeFirstResponder(tokenField)
         NSApp.runModal(for: window)
         parent.endSheet(window)
         window.orderOut(nil)
@@ -8634,8 +8699,9 @@ private final class CollaborationJoinSessionPanel {
     }
 
     private func submitIfComplete() {
-        guard entryView.isComplete else { return }
-        code = entryView.code
+        let rawToken = tokenField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !CollaborationRuntime.normalizedShareToken(from: rawToken).code.isEmpty else { return }
+        code = rawToken
         finish(.alertFirstButtonReturn)
     }
 
@@ -8664,7 +8730,7 @@ private final class CollaborationJoinSessionPanel {
     }
 
     private func stylePrimaryButton(_ button: NSButton) {
-        button.bezelColor = NSColor(hex: MosaicChromePalette.accentHex) ?? .controlAccentColor
+        button.bezelColor = NSColor(hex: CotermChromePalette.accentHex) ?? .controlAccentColor
         applyCollaborationAccentAlertButtonTitleStyle(
             button,
             font: NSFont.systemFont(ofSize: 16, weight: .regular)
@@ -8758,10 +8824,12 @@ private final class CollaborationSessionCreatedPanel {
         stack.setCustomSpacing(14, after: messageField)
 
         let codeField = NSTextField(labelWithString: code)
-        codeField.font = .monospacedSystemFont(ofSize: 24, weight: .semibold)
+        codeField.font = .monospacedSystemFont(ofSize: code.count > 16 ? 12 : 24, weight: .semibold)
         codeField.textColor = .labelColor
         codeField.alignment = .center
         codeField.isSelectable = true
+        codeField.lineBreakMode = .byTruncatingMiddle
+        codeField.maximumNumberOfLines = 1
         codeField.wantsLayer = true
         codeField.layer?.cornerRadius = 8
         codeField.layer?.cornerCurve = .continuous
@@ -8873,7 +8941,7 @@ private final class CollaborationSessionCreatedPanel {
     }
 
     private func stylePrimaryButton(_ button: NSButton) {
-        button.bezelColor = NSColor(hex: MosaicChromePalette.accentHex) ?? .controlAccentColor
+        button.bezelColor = NSColor(hex: CotermChromePalette.accentHex) ?? .controlAccentColor
         applyCollaborationAccentAlertButtonTitleStyle(
             button,
             font: NSFont.systemFont(ofSize: 16, weight: .regular)
@@ -8984,7 +9052,7 @@ private final class CollaborationStartChooserPanel {
         let createButton = makeButton(title: CollaborationStrings.createSession, keyEquivalent: "\r") { [weak self] in
             self?.finish(.alertFirstButtonReturn)
         }
-        createButton.bezelColor = NSColor(hex: MosaicChromePalette.accentHex) ?? .controlAccentColor
+        createButton.bezelColor = NSColor(hex: CotermChromePalette.accentHex) ?? .controlAccentColor
         applyCollaborationAccentAlertButtonTitleStyle(
             createButton,
             font: NSFont.systemFont(ofSize: 16, weight: .regular)
@@ -9088,7 +9156,7 @@ struct CollaborationHeaderControls<PanelModel>: View where PanelModel: Collabora
                     .foregroundStyle(.secondary)
             }
             Text(CollaborationStrings.sharingToggle)
-                .mosaicFont(size: 10, weight: .semibold)
+                .cotermFont(size: 10, weight: .semibold)
                 .foregroundStyle(state.isShared ? Color.accentColor : Color.secondary)
             Toggle(isOn: Binding(
                 get: {

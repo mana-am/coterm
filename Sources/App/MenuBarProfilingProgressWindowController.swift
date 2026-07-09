@@ -1,5 +1,5 @@
 import AppKit
-import MosaicFeedback
+import CotermFeedback
 import Foundation
 
 @MainActor
@@ -57,7 +57,7 @@ final class MenuBarProfilingProgressWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = String(localized: "statusMenu.profiling.title", defaultValue: "Profiling mosaic")
+        window.title = String(localized: "statusMenu.profiling.title", defaultValue: "Profiling coterm")
         window.isReleasedWhenClosed = false
         super.init(window: window)
         window.delegate = self
@@ -102,8 +102,8 @@ final class MenuBarProfilingProgressWindowController: NSWindowController {
         }
 
         do {
-            let outputLog = try makeTemporaryLogFile(prefix: "mosaic-profile-output")
-            let errorLog = try makeTemporaryLogFile(prefix: "mosaic-profile-error")
+            let outputLog = try makeTemporaryLogFile(prefix: "coterm-profile-output")
+            let errorLog = try makeTemporaryLogFile(prefix: "coterm-profile-error")
             outputLogURL = outputLog.0
             outputLogHandle = outputLog.1
             errorLogURL = errorLog.0
@@ -131,7 +131,7 @@ final class MenuBarProfilingProgressWindowController: NSWindowController {
     private func buildInterface() {
         guard let contentView = window?.contentView else { return }
 
-        titleLabel.stringValue = String(localized: "statusMenu.profiling.reviewTitle", defaultValue: "Send a mosaic profile")
+        titleLabel.stringValue = String(localized: "statusMenu.profiling.reviewTitle", defaultValue: "Send a coterm profile")
         titleLabel.font = .systemFont(ofSize: 20, weight: .semibold)
         titleLabel.lineBreakMode = .byTruncatingTail
 
@@ -143,7 +143,7 @@ final class MenuBarProfilingProgressWindowController: NSWindowController {
 
         permissionLabel.stringValue = String(
             localized: "statusMenu.profiling.permissionExplanation",
-            defaultValue: "macOS may ask for administrator permission because Instruments samples the running mosaic process."
+            defaultValue: "macOS may ask for administrator permission because Instruments samples the running coterm process."
         )
         permissionLabel.font = .systemFont(ofSize: 12)
         permissionLabel.textColor = .secondaryLabelColor
@@ -307,7 +307,7 @@ final class MenuBarProfilingProgressWindowController: NSWindowController {
 
     private func parseOutputURL(from text: String) {
         for line in text.components(separatedBy: .newlines) {
-            if let range = line.range(of: "mosaic profiling capture written to ") {
+            if let range = line.range(of: "coterm profiling capture written to ") {
                 let path = String(line[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
                 outputURL = URL(fileURLWithPath: path)
             } else if let range = line.range(of: "Output: ") {

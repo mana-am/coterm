@@ -1,6 +1,6 @@
 # Browser Automation WebKit Waits Off Main
 
-Apply this rule to mosaic browser socket automation commands in `Sources/TerminalController.swift` and `Packages/macOS/MosaicControlSocket/Sources/MosaicControlSocket/Wire/ControlCommandExecutionPolicy.swift`.
+Apply this rule to Coterm browser socket automation commands in `Sources/TerminalController.swift` and `Packages/macOS/CotermControlSocket/Sources/CotermControlSocket/Wire/ControlCommandExecutionPolicy.swift`.
 
 ## Fail
 

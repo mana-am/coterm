@@ -1,9 +1,7 @@
-# Open-source mosaic collaboration relay — Cloudflare Worker + Durable Objects.
+# Open-source coterm collaboration relay — Cloudflare Worker + Durable Objects.
 #
-# This is a faithful port of workers/collaboration from the mosaic repo. The only
-# behavioral change is the join-grant gate on /connect (see src/handler.ts), driven
-# by COLLAB_AUTH_MODE. In "noauth" mode the session code is the only gate, exactly
-# like upstream.
+# This is a faithful port of workers/collaboration from the coterm repo. The only
+# behavioral change is the join-grant gate on /connect (see src/handler.ts).
 
 name = "coterm-relay"
 main = "src/index.ts"
@@ -14,8 +12,8 @@ workers_dev = true
 enabled = true
 
 [vars]
-# "noauth" (session code is the only gate) or "hmac" (verify signed join grants).
-COLLAB_AUTH_MODE = "noauth"
+# "hmac" verifies signed join grants. "noauth" is for local testing only.
+COLLAB_AUTH_MODE = "hmac"
 
 # Secrets (set via `wrangler secret put`, or `.dev.vars` for local dev):
 #   COLLAB_AUTH_SECRET     — shared HMAC secret (required when COLLAB_AUTH_MODE=hmac)
@@ -33,6 +31,10 @@ class_name = "CollaborationSessionIndexObject"
 name = "COLLABORATION_INBOX"
 class_name = "CollaborationInboxObject"
 
+[[durable_objects.bindings]]
+name = "PREVIEW_SESSIONS"
+class_name = "PreviewSessionObject"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["CollaborationSessionObject"]
@@ -44,3 +46,7 @@ new_sqlite_classes = ["CollaborationSessionIndexObject"]
 [[migrations]]
 tag = "v3"
 new_sqlite_classes = ["CollaborationInboxObject"]
+
+[[migrations]]
+tag = "v4"
+new_sqlite_classes = ["PreviewSessionObject"]

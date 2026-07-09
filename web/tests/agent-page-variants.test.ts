@@ -63,24 +63,24 @@ describe("agent page variants", () => {
               </a>
               <table>
                 <thead><tr><th>Command</th><th>Description</th></tr></thead>
-                <tbody><tr><td><code>mosaic list-workspaces</code></td><td>List workspaces.</td></tr></tbody>
+                <tbody><tr><td><code>coterm list-workspaces</code></td><td>List workspaces.</td></tr></tbody>
               </table>
-              <pre><code>mosaic notify --title Done</code></pre>
+              <pre><code>coterm notify --title Done</code></pre>
             </main>
           </body>
         </html>`,
-      sourceUrl: "https://mosaic.inc/docs",
+      sourceUrl: "https://coterm.cc/docs",
     });
 
     expect(markdown).toContain("# Docs");
-    expect(markdown).toContain("[API docs](https://mosaic.inc/docs/api)");
-    expect(markdown).toContain("[Download](https://mosaic.inc/download) [GitHub](https://mosaic.inc/github)");
+    expect(markdown).toContain("[API docs](https://coterm.cc/docs/api)");
+    expect(markdown).toContain("[Download](https://coterm.cc/download) [GitHub](https://coterm.cc/github)");
     expect(markdown).toContain("## Post Title");
-    expect(markdown).toContain("Link: https://mosaic.inc/blog/post");
-    expect(markdown).not.toContain("](https://mosaic.inc/blog/post)");
+    expect(markdown).toContain("Link: https://coterm.cc/blog/post");
+    expect(markdown).not.toContain("](https://coterm.cc/blog/post)");
     expect(markdown).toContain("| Command | Description |");
     expect(markdown).toContain("```");
-    expect(markdown).toContain("Canonical: https://mosaic.inc/docs");
+    expect(markdown).toContain("Canonical: https://coterm.cc/docs");
     expect(markdown).not.toContain("Skip this");
   });
 
@@ -88,15 +88,15 @@ describe("agent page variants", () => {
     const markdown = markdownFromHtml({
       html: `
         <html>
-          <head><title>Settings &amp; Docs &#39;Guide&#39; \u2014 mosaic</title></head>
+          <head><title>Settings &amp; Docs &#39;Guide&#39; \u2014 coterm</title></head>
           <body>
-            <main><p>Configure mosaic.</p></main>
+            <main><p>Configure coterm.</p></main>
           </body>
         </html>`,
-      sourceUrl: "https://mosaic.inc/docs/configuration",
+      sourceUrl: "https://coterm.cc/docs/configuration",
     });
 
-    expect(markdown).toStartWith("# Settings & Docs 'Guide'\n\nConfigure mosaic.");
+    expect(markdown).toStartWith("# Settings & Docs 'Guide'\n\nConfigure coterm.");
   });
 
   test("prefers the readable page heading over shell headings", () => {
@@ -112,7 +112,7 @@ describe("agent page variants", () => {
             </main>
           </body>
         </html>`,
-      sourceUrl: "https://mosaic.inc/docs",
+      sourceUrl: "https://coterm.cc/docs",
     });
 
     expect(markdown).toStartWith("# Docs\n\nActual page content.");
@@ -132,7 +132,7 @@ describe("agent page variants", () => {
       </html>`;
     const markdown = markdownFromHtml({
       html,
-      sourceUrl: "https://mosaic.inc/docs",
+      sourceUrl: "https://coterm.cc/docs",
     });
 
     expect(extractReadableHtml(html)).toContain("<p>After script.</p>");
@@ -147,13 +147,13 @@ describe("agent page variants", () => {
           <body>
             <main>
               <a href="/blog">Back to blog</a>
-              <img src="/logo.png" alt="mosaic icon" />
+              <img src="/logo.png" alt="coterm icon" />
               <h1>Post Title</h1>
               <p>Body text.</p>
             </main>
           </body>
         </html>`,
-      sourceUrl: "https://mosaic.inc/blog/post",
+      sourceUrl: "https://coterm.cc/blog/post",
     });
 
     expect(markdown).toStartWith("# Post Title\n\n[Back to blog]");
@@ -172,7 +172,7 @@ describe("agent page variants", () => {
             </main>
           </body>
         </html>`,
-      sourceUrl: "https://mosaic.inc/docs/code",
+      sourceUrl: "https://coterm.cc/docs/code",
     });
 
     expect(markdown).toContain("arr.map(fn)[0]");
@@ -192,26 +192,26 @@ describe("agent page variants", () => {
                 <a href="?tab=cli">CLI tab</a>
                 <a href="#install">Install</a>
                 <a href="/download">Download</a>
-                <a href="https://github.com/emergent-inc/mosaic">GitHub</a>
+                <a href="https://github.com/emergent-inc/coterm">GitHub</a>
                 <img src="images/logo.png" alt="Logo" />
               </p>
             </main>
           </body>
         </html>`,
-      sourceUrl: "https://mosaic.inc/docs/getting-started",
+      sourceUrl: "https://coterm.cc/docs/getting-started",
     });
 
-    expect(markdown).toContain("[Relative API](https://mosaic.inc/docs/api)");
-    expect(markdown).toContain("[Blog](https://mosaic.inc/blog)");
+    expect(markdown).toContain("[Relative API](https://coterm.cc/docs/api)");
+    expect(markdown).toContain("[Blog](https://coterm.cc/blog)");
     expect(markdown).toContain(
-      "[CLI tab](https://mosaic.inc/docs/getting-started?tab=cli)",
+      "[CLI tab](https://coterm.cc/docs/getting-started?tab=cli)",
     );
     expect(markdown).toContain(
-      "[Install](https://mosaic.inc/docs/getting-started#install)",
+      "[Install](https://coterm.cc/docs/getting-started#install)",
     );
-    expect(markdown).toContain("[Download](https://mosaic.inc/download)");
-    expect(markdown).toContain("[GitHub](https://github.com/emergent-inc/mosaic)");
-    expect(markdown).toContain("![Logo](https://mosaic.inc/docs/images/logo.png)");
+    expect(markdown).toContain("[Download](https://coterm.cc/download)");
+    expect(markdown).toContain("[GitHub](https://github.com/emergent-inc/coterm)");
+    expect(markdown).toContain("![Logo](https://coterm.cc/docs/images/logo.png)");
   });
 
   test("converts Markdown variants to readable plain text", () => {
@@ -219,30 +219,30 @@ describe("agent page variants", () => {
       [
         "# Docs",
         "",
-        "![mosaic icon](https://mosaic.inc/logo.png)",
+        "![coterm icon](https://coterm.cc/logo.png)",
         "",
-        "Read the [API docs](https://mosaic.inc/docs/api).",
+        "Read the [API docs](https://coterm.cc/docs/api).",
         "",
         "| Command | Description |",
         "| --- | --- |",
-        "| `mosaic list-workspaces` | List workspaces. |",
+        "| `coterm list-workspaces` | List workspaces. |",
         "",
         "```",
         "arr.map(fn)[0]",
         "```",
         "",
-        "Canonical: https://mosaic.inc/docs",
+        "Canonical: https://coterm.cc/docs",
       ].join("\n"),
     );
 
     expect(text).toContain("Docs");
-    expect(text).toContain("mosaic icon (https://mosaic.inc/logo.png)");
-    expect(text).toContain("API docs (https://mosaic.inc/docs/api)");
+    expect(text).toContain("coterm icon (https://coterm.cc/logo.png)");
+    expect(text).toContain("API docs (https://coterm.cc/docs/api)");
     expect(text).toContain("Command\tDescription");
-    expect(text).toContain("mosaic list-workspaces\tList workspaces.");
+    expect(text).toContain("coterm list-workspaces\tList workspaces.");
     expect(text).toContain("arr.map(fn)[0]");
     expect(text).not.toContain("```");
-    expect(text).not.toContain("![mosaic icon]");
+    expect(text).not.toContain("![coterm icon]");
     expect(text).not.toContain("[API docs]");
   });
 
@@ -260,17 +260,17 @@ describe("agent page variants", () => {
 
   test("removes single-column Markdown table dividers from text", () => {
     const text = plainTextFromMarkdown(
-      ["| Name |", "| --- |", "| mosaic |"].join("\n"),
+      ["| Name |", "| --- |", "| coterm |"].join("\n"),
     );
 
     expect(text).toContain("Name");
-    expect(text).toContain("mosaic");
+    expect(text).toContain("coterm");
     expect(text).not.toContain("---");
   });
 
   test("marks alternate text responses as non-indexable canonical variants", () => {
     const headers = headersForAgentPage({
-      canonicalUrl: "https://mosaic.inc/docs/getting-started",
+      canonicalUrl: "https://coterm.cc/docs/getting-started",
       contentLanguage: "en",
       format: "md",
     });
@@ -278,13 +278,13 @@ describe("agent page variants", () => {
     expect(headers.get("content-type")).toBe("text/markdown; charset=utf-8");
     expect(headers.get("x-robots-tag")).toBe("noindex, follow");
     expect(headers.get("link")).toBe(
-      '<https://mosaic.inc/docs/getting-started>; rel="canonical"',
+      '<https://coterm.cc/docs/getting-started>; rel="canonical"',
     );
   });
 
   test("keeps personalized variant responses out of shared caches", () => {
     const headers = headersForAgentPage({
-      canonicalUrl: "https://mosaic.inc/docs/getting-started",
+      canonicalUrl: "https://coterm.cc/docs/getting-started",
       contentLanguage: "en",
       format: "txt",
       privateResponse: true,
@@ -323,26 +323,26 @@ describe("agent page variants", () => {
   test("keeps internal redirects on the same origin", () => {
     expect(
       sameOriginRedirectUrl({
-        currentUrl: new URL("https://mosaic.inc/docs"),
+        currentUrl: new URL("https://coterm.cc/docs"),
         location: "/docs/getting-started?from=old#intro",
-        origin: "https://mosaic.inc",
+        origin: "https://coterm.cc",
       })?.toString(),
-    ).toBe("https://mosaic.inc/docs/getting-started?from=old");
+    ).toBe("https://coterm.cc/docs/getting-started?from=old");
     expect(
       sameOriginRedirectUrl({
-        currentUrl: new URL("https://mosaic.inc/docs"),
+        currentUrl: new URL("https://coterm.cc/docs"),
         location: "https://example.com/docs",
-        origin: "https://mosaic.inc",
+        origin: "https://coterm.cc",
       }),
     ).toBeNull();
   });
 
   test("lists agent-readable Markdown and text variants", () => {
-    const llms = buildLlmsText("https://mosaic.inc");
+    const llms = buildLlmsText("https://coterm.cc");
 
-    expect(llms).toContain("[Getting Started](https://mosaic.inc/docs/getting-started.md)");
-    expect(llms).toContain("[Skills](https://mosaic.inc/docs/skills.md)");
-    expect(llms).toContain("Text: https://mosaic.inc/docs/getting-started.txt");
+    expect(llms).toContain("[Getting Started](https://coterm.cc/docs/getting-started.md)");
+    expect(llms).toContain("[Skills](https://coterm.cc/docs/skills.md)");
+    expect(llms).toContain("Text: https://coterm.cc/docs/getting-started.txt");
     expect(variantPathForPage("/", "md")).toBe("/index.md");
   });
 

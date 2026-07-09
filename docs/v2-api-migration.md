@@ -136,12 +136,12 @@ Debug / Test-only:
 v1 suite stays in `tests/`.
 
 v2 suite lives in `tests_v2/` and should:
-- use a v2 JSON client (`tests_v2/mosaic.py`)
+- use a v2 JSON client (`tests_v2/coterm.py`)
 - avoid depending on v1 text output formats
 
 VM runners:
-- v1: `ssh mosaic-vm 'cd /Users/mosaic/mosaic && ./scripts/run-tests-v1.sh'`
-- v2: `ssh mosaic-vm 'cd /Users/mosaic/mosaic && ./scripts/run-tests-v2.sh'`
+- v1: `ssh coterm-vm 'cd /Users/coterm/coterm && ./scripts/run-tests-v1.sh'`
+- v2: `ssh coterm-vm 'cd /Users/coterm/coterm && ./scripts/run-tests-v2.sh'`
 
 ## Open Questions
 

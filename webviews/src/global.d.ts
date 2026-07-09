@@ -2,7 +2,7 @@ export {};
 
 declare global {
   interface Window {
-    __mosaicDiffViewer?: {
+    __cotermDiffViewer?: {
       codeView?: unknown;
       codeViewItems?: unknown[];
       items?: unknown[];

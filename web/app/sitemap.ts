@@ -2,27 +2,27 @@ import type { MetadataRoute } from "next";
 import { locales } from "../i18n/routing";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://mosaic.inc";
+  const base = "https://coterm.cc";
 
   const paths = [
     { path: "", lastModified: "2026-03-18", changeFrequency: "weekly" as const, priority: 1 },
     { path: "/ios", lastModified: "2026-06-22", changeFrequency: "monthly" as const, priority: 0.8 },
     { path: "/blog", lastModified: "2026-06-23", changeFrequency: "weekly" as const, priority: 0.8 },
-    { path: "/blog/mosaic-home", lastModified: "2026-06-23", changeFrequency: "monthly" as const, priority: 0.7 },
-    { path: "/blog/mosaic-history", lastModified: "2026-06-02", changeFrequency: "monthly" as const, priority: 0.7 },
-    { path: "/blog/mosaic-finder", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
-    { path: "/blog/mosaic-vault", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/coterm-home", lastModified: "2026-06-23", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/coterm-history", lastModified: "2026-06-02", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/coterm-finder", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/coterm-vault", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/blog/passkey-auth", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/blog/task-manager", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/blog/markdown-viewer", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/blog/unread-shortcuts", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/blog/session-restore", lastModified: "2026-05-22", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/blog/show-hn-launch", lastModified: "2026-02-21", changeFrequency: "monthly" as const, priority: 0.7 },
-    { path: "/blog/introducing-mosaic", lastModified: "2026-02-12", changeFrequency: "monthly" as const, priority: 0.7 },
-    { path: "/blog/zen-of-mosaic", lastModified: "2026-02-27", changeFrequency: "monthly" as const, priority: 0.7 },
-    { path: "/blog/mosaic-claude-teams", lastModified: "2026-03-30", changeFrequency: "monthly" as const, priority: 0.7 },
-    { path: "/blog/mosaic-omo", lastModified: "2026-03-30", changeFrequency: "monthly" as const, priority: 0.7 },
-    { path: "/blog/mosaic-ssh", lastModified: "2026-03-30", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/introducing-coterm", lastModified: "2026-02-12", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/zen-of-coterm", lastModified: "2026-02-27", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/coterm-claude-teams", lastModified: "2026-03-30", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/coterm-omo", lastModified: "2026-03-30", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/blog/coterm-ssh", lastModified: "2026-03-30", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/blog/gpl", lastModified: "2026-03-30", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/blog/cmd-shift-u", lastModified: "2026-03-04", changeFrequency: "monthly" as const, priority: 0.7 },
     { path: "/docs/getting-started", lastModified: "2026-03-18", changeFrequency: "monthly" as const, priority: 0.9 },

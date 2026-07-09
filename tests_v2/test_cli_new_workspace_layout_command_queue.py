@@ -14,15 +14,15 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _float_env(name: str, default: float) -> float:
@@ -37,31 +37,31 @@ def _float_env(name: str, default: float) -> float:
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
 
 def _run_cli(cli: str, args: list[str]) -> tuple[subprocess.CompletedProcess[str], float]:
     env = dict(os.environ)
-    env.pop("MOSAIC_WORKSPACE_ID", None)
-    env.pop("MOSAIC_SURFACE_ID", None)
-    env.pop("MOSAIC_TAB_ID", None)
+    env.pop("COTERM_WORKSPACE_ID", None)
+    env.pop("COTERM_SURFACE_ID", None)
+    env.pop("COTERM_TAB_ID", None)
 
     command = [cli, "--socket", SOCKET_PATH, *args]
-    timeout = _float_env("MOSAIC_TEST_CLI_RUN_TIMEOUT", 30.0)
+    timeout = _float_env("COTERM_TEST_CLI_RUN_TIMEOUT", 30.0)
     started = time.monotonic()
     try:
         proc = subprocess.run(
@@ -74,14 +74,14 @@ def _run_cli(cli: str, args: list[str]) -> tuple[subprocess.CompletedProcess[str
         )
     except subprocess.TimeoutExpired as exc:
         details = f"stdout={exc.output!r} stderr={exc.stderr!r}"
-        raise mosaicError(f"CLI timed out after {timeout:.1f}s: {command!r}; {details}") from exc
+        raise cotermError(f"CLI timed out after {timeout:.1f}s: {command!r}; {details}") from exc
     elapsed = time.monotonic() - started
     return proc, elapsed
 
 
 def main() -> int:
     cli = _find_cli_binary()
-    marker = Path(tempfile.gettempdir()) / f"mosaic_new_workspace_layout_command_{os.getpid()}.txt"
+    marker = Path(tempfile.gettempdir()) / f"coterm_new_workspace_layout_command_{os.getpid()}.txt"
     created_ws_id: str | None = None
 
     try:
@@ -89,7 +89,7 @@ def main() -> int:
     except OSError:
         pass
 
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         try:
             baseline_ws_id = c.current_workspace()
             token = f"layout-{os.getpid()}-{int(time.time() * 1000)}"

@@ -109,14 +109,14 @@ actor SearchIndex {
 
     private var database: OpaquePointer?
 
-    nonisolated static func open(databaseURL: URL = .mosaicSearchDatabaseURL) async throws -> SearchIndex {
+    nonisolated static func open(databaseURL: URL = .cotermSearchDatabaseURL) async throws -> SearchIndex {
         // Actor initializers run on the caller executor, so open SQLite off the MainActor.
         try await Task.detached(priority: .utility) {
             try SearchIndex(databaseURL: databaseURL)
         }.value
     }
 
-    init(databaseURL: URL = .mosaicSearchDatabaseURL) throws {
+    init(databaseURL: URL = .cotermSearchDatabaseURL) throws {
         try Self.ensureParentDirectoryExists(for: databaseURL)
 
         var openedDatabase: OpaquePointer?
@@ -479,9 +479,9 @@ actor SearchIndex {
 }
 
 extension URL {
-    static var mosaicSearchDatabaseURL: URL {
+    static var cotermSearchDatabaseURL: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("mosaic", isDirectory: true)
+            .appendingPathComponent("coterm", isDirectory: true)
             .appendingPathComponent("search.db", isDirectory: false)
     }
 }

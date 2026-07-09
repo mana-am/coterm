@@ -1,11 +1,11 @@
 import AppKit
-import MosaicAuthCore
-import MosaicAuthRuntime
-import MosaicSettingsUI
+import CotermAuthCore
+import CotermAuthRuntime
+import CotermSettingsUI
 import Foundation
 
-/// Adapts the shared ``MosaicAuthRuntime/AuthCoordinator`` and the macOS
-/// ``HostBrowserSignInFlow`` to the `MosaicSettingsUI` `AccountFlow` protocol so
+/// Adapts the shared ``CotermAuthRuntime/AuthCoordinator`` and the macOS
+/// ``HostBrowserSignInFlow`` to the `CotermSettingsUI` `AccountFlow` protocol so
 /// the `AccountSection` can drive sign-in / sign-out / team selection without
 /// depending on the auth packages.
 ///
@@ -78,7 +78,7 @@ final class HostAccountFlow: AccountFlow {
         // stale the user signs in again (full browser round trip).
     }
 
-    private static func identity(from user: MosaicAuthUser?) -> AccountIdentity? {
+    private static func identity(from user: CotermAuthUser?) -> AccountIdentity? {
         guard let user else { return nil }
         let trimmedImageURL = user.imageURL?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let avatarURL = trimmedImageURL.isEmpty ? nil : URL(string: trimmedImageURL)

@@ -1,6 +1,6 @@
-const BASE = "https://mosaic.inc";
+const BASE = "https://coterm.cc";
 
-/** Build an absolute mosaic.inc URL for a locale + path, matching i18n/seo.ts. */
+/** Build an absolute coterm.cc URL for a locale + path, matching i18n/seo.ts. */
 export function localizedUrl(locale: string, path: string) {
   return locale === "en" ? `${BASE}${path}` : `${BASE}/${locale}${path}`;
 }
@@ -49,7 +49,7 @@ export function faqPage(qas: { question: string; answer: string }[]) {
   };
 }
 
-/** Build a schema.org Article for a blog post. Author defaults to mosaic. */
+/** Build a schema.org Article for a blog post. Author defaults to coterm. */
 export function articleSchema(opts: {
   locale: string;
   path: string;
@@ -64,8 +64,8 @@ export function articleSchema(opts: {
     headline: opts.headline,
     description: opts.description,
     datePublished: opts.datePublished,
-    author: { "@type": "Organization", name: opts.authorName ?? "Mosaic" },
-    publisher: { "@type": "Organization", name: "Mosaic", url: BASE },
+    author: { "@type": "Organization", name: opts.authorName ?? "Coterm" },
+    publisher: { "@type": "Organization", name: "Coterm", url: BASE },
     mainEntityOfPage: localizedUrl(opts.locale, opts.path),
   };
 }

@@ -1,13 +1,13 @@
-import MosaicFoundation
+import CotermFoundation
 import AppKit
 import Foundation
 import os
 import UserNotifications
 import Bonsplit
-import MosaicSettings
+import CotermSettings
 
 nonisolated private let terminalNotificationLogger = Logger(
-    subsystem: "mosaic.com.emergent.app",
+    subsystem: "coterm.com.emergent.app",
     category: "notification"
 )
 
@@ -18,7 +18,7 @@ nonisolated private let terminalNotificationLogger = Logger(
 // freeze the UI.
 extension UNUserNotificationCenter {
     private static let removalQueue = DispatchQueue(
-        label: "com.mosaicterm.notification-removal",
+        label: "com.coterm.notification-removal",
         qos: .utility
     )
 
@@ -67,7 +67,7 @@ enum NotificationPaneFlashSettings {
 }
 
 enum TaggedRunBadgeSettings {
-    static let environmentKey = "MOSAIC_TAG"
+    static let environmentKey = "COTERM_TAG"
     private static let maxTagLength = 10
 
     static func normalizedTag(from env: [String: String] = ProcessInfo.processInfo.environment) -> String? {
@@ -104,7 +104,7 @@ enum AppFocusState {
         // Only treat the app as "focused" for notification suppression when a main terminal window
         // is key. If Settings/About/debug panels are key, we still want notifications to show.
         if let raw = keyWindow.identifier?.rawValue {
-            return raw == "mosaic.main" || raw.hasPrefix("mosaic.main.")
+            return raw == "coterm.main" || raw.hasPrefix("coterm.main.")
         }
         return false
     }
@@ -146,8 +146,8 @@ enum NotificationAuthorizationState: Equatable, Sendable {
 enum TerminalNotificationClickAction: Codable, Hashable, Sendable {
     case revealInFinder(path: String)
 
-    private static let kindUserInfoKey = "mosaicClickAction"
-    private static let revealInFinderPathUserInfoKey = "mosaicRevealInFinderPath"
+    private static let kindUserInfoKey = "cotermClickAction"
+    private static let revealInFinderPathUserInfoKey = "cotermRevealInFinderPath"
     private static let revealInFinderKind = "revealInFinder"
 
     var userInfo: [String: String] {
@@ -238,8 +238,8 @@ final class TerminalNotificationStore: ObservableObject {
 
     static let shared = TerminalNotificationStore()
 
-    static let categoryIdentifier = "mosaic.com.emergent.app.userNotification"
-    static let actionShowIdentifier = "mosaic.com.emergent.app.userNotification.show"
+    static let categoryIdentifier = "coterm.com.emergent.app.userNotification"
+    static let actionShowIdentifier = "coterm.com.emergent.app.userNotification.show"
 
     /// Mobile-host event topic the Mac emits when one or more delivered
     /// notifications are dismissed/cleared on this Mac, so an attached phone can
@@ -277,7 +277,7 @@ final class TerminalNotificationStore: ObservableObject {
     private var dismissedTombstoneOrder: [UUID] = []
     private var dismissedTombstonesLoaded = false
     private static let dismissedTombstoneCapacity = 512
-    static let dismissedTombstoneDefaultsKey = "mosaic.notifications.dismissedTombstoneIds"
+    static let dismissedTombstoneDefaultsKey = "coterm.notifications.dismissedTombstoneIds"
 
     private func loadDismissedTombstonesIfNeeded() {
         guard !dismissedTombstonesLoaded else { return }
@@ -430,7 +430,7 @@ final class TerminalNotificationStore: ObservableObject {
         didSet {
             indexes = Self.buildIndexes(for: notifications)
             refreshUnreadPresentation()
-            if !suppressNotificationDiffPublishing { MosaicEventBus.shared.publishNotificationChanges(oldValue: oldValue, newValue: notifications) }
+            if !suppressNotificationDiffPublishing { CotermEventBus.shared.publishNotificationChanges(oldValue: oldValue, newValue: notifications) }
         }
     }
     @Published private(set) var notificationMenuSnapshot = NotificationMenuSnapshotBuilder.make(notifications: [])
@@ -616,7 +616,7 @@ final class TerminalNotificationStore: ObservableObject {
 
     private func logAuthorization(_ message: String) {
 #if DEBUG
-        mosaicDebugLog("notification.auth \(message)")
+        cotermDebugLog("notification.auth \(message)")
 #endif
         terminalNotificationLogger.info("Authorization \(message, privacy: .private)")
     }
@@ -678,13 +678,13 @@ final class TerminalNotificationStore: ObservableObject {
             guard let self, authorized else { return }
 
             let content = UNMutableNotificationContent()
-            content.title = "mosaic test notification"
+            content.title = "coterm test notification"
             content.body = "Desktop notifications are enabled."
             content.sound = NotificationSoundSettings.sound()
             content.categoryIdentifier = Self.categoryIdentifier
 
             let request = UNNotificationRequest(
-                identifier: "mosaic.settings.test.\(UUID().uuidString)",
+                identifier: "coterm.settings.test.\(UUID().uuidString)",
                 content: content,
                 trigger: nil
             )
@@ -885,7 +885,7 @@ final class TerminalNotificationStore: ObservableObject {
         clickAction: TerminalNotificationClickAction? = nil
     ) {
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "notification.store.add workspace=\(tabId.uuidString.prefix(8)) surface=\(surfaceId?.uuidString.prefix(8) ?? "nil") titleLen=\(title.count) subtitleLen=\(subtitle.count) bodyLen=\(body.count) cooldown=\(cooldownKey == nil ? 0 : 1)"
         )
 #endif
@@ -901,7 +901,7 @@ final class TerminalNotificationStore: ObservableObject {
            let lastNotificationDate = lastNotificationDateByCooldownKey[cooldownKey],
            now.timeIntervalSince(lastNotificationDate) < resolvedCooldownInterval {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "notification.store.add.skip workspace=\(tabId.uuidString.prefix(8)) surface=\(surfaceId?.uuidString.prefix(8) ?? "nil") reason=cooldown"
             )
 #endif
@@ -983,7 +983,7 @@ final class TerminalNotificationStore: ObservableObject {
 
     private struct NotificationPolicyContext: Sendable {
         let request: TerminalNotificationPolicyRequest
-        let hooks: [MosaicResolvedNotificationHook]
+        let hooks: [CotermResolvedNotificationHook]
         let globalConfigPath: String?
     }
 
@@ -1025,7 +1025,7 @@ final class TerminalNotificationStore: ObservableObject {
         let appDelegate = AppDelegate.shared
         let context = appDelegate?.contextContainingTabId(tabId)
         let tabManager = context?.tabManager ?? appDelegate?.tabManagerFor(tabId: tabId) ?? appDelegate?.tabManager
-        let mosaicConfigStore = context?.mosaicConfigStore
+        let cotermConfigStore = context?.cotermConfigStore
         let workspace = tabManager?.tabs.first(where: { $0.id == tabId })
         let focusedSurfaceId = tabManager?.focusedSurfaceId(for: tabId)
         let isActiveTab = tabManager?.selectedTabId == tabId
@@ -1054,8 +1054,8 @@ final class TerminalNotificationStore: ObservableObject {
                 isAppFocused: isAppFocused,
                 isFocusedPanel: isFocusedPanel
             ),
-            hooks: mosaicConfigStore?.notificationHooks(startingFrom: workspace?.isRemoteWorkspace == true ? nil : cwd) ?? [],
-            globalConfigPath: mosaicConfigStore?.globalConfigPath
+            hooks: cotermConfigStore?.notificationHooks(startingFrom: workspace?.isRemoteWorkspace == true ? nil : cwd) ?? [],
+            globalConfigPath: cotermConfigStore?.globalConfigPath
         )
     }
 
@@ -1123,7 +1123,7 @@ final class TerminalNotificationStore: ObservableObject {
         }
 
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "notification.store.effectsOnly workspace=\(notification.tabId.uuidString.prefix(8)) surface=\(notification.surfaceId?.uuidString.prefix(8) ?? "nil") desktop=\(effects.desktop ? 1 : 0) sound=\(effects.sound ? 1 : 0) command=\(effects.command ? 1 : 0) suppressExternal=\(shouldSuppressExternalDelivery ? 1 : 0)"
         )
 #endif
@@ -1249,7 +1249,7 @@ final class TerminalNotificationStore: ObservableObject {
         notifications = updated
         commitCooldownReservation(cooldownReservation, at: now)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "notification.store.record workspace=\(notification.tabId.uuidString.prefix(8)) surface=\(notification.surfaceId?.uuidString.prefix(8) ?? "nil") removed=\(idsToClear.count) unread=\(!notification.isRead ? 1 : 0) paneFlash=\(notification.paneFlash ? 1 : 0) suppressExternal=\(shouldSuppressExternalDelivery ? 1 : 0) total=\(notifications.count)"
         )
 #endif
@@ -1329,14 +1329,14 @@ final class TerminalNotificationStore: ObservableObject {
     ) {
         guard effects.desktop || effects.sound || effects.command else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "notification.store.sideEffects.skip workspace=\(notification.tabId.uuidString.prefix(8)) surface=\(notification.surfaceId?.uuidString.prefix(8) ?? "nil") reason=noEffects"
             )
 #endif
             return
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "notification.store.sideEffects workspace=\(notification.tabId.uuidString.prefix(8)) surface=\(notification.surfaceId?.uuidString.prefix(8) ?? "nil") desktop=\(effects.desktop ? 1 : 0) sound=\(effects.sound ? 1 : 0) command=\(effects.command ? 1 : 0) suppressExternal=\(shouldSuppressExternalDelivery ? 1 : 0)"
         )
 #endif
@@ -1398,7 +1398,7 @@ final class TerminalNotificationStore: ObservableObject {
             )
             let format = String(
                 localized: "notificationHook.failure.body",
-                defaultValue: "mosaic used default notification behavior because '%@' failed."
+                defaultValue: "coterm used default notification behavior because '%@' failed."
             )
             let content = UNMutableNotificationContent()
             content.title = title
@@ -1406,7 +1406,7 @@ final class TerminalNotificationStore: ObservableObject {
             content.sound = NotificationSoundSettings.sound()
             content.categoryIdentifier = Self.categoryIdentifier
             let request = UNNotificationRequest(
-                identifier: "mosaic.notification-hook.failure.\(UUID().uuidString)",
+                identifier: "coterm.notification-hook.failure.\(UUID().uuidString)",
                 content: content,
                 trigger: nil
             )
@@ -1688,7 +1688,7 @@ final class TerminalNotificationStore: ObservableObject {
         clearPanelDerivedWorkspaceUnread()
         clearWorkspaceRestoredUnread()
         focusedReadIndicatorByTabId.removeAll()
-        MosaicEventBus.shared.publishNotificationCleared(ids: ids, workspaceId: nil, surfaceId: nil)
+        CotermEventBus.shared.publishNotificationCleared(ids: ids, workspaceId: nil, surfaceId: nil)
         center.removeDeliveredNotificationsOffMain(withIdentifiers: ids)
         center.removePendingNotificationRequestsOffMain(withIdentifiers: ids)
         emitNotificationsDismissed(ids: ids, drainedSuperseded: supersededPhoneDismissBuffer.flushAll())
@@ -1730,7 +1730,7 @@ final class TerminalNotificationStore: ObservableObject {
         }
         clearFocusedReadIndicator(forTabId: tabId, surfaceId: surfaceId)
         if !idsToClear.isEmpty {
-            MosaicEventBus.shared.publishNotificationCleared(ids: idsToClear, workspaceId: tabId, surfaceId: surfaceId)
+            CotermEventBus.shared.publishNotificationCleared(ids: idsToClear, workspaceId: tabId, surfaceId: surfaceId)
             center.removeDeliveredNotificationsOffMain(withIdentifiers: idsToClear)
             center.removePendingNotificationRequestsOffMain(withIdentifiers: idsToClear)
             emitNotificationsDismissed(ids: idsToClear, drainedSuperseded: supersededDrained)
@@ -1796,7 +1796,7 @@ final class TerminalNotificationStore: ObservableObject {
         }
         clearFocusedReadIndicator(forTabId: tabId)
         if !idsToClear.isEmpty {
-            MosaicEventBus.shared.publishNotificationCleared(ids: idsToClear, workspaceId: tabId, surfaceId: nil)
+            CotermEventBus.shared.publishNotificationCleared(ids: idsToClear, workspaceId: tabId, surfaceId: nil)
             center.removeDeliveredNotificationsOffMain(withIdentifiers: idsToClear)
             center.removePendingNotificationRequestsOffMain(withIdentifiers: idsToClear)
             emitNotificationsDismissed(
@@ -1809,7 +1809,7 @@ final class TerminalNotificationStore: ObservableObject {
     private func resolvedNotificationTitle(for notification: TerminalNotification) -> String {
         let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
             ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
-            ?? "mosaic"
+            ?? "coterm"
         return notification.title.isEmpty ? appName : notification.title
     }
 
@@ -2041,8 +2041,8 @@ final class TerminalNotificationStore: ObservableObject {
         }
 
         let alert = notificationSettingsAlertFactory()
-        alert.messageText = String(localized: "dialog.enableNotifications.title", defaultValue: "Enable Notifications for mosaic")
-        alert.informativeText = String(localized: "dialog.enableNotifications.message", defaultValue: "Notifications are disabled for mosaic. Enable them in System Settings to see alerts.")
+        alert.messageText = String(localized: "dialog.enableNotifications.title", defaultValue: "Enable Notifications for coterm")
+        alert.informativeText = String(localized: "dialog.enableNotifications.message", defaultValue: "Notifications are disabled for coterm. Enable them in System Settings to see alerts.")
         alert.addButton(withTitle: String(localized: "dialog.enableNotifications.openSettings", defaultValue: "Open Settings"))
         alert.addButton(withTitle: String(localized: "dialog.enableNotifications.notNow", defaultValue: "Not Now"))
         alert.beginSheetModal(for: window) { [weak self] response in

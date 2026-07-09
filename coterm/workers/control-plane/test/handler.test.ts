@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { HmacAuthProvider, nowSeconds, signMosaicToken } from "@coterm/collab-auth";
+import { HmacAuthProvider, nowSeconds, signCotermToken } from "@coterm/collab-auth";
 import { controlPlaneFetch, type ControlPlaneEnv } from "../src/handler";
-import type { InviteRecord } from "../src/invite-store";
+import type { InviteRecord, JoinApprovalRequest, RoomRecord } from "../src/invite-store";
 import type { RelayClient } from "../src/relay-client";
 
 const SECRET = "control-plane-secret";
@@ -10,6 +10,8 @@ const RELAY_URL = "http://relay.local";
 // In-memory invite store namespace mirroring the DO RPC surface.
 class FakeInviteStore {
   invites = new Map<string, InviteRecord>();
+  rooms = new Map<string, RoomRecord>();
+  joinRequests = new Map<string, JoinApprovalRequest>();
   async put(record: InviteRecord) {
     this.invites.set(record.room, record);
   }
@@ -23,6 +25,23 @@ class FakeInviteStore {
   }
   async removeMany(rooms: readonly string[]) {
     for (const r of rooms) this.invites.delete(r);
+  }
+  async putRoom(record: RoomRecord) {
+    this.rooms.set(record.room, record);
+  }
+  async getRoom(room: string) {
+    return this.rooms.get(room) ?? null;
+  }
+  async putJoinRequest(record: JoinApprovalRequest) {
+    this.joinRequests.set(record.requestId, record);
+  }
+  async getJoinRequest(requestId: string) {
+    return this.joinRequests.get(requestId) ?? null;
+  }
+  async listJoinRequests() {
+    return [...this.joinRequests.values()].sort((a, b) =>
+      a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
+    );
   }
 }
 
@@ -45,8 +64,9 @@ class FakeRelay implements RelayClient {
   deadRooms = new Set<string>();
   notifyCalls: Array<{ relayURL: string; inviteeUserId: string }> = [];
   preCreatedCode = "ROOM1234";
+  preCreatedSecret = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   async preCreateRoom() {
-    return this.preCreatedCode;
+    return { room: this.preCreatedCode, shareSecret: this.preCreatedSecret };
   }
   async probeRoom(_relayURL: string, room: string) {
     return !this.deadRooms.has(room);
@@ -70,7 +90,7 @@ beforeEach(() => {
 });
 
 async function accessToken(userId: string, teamIds: string[] = []): Promise<string> {
-  return signMosaicToken(
+  return signCotermToken(
     { kind: "access", userId, teamIds, selectedTeamId: teamIds[0] ?? null, exp: nowSeconds() + 900 },
     SECRET,
   );
@@ -111,10 +131,11 @@ describe("sessions", () => {
   test("creates a session with all six response fields and a code-shaped room", async () => {
     const response = await call(req("/api/collab/sessions", { method: "POST", token: await accessToken("owner", ["org1"]), body: JSON.stringify({ orgId: "org1" }) }));
     const body = (await response.json()) as Record<string, unknown>;
-    expect(Object.keys(body).sort()).toEqual(["code", "entitlements", "grant", "relayURL", "room", "session"]);
+    expect(Object.keys(body).sort()).toEqual(["code", "entitlements", "grant", "relayURL", "room", "session", "shareSecret"]);
     expect(body.room).toBe("ROOM1234");
     expect(body.code).toBe("ROOM1234");
     expect(body.relayURL).toBe(RELAY_URL);
+    expect(body.shareSecret).toBe(relay.preCreatedSecret);
     // The minted grant must authorize connecting to that room.
     const decision = await provider.authorizeRelayConnect({ room: "ROOM1234", grant: body.grant as string });
     expect(decision).toMatchObject({ ok: true });
@@ -181,13 +202,20 @@ describe("invite → inbox → reconcile → withdraw", () => {
 });
 
 describe("join", () => {
-  test("join by code returns a room-bound grant", async () => {
+  test("join by code requires the share secret and creates an owner approval request", async () => {
+    const sessionsResponse = await call(req("/api/collab/sessions", { method: "POST", token: await accessToken("owner", ["org1"]), body: JSON.stringify({ orgId: "org1" }) }));
+    const created = (await sessionsResponse.json()) as { room: string; shareSecret: string };
+    const response = await call(req("/api/collab/join", { method: "POST", token: await accessToken("guest"), body: JSON.stringify({ code: created.room, shareSecret: created.shareSecret }) }));
+    const body = (await response.json()) as { status: string; requestId: string; room: string; code: string; relayURL: string };
+    expect(response.status).toBe(202);
+    expect(body.status).toBe("pending");
+    expect(body.room).toBe(created.room);
+    expect(namespace.get("owner").joinRequests.get(body.requestId)?.requesterUserId).toBe("guest");
+  });
+
+  test("join by code rejects missing share secret", async () => {
     const response = await call(req("/api/collab/join", { method: "POST", token: await accessToken("guest"), body: JSON.stringify({ code: "abcd-1234" }) }));
-    const body = (await response.json()) as { room: string; code: string; relayURL: string; grant: string };
-    expect(body.room).toBe("ABCD1234");
-    expect(body.code).toBe("ABCD1234");
-    const decision = await provider.authorizeRelayConnect({ room: "ABCD1234", grant: body.grant });
-    expect(decision).toMatchObject({ ok: true });
+    expect(response.status).toBe(400);
   });
 
   test("join by descriptor extracts the room from the signed session", async () => {

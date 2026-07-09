@@ -1,5 +1,5 @@
-import MosaicMobileCore
-import MosaicSettings
+import CotermMobileCore
+import CotermSettings
 import Foundation
 #if canImport(Security)
 import Security
@@ -199,7 +199,7 @@ struct MobileAttachTicketAuthorization {
 enum MobileHostIdentity {
     private static let deviceIDKey = "mobileHost.deviceID"
     private static let sharedDeviceIDFileName = "mobile-host-device-id"
-    private static let stableBundleIdentifier = "mosaic.com.emergent.app"
+    private static let stableBundleIdentifier = "coterm.com.emergent.app"
 
     static func deviceID() -> String {
         let stableDefaults = Bundle.main.bundleIdentifier == stableBundleIdentifier
@@ -246,7 +246,7 @@ enum MobileHostIdentity {
         ) else {
             return nil
         }
-        let directory = appSupport.appendingPathComponent("mosaic", isDirectory: true)
+        let directory = appSupport.appendingPathComponent("coterm", isDirectory: true)
         if !fileManager.fileExists(atPath: directory.path) {
             try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         }

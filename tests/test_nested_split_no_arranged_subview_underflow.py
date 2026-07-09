@@ -19,19 +19,19 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
-def _take_screenshot(c: mosaic, label: str) -> str:
+def _take_screenshot(c: coterm, label: str) -> str:
     resp = c._send_command(f"screenshot {label}")
     return resp.strip()
 
 
 def main() -> int:
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         c.new_workspace()
         time.sleep(0.25)
 
@@ -41,7 +41,7 @@ def main() -> int:
 
         panes = c.list_panes()
         if len(panes) < 2:
-            raise mosaicError(f"expected >=2 panes after first split, got {len(panes)}: {panes}")
+            raise cotermError(f"expected >=2 panes after first split, got {len(panes)}: {panes}")
 
         # Focus the right pane, matching the user scenario.
         right_pane_id = panes[-1][1]
@@ -58,7 +58,7 @@ def main() -> int:
         underflows = c.bonsplit_underflow_count()
         if underflows != 0:
             shot = _take_screenshot(c, "nested_split_underflow")
-            raise mosaicError(f"bonsplit arranged-subview underflow observed ({underflows}); screenshot: {shot}")
+            raise cotermError(f"bonsplit arranged-subview underflow observed ({underflows}); screenshot: {shot}")
 
         print("PASS: nested split did not underflow arrangedSubviews")
         return 0

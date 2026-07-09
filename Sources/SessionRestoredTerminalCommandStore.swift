@@ -1,7 +1,7 @@
 import Foundation
 
 enum SessionRestoredTerminalCommandStore {
-    private static let directoryName = "mosaic-session-terminal-command"
+    private static let directoryName = "coterm-session-terminal-command"
 
     static func writeLauncherScript(
         command: String,

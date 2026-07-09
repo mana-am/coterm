@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Link } from "../../../../i18n/navigation";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Mosaic",
-  description: "Privacy policy for mosaic",
-  alternates: { canonical: "https://mosaic.inc/privacy-policy" },
+  title: "Privacy Policy — Coterm",
+  description: "Privacy policy for coterm",
+  alternates: { canonical: "https://coterm.cc/privacy-policy" },
 };
 
 export default function PrivacyPolicyPage() {
@@ -22,8 +22,8 @@ export default function PrivacyPolicyPage() {
       <p>
         For purposes of this policy, &ldquo;Site&rdquo; refers to the
         Company&rsquo;s website at{" "}
-        <a href="https://mosaic.inc">mosaic.inc</a>.
-        &ldquo;Application&rdquo; refers to the mosaic desktop application for
+        <a href="https://coterm.cc">coterm.cc</a>.
+        &ldquo;Application&rdquo; refers to the coterm desktop application for
         macOS. &ldquo;Service&rdquo; refers to the Site and Application
         collectively. The terms &ldquo;we,&rdquo; &ldquo;us,&rdquo; and
         &ldquo;our&rdquo; refer to the Company. &ldquo;You&rdquo; refers to

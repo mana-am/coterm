@@ -1,6 +1,6 @@
 import AppKit
 import Bonsplit
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
 
 /// The surface-domain lifecycle witnesses (`split` / `respawn` / `create` /

@@ -2,10 +2,10 @@
 """
 Regression coverage for stale shell-side git branch payloads after cwd changes.
 
-When a mosaic shell leaves a git repository for a non-git directory, an async
+When a coterm shell leaves a git repository for a non-git directory, an async
 reporter still holding the OLD repository path (the background HEAD-watch loop or
 a deferred prompt probe) must not repopulate the sidebar branch. The integrations
-guard every git-branch payload with ``_mosaic_git_report_path_is_active`` so a
+guard every git-branch payload with ``_coterm_git_report_path_is_active`` so a
 report whose target path no longer matches the shell's current cwd is dropped.
 
 Each case drives that guard through the real integration functions: after the
@@ -61,33 +61,33 @@ def _shell_command(kind: str) -> str:
     if kind == "zsh":
         return textwrap.dedent(
             """\
-            source "$MOSAIC_TEST_SCRIPT"
+            source "$COTERM_TEST_SCRIPT"
             precmd_functions=()
             preexec_functions=()
-            _mosaic_send() { print -r -- "$1" >> "$MOSAIC_TEST_SEND_LOG"; }
-            cd "$MOSAIC_TEST_NONREPO"
+            _coterm_send() { print -r -- "$1" >> "$COTERM_TEST_SEND_LOG"; }
+            cd "$COTERM_TEST_NONREPO"
             setopt noclobber
-            _mosaic_set_git_active_pwd "$PWD"
+            _coterm_set_git_active_pwd "$PWD"
             unsetopt noclobber
-            _mosaic_report_git_branch_for_path "$MOSAIC_TEST_REPO" &
+            _coterm_report_git_branch_for_path "$COTERM_TEST_REPO" &
             wait
-            _mosaic_report_git_branch_for_path "$PWD"
+            _coterm_report_git_branch_for_path "$PWD"
             """
         )
 
     if kind == "bash":
         return textwrap.dedent(
             """\
-            source "$MOSAIC_TEST_SCRIPT"
-            _mosaic_send() { printf '%s\\n' "$1" >> "$MOSAIC_TEST_SEND_LOG"; }
-            _mosaic_send_bg() { _mosaic_send "$1"; }
-            cd "$MOSAIC_TEST_NONREPO"
+            source "$COTERM_TEST_SCRIPT"
+            _coterm_send() { printf '%s\\n' "$1" >> "$COTERM_TEST_SEND_LOG"; }
+            _coterm_send_bg() { _coterm_send "$1"; }
+            cd "$COTERM_TEST_NONREPO"
             set -C
-            _mosaic_set_git_active_pwd "$PWD"
+            _coterm_set_git_active_pwd "$PWD"
             set +C
-            _mosaic_report_git_branch_for_path "$MOSAIC_TEST_REPO" &
+            _coterm_report_git_branch_for_path "$COTERM_TEST_REPO" &
             wait
-            _mosaic_report_git_branch_for_path "$PWD"
+            _coterm_report_git_branch_for_path "$PWD"
             """
         )
 
@@ -109,7 +109,7 @@ def _run_case(
 ) -> tuple[int, str]:
     repo = base / shell / "repo"
     nonrepo = base / shell / "nonrepo"
-    socket_path = base / shell / "mosaic.sock"
+    socket_path = base / shell / "coterm.sock"
     send_log = base / shell / "send.log"
     head_file = repo / ".git" / "HEAD"
 
@@ -118,16 +118,16 @@ def _run_case(
     head_file.write_text("ref: refs/heads/old-branch\n", encoding="utf-8")
 
     env = dict(os.environ)
-    env["MOSAIC_SOCKET_PATH"] = str(socket_path)
-    env["MOSAIC_TAB_ID"] = "00000000-0000-0000-0000-000000000001"
-    env["MOSAIC_PANEL_ID"] = "00000000-0000-0000-0000-000000000002"
-    env["MOSAIC_TEST_SCRIPT"] = str(script)
-    env["MOSAIC_TEST_REPO"] = str(repo)
-    env["MOSAIC_TEST_NONREPO"] = str(nonrepo)
-    env["MOSAIC_TEST_SEND_LOG"] = str(send_log)
+    env["COTERM_SOCKET_PATH"] = str(socket_path)
+    env["COTERM_TAB_ID"] = "00000000-0000-0000-0000-000000000001"
+    env["COTERM_PANEL_ID"] = "00000000-0000-0000-0000-000000000002"
+    env["COTERM_TEST_SCRIPT"] = str(script)
+    env["COTERM_TEST_REPO"] = str(repo)
+    env["COTERM_TEST_NONREPO"] = str(nonrepo)
+    env["COTERM_TEST_SEND_LOG"] = str(send_log)
     # Don't leak an inherited marker path into the integration; let it create its
     # own secure temp marker so the force-clobber write is what's under test.
-    env.pop("_MOSAIC_GIT_ACTIVE_PWD_FILE", None)
+    env.pop("_COTERM_GIT_ACTIVE_PWD_FILE", None)
 
     with BoundUnixSocket(socket_path):
         try:
@@ -163,25 +163,25 @@ def _same_repo_shell_command(kind: str) -> str:
     if kind == "zsh":
         return textwrap.dedent(
             """\
-            source "$MOSAIC_TEST_SCRIPT"
+            source "$COTERM_TEST_SCRIPT"
             precmd_functions=()
             preexec_functions=()
-            _mosaic_send() { print -r -- "$1" >> "$MOSAIC_TEST_SEND_LOG"; }
-            cd "$MOSAIC_TEST_REPO/pkg"
-            _mosaic_set_git_active_pwd "$PWD"
-            _mosaic_report_git_branch_for_path "$MOSAIC_TEST_REPO"
+            _coterm_send() { print -r -- "$1" >> "$COTERM_TEST_SEND_LOG"; }
+            cd "$COTERM_TEST_REPO/pkg"
+            _coterm_set_git_active_pwd "$PWD"
+            _coterm_report_git_branch_for_path "$COTERM_TEST_REPO"
             """
         )
 
     if kind == "bash":
         return textwrap.dedent(
             """\
-            source "$MOSAIC_TEST_SCRIPT"
-            _mosaic_send() { printf '%s\\n' "$1" >> "$MOSAIC_TEST_SEND_LOG"; }
-            _mosaic_send_bg() { _mosaic_send "$1"; }
-            cd "$MOSAIC_TEST_REPO/pkg"
-            _mosaic_set_git_active_pwd "$PWD"
-            _mosaic_report_git_branch_for_path "$MOSAIC_TEST_REPO"
+            source "$COTERM_TEST_SCRIPT"
+            _coterm_send() { printf '%s\\n' "$1" >> "$COTERM_TEST_SEND_LOG"; }
+            _coterm_send_bg() { _coterm_send "$1"; }
+            cd "$COTERM_TEST_REPO/pkg"
+            _coterm_set_git_active_pwd "$PWD"
+            _coterm_report_git_branch_for_path "$COTERM_TEST_REPO"
             """
         )
 
@@ -196,7 +196,7 @@ def _run_same_repo_case(
     script: Path,
 ) -> tuple[int, str]:
     repo = base / f"{shell}-samerepo" / "repo"
-    socket_path = base / f"{shell}-samerepo" / "mosaic.sock"
+    socket_path = base / f"{shell}-samerepo" / "coterm.sock"
     send_log = base / f"{shell}-samerepo" / "send.log"
     head_file = repo / ".git" / "HEAD"
 
@@ -205,13 +205,13 @@ def _run_same_repo_case(
     head_file.write_text("ref: refs/heads/feature-x\n", encoding="utf-8")
 
     env = dict(os.environ)
-    env["MOSAIC_SOCKET_PATH"] = str(socket_path)
-    env["MOSAIC_TAB_ID"] = "00000000-0000-0000-0000-000000000001"
-    env["MOSAIC_PANEL_ID"] = "00000000-0000-0000-0000-000000000002"
-    env["MOSAIC_TEST_SCRIPT"] = str(script)
-    env["MOSAIC_TEST_REPO"] = str(repo)
-    env["MOSAIC_TEST_SEND_LOG"] = str(send_log)
-    env.pop("_MOSAIC_GIT_ACTIVE_PWD_FILE", None)
+    env["COTERM_SOCKET_PATH"] = str(socket_path)
+    env["COTERM_TAB_ID"] = "00000000-0000-0000-0000-000000000001"
+    env["COTERM_PANEL_ID"] = "00000000-0000-0000-0000-000000000002"
+    env["COTERM_TEST_SCRIPT"] = str(script)
+    env["COTERM_TEST_REPO"] = str(repo)
+    env["COTERM_TEST_SEND_LOG"] = str(send_log)
+    env.pop("_COTERM_GIT_ACTIVE_PWD_FILE", None)
 
     with BoundUnixSocket(socket_path):
         try:
@@ -248,22 +248,22 @@ def _run_zsh_chpwd_keeps_watch(base: Path, *, script: Path) -> tuple[int, str]:
 
     command = textwrap.dedent(
         """\
-        source "$MOSAIC_TEST_SCRIPT"
+        source "$COTERM_TEST_SCRIPT"
         precmd_functions=()
         preexec_functions=()
         sleep 5 &
         watch_pid=$!
-        _MOSAIC_GIT_HEAD_WATCH_PID=$watch_pid
-        cd "$MOSAIC_TEST_NONREPO"
+        _COTERM_GIT_HEAD_WATCH_PID=$watch_pid
+        cd "$COTERM_TEST_NONREPO"
         if kill -0 "$watch_pid" 2>/dev/null; then print -r -- WATCH_ALIVE; else print -r -- WATCH_DEAD; fi
         kill "$watch_pid" 2>/dev/null || true
         """
     )
 
     env = dict(os.environ)
-    env["MOSAIC_TEST_SCRIPT"] = str(script)
-    env["MOSAIC_TEST_NONREPO"] = str(nonrepo)
-    env.pop("_MOSAIC_GIT_ACTIVE_PWD_FILE", None)
+    env["COTERM_TEST_SCRIPT"] = str(script)
+    env["COTERM_TEST_NONREPO"] = str(nonrepo)
+    env.pop("_COTERM_GIT_ACTIVE_PWD_FILE", None)
 
     try:
         result = subprocess.run(
@@ -285,11 +285,11 @@ def _run_zsh_chpwd_keeps_watch(base: Path, *, script: Path) -> tuple[int, str]:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     cases = [
-        ("zsh", ["-f", "-c"], root / "Resources/shell-integration/mosaic-zsh-integration.zsh"),
-        ("bash", ["--noprofile", "--norc", "-c"], root / "Resources/shell-integration/mosaic-bash-integration.bash"),
+        ("zsh", ["-f", "-c"], root / "Resources/shell-integration/coterm-zsh-integration.zsh"),
+        ("bash", ["--noprofile", "--norc", "-c"], root / "Resources/shell-integration/coterm-bash-integration.bash"),
     ]
 
-    base = Path("/tmp") / f"mosaic_shell_git_branch_stale_cwd_{os.getpid()}"
+    base = Path("/tmp") / f"coterm_shell_git_branch_stale_cwd_{os.getpid()}"
     try:
         shutil.rmtree(base, ignore_errors=True)
         base.mkdir(parents=True, exist_ok=True)

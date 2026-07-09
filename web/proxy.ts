@@ -7,13 +7,13 @@ import { isAgentPageVariantPath } from "./app/lib/agent-page-paths";
 const intlMiddleware = createMiddleware(routing);
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 
-function mosaicMiddleware(request: NextRequest) {
+function cotermMiddleware(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
 
-  // 301 redirect mosaic.dev (and www.mosaic.dev) to mosaic.inc, preserving path and query
-  if (host === "mosaic.dev" || host === "www.mosaic.dev") {
+  // 301 redirect www.coterm.cc to coterm.cc, preserving path and query.
+  if (host === "www.coterm.cc") {
     const url = new URL(request.url);
-    url.host = "mosaic.inc";
+    url.host = "coterm.cc";
     url.protocol = "https:";
     return NextResponse.redirect(url.toString(), 301);
   }
@@ -42,7 +42,7 @@ function mosaicMiddleware(request: NextRequest) {
     url.pathname = "/agent-page-variant";
     url.searchParams.set("path", pathname);
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-mosaic-agent-page-path", pathname);
+    requestHeaders.set("x-coterm-agent-page-path", pathname);
     return NextResponse.rewrite(url, {
       request: { headers: requestHeaders },
     });
@@ -82,7 +82,7 @@ export default clerkMiddleware(async (auth, request) => {
     await auth.protect();
   }
 
-  return mosaicMiddleware(request);
+  return cotermMiddleware(request);
 });
 
 export const config = {

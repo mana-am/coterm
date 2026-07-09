@@ -12,7 +12,7 @@ Usage:
   # Then open: tests/terminal_input_report.html
 
 Environment:
-  MOSAIC_SOCKET_PATH can override the socket path.
+  COTERM_SOCKET_PATH can override the socket path.
 """
 
 import base64
@@ -26,10 +26,10 @@ from pathlib import Path
 from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH") or "/tmp/mosaic-debug.sock"
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH") or "/tmp/coterm-debug.sock"
 HTML_REPORT = Path(__file__).parent / "terminal_input_report.html"
 
 
@@ -49,17 +49,17 @@ def _wait_for(pred, timeout_s: float, step_s: float = 0.05) -> None:
         if pred():
             return
         time.sleep(step_s)
-    raise mosaicError("Timed out waiting for condition")
+    raise cotermError("Timed out waiting for condition")
 
 
-def _focused_panel_id(c: mosaic) -> str:
+def _focused_panel_id(c: coterm) -> str:
     surfaces = c.list_surfaces()
     if not surfaces:
-        raise mosaicError("Expected at least 1 surface")
+        raise cotermError("Expected at least 1 surface")
     return next((sid for _i, sid, focused in surfaces if focused), surfaces[0][1])
 
 
-def _snap_panel(c: mosaic, panel_id: str, label: str) -> Shot:
+def _snap_panel(c: coterm, panel_id: str, label: str) -> Shot:
     info = c.panel_snapshot(panel_id, label)
     return Shot(
         path=Path(info["path"]),
@@ -68,7 +68,7 @@ def _snap_panel(c: mosaic, panel_id: str, label: str) -> Shot:
     )
 
 
-def _panel_sequence_blink_and_type(c: mosaic, panel_id: str, prefix: str, typed_char: str = "x") -> tuple[list[Shot], dict]:
+def _panel_sequence_blink_and_type(c: coterm, panel_id: str, prefix: str, typed_char: str = "x") -> tuple[list[Shot], dict]:
     shots: list[Shot] = []
 
     # Keep the app key/active while we probe focus + rendering; on a host machine the
@@ -123,7 +123,7 @@ def _write_report(cases: list[dict]) -> None:
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>mosaic terminal input render report</title>
+  <title>coterm terminal input render report</title>
   <style>
     :root {{
       --bg: #0b0f14;
@@ -207,7 +207,7 @@ def _write_report(cases: list[dict]) -> None:
   </style>
 </head>
 <body>
-  <h1>mosaic terminal input render report</h1>
+  <h1>coterm terminal input render report</h1>
   <div class="meta">generated: {esc(generated)} | socket: {esc(SOCKET_PATH)}</div>
 """
 
@@ -242,7 +242,7 @@ def _write_report(cases: list[dict]) -> None:
 def main() -> int:
     cases: list[dict] = []
 
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         c.activate_app()
         time.sleep(0.25)
 

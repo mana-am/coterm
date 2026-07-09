@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Regression test: the generated Amp plugin is importable and emits mosaic hook calls.
+Regression test: the generated Amp plugin is importable and emits coterm hook calls.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from claude_teams_test_utils import resolve_mosaic_cli
+from claude_teams_test_utils import resolve_coterm_cli
 
 
 def make_executable(path: Path, content: str) -> None:
@@ -43,12 +43,12 @@ def main() -> int:
         return 0
 
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-amp-extension-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-amp-extension-") as td:
         root = Path(td)
         # `amp` has no documented config-dir override, so install resolves
         # the plugin path against $HOME. Point HOME at the temp dir for the
@@ -71,51 +71,51 @@ def main() -> int:
             print(f"stderr={install.stderr.strip()}")
             return 1
 
-        extension_path = root / ".config" / "amp" / "plugins" / "mosaic-session.ts"
+        extension_path = root / ".config" / "amp" / "plugins" / "coterm-session.ts"
         if not extension_path.exists():
             print(f"FAIL: expected plugin at {extension_path}")
             return 1
         extension_text = extension_path.read_text(encoding="utf-8")
-        if "mosaic-amp-session-extension-marker" not in extension_text:
-            print(f"FAIL: expected mosaic marker in {extension_path}")
+        if "coterm-amp-session-extension-marker" not in extension_text:
+            print(f"FAIL: expected coterm marker in {extension_path}")
             return 1
 
-        fake_mosaic = root / "fake-mosaic"
-        fake_args_log = root / "fake-mosaic-args.log"
-        fake_stdin_log = root / "fake-mosaic-stdin.log"
-        fake_env_log = root / "fake-mosaic-env.log"
+        fake_coterm = root / "fake-coterm"
+        fake_args_log = root / "fake-coterm-args.log"
+        fake_stdin_log = root / "fake-coterm-stdin.log"
+        fake_env_log = root / "fake-coterm-env.log"
         fake_bin = root / "bin"
         fake_bin.mkdir()
         fake_amp = fake_bin / "amp"
         make_executable(fake_amp, "#!/usr/bin/env bash\nexit 0\n")
         make_executable(
-            fake_mosaic,
+            fake_coterm,
             """#!/usr/bin/env bash
 set -euo pipefail
-printf '%s\n' "$*" >> "$FAKE_MOSAIC_ARGS_LOG"
-cat >> "$FAKE_MOSAIC_STDIN_LOG"
-printf '\n---\n' >> "$FAKE_MOSAIC_STDIN_LOG"
+printf '%s\n' "$*" >> "$FAKE_COTERM_ARGS_LOG"
+cat >> "$FAKE_COTERM_STDIN_LOG"
+printf '\n---\n' >> "$FAKE_COTERM_STDIN_LOG"
 {
-  printf 'kind=%s\n' "${MOSAIC_AGENT_LAUNCH_KIND-}"
-  printf 'cwd=%s\n' "${MOSAIC_AGENT_LAUNCH_CWD-}"
-  printf 'argv=%s\n' "${MOSAIC_AGENT_LAUNCH_ARGV_B64-}"
+  printf 'kind=%s\n' "${COTERM_AGENT_LAUNCH_KIND-}"
+  printf 'cwd=%s\n' "${COTERM_AGENT_LAUNCH_CWD-}"
+  printf 'argv=%s\n' "${COTERM_AGENT_LAUNCH_ARGV_B64-}"
   printf 'amp_api_key=%s\n' "${AMP_API_KEY-}"
-} >> "$FAKE_MOSAIC_ENV_LOG"
+} >> "$FAKE_COTERM_ENV_LOG"
 """,
         )
 
         check_env = env.copy()
-        check_env["MOSAIC_TEST_AMP_EXTENSION_PATH"] = str(extension_path)
-        check_env["MOSAIC_SURFACE_ID"] = "surface-amp-test"
-        check_env["MOSAIC_AMP_MOSAIC_BIN"] = str(fake_mosaic)
+        check_env["COTERM_TEST_AMP_EXTENSION_PATH"] = str(extension_path)
+        check_env["COTERM_SURFACE_ID"] = "surface-amp-test"
+        check_env["COTERM_AMP_COTERM_BIN"] = str(fake_coterm)
         check_env["AMP_API_KEY"] = "secret-should-not-propagate"
-        check_env["FAKE_MOSAIC_ARGS_LOG"] = str(fake_args_log)
-        check_env["FAKE_MOSAIC_STDIN_LOG"] = str(fake_stdin_log)
-        check_env["FAKE_MOSAIC_ENV_LOG"] = str(fake_env_log)
+        check_env["FAKE_COTERM_ARGS_LOG"] = str(fake_args_log)
+        check_env["FAKE_COTERM_STDIN_LOG"] = str(fake_stdin_log)
+        check_env["FAKE_COTERM_ENV_LOG"] = str(fake_env_log)
         check_env["PWD"] = "/tmp/amp-project"
         check_env["PATH"] = f"{fake_bin}{os.pathsep}{env.get('PATH', '')}"
         check_source = """
-const extensionPath = process.env.MOSAIC_TEST_AMP_EXTENSION_PATH;
+const extensionPath = process.env.COTERM_TEST_AMP_EXTENSION_PATH;
 const mod = await import(extensionPath);
 if (typeof mod.default !== "function") throw new Error("missing default export");
 const handlers = new Map();
@@ -213,7 +213,7 @@ await handlers.get("agent.end")({ thread, message: "hello amp", id: "msg-user-1"
             print(f"FAIL: plugin captured wrong Amp launch argv; expected {expected_argv!r}, got {decoded_argv!r}")
             return 1
 
-    print("PASS: generated Amp plugin installs and emits mosaic hooks")
+    print("PASS: generated Amp plugin installs and emits coterm hooks")
     return 0
 
 

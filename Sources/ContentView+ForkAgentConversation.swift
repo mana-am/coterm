@@ -1,6 +1,6 @@
 import AppKit
 import Bonsplit
-import MosaicPanes
+import CotermPanes
 import Foundation
 
 extension ContentView {

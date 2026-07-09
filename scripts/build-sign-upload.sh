@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Build, sign, notarize, create DMG, generate appcast, and upload to GitHub release.
 # Usage: ./scripts/build-sign-upload.sh <tag> [--allow-overwrite]
-# Requires: source ~/.secrets/mosaicterm.env && export SPARKLE_PRIVATE_KEY
+# Requires: source ~/.secrets/coterm.env && export SPARKLE_PRIVATE_KEY
 
 usage() {
   cat <<'EOF'
@@ -47,15 +47,15 @@ fi
 
 TAG="$1"
 SIGN_HASH="A050CC7E193C8221BDBA204E731B046CDCCC1B30"
-ENTITLEMENTS_TEMPLATE="mosaic.entitlements"
-APP_PATH="build/Build/Products/Release/Mosaic.app"
+ENTITLEMENTS_TEMPLATE="coterm.entitlements"
+APP_PATH="build/Build/Products/Release/Coterm.app"
 GHOSTTYKIT_CRASH_REPORT_SUBDIR="cmux/crash"
-STABLE_APPCAST_URL="${MOSAIC_STABLE_APPCAST_URL:-https://updates.mosaic.inc/stable/appcast.xml}"
-RELEASE_DOWNLOAD_URL_BASE="${MOSAIC_RELEASE_DOWNLOAD_URL_BASE:-https://download.mosaic.inc/releases}"
-DMG_RELEASE="mosaic-macos.dmg"
+STABLE_APPCAST_URL="${COTERM_STABLE_APPCAST_URL:-https://updates.coterm.cc/stable/appcast.xml}"
+RELEASE_DOWNLOAD_URL_BASE="${COTERM_RELEASE_DOWNLOAD_URL_BASE:-https://download.coterm.cc/releases}"
+DMG_RELEASE="coterm-macos.dmg"
 
 # --- Pre-flight ---
-source ~/.secrets/mosaicterm.env
+source ~/.secrets/coterm.env
 export SPARKLE_PRIVATE_KEY
 for tool in zig xcodebuild create-dmg xcrun codesign ditto gh; do
   command -v "$tool" >/dev/null || { echo "MISSING: $tool" >&2; exit 1; }
@@ -74,7 +74,7 @@ cp -R ghostty/macos/GhosttyKit.xcframework GhosttyKit.xcframework
 # --- Build app (Release, unsigned) ---
 echo "Building app..."
 rm -rf build/
-xcodebuild -scheme mosaic -configuration Release -derivedDataPath build CODE_SIGNING_ALLOWED=NO build 2>&1 | tail -5
+xcodebuild -scheme coterm -configuration Release -derivedDataPath build CODE_SIGNING_ALLOWED=NO build 2>&1 | tail -5
 echo "Build succeeded"
 
 HELPER_PATH="$APP_PATH/Contents/Resources/bin/ghostty"
@@ -93,28 +93,28 @@ APP_PLIST="$APP_PATH/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :SUFeedURL string $STABLE_APPCAST_URL" "$APP_PLIST"
 echo "Sparkle keys injected"
 
-# mosaic is a non-sandboxed app. Sparkle's sandbox-only XPC services make the
+# coterm is a non-sandboxed app. Sparkle's sandbox-only XPC services make the
 # installer handoff wait for an agent connection that never arrives.
 ./scripts/remove-sparkle-sandbox-xpc-services.sh "$APP_PATH"
 
 # --- Codesign ---
 echo "Codesigning..."
-ENTITLEMENTS="$(mktemp /tmp/mosaic-release-entitlements.XXXXXX)"
+ENTITLEMENTS="$(mktemp /tmp/coterm-release-entitlements.XXXXXX)"
 ./scripts/resolve-app-entitlements.sh \
   "$ENTITLEMENTS_TEMPLATE" \
   "$ENTITLEMENTS" \
-  "mosaic.com.emergent.app"
-./scripts/sign-mosaic-bundle.sh "$APP_PATH" "$ENTITLEMENTS" "$SIGN_HASH"
+  "coterm.com.emergent.app"
+./scripts/sign-coterm-bundle.sh "$APP_PATH" "$ENTITLEMENTS" "$SIGN_HASH"
 echo "Codesign verified"
 
 # --- Notarize app ---
 echo "Notarizing app..."
-ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" mosaic-notary.zip
-xcrun notarytool submit mosaic-notary.zip \
+ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" coterm-notary.zip
+xcrun notarytool submit coterm-notary.zip \
   --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --wait
 xcrun stapler staple "$APP_PATH"
 xcrun stapler validate "$APP_PATH"
-rm -f mosaic-notary.zip
+rm -f coterm-notary.zip
 echo "App notarized"
 
 # --- Create and notarize DMG ---
@@ -171,17 +171,17 @@ if [[ "$TAG" != *"-nightly"* ]]; then
   VERSION="${TAG#v}"
   DMG_SHA256=$(shasum -a 256 "$DMG_RELEASE" | cut -d' ' -f1)
   echo "Updating homebrew cask to $VERSION (SHA: $DMG_SHA256)..."
-  CASK_FILE="homebrew-mosaic/Casks/mosaic.rb"
+  CASK_FILE="homebrew-coterm/Casks/coterm.rb"
   if [ -f "$CASK_FILE" ]; then
     cat > "$CASK_FILE" << CASKEOF
-cask "mosaic" do
+cask "coterm" do
   version "${VERSION}"
   sha256 "${DMG_SHA256}"
 
-  url "https://download.mosaic.inc/releases/v#{version}/mosaic-macos.dmg"
-  name "Mosaic"
+  url "https://download.coterm.cc/releases/v#{version}/coterm-macos.dmg"
+  name "Coterm"
   desc "Lightweight native macOS terminal with vertical tabs for AI coding agents"
-  homepage "https://mosaic.inc"
+  homepage "https://coterm.cc"
 
   livecheck do
     url :url
@@ -190,28 +190,28 @@ cask "mosaic" do
 
   depends_on macos: ">= :ventura"
 
-  app "Mosaic.app"
-  binary "#{appdir}/Mosaic.app/Contents/Resources/bin/mosaic"
+  app "Coterm.app"
+  binary "#{appdir}/Coterm.app/Contents/Resources/bin/coterm"
 
   zap trash: [
-    "~/Library/Application Support/mosaic",
-    "~/Library/Caches/mosaic",
-    "~/Library/Preferences/ai.emergent.inc.mosaicterm.plist",
+    "~/Library/Application Support/coterm",
+    "~/Library/Caches/coterm",
+    "~/Library/Preferences/ai.emergent.inc.coterm.plist",
   ]
 end
 CASKEOF
-    cd homebrew-mosaic
-    git add Casks/mosaic.rb
+    cd homebrew-coterm
+    git add Casks/coterm.rb
     if git diff --staged --quiet; then
       echo "Homebrew cask already up to date"
     else
-      git commit -m "Update Mosaic to ${VERSION}"
+      git commit -m "Update Coterm to ${VERSION}"
       git push
       echo "Homebrew cask updated"
     fi
     cd ..
   else
-    echo "WARNING: homebrew-mosaic submodule not found, skipping cask update"
+    echo "WARNING: homebrew-coterm submodule not found, skipping cask update"
   fi
 fi
 
@@ -219,4 +219,4 @@ fi
 rm -rf build/ "$DMG_RELEASE" appcast.xml
 echo ""
 echo "=== Release $TAG complete ==="
-say "mosaic release complete"
+say "coterm release complete"

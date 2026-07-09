@@ -150,7 +150,7 @@ struct DockControlDefinition: Codable, Equatable, Identifiable, Sendable {
 
     private static func validationError(code: Int, message: String) -> NSError {
         NSError(
-            domain: "mosaic.dock",
+            domain: "coterm.dock",
             code: code,
             userInfo: [NSLocalizedDescriptionKey: message]
         )

@@ -1,8 +1,8 @@
 import CoreGraphics
-import MosaicCore
+import CotermCore
 import Foundation
 import Bonsplit
-import MosaicWorkspaces
+import CotermWorkspaces
 #if canImport(CryptoKit)
 import CryptoKit
 #endif
@@ -127,10 +127,10 @@ enum SessionRestorePolicy {
     static func isRunningUnderAutomatedTests(
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> Bool {
-        if environment["MOSAIC_UI_TEST_MODE"] == "1" {
+        if environment["COTERM_UI_TEST_MODE"] == "1" {
             return true
         }
-        if environment.keys.contains(where: { $0.hasPrefix("MOSAIC_UI_TEST_") }) {
+        if environment.keys.contains(where: { $0.hasPrefix("COTERM_UI_TEST_") }) {
             return true
         }
         if environment["XCTestConfigurationFilePath"] != nil {
@@ -158,7 +158,7 @@ enum SessionRestorePolicy {
         arguments: [String] = CommandLine.arguments,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> Bool {
-        if environment["MOSAIC_DISABLE_SESSION_RESTORE"] == "1" {
+        if environment["COTERM_DISABLE_SESSION_RESTORE"] == "1" {
             return false
         }
         if isRunningUnderAutomatedTests(environment: environment) {
@@ -708,12 +708,12 @@ enum SurfaceResumeApprovalSignature {
 }
 
 enum SurfaceResumeApprovalStore {
-    static let didChangeNotification = Notification.Name("mosaic.surfaceResumeApprovalsDidChange")
+    static let didChangeNotification = Notification.Name("coterm.surfaceResumeApprovalsDidChange")
     private static let legacyFileName = "resume-commands.json"
     private static let secretFileName = ".surface-resume-approval-secret"
     private static let settingsTerminalSectionKey = "terminal"
     private static let settingsRecordsKey = "resumeCommands"
-    private static let keychainService = "mosaic.com.emergent.app.surface-resume-approvals"
+    private static let keychainService = "coterm.com.emergent.app.surface-resume-approvals"
     private static let keychainAccount = "hmac-secret-v1"
 
     struct StoredFile: Codable {
@@ -721,18 +721,18 @@ enum SurfaceResumeApprovalStore {
         var records: [SurfaceResumeApprovalRecord]
     }
 
-    private enum MosaicSettingsRootLoadResult {
+    private enum CotermSettingsRootLoadResult {
         case missing
         case invalid
         case parsed([String: Any])
     }
 
     static func defaultURL(environment: [String: String] = ProcessInfo.processInfo.environment) -> URL {
-        if let override = environment["MOSAIC_SURFACE_RESUME_APPROVAL_STORE_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+        if let override = environment["COTERM_SURFACE_RESUME_APPROVAL_STORE_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
            !override.isEmpty {
             return URL(fileURLWithPath: (override as NSString).expandingTildeInPath, isDirectory: false)
         }
-        return URL(fileURLWithPath: MosaicSettingsFileStore.defaultPrimaryPath, isDirectory: false)
+        return URL(fileURLWithPath: CotermSettingsFileStore.defaultPrimaryPath, isDirectory: false)
     }
 
     static func loadRecords(
@@ -740,15 +740,15 @@ enum SurfaceResumeApprovalStore {
         fileManager: FileManager = .default,
         defaultSettingsURL: URL = defaultURL()
     ) -> [SurfaceResumeApprovalRecord] {
-        if storesRecordsInMosaicSettings(fileURL) {
-            let loaded = loadRecordsFromMosaicSettings(fileURL: fileURL)
+        if storesRecordsInCotermSettings(fileURL) {
+            let loaded = loadRecordsFromCotermSettings(fileURL: fileURL)
             if loaded.hasResumeCommandsKey {
                 return loaded.records
             }
             guard fileURL.standardizedFileURL.path == defaultSettingsURL.standardizedFileURL.path else {
                 return loaded.records
             }
-            let legacyURL = legacyURL(forMosaicSettingsURL: fileURL)
+            let legacyURL = legacyURL(forCotermSettingsURL: fileURL)
             let legacyRecords = loadStandaloneRecords(fileURL: legacyURL, fileManager: fileManager)
             guard !legacyRecords.isEmpty else {
                 return loaded.records
@@ -772,22 +772,22 @@ enum SurfaceResumeApprovalStore {
         fileManager: FileManager = .default,
         legacyFileURL: URL? = nil
     ) -> Bool {
-        guard storesRecordsInMosaicSettings(fileURL) else {
+        guard storesRecordsInCotermSettings(fileURL) else {
             return false
         }
-        let loaded = loadRecordsFromMosaicSettings(fileURL: fileURL)
+        let loaded = loadRecordsFromCotermSettings(fileURL: fileURL)
         guard !loaded.hasResumeCommandsKey else {
             return false
         }
         guard loaded.canWriteSettings else {
             return false
         }
-        let legacyURL = legacyFileURL ?? legacyURL(forMosaicSettingsURL: fileURL)
+        let legacyURL = legacyFileURL ?? legacyURL(forCotermSettingsURL: fileURL)
         let legacyRecords = loadStandaloneRecords(fileURL: legacyURL, fileManager: fileManager)
         guard !legacyRecords.isEmpty else {
             return false
         }
-        return writeRecordsToMosaicSettings(records: legacyRecords, fileURL: fileURL, fileManager: fileManager)
+        return writeRecordsToCotermSettings(records: legacyRecords, fileURL: fileURL, fileManager: fileManager)
     }
 
     private static func loadStandaloneRecords(
@@ -1012,7 +1012,7 @@ enum SurfaceResumeApprovalStore {
         fileURL: URL = defaultURL(),
         fileManager: FileManager = .default
     ) -> Bool {
-        if storesRecordsInMosaicSettings(fileURL) {
+        if storesRecordsInCotermSettings(fileURL) {
             return write(records: [], fileURL: fileURL, fileManager: fileManager)
         }
         try? fileManager.removeItem(at: fileURL)
@@ -1027,7 +1027,7 @@ enum SurfaceResumeApprovalStore {
 
     static func defaultSigningSecret(fileManager: FileManager = .default) -> Data? {
         let env = ProcessInfo.processInfo.environment
-        if let encoded = env["MOSAIC_SURFACE_RESUME_APPROVAL_SECRET_B64"],
+        if let encoded = env["COTERM_SURFACE_RESUME_APPROVAL_SECRET_B64"],
            let data = Data(base64Encoded: encoded),
            !data.isEmpty {
             return data
@@ -1062,8 +1062,8 @@ enum SurfaceResumeApprovalStore {
         fileURL: URL,
         fileManager: FileManager
     ) -> Bool {
-        if storesRecordsInMosaicSettings(fileURL) {
-            return writeRecordsToMosaicSettings(records: records, fileURL: fileURL, fileManager: fileManager)
+        if storesRecordsInCotermSettings(fileURL) {
+            return writeRecordsToCotermSettings(records: records, fileURL: fileURL, fileManager: fileManager)
         }
         return writeStandaloneRecords(records: records, fileURL: fileURL, fileManager: fileManager)
     }
@@ -1092,20 +1092,20 @@ enum SurfaceResumeApprovalStore {
         }
     }
 
-    private static func storesRecordsInMosaicSettings(_ fileURL: URL) -> Bool {
-        fileURL.lastPathComponent == "mosaic.json"
+    private static func storesRecordsInCotermSettings(_ fileURL: URL) -> Bool {
+        fileURL.lastPathComponent == "coterm.json"
     }
 
-    private static func legacyURL(forMosaicSettingsURL fileURL: URL) -> URL {
+    private static func legacyURL(forCotermSettingsURL fileURL: URL) -> URL {
         fileURL.deletingLastPathComponent()
             .appendingPathComponent(legacyFileName, isDirectory: false)
     }
 
-    private static func loadRecordsFromMosaicSettings(
+    private static func loadRecordsFromCotermSettings(
         fileURL: URL
     ) -> (records: [SurfaceResumeApprovalRecord], hasResumeCommandsKey: Bool, canWriteSettings: Bool) {
         let root: [String: Any]
-        switch loadMosaicSettingsRoot(fileURL: fileURL) {
+        switch loadCotermSettingsRoot(fileURL: fileURL) {
         case .missing:
             return ([], false, true)
         case .invalid:
@@ -1125,7 +1125,7 @@ enum SurfaceResumeApprovalStore {
         return (records, true, true)
     }
 
-    private static func loadMosaicSettingsRoot(fileURL: URL) -> MosaicSettingsRootLoadResult {
+    private static func loadCotermSettingsRoot(fileURL: URL) -> CotermSettingsRootLoadResult {
         guard let data = try? Data(contentsOf: fileURL), !data.isEmpty else {
             return .missing
         }
@@ -1141,13 +1141,13 @@ enum SurfaceResumeApprovalStore {
     }
 
     @discardableResult
-    private static func writeRecordsToMosaicSettings(
+    private static func writeRecordsToCotermSettings(
         records: [SurfaceResumeApprovalRecord],
         fileURL: URL,
         fileManager: FileManager
     ) -> Bool {
         do {
-            let rootLoadResult = loadMosaicSettingsRoot(fileURL: fileURL)
+            let rootLoadResult = loadCotermSettingsRoot(fileURL: fileURL)
 
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -1161,8 +1161,8 @@ enum SurfaceResumeApprovalStore {
             switch rootLoadResult {
             case .missing:
                 let root: [String: Any] = [
-                    "$schema": MosaicSettingsFileStore.schemaURLString,
-                    "schemaVersion": MosaicSettingsFileStore.currentSchemaVersion,
+                    "$schema": CotermSettingsFileStore.schemaURLString,
+                    "schemaVersion": CotermSettingsFileStore.currentSchemaVersion,
                     settingsTerminalSectionKey: [
                         settingsRecordsKey: recordsValue,
                     ],
@@ -1278,25 +1278,25 @@ enum SurfaceResumeApprovalStore {
 }
 
 nonisolated enum TerminalStartupReturnShellScript {
-    private static let shellLine = #"_mosaic_resume_shell="${SHELL:-/bin/zsh}""#
+    private static let shellLine = #"_coterm_resume_shell="${SHELL:-/bin/zsh}""#
     private static let zshIntegrationReentryLines = [
-        #"if [[ "${_mosaic_resume_shell:t}" == "zsh" ]]; then"#,
-        #"  _mosaic_resume_zdotdir_is_integration() { [[ -n "${1:-}" && ( "$1" == "${MOSAIC_SHELL_INTEGRATION_DIR:-}" || "$1" == */Contents/Resources/shell-integration ) ]]; }"#,
-        #"  if [[ -n "${MOSAIC_SHELL_INTEGRATION_DIR:-}" && -r "${MOSAIC_SHELL_INTEGRATION_DIR}/.zshenv" ]]; then"#,
-        #"    if [[ -n "${ZDOTDIR+X}" ]] && ! _mosaic_resume_zdotdir_is_integration "$ZDOTDIR"; then export MOSAIC_ZSH_ZDOTDIR="$ZDOTDIR"; elif [[ -n "${MOSAIC_ZSH_ZDOTDIR+X}" ]] && _mosaic_resume_zdotdir_is_integration "$MOSAIC_ZSH_ZDOTDIR"; then unset MOSAIC_ZSH_ZDOTDIR; fi; export ZDOTDIR="$MOSAIC_SHELL_INTEGRATION_DIR""#,
+        #"if [[ "${_coterm_resume_shell:t}" == "zsh" ]]; then"#,
+        #"  _coterm_resume_zdotdir_is_integration() { [[ -n "${1:-}" && ( "$1" == "${COTERM_SHELL_INTEGRATION_DIR:-}" || "$1" == */Contents/Resources/shell-integration ) ]]; }"#,
+        #"  if [[ -n "${COTERM_SHELL_INTEGRATION_DIR:-}" && -r "${COTERM_SHELL_INTEGRATION_DIR}/.zshenv" ]]; then"#,
+        #"    if [[ -n "${ZDOTDIR+X}" ]] && ! _coterm_resume_zdotdir_is_integration "$ZDOTDIR"; then export COTERM_ZSH_ZDOTDIR="$ZDOTDIR"; elif [[ -n "${COTERM_ZSH_ZDOTDIR+X}" ]] && _coterm_resume_zdotdir_is_integration "$COTERM_ZSH_ZDOTDIR"; then unset COTERM_ZSH_ZDOTDIR; fi; export ZDOTDIR="$COTERM_SHELL_INTEGRATION_DIR""#,
         #"  else"#,
-        #"    if [[ -n "${GHOSTTY_ZSH_ZDOTDIR+X}" ]]; then export ZDOTDIR="$GHOSTTY_ZSH_ZDOTDIR"; unset GHOSTTY_ZSH_ZDOTDIR; elif [[ -n "${MOSAIC_ZSH_ZDOTDIR+X}" ]] && ! _mosaic_resume_zdotdir_is_integration "$MOSAIC_ZSH_ZDOTDIR"; then export ZDOTDIR="$MOSAIC_ZSH_ZDOTDIR"; unset MOSAIC_ZSH_ZDOTDIR; elif [[ -n "${ZDOTDIR+X}" ]] && _mosaic_resume_zdotdir_is_integration "$ZDOTDIR"; then unset ZDOTDIR; unset MOSAIC_ZSH_ZDOTDIR; fi"#,
-        #"  fi; unfunction _mosaic_resume_zdotdir_is_integration 2>/dev/null || true"#,
+        #"    if [[ -n "${GHOSTTY_ZSH_ZDOTDIR+X}" ]]; then export ZDOTDIR="$GHOSTTY_ZSH_ZDOTDIR"; unset GHOSTTY_ZSH_ZDOTDIR; elif [[ -n "${COTERM_ZSH_ZDOTDIR+X}" ]] && ! _coterm_resume_zdotdir_is_integration "$COTERM_ZSH_ZDOTDIR"; then export ZDOTDIR="$COTERM_ZSH_ZDOTDIR"; unset COTERM_ZSH_ZDOTDIR; elif [[ -n "${ZDOTDIR+X}" ]] && _coterm_resume_zdotdir_is_integration "$ZDOTDIR"; then unset ZDOTDIR; unset COTERM_ZSH_ZDOTDIR; fi"#,
+        #"  fi; unfunction _coterm_resume_zdotdir_is_integration 2>/dev/null || true"#,
         #"fi"#,
     ]
 
     static func commandThenReturnLines(command: String, workingDirectory: String? = nil) -> [String] {
         let quotedCommand = TerminalStartupShellQuoting.singleQuoted(command)
         var lines = [shellLine] + zshIntegrationReentryLines + [
-            #"case "${_mosaic_resume_shell:t}" in"#,
-            #"  zsh|bash) "$_mosaic_resume_shell" -lic \#(quotedCommand) ;;"#,
-            #"  csh|tcsh) "$_mosaic_resume_shell" -c \#(quotedCommand) ;;"#,
-            #"  *) "$_mosaic_resume_shell" -c \#(quotedCommand) ;;"#,
+            #"case "${_coterm_resume_shell:t}" in"#,
+            #"  zsh|bash) "$_coterm_resume_shell" -lic \#(quotedCommand) ;;"#,
+            #"  csh|tcsh) "$_coterm_resume_shell" -c \#(quotedCommand) ;;"#,
+            #"  *) "$_coterm_resume_shell" -c \#(quotedCommand) ;;"#,
             #"esac"#,
         ] + zshIntegrationReentryLines
         // The resume command's `cd` runs inside the child shell above, so after the resumed agent
@@ -1307,13 +1307,13 @@ nonisolated enum TerminalStartupReturnShellScript {
             let quotedDirectory = TerminalStartupShellQuoting.singleQuoted(workingDirectory)
             lines.append(#"{ cd -- \#(quotedDirectory) 2>/dev/null || true; }"#)
         }
-        lines.append(#"exec -l "$_mosaic_resume_shell""#)
+        lines.append(#"exec -l "$_coterm_resume_shell""#)
         return lines
     }
 }
 
 enum SurfaceResumeBindingScriptStore {
-    private static let directoryName = "mosaic-surface-resume"
+    private static let directoryName = "coterm-surface-resume"
     private static let scriptTTL: TimeInterval = 24 * 60 * 60
 
     static func writeLauncherScript(
@@ -1525,12 +1525,12 @@ struct SessionBrowserPanelSnapshot: Codable, Sendable {
     var omnibarVisible: Bool? = nil
     var backHistoryURLStrings: [String]?
     var forwardHistoryURLStrings: [String]?
-    /// True when the surface is a transparent internal mosaic UI (e.g. the diff
+    /// True when the surface is a transparent internal coterm UI (e.g. the diff
     /// viewer). Restored so the surface comes back transparent, not opaque.
     var transparentBackground: Bool? = nil
     /// Diff viewer token + request path, when this browser surface hosts a diff
     /// viewer. Restored by re-registering the token with the app-owned
-    /// `MosaicDiffViewerURLSchemeHandler` and navigating via the custom scheme,
+    /// `CotermDiffViewerURLSchemeHandler` and navigating via the custom scheme,
     /// independent of the (possibly-dead) local HTTP server.
     var diffViewerToken: String? = nil
     var diffViewerRequestPath: String? = nil
@@ -1911,7 +1911,7 @@ struct AppSessionSnapshot: Codable, Sendable {
 }
 
 extension AppSessionSnapshot: SessionSnapshotRepresenting {
-    /// Whether the snapshot carries at least one window. The `MosaicSession`
+    /// Whether the snapshot carries at least one window. The `CotermSession`
     /// repository treats an empty-window snapshot as unusable (empty states
     /// remove the file instead of writing it), matching the legacy
     /// `!snapshot.windows.isEmpty` usability check.
@@ -1919,8 +1919,8 @@ extension AppSessionSnapshot: SessionSnapshotRepresenting {
 }
 
 enum SessionScrollbackReplayStore {
-    static let environmentKey = "MOSAIC_RESTORE_SCROLLBACK_FILE"
-    private static let directoryName = "mosaic-session-scrollback"
+    static let environmentKey = "COTERM_RESTORE_SCROLLBACK_FILE"
+    private static let directoryName = "coterm-session-scrollback"
     private static let ansiEscape = "\u{001B}"
     private static let ansiReset = "\u{001B}[0m"
 

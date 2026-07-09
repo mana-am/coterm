@@ -1,5 +1,5 @@
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 
 final class FileExplorerSearchResultCellView: NSTableCellView {
     private let pathLabel = NSTextField(labelWithString: "")

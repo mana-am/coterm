@@ -69,9 +69,9 @@ port_in_use() {
   docker ps --format '{{.Ports}}' | grep -Eq "($port->|:$port->)" >/dev/null 2>&1
 }
 
-choose_mosaic_port() {
-  local dev_offset="${MOSAIC_DB_PORT_OFFSET:-10000}"
-  local test_offset="${MOSAIC_TEST_DB_PORT_OFFSET:-30000}"
+choose_coterm_port() {
+  local dev_offset="${COTERM_DB_PORT_OFFSET:-10000}"
+  local test_offset="${COTERM_TEST_DB_PORT_OFFSET:-30000}"
   local max_offset="$test_offset"
   if (( dev_offset > max_offset )); then
     max_offset="$dev_offset"
@@ -79,11 +79,11 @@ choose_mosaic_port() {
   local min_candidate=30000
   local max_candidate=$((65535 - max_offset))
   if (( max_candidate < min_candidate )); then
-    echo "invalid MOSAIC_*_PORT_OFFSET values for port selection" >&2
+    echo "invalid COTERM_*_PORT_OFFSET values for port selection" >&2
     exit 1
   fi
-  if [[ -n "${MOSAIC_MIGRATION_PREFLIGHT_PORT:-}" ]]; then
-    printf '%s\n' "$MOSAIC_MIGRATION_PREFLIGHT_PORT"
+  if [[ -n "${COTERM_MIGRATION_PREFLIGHT_PORT:-}" ]]; then
+    printf '%s\n' "$COTERM_MIGRATION_PREFLIGHT_PORT"
     return
   fi
   for _ in $(seq 1 100); do
@@ -95,21 +95,21 @@ choose_mosaic_port() {
       return
     fi
   done
-  echo "failed to find free MOSAIC_PORT for migration preflight" >&2
+  echo "failed to find free COTERM_PORT for migration preflight" >&2
   exit 1
 }
 
-export MOSAIC_PORT="$(choose_mosaic_port)"
-echo "using isolated MOSAIC_PORT=$MOSAIC_PORT for migration preflight"
+export COTERM_PORT="$(choose_coterm_port)"
+echo "using isolated COTERM_PORT=$COTERM_PORT for migration preflight"
 
 cleanup_test_db() {
   env \
-    MOSAIC_DB_KIND=test \
-    MOSAIC_DB_PORT_OFFSET="${MOSAIC_TEST_DB_PORT_OFFSET:-30000}" \
-    MOSAIC_DB_NAME="${MOSAIC_TEST_DB_NAME:-mosaic_test}" \
+    COTERM_DB_KIND=test \
+    COTERM_DB_PORT_OFFSET="${COTERM_TEST_DB_PORT_OFFSET:-30000}" \
+    COTERM_DB_NAME="${COTERM_TEST_DB_NAME:-coterm_test}" \
     bash scripts/db-local.sh down >/dev/null 2>&1 || true
   docker volume ls --format '{{.Name}}' \
-    | grep -E "^mosaic-postgres-.*-test-${MOSAIC_PORT}$" \
+    | grep -E "^coterm-postgres-.*-test-${COTERM_PORT}$" \
     | xargs -r docker volume rm >/dev/null 2>&1 || true
 }
 

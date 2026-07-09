@@ -35,7 +35,7 @@ export function normalizePagefindUrl(url: string): string {
   let hash = "";
 
   try {
-    const parsed = new URL(url, "https://mosaic.inc");
+    const parsed = new URL(url, "https://coterm.cc");
     pathname = parsed.pathname;
     hash = parsed.hash;
   } catch {
@@ -131,7 +131,7 @@ function isTitleSubResult(result: PagefindSubResult) {
 
 function resultHash(url: string) {
   try {
-    return new URL(url, "https://mosaic.inc").hash;
+    return new URL(url, "https://coterm.cc").hash;
   } catch {
     const hashIndex = url.indexOf("#");
     return hashIndex >= 0 ? url.slice(hashIndex) : "";

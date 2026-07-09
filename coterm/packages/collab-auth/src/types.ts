@@ -1,12 +1,12 @@
 // Pluggable auth surface shared by the relay, control-plane, and presence workers.
 //
-// The upstream mosaic server pushed all authorization to a closed "www" service
+// The upstream coterm server pushed all authorization to a closed "www" service
 // (Clerk + Stripe + Stack Auth). This open-source port replaces that with a single
 // provider interface + two built-in implementations:
-//   - HmacAuthProvider  — verifies mosaicv1 HMAC tokens and mints/verifies signed
+//   - HmacAuthProvider  — verifies cotermv1 HMAC tokens and mints/verifies signed
 //                          join grants + session descriptors with a shared secret.
-//   - NoAuthProvider    — knowing the session code is the only gate (the relay's
-//                          actual Phase-1 threat model), identity is best-effort.
+//   - NoAuthProvider    — local testing mode with best-effort identity and
+//                          unsigned grants. Not a production security boundary.
 
 /// The authenticated (or best-effort) caller identity for control-plane + presence.
 /// `orgIds` maps to the presence worker's notion of `teamIds`.
@@ -52,6 +52,7 @@ export interface SessionDescriptorClaims {
   orgId: string;
   code?: string | null;
   relayURL?: string | null;
+  shareSecret?: string | null;
   createdAt: number; // epoch seconds
 }
 

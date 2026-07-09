@@ -81,10 +81,10 @@ describe("appearanceBackgroundColor", () => {
     }));
 
     const style = dom.window.document.documentElement.style;
-    expect(style.getPropertyValue("--mosaic-diff-deletion-fg-light")).toBe("#cc0000");
-    expect(style.getPropertyValue("--mosaic-diff-addition-fg-light")).toBe("#007a00");
-    expect(style.getPropertyValue("--mosaic-diff-deletion-fg-dark")).toBe("#ff8a80");
-    expect(style.getPropertyValue("--mosaic-diff-addition-fg-dark")).toBe("#a6e22e");
+    expect(style.getPropertyValue("--coterm-diff-deletion-fg-light")).toBe("#cc0000");
+    expect(style.getPropertyValue("--coterm-diff-addition-fg-light")).toBe("#007a00");
+    expect(style.getPropertyValue("--coterm-diff-deletion-fg-dark")).toBe("#ff8a80");
+    expect(style.getPropertyValue("--coterm-diff-addition-fg-dark")).toBe("#a6e22e");
   });
 
   test("keeps the page surface transparent for opaque themes", () => {
@@ -100,8 +100,8 @@ describe("appearanceBackgroundColor", () => {
     }));
 
     const style = dom.window.document.documentElement.style;
-    expect(style.getPropertyValue("--mosaic-diff-surface-fill-light")).toBe("transparent");
-    expect(style.getPropertyValue("--mosaic-diff-surface-fill-dark")).toBe("transparent");
+    expect(style.getPropertyValue("--coterm-diff-surface-fill-light")).toBe("transparent");
+    expect(style.getPropertyValue("--coterm-diff-surface-fill-dark")).toBe("transparent");
   });
 
   test("keeps the surface fill transparent for transparent themes so the blurred backdrop shows", () => {
@@ -117,7 +117,7 @@ describe("appearanceBackgroundColor", () => {
     }));
 
     const style = dom.window.document.documentElement.style;
-    expect(style.getPropertyValue("--mosaic-diff-surface-fill-light")).toBe("transparent");
-    expect(style.getPropertyValue("--mosaic-diff-surface-fill-dark")).toBe("transparent");
+    expect(style.getPropertyValue("--coterm-diff-surface-fill-light")).toBe("transparent");
+    expect(style.getPropertyValue("--coterm-diff-surface-fill-dark")).toBe("transparent");
   });
 });

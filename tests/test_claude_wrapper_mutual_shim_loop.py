@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WRAPPER = ROOT / "Resources" / "bin" / "mosaic-claude-wrapper"
+WRAPPER = ROOT / "Resources" / "bin" / "coterm-claude-wrapper"
 
 
 def write_executable(path: Path, contents: str) -> None:
@@ -20,16 +20,16 @@ def write_executable(path: Path, contents: str) -> None:
 
 
 def build_mutual_shim_tree(root: Path) -> tuple[Path, dict[str, str]]:
-    mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-loop"
+    coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-loop"
     delimit_primary_dir = root / "home" / ".delimit" / "shims"
     delimit_secondary_dir = root / "home" / ".delimit" / "managed-shims"
     real_dir = root / "real-bin"
-    for directory in (mosaic_shim_dir, delimit_primary_dir, delimit_secondary_dir, real_dir):
+    for directory in (coterm_shim_dir, delimit_primary_dir, delimit_secondary_dir, real_dir):
         directory.mkdir(parents=True, exist_ok=True)
 
-    mosaic_shim = mosaic_shim_dir / "claude"
-    shutil.copy2(WRAPPER, mosaic_shim)
-    mosaic_shim.chmod(0o755)
+    coterm_shim = coterm_shim_dir / "claude"
+    shutil.copy2(WRAPPER, coterm_shim)
+    coterm_shim.chmod(0o755)
 
     shim_template = """#!/usr/bin/env bash
 printf 'delimit shim hop: %s\\n' "$0" >&2
@@ -63,19 +63,19 @@ printf 'real claude %s\\n' "$*"
 """,
     )
 
-    managed_path = f"{mosaic_shim_dir}:{delimit_primary_dir}:{delimit_secondary_dir}:{real_dir}:/usr/bin:/bin"
+    managed_path = f"{coterm_shim_dir}:{delimit_primary_dir}:{delimit_secondary_dir}:{real_dir}:/usr/bin:/bin"
     env = {
         "HOME": str(root / "home"),
         "PATH": managed_path,
         "DELIMIT_MANAGED_PATH": managed_path,
-        "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-        "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
+        "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+        "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
     }
-    return mosaic_shim, env
+    return coterm_shim, env
 
 
 def test_wrapper_stops_mutual_foreign_shim_loop(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-mutual-shim-loop-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-mutual-shim-loop-") as td:
         claude, env = build_mutual_shim_tree(Path(td))
         try:
             result = subprocess.run(
@@ -95,23 +95,23 @@ def test_wrapper_stops_mutual_foreign_shim_loop(failures: list[str]) -> None:
             failures.append(f"expected non-zero exit from mutual shim guard, got output: {combined_output!r}")
         if "conflicting `claude` shim" not in combined_output:
             failures.append(f"expected actionable conflicting-shim error, got: {combined_output!r}")
-        if "MOSAIC_CUSTOM_CLAUDE_PATH" not in combined_output:
-            failures.append(f"expected MOSAIC_CUSTOM_CLAUDE_PATH remedy, got: {combined_output!r}")
+        if "COTERM_CUSTOM_CLAUDE_PATH" not in combined_output:
+            failures.append(f"expected COTERM_CUSTOM_CLAUDE_PATH remedy, got: {combined_output!r}")
 
 
 def test_wrapper_stops_node_based_foreign_shim_loop(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-node-mutual-shim-loop-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-node-mutual-shim-loop-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-node-loop"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-node-loop"
         node_primary_dir = root / "home" / ".node-shim" / "primary"
         node_secondary_dir = root / "home" / ".node-shim" / "secondary"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, node_primary_dir, node_secondary_dir, real_dir):
+        for directory in (coterm_shim_dir, node_primary_dir, node_secondary_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         node_shim_template = """#!/usr/bin/env node
 const { spawnSync } = require("node:child_process");
@@ -141,17 +141,17 @@ printf 'real claude %s\\n' "$*"
         )
 
         inherited_path = os.environ.get("PATH", "/usr/bin:/bin")
-        managed_path = f"{mosaic_shim_dir}:{node_primary_dir}:{node_secondary_dir}:{real_dir}:{inherited_path}"
+        managed_path = f"{coterm_shim_dir}:{node_primary_dir}:{node_secondary_dir}:{real_dir}:{inherited_path}"
         env = {
             "HOME": str(root / "home"),
             "PATH": managed_path,
             "NODE_SHIM_MANAGED_PATH": managed_path,
-            "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-            "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
+            "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+            "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
         }
         try:
             result = subprocess.run(
-                [str(mosaic_shim), "--version"],
+                [str(coterm_shim), "--version"],
                 env=env,
                 capture_output=True,
                 text=True,
@@ -170,18 +170,18 @@ printf 'real claude %s\\n' "$*"
 
 
 def test_wrapper_stops_indirect_shell_foreign_shim_loop(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-indirect-mutual-shim-loop-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-indirect-mutual-shim-loop-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-indirect-loop"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-indirect-loop"
         shell_primary_dir = root / "home" / ".indirect-shim" / "primary"
         shell_secondary_dir = root / "home" / ".indirect-shim" / "secondary"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, shell_primary_dir, shell_secondary_dir, real_dir):
+        for directory in (coterm_shim_dir, shell_primary_dir, shell_secondary_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         shell_shim_template = """#!/usr/bin/env bash
 next_path=""
@@ -216,17 +216,17 @@ printf 'real claude %s\\n' "$*"
         )
 
         inherited_path = os.environ.get("PATH", "/usr/bin:/bin")
-        managed_path = f"{mosaic_shim_dir}:{shell_primary_dir}:{shell_secondary_dir}:{real_dir}:{inherited_path}"
+        managed_path = f"{coterm_shim_dir}:{shell_primary_dir}:{shell_secondary_dir}:{real_dir}:{inherited_path}"
         env = {
             "HOME": str(root / "home"),
             "PATH": managed_path,
             "INDIRECT_SHIM_MANAGED_PATH": managed_path,
-            "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-            "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
+            "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+            "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
         }
         try:
             result = subprocess.run(
-                [str(mosaic_shim), "--version"],
+                [str(coterm_shim), "--version"],
                 env=env,
                 capture_output=True,
                 text=True,
@@ -245,16 +245,16 @@ printf 'real claude %s\\n' "$*"
 
 
 def test_wrapper_guard_allows_child_claude_process(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-child-reentry-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-child-reentry-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-child"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-child"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, real_dir):
+        for directory in (coterm_shim_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         write_executable(
             real_dir / "claude",
@@ -282,12 +282,12 @@ process.exit(child.status ?? 1);
         inherited_path = os.environ.get("PATH", "/usr/bin:/bin")
         env = {
             "HOME": str(root / "home"),
-            "PATH": f"{mosaic_shim_dir}:{real_dir}:{inherited_path}",
-            "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-            "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
+            "PATH": f"{coterm_shim_dir}:{real_dir}:{inherited_path}",
+            "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+            "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
         }
         result = subprocess.run(
-            [str(mosaic_shim)],
+            [str(coterm_shim)],
             env=env,
             capture_output=True,
             text=True,
@@ -304,18 +304,18 @@ process.exit(child.status ?? 1);
 
 
 def test_wrapper_allows_finite_layered_foreign_shims(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-finite-shim-chain-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-finite-shim-chain-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-finite"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-finite"
         shim_a_dir = root / "foreign-a"
         shim_b_dir = root / "foreign-b"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, shim_a_dir, shim_b_dir, real_dir):
+        for directory in (coterm_shim_dir, shim_a_dir, shim_b_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         shim_template = """#!/usr/bin/env bash
 next_path=""
@@ -350,12 +350,12 @@ printf 'real claude reached %s\\n' "$*"
 
         env = {
             "HOME": str(root / "home"),
-            "PATH": f"{mosaic_shim_dir}:{shim_a_dir}:{shim_b_dir}:{real_dir}:/usr/bin:/bin",
-            "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-            "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
+            "PATH": f"{coterm_shim_dir}:{shim_a_dir}:{shim_b_dir}:{real_dir}:/usr/bin:/bin",
+            "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+            "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
         }
         result = subprocess.run(
-            [str(mosaic_shim), "--version"],
+            [str(coterm_shim), "--version"],
             env=env,
             capture_output=True,
             text=True,
@@ -372,17 +372,17 @@ printf 'real claude reached %s\\n' "$*"
 
 
 def test_passthrough_real_node_claude_does_not_receive_guard_env(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-passthrough-guard-env-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-passthrough-guard-env-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-passthrough"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-passthrough"
         foreign_shim_dir = root / "foreign-shim"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, foreign_shim_dir, real_dir):
+        for directory in (coterm_shim_dir, foreign_shim_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         write_executable(
             foreign_shim_dir / "claude",
@@ -409,11 +409,11 @@ exec claude "$@"
         write_executable(
             real_dir / "claude",
             """#!/usr/bin/env node
-const upperGuard = process.env.MOSAIC_CLAUDE_WRAPPER_REEXEC_GUARD ?? "__unset__";
-const upperTargets = process.env.MOSAIC_CLAUDE_WRAPPER_REEXEC_TARGETS ?? "__unset__";
-const lowerGuard = process.env.mosaic_claude_wrapper_reexec_guard ?? "__unset__";
-const lowerTargets = process.env.mosaic_claude_wrapper_reexec_targets ?? "__unset__";
-const surface = process.env.MOSAIC_SURFACE_ID ?? "__unset__";
+const upperGuard = process.env.COTERM_CLAUDE_WRAPPER_REEXEC_GUARD ?? "__unset__";
+const upperTargets = process.env.COTERM_CLAUDE_WRAPPER_REEXEC_TARGETS ?? "__unset__";
+const lowerGuard = process.env.coterm_claude_wrapper_reexec_guard ?? "__unset__";
+const lowerTargets = process.env.coterm_claude_wrapper_reexec_targets ?? "__unset__";
+const surface = process.env.COTERM_SURFACE_ID ?? "__unset__";
 process.stdout.write(
   `upperGuard=${upperGuard}\\n` +
   `upperTargets=${upperTargets}\\n` +
@@ -427,14 +427,14 @@ process.stdout.write(
         inherited_path = os.environ.get("PATH", "/usr/bin:/bin")
         env = {
             "HOME": str(root / "home"),
-            "PATH": f"{mosaic_shim_dir}:{foreign_shim_dir}:{real_dir}:{inherited_path}",
-            "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-            "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
-            "MOSAIC_SOCKET_PATH": str(root / "missing.sock"),
-            "MOSAIC_SURFACE_ID": "surface-passthrough",
+            "PATH": f"{coterm_shim_dir}:{foreign_shim_dir}:{real_dir}:{inherited_path}",
+            "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+            "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
+            "COTERM_SOCKET_PATH": str(root / "missing.sock"),
+            "COTERM_SURFACE_ID": "surface-passthrough",
         }
         result = subprocess.run(
-            [str(mosaic_shim), "--version"],
+            [str(coterm_shim), "--version"],
             env=env,
             capture_output=True,
             text=True,
@@ -459,24 +459,24 @@ process.stdout.write(
 
 
 def test_custom_shim_path_with_colon_is_tracked_as_one_target(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-custom-shim-target-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-custom-shim-target-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-custom-colon"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-custom-colon"
         custom_shim_dir = root / "custom:shim"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, custom_shim_dir, real_dir):
+        for directory in (coterm_shim_dir, custom_shim_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         custom_shim = custom_shim_dir / "claude"
         write_executable(
             custom_shim,
             f"""#!/usr/bin/env bash
 printf 'custom colon shim hop\\n' >&2
-export PATH="{mosaic_shim_dir}:{real_dir}:/usr/bin:/bin"
+export PATH="{coterm_shim_dir}:{real_dir}:/usr/bin:/bin"
 exec claude "$@"
 """,
         )
@@ -490,14 +490,14 @@ printf 'real claude %s\\n' "$*"
 
         env = {
             "HOME": str(root / "home"),
-            "PATH": f"{mosaic_shim_dir}:{real_dir}:/usr/bin:/bin",
-            "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-            "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
-            "MOSAIC_CUSTOM_CLAUDE_PATH": str(custom_shim),
+            "PATH": f"{coterm_shim_dir}:{real_dir}:/usr/bin:/bin",
+            "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+            "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
+            "COTERM_CUSTOM_CLAUDE_PATH": str(custom_shim),
         }
         try:
             result = subprocess.run(
-                [str(mosaic_shim), "--version"],
+                [str(coterm_shim), "--version"],
                 env=env,
                 capture_output=True,
                 text=True,
@@ -518,17 +518,17 @@ printf 'real claude %s\\n' "$*"
 
 
 def test_real_shell_claude_launcher_allows_child_claude_process(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-real-shell-launcher-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-real-shell-launcher-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-shell-launcher"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-shell-launcher"
         real_dir = root / "real-bin"
         package_dir = real_dir / "node_modules" / "@anthropic-ai" / "claude-code"
-        for directory in (mosaic_shim_dir, package_dir):
+        for directory in (coterm_shim_dir, package_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         write_executable(
             real_dir / "claude",
@@ -541,8 +541,8 @@ exec node "{package_dir}/cli.js" "$@"
             """#!/usr/bin/env node
 const { spawnSync } = require("node:child_process");
 if (process.argv[2] === "child") {
-  const guard = process.env.mosaic_claude_wrapper_reexec_guard ?? "__unset__";
-  const targets = process.env.mosaic_claude_wrapper_reexec_targets ?? "__unset__";
+  const guard = process.env.coterm_claude_wrapper_reexec_guard ?? "__unset__";
+  const targets = process.env.coterm_claude_wrapper_reexec_targets ?? "__unset__";
   process.stdout.write(`child shell launcher ok guard=${guard} targets=${targets}\\n`);
   process.exit(0);
 }
@@ -564,12 +564,12 @@ process.exit(child.status ?? 1);
         inherited_path = os.environ.get("PATH", "/usr/bin:/bin")
         env = {
             "HOME": str(root / "home"),
-            "PATH": f"{mosaic_shim_dir}:{real_dir}:{inherited_path}",
-            "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-            "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
+            "PATH": f"{coterm_shim_dir}:{real_dir}:{inherited_path}",
+            "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+            "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
         }
         result = subprocess.run(
-            [str(mosaic_shim)],
+            [str(coterm_shim)],
             env=env,
             capture_output=True,
             text=True,
@@ -587,17 +587,17 @@ process.exit(child.status ?? 1);
 
 
 def test_custom_shell_wrapper_execing_real_claude_allows_child_claude(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-custom-real-wrapper-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-custom-real-wrapper-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-custom-real"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-custom-real"
         custom_dir = root / "custom-bin"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, custom_dir, real_dir):
+        for directory in (coterm_shim_dir, custom_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         custom_wrapper = custom_dir / "claude-wrapper"
         write_executable(
@@ -612,8 +612,8 @@ exec "{real_dir}/claude" "$@"
             """#!/usr/bin/env node
 const { spawnSync } = require("node:child_process");
 if (process.argv[2] === "child") {
-  const guard = process.env.mosaic_claude_wrapper_reexec_guard ?? "__unset__";
-  const targets = process.env.mosaic_claude_wrapper_reexec_targets ?? "__unset__";
+  const guard = process.env.coterm_claude_wrapper_reexec_guard ?? "__unset__";
+  const targets = process.env.coterm_claude_wrapper_reexec_targets ?? "__unset__";
   const wrapperSeen = process.env.CLAUDE_CUSTOM_WRAPPER_SEEN ?? "__unset__";
   process.stdout.write(`custom child ok guard=${guard} targets=${targets} wrapper=${wrapperSeen}\\n`);
   process.exit(0);
@@ -636,13 +636,13 @@ process.exit(child.status ?? 1);
         inherited_path = os.environ.get("PATH", "/usr/bin:/bin")
         env = {
             "HOME": str(root / "home"),
-            "PATH": f"{mosaic_shim_dir}:{real_dir}:{inherited_path}",
-            "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-            "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
-            "MOSAIC_CUSTOM_CLAUDE_PATH": str(custom_wrapper),
+            "PATH": f"{coterm_shim_dir}:{real_dir}:{inherited_path}",
+            "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+            "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
+            "COTERM_CUSTOM_CLAUDE_PATH": str(custom_wrapper),
         }
         result = subprocess.run(
-            [str(mosaic_shim)],
+            [str(coterm_shim)],
             env=env,
             capture_output=True,
             text=True,
@@ -660,20 +660,20 @@ process.exit(child.status ?? 1);
 
 
 def test_interactive_finite_shim_chain_does_not_duplicate_hooks(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-interactive-finite-shim-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-interactive-finite-shim-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-interactive"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-interactive"
         foreign_shim_dir = root / "foreign-shim"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, foreign_shim_dir, real_dir):
+        for directory in (coterm_shim_dir, foreign_shim_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         write_executable(
-            mosaic_shim_dir / "mosaic",
+            coterm_shim_dir / "coterm",
             """#!/usr/bin/env bash
 if [[ "${1:-}" == "--socket" ]]; then
   shift 2
@@ -687,7 +687,7 @@ exit 0
         write_executable(
             foreign_shim_dir / "claude",
             f"""#!/usr/bin/env bash
-export PATH="{mosaic_shim_dir}:{real_dir}:/usr/bin:/bin"
+export PATH="{coterm_shim_dir}:{real_dir}:/usr/bin:/bin"
 exec claude "$@"
 """,
         )
@@ -700,20 +700,20 @@ done
 """,
         )
 
-        socket_path = str(root / "mosaic.sock")
+        socket_path = str(root / "coterm.sock")
         test_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         try:
             test_socket.bind(socket_path)
             env = {
                 "HOME": str(root / "home"),
-                "PATH": f"{mosaic_shim_dir}:{foreign_shim_dir}:{real_dir}:/usr/bin:/bin",
-                "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-                "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
-                "MOSAIC_SURFACE_ID": "surface-interactive",
-                "MOSAIC_SOCKET_PATH": socket_path,
+                "PATH": f"{coterm_shim_dir}:{foreign_shim_dir}:{real_dir}:/usr/bin:/bin",
+                "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+                "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
+                "COTERM_SURFACE_ID": "surface-interactive",
+                "COTERM_SOCKET_PATH": socket_path,
             }
             result = subprocess.run(
-                [str(mosaic_shim)],
+                [str(coterm_shim)],
                 env=env,
                 capture_output=True,
                 text=True,
@@ -748,26 +748,26 @@ done
         stop = hooks.get("Stop", [])
         if len(session_start) != 1 or len(stop) != 3:
             failures.append(
-                "expected one mosaic hook injection after finite shim chain, "
+                "expected one coterm hook injection after finite shim chain, "
                 f"got SessionStart={len(session_start)} Stop={len(stop)} settings={settings!r}"
             )
 
 
 def test_interactive_spawning_shim_chain_refreshes_claude_pid(failures: list[str]) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-interactive-spawn-shim-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-interactive-spawn-shim-") as td:
         root = Path(td)
-        mosaic_shim_dir = root / "tmp" / "mosaic-cli-shims" / "surface-spawn"
+        coterm_shim_dir = root / "tmp" / "coterm-cli-shims" / "surface-spawn"
         foreign_shim_dir = root / "node-shim"
         real_dir = root / "real-bin"
-        for directory in (mosaic_shim_dir, foreign_shim_dir, real_dir):
+        for directory in (coterm_shim_dir, foreign_shim_dir, real_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-        mosaic_shim = mosaic_shim_dir / "claude"
-        shutil.copy2(WRAPPER, mosaic_shim)
-        mosaic_shim.chmod(0o755)
+        coterm_shim = coterm_shim_dir / "claude"
+        shutil.copy2(WRAPPER, coterm_shim)
+        coterm_shim.chmod(0o755)
 
         write_executable(
-            mosaic_shim_dir / "mosaic",
+            coterm_shim_dir / "coterm",
             """#!/usr/bin/env bash
 if [[ "${1:-}" == "--socket" ]]; then
   shift 2
@@ -783,7 +783,7 @@ exit 0
             foreign_shim_dir / "claude",
             f"""#!/usr/bin/env node
 const {{ spawnSync }} = require("node:child_process");
-process.env.PATH = "{mosaic_shim_dir}:{real_dir}:{inherited_path}";
+process.env.PATH = "{coterm_shim_dir}:{real_dir}:{inherited_path}";
 const child = spawnSync("claude", process.argv.slice(2), {{
   env: process.env,
   encoding: "utf8",
@@ -797,7 +797,7 @@ process.exit(child.status ?? 1);
             real_dir / "claude",
             """#!/usr/bin/env bash
 printf 'real_pid=%s\\n' "$$"
-printf 'mosaic_pid=%s\\n' "${MOSAIC_CLAUDE_PID:-__unset__}"
+printf 'coterm_pid=%s\\n' "${COTERM_CLAUDE_PID:-__unset__}"
 printf 'node_options=%s\\n' "${NODE_OPTIONS:-__unset__}"
 for arg in "$@"; do
   printf 'arg=%s\\n' "$arg"
@@ -805,20 +805,20 @@ done
 """,
         )
 
-        socket_path = str(root / "mosaic.sock")
+        socket_path = str(root / "coterm.sock")
         test_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         try:
             test_socket.bind(socket_path)
             env = {
                 "HOME": str(root / "home"),
-                "PATH": f"{mosaic_shim_dir}:{foreign_shim_dir}:{real_dir}:{inherited_path}",
-                "MOSAIC_CLAUDE_WRAPPER_SHIM": str(mosaic_shim),
-                "MOSAIC_CLAUDE_WRAPPER_SHIM_ROOT": str(mosaic_shim_dir),
-                "MOSAIC_SURFACE_ID": "surface-spawn",
-                "MOSAIC_SOCKET_PATH": socket_path,
+                "PATH": f"{coterm_shim_dir}:{foreign_shim_dir}:{real_dir}:{inherited_path}",
+                "COTERM_CLAUDE_WRAPPER_SHIM": str(coterm_shim),
+                "COTERM_CLAUDE_WRAPPER_SHIM_ROOT": str(coterm_shim_dir),
+                "COTERM_SURFACE_ID": "surface-spawn",
+                "COTERM_SOCKET_PATH": socket_path,
             }
             result = subprocess.run(
-                [str(mosaic_shim)],
+                [str(coterm_shim)],
                 env=env,
                 capture_output=True,
                 text=True,
@@ -842,12 +842,12 @@ done
             elif "=" in line:
                 key, value = line.split("=", 1)
                 values[key] = value
-        if values.get("real_pid") != values.get("mosaic_pid"):
-            failures.append(f"expected MOSAIC_CLAUDE_PID to match real process pid, got: {combined_output!r}")
+        if values.get("real_pid") != values.get("coterm_pid"):
+            failures.append(f"expected COTERM_CLAUDE_PID to match real process pid, got: {combined_output!r}")
             return
         node_options = values.get("node_options", "")
         if "--require=" not in node_options or "--max-old-space-size=4096" not in node_options:
-            failures.append(f"expected reentry to reinstall mosaic NODE_OPTIONS, got: {combined_output!r}")
+            failures.append(f"expected reentry to reinstall coterm NODE_OPTIONS, got: {combined_output!r}")
             return
 
         settings_indexes = [index for index, arg in enumerate(args) if arg == "--settings"]

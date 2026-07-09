@@ -1,13 +1,13 @@
 import AppKit
 import Bonsplit
-import MosaicFoundation
+import CotermFoundation
 import ObjectiveC
 import WebKit
 #if canImport(Security)
 import Security
 #endif
 
-/// Hosts a popup `MosaicWebView` in a standalone `NSPanel`, created when a page
+/// Hosts a popup `CotermWebView` in a standalone `NSPanel`, created when a page
 /// calls `window.open()` (scripted new-window requests).
 ///
 /// Lifecycle:
@@ -20,7 +20,7 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
 
     static let maxNestingDepth = 3
 
-    let webView: MosaicWebView
+    let webView: CotermWebView
     private let browserContext: BrowserPopupBrowserContext
     private let panel: NSPanel
     private let urlLabel: NSTextField, urlLabelHeightConstraint: NSLayoutConstraint
@@ -58,9 +58,9 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
         )
 
         // Create popup web view with WebKit's supplied configuration after
-        // overlaying the opener's browser context so OAuth popups keep mosaic's
+        // overlaying the opener's browser context so OAuth popups keep coterm's
         // shared cookie/storage scope and opener linkage.
-        let webView = MosaicWebView(frame: .zero, configuration: configuration)
+        let webView = CotermWebView(frame: .zero, configuration: configuration)
         webView.allowsBackForwardNavigationGestures = true
         if #available(macOS 13.3, *) {
             webView.isInspectable = true
@@ -109,7 +109,7 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        panel.identifier = NSUserInterfaceItemIdentifier("mosaic.browser-popup")
+        panel.identifier = NSUserInterfaceItemIdentifier("coterm.browser-popup")
         panel.level = NSWindow.Level.normal
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
@@ -167,7 +167,7 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
         dlDel.savePanelParentWindow = { [weak panel] in
             panel
         }
-        webView.mosaicDownloadDelegate = dlDel
+        webView.cotermDownloadDelegate = dlDel
         webView.onSubframeDownloadIntent = { [weak navDel] in navDel?.recordSubframeDownloadIntent($0) }
         webView.uiDelegate = uiDel
         webView.navigationDelegate = navDel
@@ -216,7 +216,7 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
         panel.delegate = self
 
         #if DEBUG
-        mosaicDebugLog("popup.init depth=\(nestingDepth) size=\(Int(contentRect.width))x\(Int(contentRect.height)) opener=\(openerPanel?.id.uuidString.prefix(5) ?? "nil")")
+        cotermDebugLog("popup.init depth=\(nestingDepth) size=\(Int(contentRect.width))x\(Int(contentRect.height)) opener=\(openerPanel?.id.uuidString.prefix(5) ?? "nil")")
         #endif
 
         panel.makeKeyAndOrderFront(self)
@@ -269,7 +269,7 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         #if DEBUG
-        mosaicDebugLog("popup.close depth=\(nestingDepth)")
+        cotermDebugLog("popup.close depth=\(nestingDepth)")
         #endif
 
         WebViewInspectorTeardown.closeInspector(for: webView)
@@ -308,7 +308,7 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
         let nextDepth = nestingDepth + 1
         if nextDepth > Self.maxNestingDepth {
             #if DEBUG
-            mosaicDebugLog("popup.nested.blocked depth=\(nextDepth) max=\(Self.maxNestingDepth)")
+            cotermDebugLog("popup.nested.blocked depth=\(nextDepth) max=\(Self.maxNestingDepth)")
             #endif
             return nil
         }
@@ -335,7 +335,7 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
     fileprivate func handleWebContentProcessTermination(for terminatedWebView: WKWebView) {
         guard terminatedWebView === webView else { return }
 #if DEBUG
-        mosaicDebugLog("popup.webcontent.terminated depth=\(nestingDepth)")
+        cotermDebugLog("popup.webcontent.terminated depth=\(nestingDepth)")
 #endif
         closePopup()
     }
@@ -371,12 +371,12 @@ final class BrowserPopupWindowController: NSObject, NSWindowDelegate {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = String(localized: "browser.error.insecure.title", defaultValue: "Connection isn\u{2019}t secure")
-        alert.informativeText = String(localized: "browser.error.insecure.message", defaultValue: "\(host) uses plain HTTP, so traffic can be read or modified on the network.\n\nOpen this URL in your default browser, or proceed in mosaic.")
+        alert.informativeText = String(localized: "browser.error.insecure.message", defaultValue: "\(host) uses plain HTTP, so traffic can be read or modified on the network.\n\nOpen this URL in your default browser, or proceed in coterm.")
         alert.addButton(withTitle: String(localized: "browser.openInDefaultBrowser", defaultValue: "Open in Default Browser"))
-        alert.addButton(withTitle: String(localized: "browser.proceedInMosaic", defaultValue: "Proceed in mosaic"))
+        alert.addButton(withTitle: String(localized: "browser.proceedInCoterm", defaultValue: "Proceed in Coterm"))
         alert.addButton(withTitle: String(localized: "common.cancel", defaultValue: "Cancel"))
         alert.showsSuppressionButton = true
-        alert.suppressionButton?.title = String(localized: "browser.alwaysAllowHost", defaultValue: "Always allow this host in mosaic")
+        alert.suppressionButton?.title = String(localized: "browser.alwaysAllowHost", defaultValue: "Always allow this host in Coterm")
 
         let handleResponse: (NSApplication.ModalResponse) -> Void = { [weak alert] response in
             if browserShouldPersistInsecureHTTPAllowlistSelection(
@@ -413,7 +413,7 @@ private class PopupUIDelegate: NSObject, WKUIDelegate {
 
     func webViewDidClose(_ webView: WKWebView) {
         #if DEBUG
-        mosaicDebugLog("popup.webViewDidClose")
+        cotermDebugLog("popup.webViewDidClose")
         #endif
         controller?.closePopup()
     }
@@ -442,7 +442,7 @@ private class PopupUIDelegate: NSObject, WKUIDelegate {
             modifierFlags: navigationAction.modifierFlags,
             buttonNumber: navigationAction.buttonNumber,
             popupFeaturesWereSpecified: browserNavigationPopupFeaturesWereSpecified(windowFeatures: windowFeatures),
-            hasRecentMiddleClickIntent: MosaicWebView.hasRecentMiddleClickIntent(for: webView)
+            hasRecentMiddleClickIntent: CotermWebView.hasRecentMiddleClickIntent(for: webView)
         )
 
         if isScriptedPopup {
@@ -638,7 +638,7 @@ private class PopupUIDelegate: NSObject, WKUIDelegate {
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
         if let url = navigationAction.request.url,
-           url.scheme == "mosaic-browser-action",
+           url.scheme == "coterm-browser-action",
            url.host == "bypass-ssl" {
             decisionHandler(.cancel)
             handleSSLTrustBypassAction(url, in: webView)
@@ -682,7 +682,7 @@ private class PopupUIDelegate: NSObject, WKUIDelegate {
         // Insecure HTTP → show same prompt as main browser
         if browserShouldBlockInsecureHTTPURL(url) {
             #if DEBUG
-            mosaicDebugLog("popup.nav.insecureHTTP url=\(url.absoluteString)")
+            cotermDebugLog("popup.nav.insecureHTTP url=\(url.absoluteString)")
             #endif
             controller?.presentInsecureHTTPAlert(for: url, in: webView, decisionHandler: decisionHandler)
             return
@@ -696,7 +696,7 @@ private class PopupUIDelegate: NSObject, WKUIDelegate {
 
         if shouldPreserveSSLTrustBypassForErrorPageNavigation(navigationAction) {
             #if DEBUG
-            mosaicDebugLog("popup.nav.preserveSSLBypassErrorPage url=\(url.absoluteString)")
+            cotermDebugLog("popup.nav.preserveSSLBypassErrorPage url=\(url.absoluteString)")
             #endif
         } else if let scheme = url.scheme?.lowercased(),
                   scheme == "http" || scheme == "https" {
@@ -904,14 +904,14 @@ private class PopupUIDelegate: NSObject, WKUIDelegate {
 
     func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
         #if DEBUG
-        mosaicDebugLog("popup.download.didBecome source=navigationAction")
+        cotermDebugLog("popup.download.didBecome source=navigationAction")
         #endif
         download.delegate = downloadDelegate
     }
 
     func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
         #if DEBUG
-        mosaicDebugLog("popup.download.didBecome source=navigationResponse")
+        cotermDebugLog("popup.download.didBecome source=navigationResponse")
         #endif
         download.delegate = downloadDelegate
     }

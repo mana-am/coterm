@@ -13,58 +13,58 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
-SSH_HOST = os.environ.get("MOSAIC_SSH_TEST_HOST", "").strip()
-SSH_PORT = os.environ.get("MOSAIC_SSH_TEST_PORT", "").strip()
-SSH_IDENTITY = os.environ.get("MOSAIC_SSH_TEST_IDENTITY", "").strip()
-SSH_OPTIONS_RAW = os.environ.get("MOSAIC_SSH_TEST_OPTIONS", "").strip()
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
+SSH_HOST = os.environ.get("COTERM_SSH_TEST_HOST", "").strip()
+SSH_PORT = os.environ.get("COTERM_SSH_TEST_PORT", "").strip()
+SSH_IDENTITY = os.environ.get("COTERM_SSH_TEST_IDENTITY", "").strip()
+SSH_OPTIONS_RAW = os.environ.get("COTERM_SSH_TEST_OPTIONS", "").strip()
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _run(cmd: list[str], *, env: dict[str, str] | None = None, check: bool = True) -> subprocess.CompletedProcess[str]:
     proc = subprocess.run(cmd, capture_output=True, text=True, env=env, check=False)
     if check and proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"Command failed ({' '.join(cmd)}): {merged}")
+        raise cotermError(f"Command failed ({' '.join(cmd)}): {merged}")
     return proc
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
 
 def _run_cli_json(cli: str, args: list[str]) -> dict:
     env = dict(os.environ)
-    env.pop("MOSAIC_WORKSPACE_ID", None)
-    env.pop("MOSAIC_SURFACE_ID", None)
-    env.pop("MOSAIC_TAB_ID", None)
+    env.pop("COTERM_WORKSPACE_ID", None)
+    env.pop("COTERM_SURFACE_ID", None)
+    env.pop("COTERM_TAB_ID", None)
 
     proc = _run([cli, "--socket", SOCKET_PATH, "--json", *args], env=env)
     try:
         return json.loads(proc.stdout or "{}")
     except Exception as exc:  # noqa: BLE001
-        raise mosaicError(f"Invalid JSON output for {' '.join(args)}: {proc.stdout!r} ({exc})")
+        raise cotermError(f"Invalid JSON output for {' '.join(args)}: {proc.stdout!r} ({exc})")
 
 
 def _wait_for(pred, timeout_s: float = 8.0, step_s: float = 0.1) -> None:
@@ -73,10 +73,10 @@ def _wait_for(pred, timeout_s: float = 8.0, step_s: float = 0.1) -> None:
         if pred():
             return
         time.sleep(step_s)
-    raise mosaicError("Timed out waiting for condition")
+    raise cotermError("Timed out waiting for condition")
 
 
-def _wait_remote_ready(client: mosaic, workspace_id: str, timeout_s: float = 45.0) -> None:
+def _wait_remote_ready(client: coterm, workspace_id: str, timeout_s: float = 45.0) -> None:
     deadline = time.time() + timeout_s
     last_status = {}
     while time.time() < deadline:
@@ -86,10 +86,10 @@ def _wait_remote_ready(client: mosaic, workspace_id: str, timeout_s: float = 45.
         if str(remote.get("state") or "") == "connected" and str(daemon.get("state") or "") == "ready":
             return
         time.sleep(0.25)
-    raise mosaicError(f"Remote did not become ready for {workspace_id}: {last_status}")
+    raise cotermError(f"Remote did not become ready for {workspace_id}: {last_status}")
 
 
-def _resolve_workspace_id(client: mosaic, payload: dict, *, before_workspace_ids: set[str]) -> str:
+def _resolve_workspace_id(client: coterm, payload: dict, *, before_workspace_ids: set[str]) -> str:
     workspace_id = str(payload.get("workspace_id") or "")
     if workspace_id:
         return workspace_id
@@ -108,25 +108,25 @@ def _resolve_workspace_id(client: mosaic, payload: dict, *, before_workspace_ids
     if len(new_ids) == 1:
         return new_ids[0]
 
-    raise mosaicError(f"Unable to resolve workspace_id from payload: {payload}")
+    raise cotermError(f"Unable to resolve workspace_id from payload: {payload}")
 
 
-def _workspace_row(client: mosaic, workspace_id: str) -> dict:
+def _workspace_row(client: coterm, workspace_id: str) -> dict:
     rows = (client._call("workspace.list", {}) or {}).get("workspaces") or []
     for row in rows:
         if str(row.get("id") or "") == workspace_id:
             return row
-    raise mosaicError(f"workspace.list missing {workspace_id}: {rows}")
+    raise cotermError(f"workspace.list missing {workspace_id}: {rows}")
 
 
-def _remote_session_count(client: mosaic, workspace_id: str) -> int:
+def _remote_session_count(client: coterm, workspace_id: str) -> int:
     row = _workspace_row(client, workspace_id)
     remote = row.get("remote") or {}
     return int(remote.get("active_terminal_sessions") or 0)
 
 
-def _run_surface_probe(client: mosaic, surface_id: str, command: str, token_prefix: str, timeout_s: float = 12.0) -> str:
-    token = f"__MOSAIC_{token_prefix}_{int(time.time() * 1000)}__"
+def _run_surface_probe(client: coterm, surface_id: str, command: str, token_prefix: str, timeout_s: float = 12.0) -> str:
+    token = f"__COTERM_{token_prefix}_{int(time.time() * 1000)}__"
     client.send_surface(
         surface_id,
         (
@@ -145,10 +145,10 @@ def _run_surface_probe(client: mosaic, surface_id: str, command: str, token_pref
         if matches:
             return matches[-1]
         time.sleep(0.15)
-    raise mosaicError(f"Timed out waiting for probe {token!r}: {last[-1200:]!r}")
+    raise cotermError(f"Timed out waiting for probe {token!r}: {last[-1200:]!r}")
 
 
-def _open_ssh_workspace(client: mosaic, cli: str, *, name: str) -> str:
+def _open_ssh_workspace(client: coterm, cli: str, *, name: str) -> str:
     before_workspace_ids = {wid for _index, wid, _title, _focused in client.list_workspaces()}
 
     ssh_args = ["ssh", SSH_HOST, "--name", name]
@@ -172,14 +172,14 @@ def _open_ssh_workspace(client: mosaic, cli: str, *, name: str) -> str:
 
 def main() -> int:
     if not SSH_HOST:
-        print("SKIP: set MOSAIC_SSH_TEST_HOST to run ssh last-surface remote state regression")
+        print("SKIP: set COTERM_SSH_TEST_HOST to run ssh last-surface remote state regression")
         return 0
 
     cli = _find_cli_binary()
     workspace_id = ""
 
     try:
-        with mosaic(SOCKET_PATH) as client:
+        with coterm(SOCKET_PATH) as client:
             workspace_id = _open_ssh_workspace(
                 client,
                 cli,
@@ -236,17 +236,17 @@ def main() -> int:
                 socket_output = _run_surface_probe(
                     client,
                     surface_id,
-                    r'''printf '%s' "${MOSAIC_SOCKET_PATH:-}"''',
+                    r'''printf '%s' "${COTERM_SOCKET_PATH:-}"''',
                     f"SSH_LAST_SURFACE_SOCKET_{idx}",
                 ).strip()
                 _must(
                     not socket_output.startswith("127.0.0.1:"),
-                    f"surface {surface_id} should be local after clearing remote state, got MOSAIC_SOCKET_PATH={socket_output!r}",
+                    f"surface {surface_id} should be local after clearing remote state, got COTERM_SOCKET_PATH={socket_output!r}",
                 )
     finally:
         if workspace_id:
             try:
-                with mosaic(SOCKET_PATH) as cleanup_client:
+                with coterm(SOCKET_PATH) as cleanup_client:
                     cleanup_client._call("workspace.close", {"workspace_id": workspace_id})
             except Exception:
                 pass

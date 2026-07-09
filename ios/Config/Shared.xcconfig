@@ -6,9 +6,9 @@
 // ==========================================
 // Project Identity
 // ==========================================
-PRODUCT_NAME = mosaic
-PRODUCT_DISPLAY_NAME = Mosaic
-PRODUCT_BUNDLE_IDENTIFIER = dev.mosaic.ios
+PRODUCT_NAME = coterm
+PRODUCT_DISPLAY_NAME = Coterm
+PRODUCT_BUNDLE_IDENTIFIER = dev.coterm.ios
 // User-visible version (CFBundleShortVersionString). Semver X.Y.Z, bumped on
 // release with ios/scripts/bump-ios-version.sh. Keep this human-meaningful and
 // tellable; CFBundleVersion (CURRENT_PROJECT_VERSION) is the monotonic build id
@@ -20,18 +20,18 @@ CURRENT_PROJECT_VERSION = 1
 // build is tellable. Empty by default, so release/TestFlight builds show a clean
 // "1.0.0". ios/scripts/reload.sh overrides these on the xcodebuild command line
 // with the short git SHA and the --tag, and Config/Info.plist maps them to the
-// MosaicGitSHA / MosaicDevTag Info.plist keys that AppVersionInfo reads.
-MOSAIC_GIT_SHA =
-MOSAIC_DEV_TAG =
+// CotermGitSHA / CotermDevTag Info.plist keys that AppVersionInfo reads.
+COTERM_GIT_SHA =
+COTERM_DEV_TAG =
 
 // Per-developer presence/paired-Mac-backup worker override, baked into the
-// MosaicPresenceBaseURL Info.plist key so a normally-tapped dev device build (which
+// CotermPresenceBaseURL Info.plist key so a normally-tapped dev device build (which
 // sees no shell env) talks to an isolated worker instead of the shared
-// mosaic-presence-dev. Empty by default (release/TestFlight resolve to nil/disabled
+// coterm-presence-dev. Empty by default (release/TestFlight resolve to nil/disabled
 // or the Debug default). ios/scripts/reload.sh overrides it from
-// $MOSAIC_PRESENCE_BASE_URL. See workers/presence/scripts/deploy-dev.sh and
+// $COTERM_PRESENCE_BASE_URL. See workers/presence/scripts/deploy-dev.sh and
 // PresenceServiceConfiguration.resolvedServiceBaseURL.
-MOSAIC_PRESENCE_BASE_URL =
+COTERM_PRESENCE_BASE_URL =
 
 // ==========================================
 // Platform Configuration
@@ -48,23 +48,23 @@ GENERATE_INFOPLIST_FILE = NO
 INFOPLIST_FILE = Config/Info.plist
 INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationLandscapeRight UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationLandscapeRight UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
-INFOPLIST_KEY_NSCameraUsageDescription = Scan Mosaic pairing QR codes from your Mac terminal.
+INFOPLIST_KEY_NSCameraUsageDescription = Scan Coterm pairing QR codes from your Mac terminal.
 
 // ==========================================
 // Entitlements
 // ==========================================
-// AI agents can modify Config/mosaic.entitlements to add capabilities
-CODE_SIGN_ENTITLEMENTS = Config/mosaic.entitlements
+// AI agents can modify Config/coterm.entitlements to add capabilities
+CODE_SIGN_ENTITLEMENTS = Config/coterm.entitlements
 
 // ==========================================
 // Pairing URL scheme (channel-specific)
 // ==========================================
-// The mosaic pairing/attach deep-link scheme this build registers in
+// The coterm pairing/attach deep-link scheme this build registers in
 // CFBundleURLTypes (Config/Info.plist). Channel-specific so the system Camera
 // app can never hand a beta/prod pairing QR to a dev build that also claimed
-// the scheme: dev (Debug/tagged) builds register mosaic-ios-dev, Release
-// (TestFlight beta + App Store) overrides this to mosaic-ios in
+// the scheme: dev (Debug/tagged) builds register coterm-ios-dev, Release
+// (TestFlight beta + App Store) overrides this to coterm-ios in
 // Release.xcconfig. The default here is the dev scheme so an unknown build
 // configuration can never hijack release links. Keep both values in sync with
-// CmxPairingURLScheme in Packages/Shared/MosaicMobileCore.
-MOSAIC_IOS_URL_SCHEME = mosaic-ios-dev
+// CmxPairingURLScheme in Packages/Shared/CotermMobileCore.
+COTERM_IOS_URL_SCHEME = coterm-ios-dev

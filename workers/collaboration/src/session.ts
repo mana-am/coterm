@@ -149,7 +149,7 @@ export class CollaborationSessionObject extends DurableObject<CollaborationSessi
     const stub = namespace.get(namespace.idFromName(SESSION_INDEX_OBJECT_NAME));
     try {
       await stub.fetch(new Request(
-        `https://mosaic-collaboration-index.local/sessions/${encodeURIComponent(sessionCode)}`,
+        `https://coterm-collaboration-index.local/sessions/${encodeURIComponent(sessionCode)}`,
         { method: "DELETE" }
       ));
     } catch (error) {

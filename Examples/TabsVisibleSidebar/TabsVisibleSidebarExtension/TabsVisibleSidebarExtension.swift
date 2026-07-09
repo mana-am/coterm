@@ -1,11 +1,11 @@
-import MosaicExtensionKit
+import CotermExtensionKit
 import Observation
 import SwiftUI
 
 @main
 @Observable
-final class TabsVisibleSidebarExtension: @MainActor MosaicSidebarExtension {
-    static let manifest = MosaicExtensionManifest(
+final class TabsVisibleSidebarExtension: @MainActor CotermSidebarExtension {
+    static let manifest = CotermExtensionManifest(
         id: "co.emergent.inc.TabsVisibleSidebar.Extension",
         displayName: String(localized: "tabsVisible.manifest.displayName", defaultValue: "Tabs Visible Sidebar"),
         readScopes: [
@@ -19,12 +19,12 @@ final class TabsVisibleSidebarExtension: @MainActor MosaicSidebarExtension {
         ]
     )
 
-    private(set) var snapshot: MosaicSidebarSnapshot?
+    private(set) var snapshot: CotermSidebarSnapshot?
     private(set) var errorText: String?
     var expandedWorkspaceIDs: Set<UUID> = []
 
     @ObservationIgnored
-    private var host: MosaicSidebarHost?
+    private var host: CotermSidebarHost?
 
     required init() {}
 
@@ -32,7 +32,7 @@ final class TabsVisibleSidebarExtension: @MainActor MosaicSidebarExtension {
         TabsVisibleSidebarView(extensionModel: self)
     }
 
-    func update(context: MosaicSidebarContext) {
+    func update(context: CotermSidebarContext) {
         snapshot = context.snapshot
         host = context.host
         errorText = nil
@@ -42,12 +42,12 @@ final class TabsVisibleSidebarExtension: @MainActor MosaicSidebarExtension {
         }
     }
 
-    func connectionStatusDidChange(_ status: MosaicSidebarConnectionStatus) {
+    func connectionStatusDidChange(_ status: CotermSidebarConnectionStatus) {
         switch status {
         case .connected:
             errorText = nil
         case .waitingForHost:
-            errorText = String(localized: "tabsVisible.waitingForHost", defaultValue: "Waiting for mosaic")
+            errorText = String(localized: "tabsVisible.waitingForHost", defaultValue: "Waiting for coterm")
         case .error(let message):
             errorText = message
         }
@@ -73,10 +73,10 @@ final class TabsVisibleSidebarExtension: @MainActor MosaicSidebarExtension {
         do {
             try await operation()
             errorText = nil
-        } catch MosaicSidebarActionError.rejected(let message) {
+        } catch CotermSidebarActionError.rejected(let message) {
             errorText = message
         } catch {
-            errorText = String(localized: "tabsVisible.actionDenied", defaultValue: "mosaic did not allow that action")
+            errorText = String(localized: "tabsVisible.actionDenied", defaultValue: "coterm did not allow that action")
         }
     }
 }

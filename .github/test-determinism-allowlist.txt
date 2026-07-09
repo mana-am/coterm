@@ -2,19 +2,19 @@
 # Format: relpath<TAB>rule<TAB>short reason
 # A finding whose (path, rule) appears here is suppressed.
 # Remove a line once the underlying test is determinized.
-Packages/Shared/MosaicAuthRuntime/Tests/MosaicAuthRuntimeTests/HostBrowserSignInFlowTests.swift	sleep-then-assert	grandfathered
-Packages/macOS/MosaicBrowser/Tests/MosaicBrowserTests/Omnibar/BrowserOmnibarPageFocusRepositoryTests.swift	sleep-then-assert	grandfathered
-Packages/macOS/MosaicControlSocket/Tests/MosaicControlSocketTests/SocketTransportIOTests.swift	assert-on-duration	grandfathered
-Packages/macOS/MosaicFoundation/Tests/MosaicFoundationTests/Process/CommandRunnerTests.swift	assert-on-duration	grandfathered
-Packages/macOS/MosaicSettings/Tests/MosaicSettingsTests/UserDefaultsSettingsStoreTests.swift	sleep-then-assert	grandfathered
-mosaicTests/MosaicOpenCommandTests.swift	assert-on-duration	grandfathered
-mosaicTests/FileExplorerStoreTests.swift	sleep-then-assert	grandfathered
-mosaicTests/MobileHostAuthorizationTests.swift	sleep-then-assert	grandfathered
-mosaicTests/NotificationAndMenuBarTests.swift	assert-on-duration	grandfathered
-mosaicTests/OmnibarAndToolsTests.swift	assert-on-duration	grandfathered
-mosaicTests/RovoDevSessionIndexTests.swift	sleep-then-assert	grandfathered
-mosaicTests/TabManagerSessionSnapshotTests.swift	assert-on-duration	grandfathered
-mosaicUITests/FeedSidebarUITests.swift	sleep-then-assert	grandfathered
+Packages/Shared/CotermAuthRuntime/Tests/CotermAuthRuntimeTests/HostBrowserSignInFlowTests.swift	sleep-then-assert	grandfathered
+Packages/macOS/CotermBrowser/Tests/CotermBrowserTests/Omnibar/BrowserOmnibarPageFocusRepositoryTests.swift	sleep-then-assert	grandfathered
+Packages/macOS/CotermControlSocket/Tests/CotermControlSocketTests/SocketTransportIOTests.swift	assert-on-duration	grandfathered
+Packages/macOS/CotermFoundation/Tests/CotermFoundationTests/Process/CommandRunnerTests.swift	assert-on-duration	grandfathered
+Packages/macOS/CotermSettings/Tests/CotermSettingsTests/UserDefaultsSettingsStoreTests.swift	sleep-then-assert	grandfathered
+cotermTests/CotermOpenCommandTests.swift	assert-on-duration	grandfathered
+cotermTests/FileExplorerStoreTests.swift	sleep-then-assert	grandfathered
+cotermTests/MobileHostAuthorizationTests.swift	sleep-then-assert	grandfathered
+cotermTests/NotificationAndMenuBarTests.swift	assert-on-duration	grandfathered
+cotermTests/OmnibarAndToolsTests.swift	assert-on-duration	grandfathered
+cotermTests/RovoDevSessionIndexTests.swift	sleep-then-assert	grandfathered
+cotermTests/TabManagerSessionSnapshotTests.swift	assert-on-duration	grandfathered
+cotermUITests/FeedSidebarUITests.swift	sleep-then-assert	grandfathered
 tests/test_multi_workspace_focus.py	sleep-then-assert	grandfathered
 tests_v2/test_browser_api_extended_families.py	sleep-then-assert	grandfathered
 tests_v2/test_pane_break_swap_preserve_focus.py	sleep-then-assert	grandfathered

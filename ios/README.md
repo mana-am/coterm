@@ -1,17 +1,17 @@
-# mosaic iOS
+# coterm iOS
 
-SwiftUI iOS/iPadOS shell for the MosaicMobileCore production path.
+SwiftUI iOS/iPadOS shell for the CotermMobileCore production path.
 
 Current phase:
 
 - Stack Auth sign-in gate with Apple, Google, email code, and a debug-only `42` shortcut
 - QR/manual pairing surface
-- MosaicMobileCore pairing payload and attach-ticket decoding
+- CotermMobileCore pairing payload and attach-ticket decoding
 - injectable `CmxByteTransportFactory` runtime hook
 - isolated preview host data when no concrete transport is installed
 - workspace list, workspace detail, terminal dropdown, and input bar
 
-No Rust, Iroh, or Zig dependency is linked into this shell. Concrete route implementations should enter through `MosaicMobileRuntime`.
+No Rust, Iroh, or Zig dependency is linked into this shell. Concrete route implementations should enter through `CotermMobileRuntime`.
 
 Build and reload the simulator:
 
@@ -22,7 +22,7 @@ ios/scripts/reload.sh --tag iossh
 Run package tests:
 
 ```bash
-swift test --package-path ios/mosaicPackage
+swift test --package-path ios/cotermPackage
 ```
 
 ## TestFlight beta (cloud lane)
@@ -31,7 +31,7 @@ swift test --package-path ios/mosaicPackage
 beta. It builds the heavy GhosttyKit + Swift Release compile on a leased fleet
 Mac (same maclease pool as the device cloud reload, m1ultra excluded), so the
 build stays off this Mac's CPU. The fleet produces an UNSIGNED Release archive
-for the beta bundle id `dev.mosaic.app.beta` (no signing material ever lands on
+for the beta bundle id `dev.coterm.app.beta` (no signing material ever lands on
 the shared Macs), downloads it locally, then hands it to
 `ios/scripts/upload-testflight.sh --archive-path`, which does the local export,
 re-sign with the Apple Distribution cert (re-adding `aps-environment=production`),
@@ -41,17 +41,17 @@ strict codesign verification, and TestFlight upload.
 # Dry run: build + export + re-sign + verify aps-environment=production, NO upload
 ios/scripts/cloud-testflight.sh --no-upload
 
-# Full lane: build on the fleet and upload to TestFlight (internal "mosaic beta" group)
+# Full lane: build on the fleet and upload to TestFlight (internal "coterm beta" group)
 ios/scripts/cloud-testflight.sh
 
 # Also make the build eligible for external testers
 ios/scripts/cloud-testflight.sh --external
 ```
 
-A standalone mosaic clone with no mosaicterm-hq checkout transparently falls back to
+A standalone coterm clone with no coterm-hq checkout transparently falls back to
 a LOCAL Release archive (`--local` forces it), then takes the same export path.
 
-Internal testers (the `mosaic beta` group) get every uploaded build instantly with
+Internal testers (the `coterm beta` group) get every uploaded build instantly with
 no review. An `--external` build is different: the FIRST external build of a new
 `MARKETING_VERSION` must pass a one-time Apple Beta App Review (~24h) before any
 external tester can install it. Subsequent external builds of the same version
@@ -72,4 +72,4 @@ Required GitHub secrets:
 - `ASC_API_KEY_P8_BASE64`
 - `IOS_DISTRIBUTION_CERTIFICATE_BASE64` (base64-encoded `.p12` for an Apple Distribution certificate on team `7WLXT3NR37`)
 - `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`
-- `IOS_BETA_PROVISIONING_PROFILE_BASE64` (base64-encoded App Store profile for `dev.mosaic.app.beta`, with `aps-environment=production`)
+- `IOS_BETA_PROVISIONING_PROFILE_BASE64` (base64-encoded App Store profile for `dev.coterm.app.beta`, with `aps-environment=production`)

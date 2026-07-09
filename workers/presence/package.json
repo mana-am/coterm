@@ -1,5 +1,5 @@
 {
-  "name": "mosaic-presence-worker",
+  "name": "coterm-presence-worker",
   "private": true,
   "type": "module",
   "scripts": {

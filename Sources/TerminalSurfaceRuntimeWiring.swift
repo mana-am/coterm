@@ -1,12 +1,12 @@
 import AppKit
 import Foundation
-import MosaicTerminal
-import MosaicTerminalCore
+import Coterminal
+import CoterminalCore
 import GhosttyKit
-import MosaicSettings
-import struct MosaicSettings.AgentIntegrationSettingsStore
+import CotermSettings
+import struct CotermSettings.AgentIntegrationSettingsStore
 
-// The app-side conformances and bridges injected into the MosaicTerminal
+// The app-side conformances and bridges injected into the Coterminal
 // package through `GhosttyApp.terminalSurfaceRuntimeDependencies`. Each type
 // here carries behavior verbatim from the legacy god-file reach-up it
 // replaces; this file is intended composition-root residue.
@@ -94,7 +94,7 @@ final class TerminalMobileByteTeeBridge: TerminalByteTeeBinding {
         let teeContext = Unmanaged.passRetained(MobileTerminalByteTeeUserdata(surfaceID: surfaceID))
         ghostty_surface_set_pty_tee_cb(
             surface,
-            mosaicMobileTerminalByteTeeCallback,
+            cotermMobileTerminalByteTeeCallback,
             teeContext.toOpaque()
         )
         return Lease(context: teeContext)
@@ -159,7 +159,7 @@ extension TerminalSurface {
         id: UUID = UUID(),
         tabId: UUID,
         context: ghostty_surface_context_e,
-        configTemplate: MosaicSurfaceConfigTemplate?,
+        configTemplate: CotermSurfaceConfigTemplate?,
         workingDirectory: String? = nil,
         portOrdinal: Int = 0,
         initialCommand: String? = nil,

@@ -4,7 +4,7 @@ import os
 
 enum StartupBreadcrumbLog {
     private static let maxFieldLength = 240
-    private nonisolated static let logger = Logger(subsystem: "mosaic.com.emergent.app", category: "StartupBreadcrumbLog")
+    private nonisolated static let logger = Logger(subsystem: "coterm.com.emergent.app", category: "StartupBreadcrumbLog")
     private static let reservedFieldKeys: Set<String> = [
         "timestamp",
         "event",
@@ -53,31 +53,31 @@ enum StartupBreadcrumbLog {
             try handle.write(contentsOf: line)
             try handle.write(contentsOf: Data([0x0A]))
         } catch {
-            logger.fault("mosaic startup breadcrumb failed: \(String(describing: error), privacy: .public)")
+            logger.fault("coterm startup breadcrumb failed: \(String(describing: error), privacy: .public)")
         }
     }
 
     private static var isEnabled: Bool {
         let environment = ProcessInfo.processInfo.environment
-        if environment["MOSAIC_DISABLE_STARTUP_BREADCRUMBS"] == "1" {
+        if environment["COTERM_DISABLE_STARTUP_BREADCRUMBS"] == "1" {
             return false
         }
-        if environment["MOSAIC_STARTUP_BREADCRUMBS"] == "1" {
+        if environment["COTERM_STARTUP_BREADCRUMBS"] == "1" {
             return true
         }
         let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-        return bundleIdentifier == "mosaic.com.emergent.app.nightly"
-            || bundleIdentifier.hasPrefix("mosaic.com.emergent.app.nightly.")
-            || bundleIdentifier == "mosaic.com.emergent.app.debug"
-            || bundleIdentifier.hasPrefix("mosaic.com.emergent.app.debug.")
+        return bundleIdentifier == "coterm.com.emergent.app.nightly"
+            || bundleIdentifier.hasPrefix("coterm.com.emergent.app.nightly.")
+            || bundleIdentifier == "coterm.com.emergent.app.debug"
+            || bundleIdentifier.hasPrefix("coterm.com.emergent.app.debug.")
     }
 
     private static var logURL: URL {
         let logsDirectory = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)
             .first?
-            .appendingPathComponent("Logs/mosaic", isDirectory: true)
+            .appendingPathComponent("Logs/coterm", isDirectory: true)
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-                .appendingPathComponent("mosaic-logs", isDirectory: true)
+                .appendingPathComponent("coterm-logs", isDirectory: true)
         let sanitizedBundleIdentifier = logFileComponent(Bundle.main.bundleIdentifier ?? "unknown")
         return logsDirectory.appendingPathComponent("startup-\(sanitizedBundleIdentifier).log")
     }

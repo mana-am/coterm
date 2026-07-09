@@ -88,7 +88,7 @@ final class MarkdownViewerAssets {
             ),
             "remoteImageConsentMessage": String(
                 localized: "markdown.web.remoteImageConsentMessage",
-                defaultValue: "mosaic will not contact this image URL until you load this image."
+                defaultValue: "coterm will not contact this image URL until you load this image."
             ),
             "remoteImageLoadImage": String(
                 localized: "markdown.web.remoteImageLoadImage",

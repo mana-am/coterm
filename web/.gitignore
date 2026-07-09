@@ -19,7 +19,7 @@
 
 # production
 /build
-/.mosaic-cloud-build
+/.coterm-cloud-build
 
 # misc
 .DS_Store

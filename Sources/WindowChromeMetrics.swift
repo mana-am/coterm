@@ -1,8 +1,8 @@
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 import CoreGraphics
 
-enum MosaicChromePalette {
+enum CotermChromePalette {
     static let sidebarBackgroundHex = "#141414"
     static let workspaceBackgroundHex = "#181818"
     static let chromeBackgroundHex = "#202020CC"
@@ -123,7 +123,7 @@ enum SidebarWorkspaceScrollLayout {
         // Flooring to a whole point keeps `content + insets <= viewportHeight`
         // regardless of the display's backing scale, so the phantom scrollbar
         // stays hidden when content fits
-        // (https://github.com/emergent-inc/mosaic/issues/3241).
+        // (https://github.com/emergent-inc/coterm/issues/3241).
         return max(0, (viewportHeight - insets.total).rounded(.down))
     }
 }

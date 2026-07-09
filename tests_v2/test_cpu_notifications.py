@@ -10,7 +10,7 @@ Tests that CPU usage stays reasonable when:
 Usage:
     python3 tests/test_cpu_notifications.py
 
-Requires mosaic to be running with socket control enabled.
+Requires coterm to be running with socket control enabled.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from typing import List, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
 # Maximum acceptable CPU usage during idle (after notifications)
@@ -49,17 +49,17 @@ IDLE_PRECHECK_MAX_WAIT = 20.0
 IDLE_PRECHECK_CONSECUTIVE = 4
 
 
-def get_mosaic_pid() -> Optional[int]:
-    """Get the PID of the running mosaic process."""
+def get_coterm_pid() -> Optional[int]:
+    """Get the PID of the running coterm process."""
     result = subprocess.run(
-        ["pgrep", "-f", r"mosaic\.app/Contents/MacOS/Mosaic$"],
+        ["pgrep", "-f", r"coterm\.app/Contents/MacOS/Coterm$"],
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
         # Try DEV build
         result = subprocess.run(
-            ["pgrep", "-f", r"Mosaic DEV\.app/Contents/MacOS/Mosaic"],
+            ["pgrep", "-f", r"Coterm DEV\.app/Contents/MacOS/Coterm"],
             capture_output=True,
             text=True,
         )
@@ -139,14 +139,14 @@ def evaluate_cpu_readings(readings: List[float], threshold: float) -> tuple[bool
     return True, summary
 
 
-def test_cpu_after_notification_burst(client: mosaic, pid: int) -> tuple[bool, str]:
+def test_cpu_after_notification_burst(client: coterm, pid: int) -> tuple[bool, str]:
     """
     Test that CPU returns to normal after a burst of notifications.
     """
     # Clear any existing notifications
     try:
         client.clear_notifications()
-    except mosaicError:
+    except cotermError:
         pass
     time.sleep(0.5)
 
@@ -154,7 +154,7 @@ def test_cpu_after_notification_burst(client: mosaic, pid: int) -> tuple[bool, s
     for i in range(5):
         try:
             client.notify(f"Test notification {i+1}")
-        except mosaicError:
+        except cotermError:
             pass
         time.sleep(0.1)
 
@@ -169,7 +169,7 @@ def test_cpu_after_notification_burst(client: mosaic, pid: int) -> tuple[bool, s
     # Clean up
     try:
         client.clear_notifications()
-    except mosaicError:
+    except cotermError:
         pass
 
     if not ok:
@@ -178,7 +178,7 @@ def test_cpu_after_notification_burst(client: mosaic, pid: int) -> tuple[bool, s
     return True, f"CPU {summary} is acceptable after notification burst"
 
 
-def test_cpu_after_popover_close(client: mosaic, pid: int) -> tuple[bool, str]:
+def test_cpu_after_popover_close(client: coterm, pid: int) -> tuple[bool, str]:
     """
     Test that CPU returns to normal after opening and closing the notifications popover.
 
@@ -187,12 +187,12 @@ def test_cpu_after_popover_close(client: mosaic, pid: int) -> tuple[bool, str]:
     # Create some notifications first
     try:
         client.clear_notifications()
-    except mosaicError:
+    except cotermError:
         pass
     for i in range(3):
         try:
             client.notify(f"Popover test {i+1}")
-        except mosaicError:
+        except cotermError:
             pass
         time.sleep(0.1)
     time.sleep(0.5)
@@ -227,7 +227,7 @@ def test_cpu_after_popover_close(client: mosaic, pid: int) -> tuple[bool, str]:
     # Clean up
     try:
         client.clear_notifications()
-    except mosaicError:
+    except cotermError:
         pass
 
     if not ok:
@@ -236,19 +236,19 @@ def test_cpu_after_popover_close(client: mosaic, pid: int) -> tuple[bool, str]:
     return True, f"CPU {summary} is acceptable after closing popover"
 
 
-def test_cpu_idle_with_notifications(client: mosaic, pid: int) -> tuple[bool, str]:
+def test_cpu_idle_with_notifications(client: coterm, pid: int) -> tuple[bool, str]:
     """
     Test that CPU stays low when notifications exist but popover is closed.
     """
     # Create notifications
     try:
         client.clear_notifications()
-    except mosaicError:
+    except cotermError:
         pass
     for i in range(3):
         try:
             client.notify(f"Idle test {i+1}")
-        except mosaicError:
+        except cotermError:
             pass
         time.sleep(0.2)
 
@@ -263,7 +263,7 @@ def test_cpu_idle_with_notifications(client: mosaic, pid: int) -> tuple[bool, st
     # Clean up
     try:
         client.clear_notifications()
-    except mosaicError:
+    except cotermError:
         pass
 
     if not ok:
@@ -274,35 +274,35 @@ def test_cpu_idle_with_notifications(client: mosaic, pid: int) -> tuple[bool, st
 
 def main():
     print("=" * 60)
-    print("mosaic Notification CPU Tests")
+    print("coterm Notification CPU Tests")
     print("=" * 60)
 
-    pid = get_mosaic_pid()
+    pid = get_coterm_pid()
     if pid is None:
-        print("\n❌ SKIP: mosaic is not running")
+        print("\n❌ SKIP: Coterm is not running")
         return 0
 
-    print(f"\nFound mosaic process: PID {pid}")
+    print(f"\nFound coterm process: PID {pid}")
 
     # Try to connect to the socket
     socket_paths = [
-        os.path.expanduser("~/Library/Application Support/mosaic/mosaic.sock"),
-        "/tmp/mosaic.sock",
-        "/tmp/mosaic-debug.sock",
+        os.path.expanduser("~/Library/Application Support/coterm/coterm.sock"),
+        "/tmp/coterm.sock",
+        "/tmp/coterm-debug.sock",
     ]
     client = None
     for socket_path in socket_paths:
         if os.path.exists(socket_path):
             try:
-                client = mosaic(socket_path)
+                client = coterm(socket_path)
                 client.connect()
                 print(f"Connected to {socket_path}")
                 break
-            except mosaicError:
+            except cotermError:
                 continue
 
     if client is None:
-        print(f"\n❌ SKIP: Could not connect to mosaic socket")
+        print(f"\n❌ SKIP: Could not connect to coterm socket")
         return 0
 
     results = []

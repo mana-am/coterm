@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-CPU usage test for mosaic.
+CPU usage test for coterm.
 
-This test monitors mosaic's CPU usage during idle periods to catch
+This test monitors coterm's CPU usage during idle periods to catch
 performance regressions like runaway animations or continuous view updates.
 
-Run this test after launching mosaic:
+Run this test after launching coterm:
     python3 tests/test_cpu_usage.py
 
 The test will fail if:
@@ -23,10 +23,10 @@ import os
 from pathlib import Path
 from typing import List, Optional
 
-# Allow importing tests/mosaic.py when running from repo root.
+# Allow importing tests/coterm.py when running from repo root.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic
+from coterm import coterm
 
 
 # Maximum acceptable CPU usage during idle (percentage)
@@ -49,12 +49,12 @@ SUSPICIOUS_PATTERNS = [
 ]
 
 
-def get_mosaic_pid() -> Optional[int]:
-    """Get the PID of the running mosaic process."""
-    socket_path = os.environ.get("MOSAIC_SOCKET_PATH")
+def get_coterm_pid() -> Optional[int]:
+    """Get the PID of the running coterm process."""
+    socket_path = os.environ.get("COTERM_SOCKET_PATH")
     if not socket_path:
         try:
-            socket_path = mosaic().socket_path
+            socket_path = coterm().socket_path
         except Exception:
             socket_path = None
 
@@ -77,14 +77,14 @@ def get_mosaic_pid() -> Optional[int]:
                     return pid
 
     result = subprocess.run(
-        ["pgrep", "-f", r"mosaic\.app/Contents/MacOS/Mosaic$"],
+        ["pgrep", "-f", r"coterm\.app/Contents/MacOS/Coterm$"],
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
         # Try DEV build
         result = subprocess.run(
-            ["pgrep", "-f", r"Mosaic DEV\.app/Contents/MacOS/Mosaic"],
+            ["pgrep", "-f", r"Coterm DEV\.app/Contents/MacOS/Coterm"],
             capture_output=True,
             text=True,
         )
@@ -141,17 +141,17 @@ def monitor_cpu_usage(pid: int, duration: float, interval: float) -> List[float]
 
 def main():
     print("=" * 60)
-    print("mosaic CPU Usage Test")
+    print("coterm CPU Usage Test")
     print("=" * 60)
 
-    # Find mosaic process
-    pid = get_mosaic_pid()
+    # Find coterm process
+    pid = get_coterm_pid()
     if pid is None:
-        print("\n❌ SKIP: mosaic is not running")
-        print("Start mosaic and run this test again.")
+        print("\n❌ SKIP: Coterm is not running")
+        print("Start coterm and run this test again.")
         return 0  # Not a failure, just skip
 
-    print(f"\nFound mosaic process: PID {pid}")
+    print(f"\nFound coterm process: PID {pid}")
 
     # Wait for app to settle
     print(f"Waiting {SETTLE_TIME}s for app to settle...")
@@ -187,7 +187,7 @@ def main():
                 print(f"  - {issue}")
 
         # Save sample for debugging
-        sample_file = Path(f"/tmp/mosaic_cpu_test_sample_{pid}.txt")
+        sample_file = Path(f"/tmp/coterm_cpu_test_sample_{pid}.txt")
         sample_file.write_text(sample_output)
         print(f"\nFull sample saved to: {sample_file}")
 
@@ -196,7 +196,7 @@ def main():
         lines = sample_output.split("\n")
         relevant_lines = [
             l for l in lines
-            if "mosaic" in l and ("body" in l or "Animation" in l or "Timer" in l)
+            if "coterm" in l and ("body" in l or "Animation" in l or "Timer" in l)
         ][:10]
         for line in relevant_lines:
             print(f"  {line.strip()[:100]}")

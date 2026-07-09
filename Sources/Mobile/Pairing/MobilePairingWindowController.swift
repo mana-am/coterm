@@ -13,10 +13,10 @@ final class MobilePairingWindowController: ReleasingWindowController {
     static let shared = MobilePairingWindowController()
 
     /// The pairing window's identifier. Listed in
-    /// `mosaicAuxiliaryWindowIdentifiers` (mosaicApp.swift) so the standard close
+    /// `cotermAuxiliaryWindowIdentifiers` (cotermApp.swift) so the standard close
     /// shortcut closes this window instead of a terminal tab in the main
     /// window behind it; referenced from the Cmd+W regression test.
-    static let windowIdentifier = "mosaic.mobilePairingWindow"
+    static let windowIdentifier = "coterm.mobilePairingWindow"
 
     private override init() {
         super.init()
@@ -44,7 +44,7 @@ final class MobilePairingWindowController: ReleasingWindowController {
 
     override func makeWindow() -> NSWindow {
         let root = MobilePairingView()
-            .mosaicFixedColorScheme()
+            .cotermFixedColorScheme()
         let hostingController = NSHostingController(rootView: root)
 
         let window = NSWindow(contentViewController: hostingController)

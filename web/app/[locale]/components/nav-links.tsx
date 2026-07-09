@@ -33,10 +33,10 @@ export function NavLinks() {
         {t("community")}
       </Link>
       <a
-        href="https://github.com/emergent-inc/mosaic"
+        href="https://github.com/emergent-inc/coterm"
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => posthog.capture("mosaicterm_github_clicked", { location: "navbar" })}
+        onClick={() => posthog.capture("coterm_github_clicked", { location: "navbar" })}
         className="hover:text-foreground transition-colors"
       >
         {t("github")}

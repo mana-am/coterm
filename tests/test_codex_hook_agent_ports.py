@@ -3,7 +3,7 @@
 E2E regression test for Codex hook agent PID registration and sidebar ports.
 
 Validates:
-1) `mosaic hooks codex session-start` records the inferred agent root PID.
+1) `coterm hooks codex session-start` records the inferred agent root PID.
 2) a dev server launched under that agent process tree appears in sidebar ports.
 3) the port disappears once the agent process tree exits.
 """
@@ -24,8 +24,8 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from claude_teams_test_utils import resolve_mosaic_cli
-from mosaic import mosaic, mosaicError
+from claude_teams_test_utils import resolve_coterm_cli
+from coterm import coterm, cotermError
 
 
 _PREFERRED_BIND_HOST = "127.0.0.1"
@@ -112,7 +112,7 @@ def _wait_for_lsof_listen_gone(port: int, timeout: float = 8.0) -> None:
     _wait_for(pred, timeout=timeout, interval=0.15, label=f"lsof no LISTEN for {port}")
 
 
-def _wait_for_port(client: mosaic, workspace_id: str, port: int, timeout: float = 18.0) -> dict[str, str]:
+def _wait_for_port(client: coterm, workspace_id: str, port: int, timeout: float = 18.0) -> dict[str, str]:
     def pred():
         state = _parse_sidebar_state(client.sidebar_state(tab=workspace_id))
         raw = state.get("ports", "")
@@ -127,7 +127,7 @@ def _wait_for_port(client: mosaic, workspace_id: str, port: int, timeout: float 
     return _wait_for(pred, timeout=timeout, interval=0.15, label=f"ports include {port}")
 
 
-def _wait_for_port_absent(client: mosaic, workspace_id: str, port: int, timeout: float = 18.0) -> dict[str, str]:
+def _wait_for_port_absent(client: coterm, workspace_id: str, port: int, timeout: float = 18.0) -> dict[str, str]:
     def pred():
         state = _parse_sidebar_state(client.sidebar_state(tab=workspace_id))
         raw = state.get("ports", "")
@@ -197,25 +197,25 @@ import sys
 import time
 from pathlib import Path
 
-host = os.environ["MOSAIC_TEST_BIND_HOST"]
-port = int(os.environ["MOSAIC_TEST_PORT"])
-cli_path = os.environ["MOSAIC_TEST_CLI_PATH"]
-socket_path = os.environ["MOSAIC_TEST_SOCKET_PATH"]
-workspace_id = os.environ["MOSAIC_WORKSPACE_ID"]
-surface_id = os.environ["MOSAIC_SURFACE_ID"]
-state_dir = os.environ["MOSAIC_AGENT_HOOK_STATE_DIR"]
-session_id = os.environ["MOSAIC_TEST_SESSION_ID"]
-cwd = os.environ["MOSAIC_TEST_CWD"]
-ready_file = Path(os.environ["MOSAIC_TEST_READY_FILE"])
-start_file = Path(os.environ["MOSAIC_TEST_START_FILE"])
-server_pid_file = Path(os.environ["MOSAIC_TEST_SERVER_PID_FILE"])
-server_log_file = Path(os.environ["MOSAIC_TEST_SERVER_LOG_FILE"])
+host = os.environ["COTERM_TEST_BIND_HOST"]
+port = int(os.environ["COTERM_TEST_PORT"])
+cli_path = os.environ["COTERM_TEST_CLI_PATH"]
+socket_path = os.environ["COTERM_TEST_SOCKET_PATH"]
+workspace_id = os.environ["COTERM_WORKSPACE_ID"]
+surface_id = os.environ["COTERM_SURFACE_ID"]
+state_dir = os.environ["COTERM_AGENT_HOOK_STATE_DIR"]
+session_id = os.environ["COTERM_TEST_SESSION_ID"]
+cwd = os.environ["COTERM_TEST_CWD"]
+ready_file = Path(os.environ["COTERM_TEST_READY_FILE"])
+start_file = Path(os.environ["COTERM_TEST_START_FILE"])
+server_pid_file = Path(os.environ["COTERM_TEST_SERVER_PID_FILE"])
+server_log_file = Path(os.environ["COTERM_TEST_SERVER_LOG_FILE"])
 
 hook_env = os.environ.copy()
-hook_env["MOSAIC_SOCKET_PATH"] = socket_path
-hook_env["MOSAIC_WORKSPACE_ID"] = workspace_id
-hook_env["MOSAIC_SURFACE_ID"] = surface_id
-hook_env["MOSAIC_AGENT_HOOK_STATE_DIR"] = state_dir
+hook_env["COTERM_SOCKET_PATH"] = socket_path
+hook_env["COTERM_WORKSPACE_ID"] = workspace_id
+hook_env["COTERM_SURFACE_ID"] = surface_id
+hook_env["COTERM_AGENT_HOOK_STATE_DIR"] = state_dir
 payload = json.dumps({"session_id": session_id, "cwd": cwd})
 result = subprocess.run(
     [cli_path, "--socket", socket_path, "hooks", "codex", "session-start"],
@@ -269,19 +269,19 @@ finally:
     )
 
     env = os.environ.copy()
-    env["MOSAIC_TEST_BIND_HOST"] = _PREFERRED_BIND_HOST
-    env["MOSAIC_TEST_PORT"] = str(port)
-    env["MOSAIC_TEST_CLI_PATH"] = cli_path
-    env["MOSAIC_TEST_SOCKET_PATH"] = socket_path
-    env["MOSAIC_WORKSPACE_ID"] = workspace_id
-    env["MOSAIC_SURFACE_ID"] = surface_id
-    env["MOSAIC_AGENT_HOOK_STATE_DIR"] = str(state_path.parent)
-    env["MOSAIC_TEST_SESSION_ID"] = session_id
-    env["MOSAIC_TEST_CWD"] = str(cwd)
-    env["MOSAIC_TEST_READY_FILE"] = str(ready_file)
-    env["MOSAIC_TEST_START_FILE"] = str(start_file)
-    env["MOSAIC_TEST_SERVER_PID_FILE"] = str(server_pid_file)
-    env["MOSAIC_TEST_SERVER_LOG_FILE"] = str(server_log_file)
+    env["COTERM_TEST_BIND_HOST"] = _PREFERRED_BIND_HOST
+    env["COTERM_TEST_PORT"] = str(port)
+    env["COTERM_TEST_CLI_PATH"] = cli_path
+    env["COTERM_TEST_SOCKET_PATH"] = socket_path
+    env["COTERM_WORKSPACE_ID"] = workspace_id
+    env["COTERM_SURFACE_ID"] = surface_id
+    env["COTERM_AGENT_HOOK_STATE_DIR"] = str(state_path.parent)
+    env["COTERM_TEST_SESSION_ID"] = session_id
+    env["COTERM_TEST_CWD"] = str(cwd)
+    env["COTERM_TEST_READY_FILE"] = str(ready_file)
+    env["COTERM_TEST_START_FILE"] = str(start_file)
+    env["COTERM_TEST_SERVER_PID_FILE"] = str(server_pid_file)
+    env["COTERM_TEST_SERVER_LOG_FILE"] = str(server_log_file)
 
     proc = subprocess.Popen(
         [sys.executable, str(launcher_script)],
@@ -301,14 +301,14 @@ def fail(message: str) -> int:
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         return fail(str(exc))
 
-    state_dir = Path(tempfile.gettempdir()) / f"mosaic_codex_hook_state_{os.getpid()}"
+    state_dir = Path(tempfile.gettempdir()) / f"coterm_codex_hook_state_{os.getpid()}"
     state_path = state_dir / "codex-hook-sessions.json"
     lock_path = Path(str(state_path) + ".lock")
-    base = Path(tempfile.gettempdir()) / f"mosaic_codex_ports_{os.getpid()}"
+    base = Path(tempfile.gettempdir()) / f"coterm_codex_ports_{os.getpid()}"
     launcher_procs: list[subprocess.Popen] = []
 
     try:
@@ -327,7 +327,7 @@ def main() -> int:
             if candidate not in ports:
                 ports.append(candidate)
 
-        with mosaic() as client:
+        with coterm() as client:
             workspace_id = client.new_workspace()
             client.select_workspace(workspace_id)
             surfaces = client.list_surfaces(tab=workspace_id)
@@ -401,7 +401,7 @@ def main() -> int:
             print("PASS: Codex hook agent PID registration keeps multiple agent-owned ports accurate")
             return 0
 
-    except (mosaicError, RuntimeError, AssertionError, ValueError) as exc:
+    except (cotermError, RuntimeError, AssertionError, ValueError) as exc:
         return fail(str(exc))
     finally:
         for launcher_proc in launcher_procs:

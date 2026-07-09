@@ -1,9 +1,9 @@
 import AppKit
 import Bonsplit
 import Combine
-import MosaicFoundation
-import MosaicWorkspaces
-import MosaicSettings
+import CotermFoundation
+import CotermWorkspaces
+import CotermSettings
 import SwiftUI
 
 #if DEBUG
@@ -934,7 +934,7 @@ final class FileExplorerContainerView: NSView {
         }
 #if DEBUG
         dlog(
-            "file.focus.host.attach win=\(window.windowNumber) canAccept=\(mosaicCanAcceptRightSidebarKeyboardFocus ? 1 : 0) " +
+            "file.focus.host.attach win=\(window.windowNumber) canAccept=\(cotermCanAcceptRightSidebarKeyboardFocus ? 1 : 0) " +
             "rows=\(outlineView.numberOfRows) hidden=\(isHiddenOrHasHiddenAncestor ? 1 : 0) " +
             "fr=\(fileExplorerDebugResponder(window.firstResponder))"
         )
@@ -1034,7 +1034,7 @@ final class FileExplorerContainerView: NSView {
 
     @discardableResult
     func focusSearchField() -> Bool {
-        guard let window, mosaicCanAcceptRightSidebarKeyboardFocus else {
+        guard let window, cotermCanAcceptRightSidebarKeyboardFocus else {
 #if DEBUG
             dlog(
                 "file.focus.search.end result=0 reason=unavailable " +
@@ -1062,14 +1062,14 @@ final class FileExplorerContainerView: NSView {
 #if DEBUG
         dlog(
             "file.focus.outline.begin win=\(window?.windowNumber ?? -1) " +
-            "canAccept=\(mosaicCanAcceptRightSidebarKeyboardFocus ? 1 : 0) " +
+            "canAccept=\(cotermCanAcceptRightSidebarKeyboardFocus ? 1 : 0) " +
             "hostHidden=\(isHiddenOrHasHiddenAncestor ? 1 : 0) scrollHidden=\(scrollView.isHidden ? 1 : 0) " +
             "outlineHidden=\(outlineView.isHiddenOrHasHiddenAncestor ? 1 : 0) " +
             "rows=\(outlineView.numberOfRows) selected=\(outlineView.selectedRow) " +
             "fr=\(fileExplorerDebugResponder(window?.firstResponder))"
         )
 #endif
-        guard let window, mosaicCanAcceptRightSidebarKeyboardFocus else {
+        guard let window, cotermCanAcceptRightSidebarKeyboardFocus else {
 #if DEBUG
             dlog(
                 "file.focus.outline.end result=0 reason=unavailable " +
@@ -1463,7 +1463,7 @@ final class FileExplorerContainerView: NSView {
         guard row >= 0, row < searchSnapshot.results.count else { return }
         let path = searchSnapshot.results[row].path
         // Editor/preferred-editor actions operate on local file paths via
-        // NSWorkspace; for non-local providers fall back to the mosaic preview.
+        // NSWorkspace; for non-local providers fall back to the coterm preview.
         guard coordinator.store.provider is LocalFileExplorerProvider else {
             coordinator.onOpenFilePreview(path)
             return
@@ -1475,7 +1475,7 @@ final class FileExplorerContainerView: NSView {
         openSelectedSearchResult()
     }
 
-    @objc private func contextMenuOpenSearchResultInMosaic(_ sender: NSMenuItem) {
+    @objc private func contextMenuOpenSearchResultInCoterm(_ sender: NSMenuItem) {
         guard let result = searchResult(forMenuItem: sender) else { return }
         coordinator.onOpenFilePreview(result.path)
     }
@@ -1607,14 +1607,14 @@ extension FileExplorerContainerView: NSSearchFieldDelegate, NSTableViewDataSourc
             searchResultsView.selectRowIndexes(IndexSet(integer: clickedRow), byExtendingSelection: false)
         }
 
-        let openInMosaicItem = NSMenuItem(
-            title: String(localized: "fileExplorer.contextMenu.openInMosaic", defaultValue: "Open in mosaic"),
-            action: #selector(contextMenuOpenSearchResultInMosaic(_:)),
+        let openInCotermItem = NSMenuItem(
+            title: String(localized: "fileExplorer.contextMenu.openInCoterm", defaultValue: "Open in Coterm"),
+            action: #selector(contextMenuOpenSearchResultInCoterm(_:)),
             keyEquivalent: ""
         )
-        openInMosaicItem.target = self
-        openInMosaicItem.representedObject = NSNumber(value: row)
-        menu.addItem(openInMosaicItem)
+        openInCotermItem.target = self
+        openInCotermItem.representedObject = NSNumber(value: row)
+        menu.addItem(openInCotermItem)
 
         FileExplorerExternalOpenMenuItems(
             fileURL: URL(fileURLWithPath: searchSnapshot.results[row].path),

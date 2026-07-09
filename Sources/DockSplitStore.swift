@@ -1,9 +1,9 @@
 import AppKit
 import Bonsplit
 import Combine
-import MosaicAppKitSupportUI
-import MosaicCore
-import MosaicTerminal
+import CotermAppKitSupportUI
+import CotermCore
+import Coterminal
 import Observation
 import SwiftUI
 
@@ -14,8 +14,8 @@ final class DockSplitStore: BonsplitDelegate {
     let bonsplitController: BonsplitController
 
     /// Which Dock this store backs: `.workspace` (per-workspace, seeded from the
-    /// project `.mosaic/dock.json`) or `.global` (one app-wide Dock seeded from
-    /// `~/.config/mosaic/dock.json` that persists everywhere). Drives config
+    /// project `.coterm/dock.json`) or `.global` (one app-wide Dock seeded from
+    /// `~/.config/coterm/dock.json` that persists everywhere). Drives config
     /// resolution and how cross-container moves resolve a reference window.
     let scope: DockScope
 
@@ -511,8 +511,8 @@ final class DockSplitStore: BonsplitDelegate {
         controlTitle: String?
     ) -> TerminalPanel {
         var resolvedEnvironment = environment
-        if let controlId { resolvedEnvironment["MOSAIC_DOCK_CONTROL_ID"] = controlId }
-        if let controlTitle { resolvedEnvironment["MOSAIC_DOCK_CONTROL_TITLE"] = controlTitle }
+        if let controlId { resolvedEnvironment["COTERM_DOCK_CONTROL_ID"] = controlId }
+        if let controlTitle { resolvedEnvironment["COTERM_DOCK_CONTROL_TITLE"] = controlTitle }
 
         let initialCommand: String?
         if let command, !command.isEmpty {
@@ -661,7 +661,7 @@ final class DockSplitStore: BonsplitDelegate {
 
     func trustAndReload() {
         if let trustRequest {
-            MosaicActionTrust.shared.trust(trustRequest.descriptor)
+            CotermActionTrust.shared.trust(trustRequest.descriptor)
         }
         reload()
     }
@@ -843,7 +843,7 @@ final class DockSplitStore: BonsplitDelegate {
     private func trustRequestIfNeeded(for resolution: DockConfigResolution) -> DockTrustRequest? {
         guard resolution.isProjectSource, let sourceURL = resolution.sourceURL else { return nil }
         let descriptor = Self.trustDescriptor(for: resolution)
-        guard !MosaicActionTrust.shared.isTrusted(descriptor) else { return nil }
+        guard !CotermActionTrust.shared.isTrusted(descriptor) else { return nil }
         return DockTrustRequest(descriptor: descriptor, configPath: sourceURL.path)
     }
 

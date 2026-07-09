@@ -1,9 +1,9 @@
 import AppKit
-import MosaicRemoteSession
+import CotermRemoteSession
 import Bonsplit
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
-import MosaicWorkspaces
+import CotermWorkspaces
 
 /// The surface-domain resume (`resume.set` / `.get` / `.clear`) and reporting
 /// (`report_tty` / `report_pwd` / `report_shell_state` / `ports_kick`) witnesses,
@@ -135,7 +135,7 @@ extension TerminalController {
         alert.informativeText = String(
             format: String(
                 localized: "surfaceResumeApproval.proposal.message",
-                defaultValue: "A process wants mosaic to keep this resume command for the current terminal:\n\n%@\n\nWorking directory: %@"
+                defaultValue: "A process wants coterm to keep this resume command for the current terminal:\n\n%@\n\nWorking directory: %@"
             ),
             binding.command,
             cwd

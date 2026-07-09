@@ -1,14 +1,14 @@
 # Fully data-driven custom sidebars: data, commands, hooks
 
-Goal for the release: an interpreted sidebar can **read all mosaic runtime state**, **invoke any mosaic command**, and **react to any mosaic event/hook**. This documents the real surface (grounded in the v2 dispatcher + event bus) and the architecture/waves to get there.
+Goal for the release: an interpreted sidebar can **read all coterm runtime state**, **invoke any coterm command**, and **react to any coterm event/hook**. This documents the real surface (grounded in the v2 dispatcher + event bus) and the architecture/waves to get there.
 
 ## The realization: one protocol already backs all three
 
-mosaic's v2 socket dispatcher (`TerminalController.processV2Command`, `Sources/TerminalController.swift:3335`) is the single source of truth for both reads and writes, and `MosaicEventBus` is the single source of truth for hooks. So we do not hand-maintain three parallel surfaces; we project the dispatcher + bus into the interpreter:
+coterm's v2 socket dispatcher (`TerminalController.processV2Command`, `Sources/TerminalController.swift:3335`) is the single source of truth for both reads and writes, and `CotermEventBus` is the single source of truth for hooks. So we do not hand-maintain three parallel surfaces; we project the dispatcher + bus into the interpreter:
 
-- **Commands (write)** — `mosaic(method, params)` already routes through `runV2CommandLine` → the full 248-method dispatcher. Every command is *already invokable*. What's missing is discoverability (a catalog), typed-param robustness, and capability scoping.
+- **Commands (write)** — `coterm(method, params)` already routes through `runV2CommandLine` → the full 248-method dispatcher. Every command is *already invokable*. What's missing is discoverability (a catalog), typed-param robustness, and capability scoping.
 - **Data (read)** — the dispatcher's query methods already assemble rich payloads. Project those into a `data` value tree instead of the current hand-built 4-key context.
-- **Hooks (events)** — `MosaicEventBus` already emits every lifecycle event with a uniform schema. Subscribe to all of it and surface it to the interpreter.
+- **Hooks (events)** — `CotermEventBus` already emits every lifecycle event with a uniform schema. Subscribe to all of it and surface it to the interpreter.
 
 ## Command surface (248 methods)
 
@@ -27,7 +27,7 @@ mosaic's v2 socket dispatcher (`TerminalController.processV2Command`, `Sources/T
 | auth | 4 | status/login/sign_out/begin_sign_in |
 | app/feedback/events/extension/file/markdown/session/settings/tab | 1–2 each | — |
 
-Full machine catalog: `mosaic capabilities` (method list) — should be generated into the authoring docs + skill so authors/agents know every method and its params.
+Full machine catalog: `coterm capabilities` (method list) — should be generated into the authoring docs + skill so authors/agents know every method and its params.
 
 ## Data surface (read)
 
@@ -41,11 +41,11 @@ Underlying model (`Workspace.swift:10243+`) carries even more per-workspace/per-
 
 **Gaps not yet queryable (need new exposure for "fully data-driven"):** agent/session process state (`agentPIDs`), per-surface shell activity (`panelShellActivityStates`), per-surface ports in `surface.list`, per-surface resume bindings in bulk, terminal TTY/process info, browser content state (URL/title outside `browser.*`), sidebar `statusEntries`/`metadataBlocks`.
 
-## Hook/event surface (MosaicEventBus)
+## Hook/event surface (CotermEventBus)
 
-Uniform event schema (`MosaicEventBus.swift:181`): type, protocol, version, boot_id, seq, id, **name**, **category**, source, occurred_at, workspace_id, surface_id, pane_id, window_id, payload.
+Uniform event schema (`CotermEventBus.swift:181`): type, protocol, version, boot_id, seq, id, **name**, **category**, source, occurred_at, workspace_id, surface_id, pane_id, window_id, payload.
 
-Emitted names by category (`MosaicEventPublishing.swift`):
+Emitted names by category (`CotermEventPublishing.swift`):
 - `workspace.*` — created, closed, selected, reordered, prompt_submitted
 - `surface.*` — created, closed, selected, focused
 - `pane.*` — created, closed, focused
@@ -53,7 +53,7 @@ Emitted names by category (`MosaicEventPublishing.swift`):
 - `window.*` — lifecycle
 - `workstream.*` — start / progress / complete
 
-Subscribe via `MosaicEventBus.subscribe(afterSequence:names:categories:)`; the socket `events` command streams them. Agent lifecycle hooks (`CLI/MosaicCLI+AgentHookDefinitions.swift`) exist for codex/grok/cursor/gemini/kiro/antigravity/hermes — session-start/prompt-submit/stop/notification/session-end/shell-exec — recorded to `~/.mosaicterm/{agent}-hook-sessions.json`.
+Subscribe via `CotermEventBus.subscribe(afterSequence:names:categories:)`; the socket `events` command streams them. Agent lifecycle hooks (`CLI/CotermCLI+AgentHookDefinitions.swift`) exist for codex/grok/cursor/gemini/kiro/antigravity/hermes — session-start/prompt-submit/stop/notification/session-end/shell-exec — recorded to `~/.coterm/{agent}-hook-sessions.json`.
 
 ## Architecture
 
@@ -61,23 +61,23 @@ Subscribe via `MosaicEventBus.subscribe(afterSequence:names:categories:)`; the s
 interpreted sidebar (.swift)
         │  reads                         │  writes               │  reacts
         ▼                                ▼                       ▼
-   data.* value tree            mosaic(method, params)        on(event) / event.*
+   data.* value tree            coterm(method, params)        on(event) / event.*
         │                                │                       │
    DataContextProvider          SidebarActionDispatch      EventBridge
         │  (projects)                    │ (already全)            │ (subscribes all)
-        └──────────────► TerminalController v2 dispatcher ◄───── MosaicEventBus
+        └──────────────► TerminalController v2 dispatcher ◄───── CotermEventBus
 ```
 
 - **DataContextProvider** (host): builds the `data` SwiftValue tree each refresh by reusing the same payload builders the v2 query methods use (workspace summary, extension snapshot, surface/pane/window/notification/feed/vm/auth). Exhaustive-by-construction: every field the dispatcher can return is projected. Lives in the app target (touches `TerminalController`/`Workspace`), feeds the package via the existing `dataContext` param.
-- **SidebarActionDispatch** (exists): `mosaic(method, params)` → `runV2CommandLine`. Extend param typing (numbers/bools/arrays), add a **capability scope** (allow/deny method globs) so untrusted authored sidebars can't call `auth.sign_out`/`browser.eval`/`vm.rm`.
-- **EventBridge** (host): one `MosaicEventBus.subscribe` over all names/categories; pushes `events.latest`, `events.recent[]`, per-category counts, and agent-hook lifecycle state into the data tree, and triggers a re-walk on each event (replacing/augmenting the 1s TimelineView tick with event-driven refresh). With the state engine (below), exposes author `on(event)` handlers.
+- **SidebarActionDispatch** (exists): `coterm(method, params)` → `runV2CommandLine`. Extend param typing (numbers/bools/arrays), add a **capability scope** (allow/deny method globs) so untrusted authored sidebars can't call `auth.sign_out`/`browser.eval`/`vm.rm`.
+- **EventBridge** (host): one `CotermEventBus.subscribe` over all names/categories; pushes `events.latest`, `events.recent[]`, per-category counts, and agent-hook lifecycle state into the data tree, and triggers a re-walk on each event (replacing/augmenting the 1s TimelineView tick with event-driven refresh). With the state engine (below), exposes author `on(event)` handlers.
 
 ## Waves
 
 - **Wave A — Full read surface (fully data-driven).** Replace the 4-key `customSidebarDataContext` with the `DataContextProvider` projecting all query payloads + the rich `Workspace` model fields. Additive, low-risk. Personas immediately populate with real data. Includes surfacing the current gaps (agent state, shell activity, per-surface ports) as new fields.
 - **Wave B — Events/hooks reactive.** EventBridge subscribes to the whole bus; expose `events.*` + agent-hook state; event-driven re-render. Surface every event name/category.
-- **Wave C — State engine + reactivity + input controls.** SwiftUI-surface roadmap Phase 2: a host-owned `@State`/`$binding` engine. Unlocks TextField/Toggle/Picker/Slider, write-actions beyond `mosaic()`, and author `on(event){…}` handlers. The largest lift; gates ~interactivity.
-- **Wave D — Command catalog + capability scoping + typed params.** Generate the full `mosaic capabilities` catalog into authoring docs and a Swift interpreter knowledge reference; add capability scoping (default-deny dangerous namespaces for untrusted sidebars); robust param coercion. Security gate for "all commands exposed."
+- **Wave C — State engine + reactivity + input controls.** SwiftUI-surface roadmap Phase 2: a host-owned `@State`/`$binding` engine. Unlocks TextField/Toggle/Picker/Slider, write-actions beyond `coterm()`, and author `on(event){…}` handlers. The largest lift; gates ~interactivity.
+- **Wave D — Command catalog + capability scoping + typed params.** Generate the full `coterm capabilities` catalog into authoring docs and a Swift interpreter knowledge reference; add capability scoping (default-deny dangerous namespaces for untrusted sidebars); robust param coercion. Security gate for "all commands exposed."
 - **Interleave — leaf SwiftUI views/modifiers** from `docs/swiftui-interpreter-surface.md` Phase 1 (List/Section/LazyVStack/Grid/Label/ProgressView/gradients/overlay-background/styles) so the richer data has richer views to render into.
 
 ## Open decision: scope of "all commands / all hooks" for authored sidebars

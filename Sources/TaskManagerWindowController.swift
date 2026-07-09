@@ -7,7 +7,7 @@ import SwiftUI
 final class TaskManagerWindowController: ReleasingWindowController {
     static let shared = TaskManagerWindowController()
 
-    private let model = MosaicTaskManagerModel()
+    private let model = CotermTaskManagerModel()
 
     private override init() {
         super.init()
@@ -25,10 +25,10 @@ final class TaskManagerWindowController: ReleasingWindowController {
             backing: .buffered,
             defer: false
         )
-        window.identifier = NSUserInterfaceItemIdentifier("mosaic.taskManager")
+        window.identifier = NSUserInterfaceItemIdentifier("coterm.taskManager")
         window.title = String(localized: "taskManager.windowTitle", defaultValue: "Task Manager")
         window.center()
-        window.contentView = NSHostingView(rootView: MosaicTaskManagerView(model: model))
+        window.contentView = NSHostingView(rootView: CotermTaskManagerView(model: model))
         AppDelegate.shared?.applyWindowDecorations(to: window)
         return window
     }
@@ -51,13 +51,13 @@ final class TaskManagerWindowController: ReleasingWindowController {
 
 @MainActor
 @Observable
-final class MosaicTaskManagerModel {
-    private(set) var snapshot = MosaicTaskManagerSnapshot.empty {
+final class CotermTaskManagerModel {
+    private(set) var snapshot = CotermTaskManagerSnapshot.empty {
         didSet { updateSortedRows() }
     }
     private(set) var isRefreshing = false
     private(set) var errorMessage: String?
-    private(set) var sortOrder = MosaicTaskManagerSortOrder.defaultOrder {
+    private(set) var sortOrder = CotermTaskManagerSortOrder.defaultOrder {
         didSet { updateSortedRows() }
     }
     var includesProcesses = false {
@@ -73,10 +73,10 @@ final class MosaicTaskManagerModel {
     private let refreshInterval: TimeInterval = 3.0
     private let terminationGraceInterval: TimeInterval = 2.0
 
-    private(set) var sortedRows: [MosaicTaskManagerRow] = []
-    private(set) var sortedAgentRows: [MosaicTaskManagerRow] = []
-    private(set) var sortedAggregateRows: [MosaicTaskManagerRow] = []
-    private(set) var sortedChildMemoryRows: [MosaicTaskManagerRow] = []
+    private(set) var sortedRows: [CotermTaskManagerRow] = []
+    private(set) var sortedAgentRows: [CotermTaskManagerRow] = []
+    private(set) var sortedAggregateRows: [CotermTaskManagerRow] = []
+    private(set) var sortedChildMemoryRows: [CotermTaskManagerRow] = []
 
     init() {
         updateSortedRows()
@@ -90,7 +90,7 @@ final class MosaicTaskManagerModel {
         snapshot.hasLoadedResourceUsage
     }
 
-    func sort(by column: MosaicTaskManagerSortOrder.Column) {
+    func sort(by column: CotermTaskManagerSortOrder.Column) {
         sortOrder = sortOrder.toggled(for: column)
     }
 
@@ -134,13 +134,13 @@ final class MosaicTaskManagerModel {
             do {
                 let payload = try await TerminalController.shared.taskManagerTopPayload(includeProcesses: includeProcesses)
                 guard !Task.isCancelled else { return }
-                let snapshot = MosaicTaskManagerSnapshot(payload: payload)
+                let snapshot = CotermTaskManagerSnapshot(payload: payload)
                 self?.snapshot = snapshot
                 self?.errorMessage = nil
             } catch {
                 guard !Task.isCancelled else { return }
                 #if DEBUG
-                mosaicDebugLog("taskManager.refresh.error \(String(describing: error))")
+                cotermDebugLog("taskManager.refresh.error \(String(describing: error))")
                 #endif
                 self?.errorMessage = String(
                     localized: "taskManager.refresh.error",
@@ -154,7 +154,7 @@ final class MosaicTaskManagerModel {
         }
     }
 
-    func viewBestTarget(for row: MosaicTaskManagerRow) {
+    func viewBestTarget(for row: CotermTaskManagerRow) {
         if row.canViewTerminal {
             viewTerminal(for: row)
         } else if row.canViewWorkspace {
@@ -162,7 +162,7 @@ final class MosaicTaskManagerModel {
         }
     }
 
-    func viewWorkspace(for row: MosaicTaskManagerRow) {
+    func viewWorkspace(for row: CotermTaskManagerRow) {
         guard let workspaceId = row.workspaceId,
               let appDelegate = AppDelegate.shared,
               let manager = appDelegate.tabManagerFor(tabId: workspaceId) else { return }
@@ -178,7 +178,7 @@ final class MosaicTaskManagerModel {
         flashSelection(workspaceId: workspaceId, surfaceId: row.surfaceId)
     }
 
-    func viewTerminal(for row: MosaicTaskManagerRow) {
+    func viewTerminal(for row: CotermTaskManagerRow) {
         guard let workspaceId = row.workspaceId,
               let terminalSurfaceId = row.terminalSurfaceId,
               let appDelegate = AppDelegate.shared,
@@ -195,7 +195,7 @@ final class MosaicTaskManagerModel {
         flashSelection(workspaceId: workspaceId, surfaceId: terminalSurfaceId)
     }
 
-    func killProcess(for row: MosaicTaskManagerRow) {
+    func killProcess(for row: CotermTaskManagerRow) {
         let processIds = row.killableProcessIds
         guard !processIds.isEmpty else { return }
         guard confirmKillProcess(row: row, processIds: processIds) else { return }
@@ -237,20 +237,20 @@ final class MosaicTaskManagerModel {
         }
     }
 
-    private func confirmKillProcess(row: MosaicTaskManagerRow, processIds: [Int]) -> Bool {
+    private func confirmKillProcess(row: CotermTaskManagerRow, processIds: [Int]) -> Bool {
         let alert = NSAlert()
         if processIds.count == 1, let processId = processIds.first {
             alert.messageText = String(localized: "taskManager.killProcess.title.one", defaultValue: "Kill process?")
             alert.informativeText = String(format: String(
                 localized: "taskManager.killProcess.message.one",
-                defaultValue: "Ask %@ (PID %lld) to terminate gracefully. mosaic will force-kill it if it is still running after a short grace period."
+                defaultValue: "Ask %@ (PID %lld) to terminate gracefully. coterm will force-kill it if it is still running after a short grace period."
             ), row.title, Int64(processId))
         } else {
             let pidList = processIds.map(String.init).joined(separator: ", ")
             alert.messageText = String(localized: "taskManager.killProcess.title.other", defaultValue: "Kill processes?")
             alert.informativeText = String(format: String(
                 localized: "taskManager.killProcess.message.other",
-                defaultValue: "Ask %lld processes to terminate gracefully. mosaic will force-kill remaining processes after a short grace period. PIDs: %@."
+                defaultValue: "Ask %lld processes to terminate gracefully. coterm will force-kill remaining processes after a short grace period. PIDs: %@."
             ), Int64(processIds.count), pidList)
         }
         alert.alertStyle = .warning

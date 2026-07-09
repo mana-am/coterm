@@ -6,7 +6,7 @@ import {
   nowSeconds,
   principalFromClaims,
 } from "./common";
-import { decodeMosaicPayload, signMosaicToken, verifyMosaicToken } from "./hmac";
+import { decodeCotermPayload, signCotermToken, verifyCotermToken } from "./hmac";
 import type {
   CollabAuthProvider,
   DirectoryMember,
@@ -71,7 +71,7 @@ export class HmacAuthProvider implements CollabAuthProvider {
       this.cache.delete(token);
     }
 
-    const claims = await verifyMosaicToken<NativeSessionClaims>(token, this.secret);
+    const claims = await verifyCotermToken<NativeSessionClaims>(token, this.secret);
     if (claims === null) return null;
     if (claims.kind !== "access") return null; // reject refresh tokens, grants, descriptors
     if (typeof claims.exp === "number" && claims.exp <= nowSeconds()) return null;
@@ -86,7 +86,7 @@ export class HmacAuthProvider implements CollabAuthProvider {
   sessionExpiryMs(request: Request): number | null {
     const token = bearerToken(request);
     if (!token) return null;
-    const claims = decodeMosaicPayload<NativeSessionClaims>(token);
+    const claims = decodeCotermPayload<NativeSessionClaims>(token);
     return claims ? claimsExpiryMs(claims) : null;
   }
 
@@ -101,11 +101,11 @@ export class HmacAuthProvider implements CollabAuthProvider {
 
   async mintSessionDescriptor(claims: SessionDescriptorClaims): Promise<string> {
     const envelope: DescriptorEnvelope = { ...claims, t: "descriptor" };
-    return signMosaicToken(envelope, this.secret);
+    return signCotermToken(envelope, this.secret);
   }
 
   async verifySessionDescriptor(token: string): Promise<SessionDescriptorClaims | null> {
-    const envelope = await verifyMosaicToken<DescriptorEnvelope>(token, this.secret);
+    const envelope = await verifyCotermToken<DescriptorEnvelope>(token, this.secret);
     if (envelope === null || envelope.t !== "descriptor") return null;
     const { t: _t, ...claims } = envelope;
     return claims;
@@ -113,11 +113,11 @@ export class HmacAuthProvider implements CollabAuthProvider {
 
   async mintGrant(claims: GrantClaims): Promise<string> {
     const envelope: GrantEnvelope = { ...claims, t: "grant" };
-    return signMosaicToken(envelope, this.secret);
+    return signCotermToken(envelope, this.secret);
   }
 
   async verifyGrant(token: string): Promise<GrantClaims | null> {
-    const envelope = await verifyMosaicToken<GrantEnvelope>(token, this.secret);
+    const envelope = await verifyCotermToken<GrantEnvelope>(token, this.secret);
     if (envelope === null || envelope.t !== "grant") return null;
     const { t: _t, ...claims } = envelope;
     return claims;

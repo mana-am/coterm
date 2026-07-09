@@ -18,77 +18,77 @@ enum RemoteInteractiveShellBootstrapBuilder {
         )
         var zshShellLines = commonShellExportLines
         zshShellLines.append(
-            #"if [ "${MOSAIC_SHELL_INTEGRATION:-1}" != "0" ] && [ -r "${MOSAIC_SHELL_INTEGRATION_DIR}/mosaic-zsh-integration.zsh" ]; then . "${MOSAIC_SHELL_INTEGRATION_DIR}/mosaic-zsh-integration.zsh"; fi"#
+            #"if [ "${COTERM_SHELL_INTEGRATION:-1}" != "0" ] && [ -r "${COTERM_SHELL_INTEGRATION_DIR}/coterm-zsh-integration.zsh" ]; then . "${COTERM_SHELL_INTEGRATION_DIR}/coterm-zsh-integration.zsh"; fi"#
         )
         var bashShellLines = commonShellExportLines
         bashShellLines.append(
-            #"if [ "${MOSAIC_SHELL_INTEGRATION:-1}" != "0" ] && [ -r "${MOSAIC_SHELL_INTEGRATION_DIR}/mosaic-bash-integration.bash" ]; then . "${MOSAIC_SHELL_INTEGRATION_DIR}/mosaic-bash-integration.bash"; fi"#
+            #"if [ "${COTERM_SHELL_INTEGRATION:-1}" != "0" ] && [ -r "${COTERM_SHELL_INTEGRATION_DIR}/coterm-bash-integration.bash" ]; then . "${COTERM_SHELL_INTEGRATION_DIR}/coterm-bash-integration.bash"; fi"#
         )
         let zshBootstrap = RemoteRelayZshBootstrap(shellStateDir: shellStateDir)
         let relayWarmupLines = relayWarmupLines(remoteRelayPort: remoteRelayPort)
 
         var outerLines: [String] = [
-            "mkdir -p \"$HOME/.mosaic/relay\"",
-            "mosaic_shell_dir=\"\(shellStateDir)\"",
-            "mkdir -p \"$mosaic_shell_dir\"",
+            "mkdir -p \"$HOME/.coterm/relay\"",
+            "coterm_shell_dir=\"\(shellStateDir)\"",
+            "mkdir -p \"$coterm_shell_dir\"",
         ]
         if let bundledZshIntegration {
             outerLines += [
-                "cat > \"$mosaic_shell_dir/mosaic-zsh-integration.zsh\" <<'MOSAICMOSAICZSH'",
+                "cat > \"$coterm_shell_dir/coterm-zsh-integration.zsh\" <<'COTERMCOTERMZSH'",
                 bundledZshIntegration,
-                "MOSAICMOSAICZSH",
+                "COTERMCOTERMZSH",
             ]
         }
         if let bundledBashIntegration {
             outerLines += [
-                "cat > \"$mosaic_shell_dir/mosaic-bash-integration.bash\" <<'MOSAICMOSAICBASH'",
+                "cat > \"$coterm_shell_dir/coterm-bash-integration.bash\" <<'COTERMCOTERMBASH'",
                 bundledBashIntegration,
-                "MOSAICMOSAICBASH",
+                "COTERMCOTERMBASH",
             ]
         }
         if let bundledFishIntegration {
             outerLines += [
-                "mkdir -p \"$mosaic_shell_dir/fish\"",
-                "cat > \"$mosaic_shell_dir/fish/config.fish\" <<'MOSAICMOSAICFISH'",
+                "mkdir -p \"$coterm_shell_dir/fish\"",
+                "cat > \"$coterm_shell_dir/fish/config.fish\" <<'COTERMCOTERMFISH'",
                 bundledFishIntegration,
-                "MOSAICMOSAICFISH",
+                "COTERMCOTERMFISH",
             ]
         }
         outerLines.append(contentsOf: commonShellExportLines)
         outerLines += [
-            "MOSAIC_LOGIN_SHELL=\"${SHELL:-/bin/zsh}\"",
-            "case \"${MOSAIC_LOGIN_SHELL##*/}\" in",
+            "COTERM_LOGIN_SHELL=\"${SHELL:-/bin/zsh}\"",
+            "case \"${COTERM_LOGIN_SHELL##*/}\" in",
             "  zsh)",
-            "    cat > \"$mosaic_shell_dir/.zshenv\" <<'MOSAICZSHENV'",
+            "    cat > \"$coterm_shell_dir/.zshenv\" <<'COTERMZSHENV'",
         ]
         outerLines.append(contentsOf: zshBootstrap.zshEnvLines)
         outerLines += [
-            "MOSAICZSHENV",
-            "    cat > \"$mosaic_shell_dir/.zprofile\" <<'MOSAICZSHPROFILE'",
+            "COTERMZSHENV",
+            "    cat > \"$coterm_shell_dir/.zprofile\" <<'COTERMZSHPROFILE'",
         ]
         outerLines.append(contentsOf: zshBootstrap.zshProfileLines)
         outerLines += [
-            "MOSAICZSHPROFILE",
-            "    cat > \"$mosaic_shell_dir/.zshrc\" <<'MOSAICZSHRC'",
+            "COTERMZSHPROFILE",
+            "    cat > \"$coterm_shell_dir/.zshrc\" <<'COTERMZSHRC'",
         ]
         outerLines.append(contentsOf: zshBootstrap.zshRCLines(commonShellLines: zshShellLines))
         outerLines += [
-            "MOSAICZSHRC",
-            "    cat > \"$mosaic_shell_dir/.zlogin\" <<'MOSAICZSHLOGIN'",
+            "COTERMZSHRC",
+            "    cat > \"$coterm_shell_dir/.zlogin\" <<'COTERMZSHLOGIN'",
         ]
         outerLines.append(contentsOf: zshBootstrap.zshLoginLines)
         outerLines += [
-            "MOSAICZSHLOGIN",
-            "    chmod 600 \"$mosaic_shell_dir/.zshenv\" \"$mosaic_shell_dir/.zprofile\" \"$mosaic_shell_dir/.zshrc\" \"$mosaic_shell_dir/.zlogin\" >/dev/null 2>&1 || true",
+            "COTERMZSHLOGIN",
+            "    chmod 600 \"$coterm_shell_dir/.zshenv\" \"$coterm_shell_dir/.zprofile\" \"$coterm_shell_dir/.zshrc\" \"$coterm_shell_dir/.zlogin\" >/dev/null 2>&1 || true",
         ]
         outerLines.append(contentsOf: relayWarmupLines.map { "    " + $0 })
         outerLines += [
-            "    export MOSAIC_REAL_ZDOTDIR=\"${ZDOTDIR:-$HOME}\"",
-            "    export ZDOTDIR=\"$mosaic_shell_dir\"",
-            "    exec \"$MOSAIC_LOGIN_SHELL\" -il",
+            "    export COTERM_REAL_ZDOTDIR=\"${ZDOTDIR:-$HOME}\"",
+            "    export ZDOTDIR=\"$coterm_shell_dir\"",
+            "    exec \"$COTERM_LOGIN_SHELL\" -il",
             "    ;;",
             "  bash)",
-            "    cat > \"$mosaic_shell_dir/.bashrc\" <<'MOSAICBASHRC'",
+            "    cat > \"$coterm_shell_dir/.bashrc\" <<'COTERMBASHRC'",
         ]
         outerLines.append(contentsOf: [
             "if [ -f \"$HOME/.bash_profile\" ]; then",
@@ -101,26 +101,26 @@ enum RemoteInteractiveShellBootstrapBuilder {
             "[ -f \"$HOME/.bashrc\" ] && . \"$HOME/.bashrc\"",
         ] + bashShellLines)
         outerLines += [
-            "MOSAICBASHRC",
-            "    chmod 600 \"$mosaic_shell_dir/.bashrc\" >/dev/null 2>&1 || true",
+            "COTERMBASHRC",
+            "    chmod 600 \"$coterm_shell_dir/.bashrc\" >/dev/null 2>&1 || true",
         ]
         outerLines.append(contentsOf: relayWarmupLines.map { "    " + $0 })
         outerLines += [
-            "    exec \"$MOSAIC_LOGIN_SHELL\" --rcfile \"$mosaic_shell_dir/.bashrc\" -i",
+            "    exec \"$COTERM_LOGIN_SHELL\" --rcfile \"$coterm_shell_dir/.bashrc\" -i",
             "    ;;",
             "  fish)",
         ]
         outerLines.append(contentsOf: relayWarmupLines.map { "    " + $0 })
         outerLines += [
-            "    export MOSAIC_FISH_INTEGRATION_FILE=\"$mosaic_shell_dir/fish/config.fish\"",
-            "    export MOSAIC_FISH_USER_CONFIG_ALREADY_LOADED=1",
-            "    exec \"$MOSAIC_LOGIN_SHELL\" -il --init-command 'source \"$MOSAIC_FISH_INTEGRATION_FILE\"'",
+            "    export COTERM_FISH_INTEGRATION_FILE=\"$coterm_shell_dir/fish/config.fish\"",
+            "    export COTERM_FISH_USER_CONFIG_ALREADY_LOADED=1",
+            "    exec \"$COTERM_LOGIN_SHELL\" -il --init-command 'source \"$COTERM_FISH_INTEGRATION_FILE\"'",
             "    ;;",
             "  *)",
         ]
         outerLines.append(contentsOf: relayWarmupLines)
         outerLines += [
-            "exec \"$MOSAIC_LOGIN_SHELL\" -i",
+            "exec \"$COTERM_LOGIN_SHELL\" -i",
             ";;",
             "esac",
         ]
@@ -179,21 +179,21 @@ enum RemoteInteractiveShellBootstrapBuilder {
         var lines = terminalSetupLines(terminfoSource: terminfoSource)
         lines.append(contentsOf: RemoteShellEnvironment.utf8LocaleSetupLines())
         lines.append(contentsOf: shellExportLines(shellFeatures: shellFeatures))
-        lines.append("export PATH=\"$HOME/.mosaic/bin:$PATH\"")
-        lines.append("export MOSAIC_BUNDLED_CLI_PATH=\"$HOME/.mosaic/bin/mosaic\"")
-        lines.append("export MOSAIC_SHELL_INTEGRATION_DIR=\"\(shellStateDir)\"")
+        lines.append("export PATH=\"$HOME/.coterm/bin:$PATH\"")
+        lines.append("export COTERM_BUNDLED_CLI_PATH=\"$HOME/.coterm/bin/coterm\"")
+        lines.append("export COTERM_SHELL_INTEGRATION_DIR=\"\(shellStateDir)\"")
         if let relaySocket {
-            lines.append("export MOSAIC_SOCKET_PATH=\(relaySocket)")
+            lines.append("export COTERM_SOCKET_PATH=\(relaySocket)")
         }
         // The assignment placeholders are replaced by `ssh-pty-attach` before
         // this script runs. Split the sentinel patterns so a missed replacement
         // does not export literal placeholder IDs into the remote shell.
         lines.append(contentsOf: [
-            "mosaic_workspace_id='__MOSAIC_WORKSPACE_ID__'",
-            "case \"$mosaic_workspace_id\" in \"\"|'__MOSAIC_''WORKSPACE_ID__') ;; *) export MOSAIC_WORKSPACE_ID=\"$mosaic_workspace_id\"; export MOSAIC_TAB_ID=\"$mosaic_workspace_id\" ;; esac",
-            "mosaic_surface_id='__MOSAIC_SURFACE_ID__'",
-            "case \"$mosaic_surface_id\" in \"\"|'__MOSAIC_''SURFACE_ID__') ;; *) export MOSAIC_SURFACE_ID=\"$mosaic_surface_id\"; export MOSAIC_PANEL_ID=\"$mosaic_surface_id\" ;; esac",
-            "unset mosaic_workspace_id mosaic_surface_id",
+            "coterm_workspace_id='__COTERM_WORKSPACE_ID__'",
+            "case \"$coterm_workspace_id\" in \"\"|'__COTERM_''WORKSPACE_ID__') ;; *) export COTERM_WORKSPACE_ID=\"$coterm_workspace_id\"; export COTERM_TAB_ID=\"$coterm_workspace_id\" ;; esac",
+            "coterm_surface_id='__COTERM_SURFACE_ID__'",
+            "case \"$coterm_surface_id\" in \"\"|'__COTERM_''SURFACE_ID__') ;; *) export COTERM_SURFACE_ID=\"$coterm_surface_id\"; export COTERM_PANEL_ID=\"$coterm_surface_id\" ;; esac",
+            "unset coterm_workspace_id coterm_surface_id",
             "hash -r >/dev/null 2>&1 || true",
             "rehash >/dev/null 2>&1 || true",
         ])
@@ -207,11 +207,11 @@ enum RemoteInteractiveShellBootstrapBuilder {
             // Without a bundled terminfo to install we can only probe what the
             // remote already has and fall back to a universally-present entry.
             return [
-                "mosaic_term='xterm-256color'",
+                "coterm_term='xterm-256color'",
                 "if command -v infocmp >/dev/null 2>&1 && infocmp xterm-ghostty >/dev/null 2>&1; then",
-                "  mosaic_term='xterm-ghostty'",
+                "  coterm_term='xterm-ghostty'",
                 "fi",
-                "export TERM=\"$mosaic_term\"",
+                "export TERM=\"$coterm_term\"",
             ]
         }
         // Install the bundled xterm-ghostty terminfo *synchronously*, before
@@ -224,44 +224,44 @@ enum RemoteInteractiveShellBootstrapBuilder {
         // and garble output (#6352). Here we compile into a private temp
         // directory on the same filesystem as ~/.terminfo, then move each
         // compiled entry into place with an atomic rename, so a concurrent reader
-        // in another mosaic ssh session sharing $HOME never observes a partially
+        // in another coterm ssh session sharing $HOME never observes a partially
         // written database. The temp directory comes from `mktemp` when present,
         // otherwise a per-process `$$` directory (unique among live processes) so
         // the atomic-rename path applies even without `mktemp` — no branch ever
         // compiles terminfo directly into ~/.terminfo.
         return [
-            "mosaic_term='xterm-256color'",
+            "coterm_term='xterm-256color'",
             "if command -v infocmp >/dev/null 2>&1 && infocmp xterm-ghostty >/dev/null 2>&1; then",
-            "  mosaic_term='xterm-ghostty'",
+            "  coterm_term='xterm-ghostty'",
             "elif command -v tic >/dev/null 2>&1; then",
             "  mkdir -p \"$HOME/.terminfo\" 2>/dev/null",
-            "  mosaic_ti_tmp=$(mktemp -d \"$HOME/.terminfo.mosaic.XXXXXX\" 2>/dev/null) || mosaic_ti_tmp=''",
-            "  if [ -z \"$mosaic_ti_tmp\" ]; then",
-            "    mosaic_ti_tmp=\"$HOME/.terminfo.mosaic.$$\"",
-            "    rm -rf \"$mosaic_ti_tmp\" 2>/dev/null",
-            "    mkdir \"$mosaic_ti_tmp\" 2>/dev/null || mosaic_ti_tmp=''",
+            "  coterm_ti_tmp=$(mktemp -d \"$HOME/.terminfo.coterm.XXXXXX\" 2>/dev/null) || coterm_ti_tmp=''",
+            "  if [ -z \"$coterm_ti_tmp\" ]; then",
+            "    coterm_ti_tmp=\"$HOME/.terminfo.coterm.$$\"",
+            "    rm -rf \"$coterm_ti_tmp\" 2>/dev/null",
+            "    mkdir \"$coterm_ti_tmp\" 2>/dev/null || coterm_ti_tmp=''",
             "  fi",
             "  {",
-            "    cat <<'MOSAICTERMINFO'",
+            "    cat <<'COTERMINFO'",
             trimmedTerminfoSource,
-            "MOSAICTERMINFO",
+            "COTERMINFO",
             "  } | {",
-            "    if [ -n \"$mosaic_ti_tmp\" ] && tic -x -o \"$mosaic_ti_tmp\" - >/dev/null 2>&1; then",
-            "      find \"$mosaic_ti_tmp\" -type f 2>/dev/null | while IFS= read -r mosaic_ti_file; do",
-            "        mosaic_ti_rel=${mosaic_ti_file#\"$mosaic_ti_tmp\"/}",
-            "        mosaic_ti_dest=\"$HOME/.terminfo/$mosaic_ti_rel\"",
-            "        mkdir -p \"$(dirname \"$mosaic_ti_dest\")\" 2>/dev/null",
-            "        mv -f \"$mosaic_ti_file\" \"$mosaic_ti_dest\" 2>/dev/null || cp -f \"$mosaic_ti_file\" \"$mosaic_ti_dest\" 2>/dev/null",
+            "    if [ -n \"$coterm_ti_tmp\" ] && tic -x -o \"$coterm_ti_tmp\" - >/dev/null 2>&1; then",
+            "      find \"$coterm_ti_tmp\" -type f 2>/dev/null | while IFS= read -r coterm_ti_file; do",
+            "        coterm_ti_rel=${coterm_ti_file#\"$coterm_ti_tmp\"/}",
+            "        coterm_ti_dest=\"$HOME/.terminfo/$coterm_ti_rel\"",
+            "        mkdir -p \"$(dirname \"$coterm_ti_dest\")\" 2>/dev/null",
+            "        mv -f \"$coterm_ti_file\" \"$coterm_ti_dest\" 2>/dev/null || cp -f \"$coterm_ti_file\" \"$coterm_ti_dest\" 2>/dev/null",
             "      done",
             "    fi",
             "  }",
-            "  [ -n \"$mosaic_ti_tmp\" ] && rm -rf \"$mosaic_ti_tmp\" 2>/dev/null",
+            "  [ -n \"$coterm_ti_tmp\" ] && rm -rf \"$coterm_ti_tmp\" 2>/dev/null",
             "  if infocmp xterm-ghostty >/dev/null 2>&1; then",
-            "    mosaic_term='xterm-ghostty'",
+            "    coterm_term='xterm-ghostty'",
             "  fi",
-            "  unset mosaic_ti_tmp mosaic_ti_file mosaic_ti_rel mosaic_ti_dest 2>/dev/null || true",
+            "  unset coterm_ti_tmp coterm_ti_file coterm_ti_rel coterm_ti_dest 2>/dev/null || true",
             "fi",
-            "export TERM=\"$mosaic_term\"",
+            "export TERM=\"$coterm_term\"",
         ]
     }
 
@@ -292,33 +292,33 @@ enum RemoteInteractiveShellBootstrapBuilder {
             return []
         }
         return [
-            "mosaic_relay_cli=\"${MOSAIC_BUNDLED_CLI_PATH:-$HOME/.mosaic/bin/mosaic}\"",
-            "if [ ! -x \"$mosaic_relay_cli\" ]; then mosaic_relay_cli=\"$(command -v mosaic 2>/dev/null || true)\"; fi",
-            "mosaic_relay_tty=\"${MOSAIC_BOOTSTRAP_TTY:-}\"",
-            "if [ -z \"$mosaic_relay_tty\" ]; then mosaic_relay_tty=\"$(tty 2>/dev/null || true)\"; fi",
-            "mosaic_relay_tty=\"${mosaic_relay_tty##*/}\"",
-            "if [ -n \"$mosaic_relay_tty\" ] && [ \"$mosaic_relay_tty\" != \"not a tty\" ]; then",
-            "  mkdir -p \"$HOME/.mosaic/relay\" >/dev/null 2>&1 || true",
-            "  printf '%s' \"$mosaic_relay_tty\" > \"$HOME/.mosaic/relay/\(remoteRelayPort).tty\" 2>/dev/null || true",
+            "coterm_relay_cli=\"${COTERM_BUNDLED_CLI_PATH:-$HOME/.coterm/bin/coterm}\"",
+            "if [ ! -x \"$coterm_relay_cli\" ]; then coterm_relay_cli=\"$(command -v coterm 2>/dev/null || true)\"; fi",
+            "coterm_relay_tty=\"${COTERM_BOOTSTRAP_TTY:-}\"",
+            "if [ -z \"$coterm_relay_tty\" ]; then coterm_relay_tty=\"$(tty 2>/dev/null || true)\"; fi",
+            "coterm_relay_tty=\"${coterm_relay_tty##*/}\"",
+            "if [ -n \"$coterm_relay_tty\" ] && [ \"$coterm_relay_tty\" != \"not a tty\" ]; then",
+            "  mkdir -p \"$HOME/.coterm/relay\" >/dev/null 2>&1 || true",
+            "  printf '%s' \"$coterm_relay_tty\" > \"$HOME/.coterm/relay/\(remoteRelayPort).tty\" 2>/dev/null || true",
             "fi",
-            "if [ -n \"$mosaic_relay_cli\" ] && [ -n \"$MOSAIC_WORKSPACE_ID\" ] && [ -n \"$mosaic_relay_tty\" ] && [ \"$mosaic_relay_tty\" != \"not a tty\" ]; then",
+            "if [ -n \"$coterm_relay_cli\" ] && [ -n \"$COTERM_WORKSPACE_ID\" ] && [ -n \"$coterm_relay_tty\" ] && [ \"$coterm_relay_tty\" != \"not a tty\" ]; then",
             "  (",
-            "    mosaic_relay_report_tty=\"{\\\"workspace_id\\\":\\\"$MOSAIC_WORKSPACE_ID\\\",\\\"tty_name\\\":\\\"$mosaic_relay_tty\\\"}\"",
-            "    mosaic_relay_ports_kick=\"{\\\"workspace_id\\\":\\\"$MOSAIC_WORKSPACE_ID\\\",\\\"reason\\\":\\\"command\\\"}\"",
-            "    if [ -n \"$MOSAIC_SURFACE_ID\" ]; then",
-            "      mosaic_relay_report_tty=\"{\\\"workspace_id\\\":\\\"$MOSAIC_WORKSPACE_ID\\\",\\\"surface_id\\\":\\\"$MOSAIC_SURFACE_ID\\\",\\\"tty_name\\\":\\\"$mosaic_relay_tty\\\"}\"",
-            "      mosaic_relay_ports_kick=\"{\\\"workspace_id\\\":\\\"$MOSAIC_WORKSPACE_ID\\\",\\\"surface_id\\\":\\\"$MOSAIC_SURFACE_ID\\\",\\\"reason\\\":\\\"command\\\"}\"",
+            "    coterm_relay_report_tty=\"{\\\"workspace_id\\\":\\\"$COTERM_WORKSPACE_ID\\\",\\\"tty_name\\\":\\\"$coterm_relay_tty\\\"}\"",
+            "    coterm_relay_ports_kick=\"{\\\"workspace_id\\\":\\\"$COTERM_WORKSPACE_ID\\\",\\\"reason\\\":\\\"command\\\"}\"",
+            "    if [ -n \"$COTERM_SURFACE_ID\" ]; then",
+            "      coterm_relay_report_tty=\"{\\\"workspace_id\\\":\\\"$COTERM_WORKSPACE_ID\\\",\\\"surface_id\\\":\\\"$COTERM_SURFACE_ID\\\",\\\"tty_name\\\":\\\"$coterm_relay_tty\\\"}\"",
+            "      coterm_relay_ports_kick=\"{\\\"workspace_id\\\":\\\"$COTERM_WORKSPACE_ID\\\",\\\"surface_id\\\":\\\"$COTERM_SURFACE_ID\\\",\\\"reason\\\":\\\"command\\\"}\"",
             "    fi",
-            "    \"$mosaic_relay_cli\" rpc surface.report_tty \"$mosaic_relay_report_tty\" >/dev/null 2>&1 || true",
-            "    \"$mosaic_relay_cli\" rpc surface.ports_kick \"$mosaic_relay_ports_kick\" >/dev/null 2>&1 || true",
+            "    \"$coterm_relay_cli\" rpc surface.report_tty \"$coterm_relay_report_tty\" >/dev/null 2>&1 || true",
+            "    \"$coterm_relay_cli\" rpc surface.ports_kick \"$coterm_relay_ports_kick\" >/dev/null 2>&1 || true",
             "  ) </dev/null >/dev/null 2>&1 &",
             "fi",
-            "unset MOSAIC_BOOTSTRAP_TTY mosaic_relay_cli mosaic_relay_tty mosaic_relay_report_tty mosaic_relay_ports_kick",
+            "unset COTERM_BOOTSTRAP_TTY coterm_relay_cli coterm_relay_tty coterm_relay_report_tty coterm_relay_ports_kick",
         ]
     }
 
     private static func shellStateDirForRemoteRelayPort(_ remoteRelayPort: Int) -> String {
-        "$HOME/.mosaic/relay/\(max(remoteRelayPort, 0)).shell"
+        "$HOME/.coterm/relay/\(max(remoteRelayPort, 0)).shell"
     }
 
     private static func normalizedEnvValue(_ value: String?) -> String? {

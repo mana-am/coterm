@@ -13,7 +13,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-PROJECT_FILE="$ROOT_DIR/mosaic.xcodeproj/project.pbxproj"
+PROJECT_FILE="$ROOT_DIR/coterm.xcodeproj/project.pbxproj"
 
 if [[ ! -f "$PROJECT_FILE" ]]; then
   echo "FAIL: $PROJECT_FILE not found" >&2
@@ -35,7 +35,7 @@ if [[ "$MISMATCHED" != "1" ]]; then
   exit 1
 fi
 
-LATEST_APPCAST_URL="${MOSAIC_STABLE_APPCAST_URL:-https://updates.mosaic.inc/stable/appcast.xml}"
+LATEST_APPCAST_URL="${COTERM_STABLE_APPCAST_URL:-https://updates.coterm.cc/stable/appcast.xml}"
 PUBLISHED_BUILD=$(curl -fsSL --max-time 15 \
   "$LATEST_APPCAST_URL" 2>/dev/null \
   | sed -n 's#.*<sparkle:version>\([0-9][0-9]*\)</sparkle:version>.*#\1#p' \

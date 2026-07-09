@@ -7,11 +7,11 @@ extension BrowserPanel {
             NSSound.beep()
             return
         }
-        guard let webView = webView as? MosaicWebView else {
+        guard let webView = webView as? CotermWebView else {
             NSSound.beep()
             return
         }
-        let traceID = MosaicWebView.makeContextDownloadTraceID(prefix: "pdfdl")
+        let traceID = CotermWebView.makeContextDownloadTraceID(prefix: "pdfdl")
         webView.downloadURLViaSession(
             url,
             suggestedFilename: nil,
@@ -27,6 +27,6 @@ extension BrowserPanel {
             NSSound.beep()
             return
         }
-        webView.mosaicRunPrintOperation()
+        webView.cotermRunPrintOperation()
     }
 }

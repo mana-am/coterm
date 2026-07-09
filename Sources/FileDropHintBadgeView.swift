@@ -1,5 +1,5 @@
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 
 @MainActor
 final class FileDropHintBadgeView: NSView {

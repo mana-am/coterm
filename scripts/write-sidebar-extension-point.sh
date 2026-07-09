@@ -4,9 +4,9 @@ set -euo pipefail
 # Emits the host's Sidebar ExtensionKit point declaration for Xcode 14-era
 # ExtensionKit. The point id may be scoped per tagged dev build.
 
-POINT_ID="${MOSAIC_SIDEBAR_EXTENSION_POINT_ID:-mosaic.com.emergent.app.mosaic.sidebar}"
+POINT_ID="${COTERM_SIDEBAR_EXTENSION_POINT_ID:-coterm.com.emergent.app.coterm.sidebar}"
 if [[ -z "$POINT_ID" ]]; then
-  POINT_ID="mosaic.com.emergent.app.mosaic.sidebar"
+  POINT_ID="coterm.com.emergent.app.coterm.sidebar"
 fi
 
 EXTENSIONS_DIR="${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Extensions"

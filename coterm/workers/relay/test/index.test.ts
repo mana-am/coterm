@@ -1,28 +1,33 @@
 import { expect, test } from "bun:test";
 import { collaborationFetch, type CollaborationWorkerEnv } from "../src/handler";
+import { sha256Hex } from "../src/preview-protocol";
 
 class FakeSessionStub {
   createdSessionCode: string | null = null;
+  shareSecretHash: string | null = null;
   fetchRequests: Request[] = [];
   createAttempts: string[] = [];
   claimExistingSession = false;
 
-  async create(sessionCode: string) {
+  async create(sessionCode: string, shareSecret: string) {
     this.createAttempts.push(sessionCode);
     if (this.createdSessionCode !== null || this.claimExistingSession) {
       return {
         metadata: {
           sessionID: this.createdSessionCode ?? sessionCode,
           sessionCode: this.createdSessionCode ?? sessionCode,
+          shareSecretHash: this.shareSecretHash,
         },
         created: false,
       };
     }
     this.createdSessionCode = sessionCode;
+    this.shareSecretHash = await sha256Hex(shareSecret);
     return {
       metadata: {
         sessionID: sessionCode,
         sessionCode,
+        shareSecretHash: this.shareSecretHash,
       },
       created: true,
     };
@@ -39,6 +44,7 @@ class FakeSessionStub {
         metadata: {
           sessionID: this.createdSessionCode,
           sessionCode: this.createdSessionCode,
+          shareSecretHash: this.shareSecretHash,
         },
       }), {
         headers: { "content-type": "application/json" },
@@ -119,6 +125,41 @@ class FakeSessionIndexNamespace {
     let stub = this.stubs.get(id);
     if (!stub) {
       stub = new FakeSessionIndexStub();
+      this.stubs.set(id, stub);
+    }
+    return stub;
+  }
+}
+
+class FakePreviewStub {
+  requests: Request[] = [];
+  createBody: Record<string, unknown> | null = null;
+
+  async fetch(request: Request) {
+    this.requests.push(request);
+    const url = new URL(request.url);
+    if (url.pathname === "/create" && request.method === "POST") {
+      this.createBody = await request.json() as Record<string, unknown>;
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response("routed-to-preview", { status: 298 });
+  }
+}
+
+class FakePreviewNamespace {
+  stubs = new Map<string, FakePreviewStub>();
+
+  idFromName(name: string) {
+    return name;
+  }
+
+  get(id: string) {
+    let stub = this.stubs.get(id);
+    if (!stub) {
+      stub = new FakePreviewStub();
       this.stubs.set(id, stub);
     }
     return stub;
@@ -206,6 +247,135 @@ test("join route rejects malformed session codes before routing", async () => {
   expect(namespace.stubs.size).toBe(0);
 });
 
+test("preview create verifies session share secret and routes create to preview object", async () => {
+  const sessions = new FakeSessionNamespace();
+  const previews = new FakePreviewNamespace();
+  const env = {
+    COLLABORATION_SESSIONS: sessions,
+    PREVIEW_SESSIONS: previews,
+  } satisfies CollaborationWorkerEnv;
+  sessions.get("5ZNHGF9P").createdSessionCode = "5ZNHGF9P";
+  sessions.get("5ZNHGF9P").shareSecretHash = await sha256Hex("share-secret");
+
+  const response = await collaborationFetch(
+    new Request("https://relay.example/v1/preview/sessions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: "5znh-gf9p",
+        shareSecret: "share-secret",
+        target: { scheme: "http", host: "127.0.0.1", port: 3000 },
+      }),
+    }),
+    env,
+  );
+  const body = await response.json() as { previewId: string; hostToken: string; viewerToken: string; url: string };
+  const preview = previews.stubs.get(body.previewId);
+
+  expect(response.status).toBe(201);
+  expect(body.previewId.startsWith("p_")).toBe(true);
+  expect(body.hostToken.length).toBeGreaterThan(20);
+  expect(body.viewerToken.length).toBeGreaterThan(20);
+  expect(body.url.startsWith(`https://relay.example/v1/preview/sessions/${body.previewId}/proxy/`)).toBe(true);
+  expect(preview?.createBody?.room).toBe("5ZNHGF9P");
+  expect(preview?.createBody?.target).toEqual({ scheme: "http", host: "127.0.0.1", port: 3000, basePath: "/" });
+});
+
+test("preview create rejects wrong share secret and non-local targets", async () => {
+  const sessions = new FakeSessionNamespace();
+  const previews = new FakePreviewNamespace();
+  const env = {
+    COLLABORATION_SESSIONS: sessions,
+    PREVIEW_SESSIONS: previews,
+  } satisfies CollaborationWorkerEnv;
+  sessions.get("5ZNHGF9P").createdSessionCode = "5ZNHGF9P";
+  sessions.get("5ZNHGF9P").shareSecretHash = await sha256Hex("share-secret");
+
+  const wrongSecret = await collaborationFetch(
+    new Request("https://relay.example/v1/preview/sessions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: "5ZNHGF9P",
+        shareSecret: "wrong",
+        target: { scheme: "http", host: "127.0.0.1", port: 3000 },
+      }),
+    }),
+    env,
+  );
+  const nonLocal = await collaborationFetch(
+    new Request("https://relay.example/v1/preview/sessions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: "5ZNHGF9P",
+        shareSecret: "share-secret",
+        target: { scheme: "http", host: "10.0.0.2", port: 3000 },
+      }),
+    }),
+    env,
+  );
+
+  expect(wrongSecret.status).toBe(403);
+  expect(nonLocal.status).toBe(400);
+  expect(previews.stubs.size).toBe(0);
+});
+
+test("preview routes host, metadata, proxy, and close requests to preview object", async () => {
+  const sessions = new FakeSessionNamespace();
+  const previews = new FakePreviewNamespace();
+  const env = {
+    COLLABORATION_SESSIONS: sessions,
+    PREVIEW_SESSIONS: previews,
+  } satisfies CollaborationWorkerEnv;
+
+  for (const url of [
+    "https://relay.example/v1/preview/sessions/p_Abc123456789/host?token=h",
+    "https://relay.example/v1/preview/sessions/p_Abc123456789/metadata?t=v",
+    "https://relay.example/v1/preview/sessions/p_Abc123456789/proxy/assets/app.js?t=v&x=1",
+    "https://relay.example/v1/preview/sessions/p_Abc123456789",
+  ]) {
+    const response = await collaborationFetch(
+      new Request(url, { method: url.endsWith("p_Abc123456789") ? "DELETE" : "GET" }),
+      env,
+    );
+    expect(response.status).toBe(298);
+  }
+
+  const stub = previews.stubs.get("p_Abc123456789");
+  expect(stub?.requests.map((request) => new URL(request.url).pathname)).toEqual([
+    "/host",
+    "/metadata",
+    "/proxy/assets/app.js",
+    "/close",
+  ]);
+});
+
+test("preview cookie fallback routes absolute asset paths to the active preview", async () => {
+  const sessions = new FakeSessionNamespace();
+  const previews = new FakePreviewNamespace();
+  const env = {
+    COLLABORATION_SESSIONS: sessions,
+    PREVIEW_SESSIONS: previews,
+  } satisfies CollaborationWorkerEnv;
+
+  const response = await collaborationFetch(
+    new Request("https://relay.example/assets/app.js?hash=1", {
+      headers: {
+        cookie: "coterm_preview=p_Abc123456789.viewer-token-1234567890",
+      },
+    }),
+    env,
+  );
+
+  const stub = previews.stubs.get("p_Abc123456789");
+  const routed = stub?.requests[0] ? new URL(stub.requests[0].url) : null;
+  expect(response.status).toBe(298);
+  expect(routed?.pathname).toBe("/proxy/assets/app.js");
+  expect(routed?.searchParams.get("hash")).toBe("1");
+  expect(routed?.searchParams.get("t")).toBe("viewer-token-1234567890");
+});
+
 test("create route retries when a generated session code is already active", async () => {
   const namespace = new FakeSessionNamespace();
   const indexNamespace = new FakeSessionIndexNamespace();
@@ -235,7 +405,7 @@ test("create route retries when a generated session code is already active", asy
 
     expect(createResponse.status).toBe(201);
     expect(created.sessionCode).toBe("11111111");
-    expect(callCount).toBe(2);
+    expect(callCount).toBe(4);
     expect(occupied.createAttempts).toEqual(["00000000"]);
     expect(occupied.createdSessionCode).toBeNull();
     expect(namespace.stubs.get("11111111")?.createdSessionCode).toBe("11111111");
@@ -295,7 +465,7 @@ test("create route skips multiple occupied candidates before returning a fresh c
   Object.defineProperty(crypto, "getRandomValues", {
     configurable: true,
     value(values: Uint8Array) {
-      values.fill(callCount);
+      values.fill(Math.floor(callCount / 2));
       callCount += 1;
       return values;
     },
@@ -310,7 +480,7 @@ test("create route skips multiple occupied candidates before returning a fresh c
 
     expect(createResponse.status).toBe(201);
     expect(created.sessionCode).toBe("22222222");
-    expect(callCount).toBe(3);
+    expect(callCount).toBe(6);
     expect(firstOccupied.createdSessionCode).toBeNull();
     expect(secondOccupied.createdSessionCode).toBeNull();
     expect(namespace.stubs.get("22222222")?.createAttempts).toEqual(["22222222"]);
@@ -340,7 +510,7 @@ test("create route keeps retrying duplicate candidates until a unique code is cl
   Object.defineProperty(crypto, "getRandomValues", {
     configurable: true,
     value(values: Uint8Array) {
-      values.fill(callCount < 12 ? 0 : 1);
+      values.fill(callCount < 24 ? 0 : 1);
       callCount += 1;
       return values;
     },
@@ -355,7 +525,7 @@ test("create route keeps retrying duplicate candidates until a unique code is cl
 
     expect(createResponse.status).toBe(201);
     expect(created.sessionCode).toBe("11111111");
-    expect(callCount).toBe(13);
+    expect(callCount).toBe(26);
     expect(occupied.createAttempts).toHaveLength(12);
     expect(occupied.createdSessionCode).toBeNull();
     expect(namespace.stubs.get("11111111")?.createdSessionCode).toBe("11111111");
@@ -460,7 +630,7 @@ test("admin session index requires a token and lists recorded codes", async () =
   const listResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -497,7 +667,7 @@ test("admin session detail reports active metadata and durable object id", async
   const response = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions/nxpl-xzah", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -536,7 +706,7 @@ test("admin session detail distinguishes indexed expired codes", async () => {
   const response = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions/NXPLXZAH", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -565,7 +735,7 @@ test("admin session detail reports unknown non-indexed codes", async () => {
   const response = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions/UNKNOWN1", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -593,7 +763,7 @@ test("admin session detail rejects malformed codes before routing", async () => 
   const response = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions/abc", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -618,14 +788,14 @@ test("admin session index is hidden when disabled or unbound", async () => {
   const noTokenResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     noTokenEnv
   );
   const noIndexResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     noIndexEnv
   );
@@ -648,7 +818,7 @@ test("admin session index forwards pagination query parameters", async () => {
   const listResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions?limit=2&cursor=session%3A00000000", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );
@@ -672,13 +842,13 @@ test("deleted index records disappear from admin session list", async () => {
     COLLABORATION_ADMIN_TOKEN: "secret",
   } satisfies CollaborationWorkerEnv;
 
-  await index.fetch(new Request("https://mosaic-collaboration-index.local/sessions/NXPLXZAH", {
+  await index.fetch(new Request("https://coterm-collaboration-index.local/sessions/NXPLXZAH", {
     method: "DELETE",
   }));
   const listResponse = await collaborationFetch(
     new Request("http://relay.test/v1/collaboration/admin/sessions", {
       method: "GET",
-      headers: { "x-mosaic-admin-token": "secret" },
+      headers: { "x-coterm-admin-token": "secret" },
     }),
     env
   );

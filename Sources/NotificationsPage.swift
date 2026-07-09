@@ -1,4 +1,4 @@
-import MosaicFoundation
+import CotermFoundation
 import Bonsplit
 import SwiftUI
 
@@ -91,7 +91,7 @@ struct NotificationsPage: View {
     private var header: some View {
         HStack {
             Text(String(localized: "notifications.title", defaultValue: "Notifications"))
-                .mosaicFont(.title2)
+                .cotermFont(.title2)
                 .fontWeight(.semibold)
 
             Spacer()
@@ -114,8 +114,8 @@ struct NotificationsPage: View {
             Toggle(isOn: $forwardToPhone) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(String(localized: "notifications.forwardToPhone.title", defaultValue: "Forward notifications to my iPhone"))
-                    Text(String(localized: "notifications.forwardToPhone.subtitle", defaultValue: "Send agent notifications to the mosaic iPhone app. Off by default; nothing is uploaded unless this is on."))
-                        .mosaicFont(.caption)
+                    Text(String(localized: "notifications.forwardToPhone.subtitle", defaultValue: "Send agent notifications to the coterm iPhone app. Off by default; nothing is uploaded unless this is on."))
+                        .cotermFont(.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -132,17 +132,17 @@ struct NotificationsPage: View {
                     }
                     .pickerStyle(.menu)
                     .fixedSize()
-                    .mosaicFont(.caption)
+                    .cotermFont(.caption)
                     if forwardToPhoneMode == PhoneForwardingMode.onlyWhenAway.rawValue {
                         Text(awayModeExplanation)
-                            .mosaicFont(.caption)
+                            .cotermFont(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
                 .padding(.leading, 20)
                 Toggle(isOn: $hidePhoneNotificationContent) {
                     Text(String(localized: "notifications.forwardToPhone.hideContent", defaultValue: "Hide content (send a generic message instead of the terminal text)"))
-                        .mosaicFont(.caption)
+                        .cotermFont(.caption)
                 }
                 .padding(.leading, 20)
             }
@@ -161,12 +161,12 @@ struct NotificationsPage: View {
 
     private var emptyState: some View {
         VStack(spacing: 8) {
-            MosaicSystemSymbolImage(magnified: "bell.slash", pointSize: 32)
+            CotermSystemSymbolImage(magnified: "bell.slash", pointSize: 32)
                 .foregroundColor(.secondary)
             Text(String(localized: "notifications.empty.title", defaultValue: "No notifications yet"))
-                .mosaicFont(.headline)
+                .cotermFont(.headline)
             Text(String(localized: "notifications.empty.description", defaultValue: "Desktop notifications will appear here for quick review."))
-                .mosaicFont(.subheadline)
+                .cotermFont(.subheadline)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -174,10 +174,10 @@ struct NotificationsPage: View {
 
     private var workspaceUnreadIndicatorState: some View {
         VStack(spacing: 8) {
-            MosaicSystemSymbolImage(magnified: "bell.badge", pointSize: 32)
+            CotermSystemSymbolImage(magnified: "bell.badge", pointSize: 32)
                 .foregroundColor(.secondary)
             Text(notificationStore.notificationMenuSnapshot.stateHintTitle)
-                .mosaicFont(.headline)
+                .cotermFont(.headline)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -241,7 +241,7 @@ struct ShortcutAnnotation: View {
 
     private var badge: some View {
         Text(text)
-            .mosaicFont(size: 10, weight: .semibold, design: .rounded)
+            .cotermFont(size: 10, weight: .semibold, design: .rounded)
             .foregroundStyle(.primary)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -278,35 +278,35 @@ struct NotificationRow: View, Equatable {
             TrackedButton("notificationspage_button_278", action: onOpen) {
                 HStack(alignment: .top, spacing: 12) {
                     Circle()
-                        .fill(notification.isRead ? Color.clear : mosaicAccentColor())
+                        .fill(notification.isRead ? Color.clear : cotermAccentColor())
                         .frame(width: 8, height: 8)
                         .overlay(
                             Circle()
-                                .stroke(mosaicAccentColor().opacity(notification.isRead ? 0.2 : 1), lineWidth: 1)
+                                .stroke(cotermAccentColor().opacity(notification.isRead ? 0.2 : 1), lineWidth: 1)
                         )
                         .padding(.top, 6)
 
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
                             Text(notification.title)
-                                .mosaicFont(.headline)
+                                .cotermFont(.headline)
                                 .foregroundColor(.primary)
                             Spacer()
                             Text(notification.createdAt.formatted(date: .omitted, time: .shortened))
-                                .mosaicFont(.caption)
+                                .cotermFont(.caption)
                                 .foregroundColor(.secondary)
                         }
 
                         if !notification.body.isEmpty {
                             Text(notification.body)
-                                .mosaicFont(.subheadline)
+                                .cotermFont(.subheadline)
                                 .foregroundColor(.secondary)
                                 .lineLimit(3)
                         }
 
                         if let tabTitle {
                             Text(tabTitle)
-                                .mosaicFont(.caption)
+                                .cotermFont(.caption)
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -324,11 +324,11 @@ struct NotificationRow: View, Equatable {
             .modifier(DefaultActionModifier(isActive: isFocused))
 
             TrackedButton("notificationspage_button_326", action: onClear) {
-                MosaicSystemSymbolImage(systemName: "xmark.circle.fill", pointSize: 14)
+                CotermSystemSymbolImage(systemName: "xmark.circle.fill", pointSize: 14)
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.plain)
-            // MosaicSystemSymbolImage renders an AppKit NSImage with no accessibility
+            // CotermSystemSymbolImage renders an AppKit NSImage with no accessibility
             // description, so the icon-only button needs an explicit label (the prior
             // SwiftUI system-symbol path used to supply one implicitly).
             .accessibilityLabel(String(localized: "notifications.row.clear", defaultValue: "Clear notification"))

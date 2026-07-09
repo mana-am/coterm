@@ -49,13 +49,13 @@ jobs:
 
           if [ "$EVENT_NAME" = "pull_request" ]; then
             if ! MERGE_BASE="$(git merge-base "$BASE_SHA" "$HEAD_SHA")" \
-              || ! git diff --name-only "$MERGE_BASE" "$HEAD_SHA" > /tmp/mosaic-ci-changed-files.txt; then
+              || ! git diff --name-only "$MERGE_BASE" "$HEAD_SHA" > /tmp/coterm-ci-changed-files.txt; then
               echo "Could not compute PR diff; running all CI areas." >&2
               emit_all_areas
               exit 0
             fi
 
-            if [ ! -s /tmp/mosaic-ci-changed-files.txt ]; then
+            if [ ! -s /tmp/coterm-ci-changed-files.txt ]; then
               echo "PR diff is empty; running all CI areas."
               emit_all_areas
               exit 0
@@ -64,7 +64,7 @@ jobs:
             # This guard lives in workflow YAML, before the PR-editable detector
             # runs. Router/workflow edits must fail open even if a PR breaks the
             # detector's own self-change classification.
-            if grep -Eq '^(\.github/workflows/ci\.yml|scripts/ci/[^/]+\.py|tests/test_ci_change_areas\.py)$' /tmp/mosaic-ci-changed-files.txt; then
+            if grep -Eq '^(\.github/workflows/ci\.yml|scripts/ci/[^/]+\.py|tests/test_ci_change_areas\.py)$' /tmp/coterm-ci-changed-files.txt; then
               echo "CI router changed; running all CI areas."
               emit_all_areas
               exit 0
@@ -72,7 +72,7 @@ jobs:
 
             python3 scripts/ci/detect_ci_change_areas.py \
               --event-name "$EVENT_NAME" \
-              --files-from /tmp/mosaic-ci-changed-files.txt
+              --files-from /tmp/coterm-ci-changed-files.txt
             exit 0
           fi
 
@@ -124,8 +124,8 @@ jobs:
       - name: Validate app-host xcodebuild attempt budget
         run: ./tests/test_ci_app_host_xcodebuild_attempts.sh
 
-      - name: Validate mosaic profiling support scripts
-        run: ./tests/test_start_mosaic_profiling.sh
+      - name: Validate coterm profiling support scripts
+        run: ./tests/test_start_coterm_profiling.sh
 
       - name: Validate Xcode SourcePackages cache sanitizer
         run: python3 tests/test_ci_sanitize_xcode_source_packages_cache.py
@@ -133,13 +133,13 @@ jobs:
       - name: Validate TestFlight notes generator
         run: python3 tests/test_ios_testflight_notes.py
 
-      - name: Validate mosaic scheme test configuration
+      - name: Validate coterm scheme test configuration
         run: ./tests/test_ci_scheme_testaction_debug.sh
 
-      - name: Validate mosaicTests sharding
+      - name: Validate cotermTests sharding
         run: |
-          python3 scripts/ci/mosaic_unit_test_shard.py --validate
-          python3 tests/test_ci_mosaic_unit_test_shard.py
+          python3 scripts/ci/coterm_unit_test_shard.py --validate
+          python3 tests/test_ci_coterm_unit_test_shard.py
 
       - name: Validate GhosttyKit checksum verification
         run: ./tests/test_ci_ghosttykit_checksum_verification.sh
@@ -257,7 +257,7 @@ jobs:
       - name: Web tests
         run: bun test
 
-  # Checks for in-app React webviews (currently the diff viewer; more mosaic React
+  # Checks for in-app React webviews (currently the diff viewer; more coterm React
   # surfaces will live alongside it).
   react-apps-check:
     needs: changes
@@ -303,13 +303,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: mosaic_test
-          POSTGRES_PASSWORD: mosaic
-          POSTGRES_USER: mosaic
+          POSTGRES_DB: coterm_test
+          POSTGRES_PASSWORD: coterm
+          POSTGRES_USER: coterm
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U mosaic -d mosaic_test"
+          --health-cmd "pg_isready -U coterm -d coterm_test"
           --health-interval 1s
           --health-timeout 5s
           --health-retries 30
@@ -325,21 +325,21 @@ jobs:
 
       - name: Apply migrations
         env:
-          DATABASE_URL: postgres://mosaic:mosaic@localhost:5432/mosaic_test
-          DIRECT_DATABASE_URL: postgres://mosaic:mosaic@localhost:5432/mosaic_test
+          DATABASE_URL: postgres://coterm:coterm@localhost:5432/coterm_test
+          DIRECT_DATABASE_URL: postgres://coterm:coterm@localhost:5432/coterm_test
         run: bunx drizzle-kit migrate --config drizzle.config.ts
 
       - name: Re-apply migrations
         env:
-          DATABASE_URL: postgres://mosaic:mosaic@localhost:5432/mosaic_test
-          DIRECT_DATABASE_URL: postgres://mosaic:mosaic@localhost:5432/mosaic_test
+          DATABASE_URL: postgres://coterm:coterm@localhost:5432/coterm_test
+          DIRECT_DATABASE_URL: postgres://coterm:coterm@localhost:5432/coterm_test
         run: bunx drizzle-kit migrate --config drizzle.config.ts
 
       - name: Database behavior tests
         env:
-          MOSAIC_DB_TEST: "1"
-          DATABASE_URL: postgres://mosaic:mosaic@localhost:5432/mosaic_test
-          DIRECT_DATABASE_URL: postgres://mosaic:mosaic@localhost:5432/mosaic_test
+          COTERM_DB_TEST: "1"
+          DATABASE_URL: postgres://coterm:coterm@localhost:5432/coterm_test
+          DIRECT_DATABASE_URL: postgres://coterm:coterm@localhost:5432/coterm_test
         run: bun run test:db:behavior
 
   app-host-unit-tests:
@@ -357,15 +357,15 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     env:
-      MOSAIC_SKIP_ZIG_BUILD: "1"
+      COTERM_SKIP_ZIG_BUILD: "1"
       # Keep one-off focused gates on the lightest measured shard so shard 1 no
       # longer carries the full shard plus every extra regression guard.
-      MOSAIC_APP_HOST_FOCUSED_REGRESSION_SHARD: "4"
+      COTERM_APP_HOST_FOCUSED_REGRESSION_SHARD: "4"
       # XCTest app-host crashes can leave xcodebuild waiting in Swift's crash
       # backtracer until the job timeout. Keep crash handling non-interactive
       # and cheap so xcodebuild can restart/finish the suite.
       SWIFT_BACKTRACE: "interactive=no,timeout=0s,symbolicate=off,color=no"
-      MOSAIC_XCODEBUILD_NONINTERACTIVE_POST_TEST_TIMEOUT_SECONDS: "45"
+      COTERM_XCODEBUILD_NONINTERACTIVE_POST_TEST_TIMEOUT_SECONDS: "45"
     steps:
       - name: Clear stale git locks (self-hosted reused workspace)
         shell: bash
@@ -414,7 +414,7 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .ci-source-packages
-          key: spm-${{ hashFiles('mosaic.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          key: spm-${{ hashFiles('coterm.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: spm-
 
       - name: Sanitize Swift package cache
@@ -423,10 +423,10 @@ jobs:
       - name: Prepare isolated DerivedData
         run: |
           set -euo pipefail
-          DERIVED_DATA_PATH="${RUNNER_TEMP}/mosaic-derived-data-tests-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-shard-${{ matrix.shard }}"
+          DERIVED_DATA_PATH="${RUNNER_TEMP}/coterm-derived-data-tests-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-shard-${{ matrix.shard }}"
           rm -rf "$DERIVED_DATA_PATH"
           mkdir -p "$DERIVED_DATA_PATH"
-          echo "MOSAIC_DERIVED_DATA_PATH=$DERIVED_DATA_PATH" >> "$GITHUB_ENV"
+          echo "COTERM_DERIVED_DATA_PATH=$DERIVED_DATA_PATH" >> "$GITHUB_ENV"
 
       - name: Resolve Swift packages
         run: |
@@ -435,8 +435,8 @@ jobs:
           mkdir -p "$SOURCE_PACKAGES_DIR"
 
           for attempt in 1 2 3; do
-            if xcodebuild -project mosaic.xcodeproj -scheme mosaic-unit -configuration Debug \
-              -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+            if xcodebuild -project coterm.xcodeproj -scheme coterm-unit -configuration Debug \
+              -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
               -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
               -resolvePackageDependencies; then
               # Guard against a stale/poisoned Swift-package cache: a restored
@@ -458,20 +458,20 @@ jobs:
           done
 
       - name: Run Ghostty split-theme appearance regression
-        if: ${{ matrix.shard == fromJSON(env.MOSAIC_APP_HOST_FOCUSED_REGRESSION_SHARD) }}
+        if: ${{ matrix.shard == fromJSON(env.COTERM_APP_HOST_FOCUSED_REGRESSION_SHARD) }}
         run: |
           set -euo pipefail
-          DERIVED_DATA_PATH="${RUNNER_TEMP:-/tmp}/mosaic-terminal-core-split-theme"
+          DERIVED_DATA_PATH="${RUNNER_TEMP:-/tmp}/coterm-terminal-core-split-theme"
           rm -rf "$DERIVED_DATA_PATH"
           (
-            cd Packages/macOS/MosaicTerminalCore
+            cd Packages/macOS/CoterminalCore
             xcodebuild \
-              -scheme MosaicTerminalCore-Package \
+              -scheme CoterminalCore-Package \
               -destination "platform=macOS" \
               -derivedDataPath "$DERIVED_DATA_PATH" \
               build-for-testing
           )
-          xcrun xctest "$DERIVED_DATA_PATH/Build/Products/Debug/MosaicTerminalCoreTests.xctest"
+          xcrun xctest "$DERIVED_DATA_PATH/Build/Products/Debug/CoterminalCoreTests.xctest"
 
       - name: Enable XCTest automation mode
         run: |
@@ -487,9 +487,9 @@ jobs:
           fi
 
       - name: Run browser system proxy mirror regression
-        if: ${{ matrix.shard == fromJSON(env.MOSAIC_APP_HOST_FOCUSED_REGRESSION_SHARD) }}
+        if: ${{ matrix.shard == fromJSON(env.COTERM_APP_HOST_FOCUSED_REGRESSION_SHARD) }}
         run: |
-          # Focused gate for https://github.com/emergent-inc/mosaic/issues/5888.
+          # Focused gate for https://github.com/emergent-inc/coterm/issues/5888.
           # The full "Run unit tests" step tolerates app-host crashes by
           # parsing only the last test summary, so suites that run late can
           # otherwise be skipped by an app-host abort that still reports
@@ -499,37 +499,37 @@ jobs:
           SOURCE_PACKAGES_DIR="$PWD/.ci-source-packages"
           scripts/ci/run-in-console-session.sh \
             scripts/ci/run-app-host-xcodebuild.sh \
-            -project mosaic.xcodeproj -scheme mosaic-unit -configuration Debug \
-            -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+            -project coterm.xcodeproj -scheme coterm-unit -configuration Debug \
+            -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -disableAutomaticPackageResolution \
             -destination "platform=macOS" \
-            MOSAIC_SKIP_ZIG_BUILD=1 \
-            -only-testing:mosaicTests/BrowserSystemProxyMirrorTests \
+            COTERM_SKIP_ZIG_BUILD=1 \
+            -only-testing:cotermTests/BrowserSystemProxyMirrorTests \
             test
 
       - name: Run Option/Alt sided-modifier regression
-        if: ${{ matrix.shard == fromJSON(env.MOSAIC_APP_HOST_FOCUSED_REGRESSION_SHARD) }}
+        if: ${{ matrix.shard == fromJSON(env.COTERM_APP_HOST_FOCUSED_REGRESSION_SHARD) }}
         run: |
           set -euo pipefail
           SOURCE_PACKAGES_DIR="$PWD/.ci-source-packages"
           scripts/ci/run-in-console-session.sh \
             scripts/ci/run-app-host-xcodebuild.sh \
-            -project mosaic.xcodeproj -scheme mosaic-unit -configuration Debug \
-            -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+            -project coterm.xcodeproj -scheme coterm-unit -configuration Debug \
+            -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -disableAutomaticPackageResolution \
             -destination "platform=macOS" \
-            MOSAIC_SKIP_ZIG_BUILD=1 \
-            -only-testing:mosaicTests/GhosttyOptionAsAltModsTests \
+            COTERM_SKIP_ZIG_BUILD=1 \
+            -only-testing:cotermTests/GhosttyOptionAsAltModsTests \
             test
 
       - name: Run unit tests
         run: |
           set -euo pipefail
           SOURCE_PACKAGES_DIR="$PWD/.ci-source-packages"
-          SHARD_ARGS="$RUNNER_TEMP/mosaic-unit-shard-${{ matrix.shard }}.args"
-          python3 scripts/ci/mosaic_unit_test_shard.py \
+          SHARD_ARGS="$RUNNER_TEMP/coterm-unit-shard-${{ matrix.shard }}.args"
+          python3 scripts/ci/coterm_unit_test_shard.py \
             --shard-index "${{ matrix.shard }}" \
             --shard-total 4 \
             --output "$SHARD_ARGS"
@@ -548,16 +548,16 @@ jobs:
             # while still allowing shards on separate Macs to run in parallel.
             scripts/ci/run-in-console-session.sh \
               scripts/ci/run-app-host-xcodebuild.sh \
-              -project mosaic.xcodeproj -scheme mosaic-unit -configuration Debug \
-              -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+              -project coterm.xcodeproj -scheme coterm-unit -configuration Debug \
+              -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
               -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
               -disableAutomaticPackageResolution \
               -destination "platform=macOS" \
               "${ONLY_TESTING_ARGS[@]}" \
-              MOSAIC_SKIP_ZIG_BUILD=1 \
+              COTERM_SKIP_ZIG_BUILD=1 \
               test 2>&1 &
             local xcodebuild_pid=$!
-            local timeout_seconds="${MOSAIC_UNIT_TEST_TIMEOUT_SECONDS:-900}"
+            local timeout_seconds="${COTERM_UNIT_TEST_TIMEOUT_SECONDS:-900}"
             local deadline=$((SECONDS + timeout_seconds))
             while kill -0 "$xcodebuild_pid" 2>/dev/null; do
               if [ "$SECONDS" -ge "$deadline" ]; then
@@ -575,7 +575,7 @@ jobs:
 
           # Stream output via tee so CI logs are visible in real time, while still
           # capturing for post-run analysis of expected vs unexpected failures.
-          TEST_OUTPUT="$RUNNER_TEMP/mosaic-unit-output-shard-${{ matrix.shard }}.txt"
+          TEST_OUTPUT="$RUNNER_TEMP/coterm-unit-output-shard-${{ matrix.shard }}.txt"
           set +e
           run_unit_tests | tee "$TEST_OUTPUT"
           EXIT_CODE=${PIPESTATUS[0]}
@@ -589,8 +589,8 @@ jobs:
             echo "SwiftPM package resolution failed, clearing caches and retrying once"
             rm -rf ~/Library/Caches/org.swift.swiftpm
             mkdir -p ~/Library/Caches/org.swift.swiftpm
-            rm -rf "$MOSAIC_DERIVED_DATA_PATH"
-            mkdir -p "$MOSAIC_DERIVED_DATA_PATH"
+            rm -rf "$COTERM_DERIVED_DATA_PATH"
+            mkdir -p "$COTERM_DERIVED_DATA_PATH"
             set +e
             run_unit_tests | tee "$TEST_OUTPUT"
             EXIT_CODE=${PIPESTATUS[0]}
@@ -609,45 +609,45 @@ jobs:
           fi
 
       - name: Run CLI no-socket regressions
-        if: ${{ matrix.shard == fromJSON(env.MOSAIC_APP_HOST_FOCUSED_REGRESSION_SHARD) }}
+        if: ${{ matrix.shard == fromJSON(env.COTERM_APP_HOST_FOCUSED_REGRESSION_SHARD) }}
         run: |
           set -euo pipefail
 
           CLI_BIN="$(
-            find "$MOSAIC_DERIVED_DATA_PATH" -path "*/Build/Products/Debug/mosaic" -exec stat -f '%m %N' {} \; \
+            find "$COTERM_DERIVED_DATA_PATH" -path "*/Build/Products/Debug/coterm" -exec stat -f '%m %N' {} \; \
               | sort -nr \
               | head -1 \
               | cut -d' ' -f2-
           )"
           if [ -z "${CLI_BIN:-}" ] || [ ! -x "$CLI_BIN" ]; then
-            echo "mosaic CLI binary not found in DerivedData" >&2
+            echo "coterm CLI binary not found in DerivedData" >&2
             exit 1
           fi
 
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_version_memory_guard.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_contract_help.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_layout_focus_contract.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_socket_operation_deadline.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_version_memory_guard.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_contract_help.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_layout_focus_contract.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_socket_operation_deadline.py
           python3 tests/test_stress_cli_socket_api.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_omo_openagent_plugin_migration.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_socket_autodiscovery.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_omo_openagent_plugin_migration.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_socket_autodiscovery.py
           python3 tests/test_claude_wrapper_hooks.py
           python3 tests/test_claude_wrapper_mutual_shim_loop.py
           python3 tests/test_claude_wrapper_user_binary_resolution.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_claude_teams_fallback_path.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_claude_teams_env.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_claude_teams_trust_optin.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_omo_fallback_path.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_omx_fallback_path.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_cli_omc_fallback_path.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_claude_teams_fallback_path.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_claude_teams_env.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_claude_teams_trust_optin.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_omo_fallback_path.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_omx_fallback_path.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_cli_omc_fallback_path.py
           python3 tests/test_issue_2448_shell_claude_wrapper_dispatch.py
           python3 tests/test_issue_6714_zsh_shim_noclobber.py
           python3 tests/test_shell_git_branch_stale_cwd.py
           python3 tests/test_shell_git_config_remote_url_parsing.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_claude_hook_stop_last_assistant.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_claude_hook_clear_running_status.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_pi_extension_install.py
-          MOSAIC_CLI_BIN="$CLI_BIN" python3 tests/test_omp_extension_install.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_claude_hook_stop_last_assistant.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_claude_hook_clear_running_status.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_pi_extension_install.py
+          COTERM_CLI_BIN="$CLI_BIN" python3 tests/test_omp_extension_install.py
 
   tests:
     name: tests
@@ -771,41 +771,41 @@ jobs:
       - name: Run Swift package unit tests
         run: |
           set -euo pipefail
-          # MosaicCommandPalette's nucleo FFI tests load the Rust dylib through
-          # MOSAIC_NUCLEO_FFI_LIB (they skip when it is absent, so build it here
+          # CotermCommandPalette's nucleo FFI tests load the Rust dylib through
+          # COTERM_NUCLEO_FFI_LIB (they skip when it is absent, so build it here
           # to keep the FFI parity suite a real gate).
           cargo build --manifest-path Native/CommandPaletteNucleoFFI/Cargo.toml --release
-          export MOSAIC_NUCLEO_FFI_LIB="$PWD/Native/CommandPaletteNucleoFFI/target/release/libmosaic_command_palette_nucleo_ffi.dylib"
-          # The mosaic-unit scheme only runs the mosaicTests app-host suite; it does
+          export COTERM_NUCLEO_FFI_LIB="$PWD/Native/CommandPaletteNucleoFFI/target/release/libcoterm_command_palette_nucleo_ffi.dylib"
+          # The coterm-unit scheme only runs the cotermTests app-host suite; it does
           # not execute the SPM package test targets. Run them here so package
           # tests (settings stores, secret-file migration, socket-control
           # convergence, etc.) are a real CI gate, not just compiled.
           # Scoped to packages that build headlessly via SwiftPM (no GhosttyKit /
           # app-target dependency). Add a package here once its `swift test`
           # is confirmed to resolve standalone. The GhosttyKit-referencing
-          # packages (MosaicTerminalCore and the terminal packages stacked on
+          # packages (CoterminalCore and the terminal packages stacked on
           # it) are the exception: their binaryTarget only needs the
           # xcframework present at the repo root (downloaded earlier in this
           # job), and their test runners link a C stub for the @_silgen_name
           # symbol instead of the GhosttyKit archive.
           PACKAGES=(
-            MosaicAuthCore
-            MosaicCanvasUI
-            MosaicCore
-            MosaicRemoteDaemon
-            MosaicRemoteWorkspace
-            MosaicRemoteSession
-            MosaicAuthRuntime
-            MosaicCommandPalette
-            MosaicControlSocket
-            MosaicFoundation
-            MosaicGit
-            MosaicSettings
-            MosaicSettingsUI
-            MosaicTerminal
-            MosaicTerminalCore
-            MosaicUpdater
-            MosaicAgentLaunch
+            CotermAuthCore
+            CotermCanvasUI
+            CotermCore
+            CotermRemoteDaemon
+            CotermRemoteWorkspace
+            CotermRemoteSession
+            CotermAuthRuntime
+            CotermCommandPalette
+            CotermControlSocket
+            CotermFoundation
+            CotermGit
+            CotermSettings
+            CotermSettingsUI
+            Coterminal
+            CoterminalCore
+            CotermUpdater
+            CotermAgentLaunch
           )
           # SwiftPM emits an error-severity diagnostic while planning the
           # GhosttyKit binaryTarget (the xcframework's static archive is not
@@ -827,7 +827,7 @@ jobs:
             fi
             echo "::group::swift test $pkgdir"
             case "$pkg" in
-            MosaicAuthRuntime)
+            CotermAuthRuntime)
               suite_list="$(
                 find "$pkgdir/Tests" -name '*.swift' -print0 \
                   | xargs -0 perl -ne 'print "$1\n" if /^\s*@Suite(?:\([^)]*\))?\s+struct\s+([A-Za-z0-9_]+)/' \
@@ -843,7 +843,7 @@ jobs:
                 swift test --package-path "$pkgdir" --filter "$suite"
               done <<< "$suite_list"
               ;;
-            MosaicTerminal|MosaicTerminalCore)
+            Coterminal|CoterminalCore)
               test_status=0
               output="$(swift test --package-path "$pkgdir" 2>&1)" || test_status=$?
               printf '%s\n' "$output"
@@ -887,14 +887,14 @@ jobs:
   tests-build-and-lag:
     needs: changes
     if: ${{ needs.changes.outputs.macos == 'true' }}
-    # Build the full mosaic scheme and run the lag regression on macOS CI.
+    # Build the full coterm scheme and run the lag regression on macOS CI.
     # Keep lag validation separate from UI regressions so functional UI failures
     # and performance regressions stay isolated. Broader interactive UI suites
     # still run via test-e2e.yml on GitHub-hosted runners.
     runs-on: ${{ vars.MACOS_RUNNER_DISPLAY || 'blacksmith-6vcpu-macos-15' }}
     # A cold DerivedData cache (any project.pbxproj or Package.resolved change
     # mints a new cache key with no restore-keys fallback) forces a full
-    # mosaic build whose Swift codegen alone can run 20+ min. Project/package
+    # coterm build whose Swift codegen alone can run 20+ min. Project/package
     # changes from the sidebar extension kit pushed this full build plus the
     # CA and lag regressions beyond 35 min before the cache could repopulate.
     timeout-minutes: 55
@@ -949,10 +949,10 @@ jobs:
       - name: Prepare isolated DerivedData
         run: |
           set -euo pipefail
-          DERIVED_DATA_PATH="$RUNNER_TEMP/mosaic-deriveddata-tests-build-and-lag"
+          DERIVED_DATA_PATH="$RUNNER_TEMP/coterm-deriveddata-tests-build-and-lag"
           rm -rf "$DERIVED_DATA_PATH"
           mkdir -p "$DERIVED_DATA_PATH"
-          echo "MOSAIC_DERIVED_DATA_PATH=$DERIVED_DATA_PATH" >> "$GITHUB_ENV"
+          echo "COTERM_DERIVED_DATA_PATH=$DERIVED_DATA_PATH" >> "$GITHUB_ENV"
 
       - name: Capture Ghostty revision
         id: ghostty-revision
@@ -989,14 +989,14 @@ jobs:
       - name: Cache DerivedData
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
-          path: ${{ runner.temp }}/mosaic-deriveddata-tests-build-and-lag
-          key: deriveddata-build-${{ hashFiles('mosaic.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}-${{ hashFiles('mosaic.xcodeproj/project.pbxproj') }}-${{ steps.ghostty-revision.outputs.sha }}
+          path: ${{ runner.temp }}/coterm-deriveddata-tests-build-and-lag
+          key: deriveddata-build-${{ hashFiles('coterm.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}-${{ hashFiles('coterm.xcodeproj/project.pbxproj') }}-${{ steps.ghostty-revision.outputs.sha }}
 
       - name: Cache Swift packages
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .ci-source-packages
-          key: spm-build-${{ hashFiles('mosaic.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          key: spm-build-${{ hashFiles('coterm.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: spm-build-
 
       - name: Sanitize Swift package cache
@@ -1006,12 +1006,12 @@ jobs:
         run: |
           set -euo pipefail
           SOURCE_PACKAGES_DIR="$PWD/.ci-source-packages"
-          mkdir -p "$MOSAIC_DERIVED_DATA_PATH"
+          mkdir -p "$COTERM_DERIVED_DATA_PATH"
           mkdir -p "$SOURCE_PACKAGES_DIR"
 
           for attempt in 1 2 3; do
-            if xcodebuild -project mosaic.xcodeproj -scheme mosaic -configuration Debug \
-              -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+            if xcodebuild -project coterm.xcodeproj -scheme coterm -configuration Debug \
+              -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
               -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
               -resolvePackageDependencies; then
               # Guard against a stale/poisoned Swift-package cache: a restored
@@ -1036,22 +1036,22 @@ jobs:
         run: |
           set -euo pipefail
           SOURCE_PACKAGES_DIR="$PWD/.ci-source-packages"
-          xcodebuild -project mosaic.xcodeproj -scheme mosaic -configuration Debug \
-            -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+          xcodebuild -project coterm.xcodeproj -scheme coterm -configuration Debug \
+            -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -disableAutomaticPackageResolution \
-            -destination "platform=macOS" build 2>&1 | tee /tmp/mosaic-build-output.txt
+            -destination "platform=macOS" build 2>&1 | tee /tmp/coterm-build-output.txt
 
       - name: Validate Swift warning budget
-        run: python3 scripts/swift_warning_budget.py --log /tmp/mosaic-build-output.txt
+        run: python3 scripts/swift_warning_budget.py --log /tmp/coterm-build-output.txt
 
       - name: Create virtual display
         run: |
           set -euo pipefail
           HELPER_PATH="$RUNNER_TEMP/create-virtual-display"
-          VDISPLAY_READY="$RUNNER_TEMP/mosaic-build-lag-vdisplay.ready"
-          VDISPLAY_ID_PATH="$RUNNER_TEMP/mosaic-build-lag-vdisplay.id"
-          VDISPLAY_LOG="$RUNNER_TEMP/mosaic-build-lag-vdisplay.log"
+          VDISPLAY_READY="$RUNNER_TEMP/coterm-build-lag-vdisplay.ready"
+          VDISPLAY_ID_PATH="$RUNNER_TEMP/coterm-build-lag-vdisplay.id"
+          VDISPLAY_LOG="$RUNNER_TEMP/coterm-build-lag-vdisplay.log"
           VDISPLAY_PID=""
 
           clang -framework Foundation -framework CoreGraphics \
@@ -1073,10 +1073,10 @@ jobs:
             rm -f "$VDISPLAY_READY" "$VDISPLAY_ID_PATH" "$VDISPLAY_LOG"
             LOCK_ENV="$(scripts/ci/virtual-display-lock.sh acquire)"
             eval "$LOCK_ENV"
-            export MOSAIC_VDISPLAY_LOCK_DIR MOSAIC_VDISPLAY_LOCK_TOKEN
+            export COTERM_VDISPLAY_LOCK_DIR COTERM_VDISPLAY_LOCK_TOKEN
             {
-              echo "MOSAIC_VDISPLAY_LOCK_DIR=$MOSAIC_VDISPLAY_LOCK_DIR"
-              echo "MOSAIC_VDISPLAY_LOCK_TOKEN=$MOSAIC_VDISPLAY_LOCK_TOKEN"
+              echo "COTERM_VDISPLAY_LOCK_DIR=$COTERM_VDISPLAY_LOCK_DIR"
+              echo "COTERM_VDISPLAY_LOCK_TOKEN=$COTERM_VDISPLAY_LOCK_TOKEN"
             } >> "$GITHUB_ENV"
 
             # Now that we hold the lock, reap any leaked display helper so a
@@ -1131,43 +1131,43 @@ jobs:
         run: |
           set -euo pipefail
           APP="$(
-            find "$MOSAIC_DERIVED_DATA_PATH" -path "*/Build/Products/Debug/Mosaic DEV.app" -exec stat -f '%m %N' {} \; \
+            find "$COTERM_DERIVED_DATA_PATH" -path "*/Build/Products/Debug/Coterm DEV.app" -exec stat -f '%m %N' {} \; \
               | sort -nr \
               | head -1 \
               | cut -d' ' -f2-
           )"
           if [ -z "${APP:-}" ] || [ ! -d "$APP" ]; then
-            echo "Mosaic DEV.app not found in DerivedData" >&2
+            echo "Coterm DEV.app not found in DerivedData" >&2
             exit 1
           fi
 
-          MOSAIC_ALLOW_UNTAGGED_CA_REGRESSION=1 \
-          MOSAIC_CA_ASSERT_HOLD_SECONDS=15 \
-          MOSAIC_TAG="ci-ca-main-thread" \
+          COTERM_ALLOW_UNTAGGED_CA_REGRESSION=1 \
+          COTERM_CA_ASSERT_HOLD_SECONDS=15 \
+          COTERM_TAG="ci-ca-main-thread" \
           ./scripts/verify-main-thread-ca-transactions.sh "$APP"
 
       - name: Run workspace churn typing-lag regression
         run: |
           set -euo pipefail
 
-          APP="$(find "$MOSAIC_DERIVED_DATA_PATH" -path "*/Build/Products/Debug/Mosaic DEV.app" -print -quit)"
+          APP="$(find "$COTERM_DERIVED_DATA_PATH" -path "*/Build/Products/Debug/Coterm DEV.app" -print -quit)"
           if [ -z "${APP:-}" ] || [ ! -d "$APP" ]; then
-            echo "Mosaic DEV.app not found in DerivedData" >&2
+            echo "Coterm DEV.app not found in DerivedData" >&2
             exit 1
           fi
 
           TAG="ci-lag"
-          SOCK="/tmp/mosaic-debug-${TAG}.sock"
+          SOCK="/tmp/coterm-debug-${TAG}.sock"
           BUNDLE_ID="$(
             /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist" 2>/dev/null \
-              || echo 'mosaic.com.emergent.app.debug'
+              || echo 'coterm.com.emergent.app.debug'
           )"
 
-          pkill -x "Mosaic DEV" || true
-          rm -f "$SOCK" "/tmp/mosaic-${TAG}.sock" || true
+          pkill -x "Coterm DEV" || true
+          rm -f "$SOCK" "/tmp/coterm-${TAG}.sock" || true
           defaults write "$BUNDLE_ID" socketControlMode -string full >/dev/null 2>&1 || true
 
-          MOSAIC_TAG="$TAG" MOSAIC_SOCKET_PATH="$SOCK" MOSAIC_UI_TEST_MODE=1 "$APP/Contents/MacOS/Mosaic DEV" >/tmp/mosaic-ci-lag.log 2>&1 &
+          COTERM_TAG="$TAG" COTERM_SOCKET_PATH="$SOCK" COTERM_UI_TEST_MODE=1 "$APP/Contents/MacOS/Coterm DEV" >/tmp/coterm-ci-lag.log 2>&1 &
           APP_PID=$!
           trap 'kill "$APP_PID" >/dev/null 2>&1 || true' EXIT
 
@@ -1177,15 +1177,15 @@ jobs:
           done
           [ -S "$SOCK" ] || { echo "Socket not ready at $SOCK" >&2; exit 1; }
 
-          MOSAIC_SOCKET_PATH="$SOCK" \
-          MOSAIC_LAG_MAX_P95_RATIO=1.70 \
-          MOSAIC_LAG_MAX_AVG_RATIO=1.70 \
-          MOSAIC_LAG_MIN_BASELINE_P95_MS_FOR_RATIO=6.0 \
-          MOSAIC_LAG_MIN_BASELINE_AVG_MS_FOR_RATIO=4.0 \
-          MOSAIC_LAG_MAX_P95_DELTA_MS=20.0 \
-          MOSAIC_LAG_MAX_AVG_DELTA_MS=12.0 \
-          MOSAIC_LAG_MAX_CHURN_P95_MS=35 \
-          MOSAIC_LAG_KEY_EVENTS=180 \
+          COTERM_SOCKET_PATH="$SOCK" \
+          COTERM_LAG_MAX_P95_RATIO=1.70 \
+          COTERM_LAG_MAX_AVG_RATIO=1.70 \
+          COTERM_LAG_MIN_BASELINE_P95_MS_FOR_RATIO=6.0 \
+          COTERM_LAG_MIN_BASELINE_AVG_MS_FOR_RATIO=4.0 \
+          COTERM_LAG_MAX_P95_DELTA_MS=20.0 \
+          COTERM_LAG_MAX_AVG_DELTA_MS=12.0 \
+          COTERM_LAG_MAX_CHURN_P95_MS=35 \
+          COTERM_LAG_KEY_EVENTS=180 \
           python3 tests/test_workspace_churn_up_arrow_lag.py
 
       - name: Cleanup virtual display
@@ -1247,7 +1247,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: mosaic-ghostty-cli-helper
+          name: coterm-ghostty-cli-helper
           path: ghostty-cli-helper/ghostty
           if-no-files-found: error
 
@@ -1255,7 +1255,7 @@ jobs:
         if: steps.upload-ghostty-cli-helper.outcome == 'failure'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: mosaic-ghostty-cli-helper
+          name: coterm-ghostty-cli-helper
           path: ghostty-cli-helper/ghostty
           if-no-files-found: error
           overwrite: true
@@ -1332,13 +1332,13 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: build-universal
-          key: deriveddata-release-${{ hashFiles('mosaic.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}-${{ hashFiles('mosaic.xcodeproj/project.pbxproj') }}-${{ steps.ghostty-revision.outputs.sha }}
+          key: deriveddata-release-${{ hashFiles('coterm.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}-${{ hashFiles('coterm.xcodeproj/project.pbxproj') }}-${{ steps.ghostty-revision.outputs.sha }}
 
       - name: Cache Swift packages
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .spm-cache
-          key: spm-release-${{ hashFiles('mosaic.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          key: spm-release-${{ hashFiles('coterm.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: |
             spm-release-
             spm-
@@ -1349,7 +1349,7 @@ jobs:
       - name: Build universal app (Release)
         run: |
           set -euo pipefail
-          MOSAIC_SKIP_ZIG_BUILD=1 xcodebuild -project mosaic.xcodeproj -scheme mosaic -configuration Release -derivedDataPath build-universal \
+          COTERM_SKIP_ZIG_BUILD=1 xcodebuild -project coterm.xcodeproj -scheme coterm -configuration Release -derivedDataPath build-universal \
             -destination 'generic/platform=macOS' \
             -clonedSourcePackagesDirPath .spm-cache \
             ARCHS="arm64 x86_64" \
@@ -1359,7 +1359,7 @@ jobs:
       - name: Download universal Ghostty CLI helper
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          name: mosaic-ghostty-cli-helper
+          name: coterm-ghostty-cli-helper
           path: ghostty-cli-helper
 
       - name: Install universal Ghostty CLI helper
@@ -1367,14 +1367,14 @@ jobs:
           set -euo pipefail
           ./scripts/install-prebuilt-ghostty-cli-helper.sh \
             ghostty-cli-helper/ghostty \
-            build-universal/Build/Products/Release/Mosaic.app
+            build-universal/Build/Products/Release/Coterm.app
 
       - name: Validate Release artifact slices
         run: |
           set -euo pipefail
-          APP_BINARY="build-universal/Build/Products/Release/Mosaic.app/Contents/MacOS/Mosaic"
-          CLI_BINARY="build-universal/Build/Products/Release/Mosaic.app/Contents/Resources/bin/mosaic"
-          HELPER_BINARY="build-universal/Build/Products/Release/Mosaic.app/Contents/Resources/bin/ghostty"
+          APP_BINARY="build-universal/Build/Products/Release/Coterm.app/Contents/MacOS/Coterm"
+          CLI_BINARY="build-universal/Build/Products/Release/Coterm.app/Contents/Resources/bin/coterm"
+          HELPER_BINARY="build-universal/Build/Products/Release/Coterm.app/Contents/Resources/bin/ghostty"
           test -x "$APP_BINARY"
           test -x "$CLI_BINARY"
           test -x "$HELPER_BINARY"
@@ -1444,9 +1444,9 @@ jobs:
       - name: Prepare isolated DerivedData
         run: |
           set -euo pipefail
-          DERIVED_DATA_PATH="$RUNNER_TEMP/mosaic-deriveddata-ui-regressions-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          DERIVED_DATA_PATH="$RUNNER_TEMP/coterm-deriveddata-ui-regressions-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           rm -rf "$DERIVED_DATA_PATH"
-          echo "MOSAIC_DERIVED_DATA_PATH=$DERIVED_DATA_PATH" >> "$GITHUB_ENV"
+          echo "COTERM_DERIVED_DATA_PATH=$DERIVED_DATA_PATH" >> "$GITHUB_ENV"
 
       - name: Download pre-built GhosttyKit.xcframework
         run: ./scripts/download-prebuilt-ghosttykit.sh
@@ -1470,7 +1470,7 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .ci-source-packages
-          key: spm-ui-regressions-${{ hashFiles('mosaic.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          key: spm-ui-regressions-${{ hashFiles('coterm.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: spm-ui-regressions-
 
       - name: Sanitize Swift package cache
@@ -1480,12 +1480,12 @@ jobs:
         run: |
           set -euo pipefail
           SOURCE_PACKAGES_DIR="$PWD/.ci-source-packages"
-          rm -rf "$MOSAIC_DERIVED_DATA_PATH"
+          rm -rf "$COTERM_DERIVED_DATA_PATH"
           mkdir -p "$SOURCE_PACKAGES_DIR"
 
           for attempt in 1 2 3; do
-            if xcodebuild -project mosaic.xcodeproj -scheme mosaic -configuration Debug \
-              -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+            if xcodebuild -project coterm.xcodeproj -scheme coterm -configuration Debug \
+              -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
               -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
               -resolvePackageDependencies; then
               # Guard against a stale/poisoned Swift-package cache: a restored
@@ -1510,8 +1510,8 @@ jobs:
         run: |
           set -euo pipefail
           SOURCE_PACKAGES_DIR="$PWD/.ci-source-packages"
-          xcodebuild -project mosaic.xcodeproj -scheme mosaic -configuration Debug \
-            -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+          xcodebuild -project coterm.xcodeproj -scheme coterm -configuration Debug \
+            -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -disableAutomaticPackageResolution \
             -destination "platform=macOS" \
@@ -1537,14 +1537,14 @@ jobs:
           SOURCE_PACKAGES_DIR="$PWD/.ci-source-packages"
           TOKEN="$(uuidgen)"
           HELPER_PATH="$RUNNER_TEMP/create-virtual-display-display-churn-${TOKEN}"
-          DIAG_PATH="/tmp/mosaic-ui-test-display-churn-${TOKEN}.json"
-          DISPLAY_READY="/tmp/mosaic-ui-test-display-${TOKEN}.ready"
-          DISPLAY_ID_PATH="/tmp/mosaic-ui-test-display-${TOKEN}.id"
-          DISPLAY_START="/tmp/mosaic-ui-test-display-${TOKEN}.start"
-          DISPLAY_DONE="/tmp/mosaic-ui-test-display-${TOKEN}.done"
-          HELPER_LOG="/tmp/mosaic-ui-test-display-${TOKEN}-helper.log"
-          XCODEBUILD_LOG="/tmp/mosaic-ui-test-display-${TOKEN}-xcodebuild.log"
-          BASELINE_READY_MARKER="MOSAIC_DISPLAY_CHURN_BASELINE_READY_${TOKEN}"
+          DIAG_PATH="/tmp/coterm-ui-test-display-churn-${TOKEN}.json"
+          DISPLAY_READY="/tmp/coterm-ui-test-display-${TOKEN}.ready"
+          DISPLAY_ID_PATH="/tmp/coterm-ui-test-display-${TOKEN}.id"
+          DISPLAY_START="/tmp/coterm-ui-test-display-${TOKEN}.start"
+          DISPLAY_DONE="/tmp/coterm-ui-test-display-${TOKEN}.done"
+          HELPER_LOG="/tmp/coterm-ui-test-display-${TOKEN}-helper.log"
+          XCODEBUILD_LOG="/tmp/coterm-ui-test-display-${TOKEN}-xcodebuild.log"
+          BASELINE_READY_MARKER="COTERM_DISPLAY_CHURN_BASELINE_READY_${TOKEN}"
           HELPER_PID=""
           START_SIGNAL_PID=""
           DISPLAY_LOCK_DIR=""
@@ -1553,15 +1553,15 @@ jobs:
           acquire_display_lock() {
             LOCK_ENV="$(scripts/ci/virtual-display-lock.sh acquire)"
             eval "$LOCK_ENV"
-            export MOSAIC_VDISPLAY_LOCK_DIR MOSAIC_VDISPLAY_LOCK_TOKEN
-            DISPLAY_LOCK_DIR="$MOSAIC_VDISPLAY_LOCK_DIR"
-            DISPLAY_LOCK_TOKEN="$MOSAIC_VDISPLAY_LOCK_TOKEN"
+            export COTERM_VDISPLAY_LOCK_DIR COTERM_VDISPLAY_LOCK_TOKEN
+            DISPLAY_LOCK_DIR="$COTERM_VDISPLAY_LOCK_DIR"
+            DISPLAY_LOCK_TOKEN="$COTERM_VDISPLAY_LOCK_TOKEN"
           }
 
           release_display_lock() {
             if [ -n "${DISPLAY_LOCK_DIR:-}" ]; then
-              MOSAIC_VDISPLAY_LOCK_DIR="$DISPLAY_LOCK_DIR" \
-              MOSAIC_VDISPLAY_LOCK_TOKEN="$DISPLAY_LOCK_TOKEN" \
+              COTERM_VDISPLAY_LOCK_DIR="$DISPLAY_LOCK_DIR" \
+              COTERM_VDISPLAY_LOCK_TOKEN="$DISPLAY_LOCK_TOKEN" \
                 scripts/ci/virtual-display-lock.sh release || true
               DISPLAY_LOCK_DIR=""
               DISPLAY_LOCK_TOKEN=""
@@ -1580,9 +1580,9 @@ jobs:
               HELPER_PID=""
             fi
             release_display_lock
-            pkill -x "Mosaic DEV" 2>/dev/null || true
+            pkill -x "Coterm DEV" 2>/dev/null || true
             rm -f "$DIAG_PATH" "$DISPLAY_READY" "$DISPLAY_ID_PATH" "$DISPLAY_START" "$DISPLAY_DONE" "$HELPER_LOG" "$XCODEBUILD_LOG"
-            rm -f /tmp/mosaic-ui-test-prelaunch.json /tmp/mosaic-ui-test-display-harness.json
+            rm -f /tmp/coterm-ui-test-prelaunch.json /tmp/coterm-ui-test-display-harness.json
           }
 
           cleanup() {
@@ -1596,7 +1596,7 @@ jobs:
             -o "$HELPER_PATH" scripts/create-virtual-display.m
 
           # Find the app binary
-          APP_BINARY=$(find "$MOSAIC_DERIVED_DATA_PATH" -path "*/Build/Products/Debug/Mosaic DEV.app/Contents/MacOS/Mosaic DEV" -print -quit 2>/dev/null || true)
+          APP_BINARY=$(find "$COTERM_DERIVED_DATA_PATH" -path "*/Build/Products/Debug/Coterm DEV.app/Contents/MacOS/Coterm DEV" -print -quit 2>/dev/null || true)
           if [ -z "$APP_BINARY" ]; then
             echo "ERROR: App binary not found in DerivedData" >&2
             exit 1
@@ -1658,12 +1658,12 @@ jobs:
             echo "Virtual display ready: ID=$DISPLAY_ID"
 
             # Launch app from shell (non-sandboxed, outside XCTest sandbox)
-            MOSAIC_UI_TEST_MODE=1 \
-            MOSAIC_UI_TEST_DIAGNOSTICS_PATH="$DIAG_PATH" \
-            MOSAIC_UI_TEST_DISPLAY_RENDER_STATS=1 \
-            MOSAIC_UI_TEST_TARGET_DISPLAY_ID="$DISPLAY_ID" \
-            MOSAIC_TAG="ui-tests-display-resolution" \
-            "$APP_BINARY" > /tmp/mosaic-ui-test-app.log 2>&1 &
+            COTERM_UI_TEST_MODE=1 \
+            COTERM_UI_TEST_DIAGNOSTICS_PATH="$DIAG_PATH" \
+            COTERM_UI_TEST_DISPLAY_RENDER_STATS=1 \
+            COTERM_UI_TEST_TARGET_DISPLAY_ID="$DISPLAY_ID" \
+            COTERM_TAG="ui-tests-display-resolution" \
+            "$APP_BINARY" > /tmp/coterm-ui-test-app.log 2>&1 &
             APP_PID=$!
             echo "App launched: PID=$APP_PID"
 
@@ -1679,7 +1679,7 @@ jobs:
               fi
               if ! kill -0 "$APP_PID" 2>/dev/null; then
                 echo "ERROR: App crashed during startup"
-                cat /tmp/mosaic-ui-test-app.log 2>/dev/null | tail -30 || true
+                cat /tmp/coterm-ui-test-app.log 2>/dev/null | tail -30 || true
                 break
               fi
               sleep 0.5
@@ -1687,12 +1687,12 @@ jobs:
 
             if [ "$APP_READY" != "true" ]; then
               echo "Attempt $attempt: App not ready after 15s"
-              pkill -x "Mosaic DEV" 2>/dev/null || true
+              pkill -x "Coterm DEV" 2>/dev/null || true
               kill "$HELPER_PID" 2>/dev/null || true
               if [ "$attempt" -eq 2 ]; then
                 echo "Display resolution UI regression failed after 2 attempts" >&2
                 echo "--- App log ---"
-                cat /tmp/mosaic-ui-test-app.log 2>/dev/null | tail -50 || true
+                cat /tmp/coterm-ui-test-app.log 2>/dev/null | tail -50 || true
                 echo "--- Helper log ---"
                 cat "$HELPER_LOG" 2>/dev/null | tail -20 || true
                 echo "--- Diagnostics ---"
@@ -1721,16 +1721,16 @@ jobs:
               echo "WARNING: Render stats not available after 20s. Diagnostics:"
               cat "$DIAG_PATH" 2>/dev/null || true
               echo "--- App log ---"
-              cat /tmp/mosaic-ui-test-app.log 2>/dev/null | tail -30 || true
+              cat /tmp/coterm-ui-test-app.log 2>/dev/null | tail -30 || true
             fi
 
             # Write manifests so test can find the pre-launched state
-            MANIFEST_PATH="/tmp/mosaic-ui-test-display-harness.json"
+            MANIFEST_PATH="/tmp/coterm-ui-test-display-harness.json"
             cat >"$MANIFEST_PATH" <<MANIFEST_EOF
           {"readyPath":"$DISPLAY_READY","displayIDPath":"$DISPLAY_ID_PATH","startPath":"$DISPLAY_START","donePath":"$DISPLAY_DONE","logPath":"$HELPER_LOG"}
           MANIFEST_EOF
 
-            PRELAUNCH_PATH="/tmp/mosaic-ui-test-prelaunch.json"
+            PRELAUNCH_PATH="/tmp/coterm-ui-test-prelaunch.json"
             cat >"$PRELAUNCH_PATH" <<PRELAUNCH_EOF
           {"diagnosticsPath":"$DIAG_PATH","baselineReadyMarker":"$BASELINE_READY_MARKER"}
           PRELAUNCH_EOF
@@ -1755,12 +1755,12 @@ jobs:
             START_SIGNAL_PID=$!
 
             XCODEBUILD_OK=false
-            if xcodebuild -project mosaic.xcodeproj -scheme mosaic -configuration Debug \
-              -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+            if xcodebuild -project coterm.xcodeproj -scheme coterm -configuration Debug \
+              -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
               -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
               -disableAutomaticPackageResolution \
               -destination "platform=macOS" \
-              -only-testing:mosaicUITests/DisplayResolutionRegressionUITests \
+              -only-testing:cotermUITests/DisplayResolutionRegressionUITests \
               test-without-building 2>&1 | tee "$XCODEBUILD_LOG"; then
               XCODEBUILD_OK=true
             fi
@@ -1776,7 +1776,7 @@ jobs:
               exit 0
             fi
 
-            pkill -x "Mosaic DEV" 2>/dev/null || true
+            pkill -x "Coterm DEV" 2>/dev/null || true
             cleanup_attempt
 
             if [ "$attempt" -eq 2 ]; then
@@ -1792,19 +1792,19 @@ jobs:
           set -euo pipefail
           LOCK_ENV="$(scripts/ci/virtual-display-lock.sh acquire)"
           eval "$LOCK_ENV"
-          export MOSAIC_VDISPLAY_LOCK_DIR MOSAIC_VDISPLAY_LOCK_TOKEN
+          export COTERM_VDISPLAY_LOCK_DIR COTERM_VDISPLAY_LOCK_TOKEN
           {
-            echo "MOSAIC_VDISPLAY_LOCK_DIR=$MOSAIC_VDISPLAY_LOCK_DIR"
-            echo "MOSAIC_VDISPLAY_LOCK_TOKEN=$MOSAIC_VDISPLAY_LOCK_TOKEN"
+            echo "COTERM_VDISPLAY_LOCK_DIR=$COTERM_VDISPLAY_LOCK_DIR"
+            echo "COTERM_VDISPLAY_LOCK_TOKEN=$COTERM_VDISPLAY_LOCK_TOKEN"
           } >> "$GITHUB_ENV"
 
           HELPER_PATH="$RUNNER_TEMP/create-virtual-display-persistent"
           clang -framework Foundation -framework CoreGraphics \
             -o "$HELPER_PATH" scripts/create-virtual-display.m
 
-          VDISPLAY_READY="$RUNNER_TEMP/mosaic-vdisplay-persistent.ready"
-          VDISPLAY_ID_PATH="$RUNNER_TEMP/mosaic-vdisplay-persistent.id"
-          VDISPLAY_LOG="$RUNNER_TEMP/mosaic-vdisplay-persistent.log"
+          VDISPLAY_READY="$RUNNER_TEMP/coterm-vdisplay-persistent.ready"
+          VDISPLAY_ID_PATH="$RUNNER_TEMP/coterm-vdisplay-persistent.id"
+          VDISPLAY_LOG="$RUNNER_TEMP/coterm-vdisplay-persistent.log"
           rm -f "$VDISPLAY_READY" "$VDISPLAY_ID_PATH" "$VDISPLAY_LOG"
 
           # Now that we hold the lock, reap any leaked display helper so a
@@ -1860,13 +1860,13 @@ jobs:
             exit 1
           fi
 
-          xcodebuild -project mosaic.xcodeproj -scheme mosaic -configuration Debug \
-            -derivedDataPath "$MOSAIC_DERIVED_DATA_PATH" \
+          xcodebuild -project coterm.xcodeproj -scheme coterm -configuration Debug \
+            -derivedDataPath "$COTERM_DERIVED_DATA_PATH" \
             -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR" \
             -disableAutomaticPackageResolution \
             -destination "platform=macOS" \
             -maximum-test-execution-time-allowance 180 \
-            -only-testing:mosaicUITests/BrowserPaneNavigationKeybindUITests/testCmdFOpensBrowserFindAfterCmdDCmdLNavigation \
+            -only-testing:cotermUITests/BrowserPaneNavigationKeybindUITests/testCmdFOpensBrowserFindAfterCmdDCmdLNavigation \
             test-without-building
 
       - name: Cleanup persistent virtual display

@@ -12,21 +12,21 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
-def _focused_surface_id(client: mosaic) -> str:
+def _focused_surface_id(client: coterm) -> str:
     surfaces = client.list_surfaces()
     for _, sid, focused in surfaces:
         if focused:
             return sid
-    raise mosaicError(f"No focused surface in list_surfaces: {surfaces}")
+    raise cotermError(f"No focused surface in list_surfaces: {surfaces}")
 
 
-def _palette_visible(client: mosaic, window_id: str) -> bool:
+def _palette_visible(client: coterm, window_id: str) -> bool:
     res = client._call("debug.command_palette.visible", {"window_id": window_id}) or {}
     return bool(res.get("visible"))
 
@@ -37,14 +37,14 @@ def _wait_until(predicate, timeout_s: float = 3.0, interval_s: float = 0.05, mes
         if predicate():
             return
         time.sleep(interval_s)
-    raise mosaicError(message)
+    raise cotermError(message)
 
 
 def main() -> int:
-    token = "MOSAIC_PALETTE_FOCUS_PROBE_9412"
-    restore_token = "MOSAIC_PALETTE_RESTORE_PROBE_7731"
+    token = "COTERM_PALETTE_FOCUS_PROBE_9412"
+    restore_token = "COTERM_PALETTE_RESTORE_PROBE_7731"
 
-    with mosaic(SOCKET_PATH) as client:
+    with coterm(SOCKET_PATH) as client:
         client.new_workspace()
         client.activate_app()
         time.sleep(0.2)
@@ -73,7 +73,7 @@ def main() -> int:
         post_text = client.read_terminal_text(panel_id)
 
         if token in post_text and token not in pre_text:
-            raise mosaicError("typed probe text leaked into terminal while palette is open")
+            raise cotermError("typed probe text leaked into terminal while palette is open")
 
         # Close palette and ensure focus returns to previously-focused terminal.
         client._call("debug.command_palette.toggle", {"window_id": window_id})

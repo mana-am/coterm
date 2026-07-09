@@ -1,9 +1,9 @@
 import Foundation
-import MosaicCanvas
+import CotermCanvas
 
 /// User-configurable canvas layout settings.
 ///
-/// Values persist through `UserDefaults` (mirrored into `~/.config/mosaic/mosaic.json`
+/// Values persist through `UserDefaults` (mirrored into `~/.config/coterm/coterm.json`
 /// by the settings catalog) and feed ``CanvasMetrics`` so every canvas
 /// operation shares one canonical gap.
 enum CanvasLayoutSettings {

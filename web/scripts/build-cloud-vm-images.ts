@@ -16,7 +16,7 @@ type Target = "e2b" | "freestyle" | "all";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(webRoot, "..");
-const buildRoot = path.join(webRoot, ".mosaic-cloud-build");
+const buildRoot = path.join(webRoot, ".coterm-cloud-build");
 const UTF8_LOCALE = "C.UTF-8";
 const STRICT_SEMVER_RE =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
@@ -36,47 +36,47 @@ const CLOUD_SHELL_PACKAGES = [
   "unzip",
   "xz-utils",
 ];
-const PRIMARY_LINUX_USER = "mosaic";
-const NODE_MAJOR = String(positiveIntFromEnv("MOSAIC_CLOUD_IMAGE_NODE_MAJOR", 22));
-const BUN_VERSION = semverFromEnv("MOSAIC_CLOUD_IMAGE_BUN_VERSION", "1.3.13");
+const PRIMARY_LINUX_USER = "coterm";
+const NODE_MAJOR = String(positiveIntFromEnv("COTERM_CLOUD_IMAGE_NODE_MAJOR", 22));
+const BUN_VERSION = semverFromEnv("COTERM_CLOUD_IMAGE_BUN_VERSION", "1.3.13");
 const FREESTYLE_SNAPSHOT_CREATE_TIMEOUT_MS = positiveIntFromEnv(
-  "MOSAIC_FREESTYLE_SNAPSHOT_CREATE_TIMEOUT_MS",
+  "COTERM_FREESTYLE_SNAPSHOT_CREATE_TIMEOUT_MS",
   20 * 60 * 1000,
 );
 const FREESTYLE_SNAPSHOT_RECOVERY_TIMEOUT_MS = positiveIntFromEnv(
-  "MOSAIC_FREESTYLE_SNAPSHOT_RECOVERY_TIMEOUT_MS",
+  "COTERM_FREESTYLE_SNAPSHOT_RECOVERY_TIMEOUT_MS",
   10 * 60 * 1000,
 );
 const FREESTYLE_SNAPSHOT_RECOVERY_POLL_INTERVAL_MS = positiveIntFromEnv(
-  "MOSAIC_FREESTYLE_SNAPSHOT_RECOVERY_POLL_INTERVAL_MS",
+  "COTERM_FREESTYLE_SNAPSHOT_RECOVERY_POLL_INTERVAL_MS",
   5_000,
 );
 const FREESTYLE_SNAPSHOT_RECOVERY_CLOCK_SKEW_MS = positiveIntFromEnv(
-  "MOSAIC_FREESTYLE_SNAPSHOT_RECOVERY_CLOCK_SKEW_MS",
+  "COTERM_FREESTYLE_SNAPSHOT_RECOVERY_CLOCK_SKEW_MS",
   2 * 60 * 1000,
 );
 const CLOUD_AGENT_TOOLS = [
   {
     name: "claude",
-    envVar: "MOSAIC_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC",
+    envVar: "COTERM_CLOUD_IMAGE_CLAUDE_CODE_NPM_SPEC",
     packageSpec: "@anthropic-ai/claude-code@2.1.137",
     binaries: ["claude"],
   },
   {
     name: "opencode",
-    envVar: "MOSAIC_CLOUD_IMAGE_OPENCODE_NPM_SPEC",
+    envVar: "COTERM_CLOUD_IMAGE_OPENCODE_NPM_SPEC",
     packageSpec: "opencode-ai@1.14.41",
     binaries: ["opencode"],
   },
   {
     name: "codex",
-    envVar: "MOSAIC_CLOUD_IMAGE_CODEX_NPM_SPEC",
+    envVar: "COTERM_CLOUD_IMAGE_CODEX_NPM_SPEC",
     packageSpec: "@openai/codex@0.130.0",
     binaries: ["codex"],
   },
   {
     name: "pi",
-    envVar: "MOSAIC_CLOUD_IMAGE_PI_NPM_SPEC",
+    envVar: "COTERM_CLOUD_IMAGE_PI_NPM_SPEC",
     packageSpec: "@earendil-works/pi-coding-agent@0.74.0",
     binaries: ["pi"],
   },
@@ -111,7 +111,7 @@ async function main(): Promise<void> {
   }
   const tag = (argValue("--tag") ?? defaultTag()).trim();
   const skipCache = hasFlag("--skip-cache");
-  const binaryPath = path.join(buildRoot, tag, "mosaicd-remote-linux-amd64");
+  const binaryPath = path.join(buildRoot, tag, "cotermd-remote-linux-amd64");
 
   mkdirSync(path.dirname(binaryPath), { recursive: true });
 
@@ -119,7 +119,7 @@ async function main(): Promise<void> {
   const agentTools = cloudAgentToolPackageSpecs();
   const imageMetadata = {
     builtAt: new Date().toISOString(),
-    mosaicdRemoteCommit: await gitRevParse(path.join(repoRoot, "daemon/remote")),
+    cotermdRemoteCommit: await gitRevParse(path.join(repoRoot, "daemon/remote")),
     binarySha256: sha256File(binaryPath),
     builderScriptVersion: sha256File(fileURLToPath(import.meta.url)),
     nodeMajor: NODE_MAJOR,
@@ -154,7 +154,7 @@ async function main(): Promise<void> {
 async function buildRemoteDaemon(outPath: string): Promise<void> {
   await runCommand(
     "go",
-    ["build", "-trimpath", "-ldflags=-s -w", "-o", outPath, "./cmd/mosaicd-remote"],
+    ["build", "-trimpath", "-ldflags=-s -w", "-o", outPath, "./cmd/cotermd-remote"],
     {
       cwd: path.join(repoRoot, "daemon/remote"),
       env: { GOOS: "linux", GOARCH: "amd64", CGO_ENABLED: "0" },
@@ -176,7 +176,7 @@ async function buildE2BTemplate(
     .fromUbuntuImage("24.04")
     .aptInstall(CLOUD_SHELL_PACKAGES, { noInstallRecommends: true })
     .setEnvs({ LANG: UTF8_LOCALE, LC_ALL: UTF8_LOCALE, LANGUAGE: UTF8_LOCALE })
-    .copy(path.basename(daemonPath), "/usr/local/bin/mosaicd-remote", {
+    .copy(path.basename(daemonPath), "/usr/local/bin/cotermd-remote", {
       forceUpload: true,
       mode: 0o755,
     })
@@ -184,11 +184,11 @@ async function buildE2BTemplate(
     .runCmd(cloudRootSetupCommands(), { user: "root" })
     .runCmd(cloudImageSmokeTestCommands(), { user: "root" })
     .setStartCmd(
-      "/usr/local/bin/mosaicd-remote serve --ws --listen 0.0.0.0:7777 --auth-lease-file /tmp/mosaic/attach-pty-lease.json --rpc-auth-lease-file /tmp/mosaic/attach-rpc-lease.json --shell /bin/bash",
+      "/usr/local/bin/cotermd-remote serve --ws --listen 0.0.0.0:7777 --auth-lease-file /tmp/coterm/attach-pty-lease.json --rpc-auth-lease-file /tmp/coterm/attach-rpc-lease.json --shell /bin/bash",
       waitForURL("http://127.0.0.1:7777/healthz", 200),
     );
 
-  const name = `mosaicd-ws:${tag}`;
+  const name = `cotermd-ws:${tag}`;
   const result = await Template.build(template, name, {
     cpuCount: 2,
     memoryMB: 2048,
@@ -202,9 +202,9 @@ async function buildE2BTemplate(
       provider: "e2b",
       version: `e2b-${tag}`,
       imageId: name,
-      envVar: "E2B_MOSAICD_WS_TEMPLATE",
+      envVar: "E2B_COTERMD_WS_TEMPLATE",
       defaultForLocalDev: false,
-      mosaicdRemoteCommit: metadata.mosaicdRemoteCommit,
+      cotermdRemoteCommit: metadata.cotermdRemoteCommit,
       builtAt: metadata.builtAt,
       builderScriptVersion: metadata.builderScriptVersion,
       agentToolResolvedVersions: metadata.agentToolResolvedVersions,
@@ -225,7 +225,7 @@ async function buildFreestyleSnapshot(
   }
   const daemonURL = await remoteDaemonBuildURL(tag, daemonPath);
   const fs = new Freestyle({ fetch: fetchWithTimeout(FREESTYLE_SNAPSHOT_CREATE_TIMEOUT_MS) });
-  const name = `mosaicd-ws-${tag}`;
+  const name = `cotermd-ws-${tag}`;
   const createStartedAt = new Date();
   let result: unknown;
   try {
@@ -236,7 +236,7 @@ async function buildFreestyleSnapshot(
           dockerfileContent: freestyleBaseDockerfileContent(daemonURL),
         },
         ports: [{ port: 443, targetPort: 7777 }],
-        discriminator: `mosaicd-ws-${tag}`,
+        discriminator: `cotermd-ws-${tag}`,
         skipCache,
       },
     });
@@ -270,7 +270,7 @@ async function buildFreestyleSnapshot(
       imageId,
       envVar: "FREESTYLE_SANDBOX_SNAPSHOT",
       defaultForLocalDev: false,
-      mosaicdRemoteCommit: metadata.mosaicdRemoteCommit,
+      cotermdRemoteCommit: metadata.cotermdRemoteCommit,
       builtAt: metadata.builtAt,
       builderScriptVersion: metadata.builderScriptVersion,
       agentToolResolvedVersions: metadata.agentToolResolvedVersions,
@@ -361,25 +361,25 @@ function cloudRootSetupCommands(): string[] {
     `printf '${PRIMARY_LINUX_USER} ALL=(ALL) NOPASSWD:ALL\\n' > /etc/sudoers.d/90-${PRIMARY_LINUX_USER}-nopasswd`,
     `chmod 0440 /etc/sudoers.d/90-${PRIMARY_LINUX_USER}-nopasswd`,
     "if id -u user >/dev/null 2>&1; then printf 'user ALL=(ALL) NOPASSWD:ALL\\n' > /etc/sudoers.d/91-user-nopasswd && chmod 0440 /etc/sudoers.d/91-user-nopasswd; fi",
-    "mkdir -p /tmp/mosaic && chmod 700 /tmp/mosaic",
-    "ln -sf /usr/local/bin/mosaicd-remote /usr/local/bin/mosaic",
+    "mkdir -p /tmp/coterm && chmod 700 /tmp/coterm",
+    "ln -sf /usr/local/bin/cotermd-remote /usr/local/bin/coterm",
   ];
 }
 
 export function cloudImageSmokeTestCommands(): string[] {
   const agentToolVersionChecks = cloudAgentToolPackageSpecs().flatMap((tool) =>
-    tool.binaries.map((binary) => `${binary} --version >/tmp/mosaic-${tool.name}-version.txt 2>&1`)
+    tool.binaries.map((binary) => `${binary} --version >/tmp/coterm-${tool.name}-version.txt 2>&1`)
   );
   return [
-    "openssl version -a >/tmp/mosaic-openssl-version.txt 2>&1",
+    "openssl version -a >/tmp/coterm-openssl-version.txt 2>&1",
     "python3 -X faulthandler -c 'import ssl; print(ssl.OPENSSL_VERSION)'",
     "python3 -m http.server --help >/dev/null",
-    "node --version >/tmp/mosaic-node-version.txt 2>&1",
-    "npm --version >/tmp/mosaic-npm-version.txt 2>&1",
-    "bun --version >/tmp/mosaic-bun-version.txt 2>&1",
-    "mosaic --help >/tmp/mosaic-cli-help.txt 2>&1",
-    "mosaic --socket /tmp/mosaic-browser-smoke.sock browser >/tmp/mosaic-browser-help.txt 2>&1; status=$?; test \"$status\" -eq 2 && grep -q 'requires a subcommand' /tmp/mosaic-browser-help.txt",
-    "mosaicd-remote version >/tmp/mosaicd-remote-version.txt 2>&1",
+    "node --version >/tmp/coterm-node-version.txt 2>&1",
+    "npm --version >/tmp/coterm-npm-version.txt 2>&1",
+    "bun --version >/tmp/coterm-bun-version.txt 2>&1",
+    "coterm --help >/tmp/coterm-cli-help.txt 2>&1",
+    "coterm --socket /tmp/coterm-browser-smoke.sock browser >/tmp/coterm-browser-help.txt 2>&1; status=$?; test \"$status\" -eq 2 && grep -q 'requires a subcommand' /tmp/coterm-browser-help.txt",
+    "cotermd-remote version >/tmp/cotermd-remote-version.txt 2>&1",
     ...agentToolVersionChecks,
   ];
 }
@@ -430,7 +430,7 @@ export function cloudToolInstallCommands(): string[] {
     bunInstallCommand(),
     "ln -sf /usr/local/bin/bun /usr/local/bin/bunx",
     toolPackages.length > 0
-      ? `npm install -g --omit=dev --no-audit --fund=false ${toolPackages.map((tool) => shellQuote(tool.packageSpec)).join(" ")} >/tmp/mosaic-npm-install.txt 2>&1`
+      ? `npm install -g --omit=dev --no-audit --fund=false ${toolPackages.map((tool) => shellQuote(tool.packageSpec)).join(" ")} >/tmp/coterm-npm-install.txt 2>&1`
       : "true",
     "rm -rf /root/.npm/_cacache /var/lib/apt/lists/*",
   ];
@@ -444,9 +444,9 @@ function bunInstallCommand(): string {
   const tag = `bun-v${BUN_VERSION}`;
   const commands = [
     "set -eu",
-    "rm -rf /tmp/mosaic-bun-install",
-    "mkdir -p /tmp/mosaic-bun-install",
-    "cd /tmp/mosaic-bun-install",
+    "rm -rf /tmp/coterm-bun-install",
+    "mkdir -p /tmp/coterm-bun-install",
+    "cd /tmp/coterm-bun-install",
     "arch=\"$(dpkg --print-architecture)\"",
     "case \"${arch##*-}\" in amd64) build=\"x64-baseline\" ;; arm64) build=\"aarch64\" ;; *) echo \"unsupported architecture: $arch\"; exit 1 ;; esac",
     `tag=${shellQuote(tag)}`,
@@ -458,23 +458,23 @@ function bunInstallCommand(): string {
     "grep \" bun-linux-$build.zip$\" SHASUMS256.txt | sha256sum -c -",
     "unzip -q \"bun-linux-$build.zip\"",
     "install -m 0755 \"bun-linux-$build/bun\" /usr/local/bin/bun",
-    "rm -rf /tmp/mosaic-bun-install",
+    "rm -rf /tmp/coterm-bun-install",
   ];
-  return `{ ${commands.join(" && ")}; } >/tmp/mosaic-bun-install.txt 2>&1`;
+  return `{ ${commands.join(" && ")}; } >/tmp/coterm-bun-install.txt 2>&1`;
 }
 
 function freestylePythonOpenSSLCommands(): string[] {
   return [
     "apt-get update",
-    "mkdir -p /tmp/mosaic-libssl /opt/mosaic/openssl/lib",
-    "cd /tmp/mosaic-libssl && apt-get download libssl3t64",
-    "dpkg-deb -x /tmp/mosaic-libssl/libssl3t64_*.deb /tmp/mosaic-libssl/root",
-    "cp /tmp/mosaic-libssl/root/usr/lib/*-linux-gnu/libssl.so.3 /opt/mosaic/openssl/lib/",
-    "cp /tmp/mosaic-libssl/root/usr/lib/*-linux-gnu/libcrypto.so.3 /opt/mosaic/openssl/lib/",
-    "cat <<'EOF' >/usr/local/bin/python3\n#!/bin/sh\nexport LD_LIBRARY_PATH=\"/opt/mosaic/openssl/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\nexec /usr/bin/python3 \"$@\"\nEOF",
+    "mkdir -p /tmp/coterm-libssl /opt/coterm/openssl/lib",
+    "cd /tmp/coterm-libssl && apt-get download libssl3t64",
+    "dpkg-deb -x /tmp/coterm-libssl/libssl3t64_*.deb /tmp/coterm-libssl/root",
+    "cp /tmp/coterm-libssl/root/usr/lib/*-linux-gnu/libssl.so.3 /opt/coterm/openssl/lib/",
+    "cp /tmp/coterm-libssl/root/usr/lib/*-linux-gnu/libcrypto.so.3 /opt/coterm/openssl/lib/",
+    "cat <<'EOF' >/usr/local/bin/python3\n#!/bin/sh\nexport LD_LIBRARY_PATH=\"/opt/coterm/openssl/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\"\nexec /usr/bin/python3 \"$@\"\nEOF",
     "chmod 0755 /usr/local/bin/python3",
     "ln -sf /usr/local/bin/python3 /usr/local/bin/python",
-    "rm -rf /tmp/mosaic-libssl /var/lib/apt/lists/*",
+    "rm -rf /tmp/coterm-libssl /var/lib/apt/lists/*",
   ];
 }
 
@@ -484,18 +484,18 @@ function freestyleBaseDockerfileContent(daemonURL: string): string {
     `ENV LANG=${UTF8_LOCALE} LC_ALL=${UTF8_LOCALE} LANGUAGE=${UTF8_LOCALE}`,
     `RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${CLOUD_SHELL_PACKAGES.join(" ")} && rm -rf /var/lib/apt/lists/*`,
     ...freestylePythonOpenSSLCommands().map((command) => `RUN ${command}`),
-    `RUN curl -fsSL ${shellQuote(daemonURL)} -o /usr/local/bin/mosaicd-remote && chmod 0755 /usr/local/bin/mosaicd-remote`,
+    `RUN curl -fsSL ${shellQuote(daemonURL)} -o /usr/local/bin/cotermd-remote && chmod 0755 /usr/local/bin/cotermd-remote`,
     ...cloudToolInstallCommands().map((command) => `RUN ${command}`),
     ...cloudRootSetupCommands().map((command) => `RUN ${command}`),
     ...cloudImageSmokeTestCommands().map((command) => `RUN ${command}`),
     "RUN mkdir -p /etc/systemd/system/multi-user.target.wants",
-    "RUN cat <<'EOF' >/etc/systemd/system/mosaicd-ws.service\n[Unit]\nDescription=mosaicd websocket daemon\nAfter=network.target\n\n[Service]\nType=simple\nUser=root\nExecStart=/usr/local/bin/mosaicd-remote serve --ws --listen 0.0.0.0:7777 --auth-lease-file /tmp/mosaic/attach-pty-lease.json --rpc-auth-lease-file /tmp/mosaic/attach-rpc-lease.json --shell /bin/bash\nRestart=always\nRestartSec=1\n\n[Install]\nWantedBy=multi-user.target\nEOF",
-    "RUN ln -sf /etc/systemd/system/mosaicd-ws.service /etc/systemd/system/multi-user.target.wants/mosaicd-ws.service",
+    "RUN cat <<'EOF' >/etc/systemd/system/cotermd-ws.service\n[Unit]\nDescription=cotermd websocket daemon\nAfter=network.target\n\n[Service]\nType=simple\nUser=root\nExecStart=/usr/local/bin/cotermd-remote serve --ws --listen 0.0.0.0:7777 --auth-lease-file /tmp/coterm/attach-pty-lease.json --rpc-auth-lease-file /tmp/coterm/attach-rpc-lease.json --shell /bin/bash\nRestart=always\nRestartSec=1\n\n[Install]\nWantedBy=multi-user.target\nEOF",
+    "RUN ln -sf /etc/systemd/system/cotermd-ws.service /etc/systemd/system/multi-user.target.wants/cotermd-ws.service",
   ].join("\n");
 }
 
 async function remoteDaemonBuildURL(tag: string, daemonPath: string): Promise<string> {
-  const explicit = process.env.MOSAIC_REMOTE_DAEMON_BUILD_URL?.trim();
+  const explicit = process.env.COTERM_REMOTE_DAEMON_BUILD_URL?.trim();
   if (explicit) return explicit;
 
   const required = [
@@ -508,11 +508,11 @@ async function remoteDaemonBuildURL(tag: string, daemonPath: string): Promise<st
   const missing = required.filter((key) => !process.env[key]?.trim());
   if (missing.length > 0) {
     throw new Error(
-      `Freestyle snapshot build needs MOSAIC_REMOTE_DAEMON_BUILD_URL or R2 env vars; missing ${missing.join(", ")}`,
+      `Freestyle snapshot build needs COTERM_REMOTE_DAEMON_BUILD_URL or R2 env vars; missing ${missing.join(", ")}`,
     );
   }
 
-  const key = `mosaic-build-artifacts/cloud-vm/${tag}/mosaicd-remote-linux-amd64`;
+  const key = `coterm-build-artifacts/cloud-vm/${tag}/cotermd-remote-linux-amd64`;
   const env = {
     AWS_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID!,
     AWS_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY!,
@@ -649,7 +649,7 @@ function imageNotes(metadata: ImageBuildMetadata): string {
 
 type ImageBuildMetadata = {
   readonly builtAt: string;
-  readonly mosaicdRemoteCommit: string;
+  readonly cotermdRemoteCommit: string;
   readonly binarySha256: string;
   readonly builderScriptVersion: string;
   readonly nodeMajor: string;

@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-export const NATIVE_HANDOFF_COOKIE = "mosaic-native-auth-handoff";
-export const NATIVE_HANDOFF_PARAM = "mosaic_auth_handoff";
+export const NATIVE_HANDOFF_COOKIE = "coterm-native-auth-handoff";
+export const NATIVE_HANDOFF_PARAM = "coterm_auth_handoff";
 
 export type NativeHandoff = {
   afterSignInURL: URL;
@@ -46,7 +46,7 @@ export function prepareNativeHandoff(request: NextRequest): NativeHandoff | null
   if (!afterSignInURL) return null;
 
   const nativeReturnTo = afterSignInURL.searchParams.get("native_app_return_to");
-  const shouldSetHandoff = canSetAutoHandoff(request) && nativeReturnTo?.includes("mosaic_auth_state") === true;
+  const shouldSetHandoff = canSetAutoHandoff(request) && nativeReturnTo?.includes("coterm_auth_state") === true;
   let nonce: string | null = null;
   if (shouldSetHandoff) {
     nonce = randomUUID();

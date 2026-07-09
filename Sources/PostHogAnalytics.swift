@@ -10,11 +10,11 @@ final class PostHogAnalytics: @unchecked Sendable {
     // The PostHog project API key is intentionally embedded in the app (it's a public key).
     private let apiKey = "phc_rRRqoNMdWb5ikbnHwC7EXWKBmYY7VvKJVCLaDqTm97ep"
 
-    // PostHog Cloud US default (matches other mosaic properties).
+    // PostHog Cloud US default (matches other coterm properties).
     private let host = "https://us.i.posthog.com"
 
-    private let dailyActiveEvent = "mosaic_daily_active"
-    private let hourlyActiveEvent = "mosaic_hourly_active"
+    private let dailyActiveEvent = "coterm_daily_active"
+    private let hourlyActiveEvent = "coterm_hourly_active"
     private let maxCapturedProperties = 64
     private let maxPropertyKeyLength = 64
     private let maxPropertyStringLength = 160
@@ -50,7 +50,7 @@ final class PostHogAnalytics: @unchecked Sendable {
     private var activeCheckTimer: Timer?
 
     private init(
-        workQueue: DispatchQueue = DispatchQueue(label: "com.mosaic.posthog.analytics", qos: .utility),
+        workQueue: DispatchQueue = DispatchQueue(label: "com.coterm.posthog.analytics", qos: .utility),
         didStart: Bool = false,
         userDefaults: UserDefaults = .standard,
         now: @escaping @Sendable () -> Date = { Date() },
@@ -221,7 +221,7 @@ final class PostHogAnalytics: @unchecked Sendable {
 
             var identityProperties = properties
             identityProperties["is_authenticated"] = true
-            identityProperties["platform"] = "mosaicterm"
+            identityProperties["platform"] = "coterm"
             PostHogSDK.shared.identify(
                 userID,
                 userProperties: Self.sanitizedProperties(
@@ -304,7 +304,7 @@ final class PostHogAnalytics: @unchecked Sendable {
         let today = utcDayString(now())
         if userDefaults.string(forKey: lastActiveDayUTCKey) == today {
             captureOnWorkQueue(
-                event: "mosaic_health_check",
+                event: "coterm_health_check",
                 properties: [
                     "type": "daily",
                     "status": "ok",
@@ -413,7 +413,7 @@ final class PostHogAnalytics: @unchecked Sendable {
     }
 
     nonisolated static func superProperties(infoDictionary: [String: Any]) -> [String: Any] {
-        var properties: [String: Any] = ["platform": "mosaicterm"]
+        var properties: [String: Any] = ["platform": "coterm"]
         properties.merge(versionProperties(infoDictionary: infoDictionary)) { _, new in new }
         return properties
     }
@@ -445,7 +445,7 @@ final class PostHogAnalytics: @unchecked Sendable {
 
     nonisolated static func shouldFlushAfterCapture(event: String) -> Bool {
         switch event {
-        case "mosaic_daily_active", "mosaic_hourly_active", "mac_error_captured", "mac_error_notification_shown":
+        case "coterm_daily_active", "coterm_hourly_active", "mac_error_captured", "mac_error_notification_shown":
             return true
         default:
             return false
@@ -492,7 +492,7 @@ final class PostHogAnalytics: @unchecked Sendable {
         for (key, value) in versionProperties where output[key] == nil {
             output[key] = value
         }
-        output["platform"] = output["platform"] ?? "mosaicterm"
+        output["platform"] = output["platform"] ?? "coterm"
 #if DEBUG
         output["debug_build"] = true
 #else

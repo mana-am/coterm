@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression: image drops into mosaic ssh terminals upload to the remote host."""
+"""Regression: image drops into coterm ssh terminals upload to the remote host."""
 
 from __future__ import annotations
 
@@ -18,17 +18,17 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
-DEFAULT_CMD_TIMEOUT = float(os.environ.get("MOSAIC_TEST_CMD_TIMEOUT", "60"))
-SLOW_CMD_TIMEOUT = float(os.environ.get("MOSAIC_TEST_SLOW_CMD_TIMEOUT", "300"))
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
+DEFAULT_CMD_TIMEOUT = float(os.environ.get("COTERM_TEST_CMD_TIMEOUT", "60"))
+SLOW_CMD_TIMEOUT = float(os.environ.get("COTERM_TEST_SLOW_CMD_TIMEOUT", "300"))
 
 
 def _must(condition: bool, message: str) -> None:
     if not condition:
-        raise mosaicError(message)
+        raise cotermError(message)
 
 
 def _run(
@@ -46,27 +46,27 @@ def _run(
             timeout=timeout,
         )
     except subprocess.TimeoutExpired as exc:
-        raise mosaicError(f"Command timed out after {timeout}s ({' '.join(cmd)})") from exc
+        raise cotermError(f"Command timed out after {timeout}s ({' '.join(cmd)})") from exc
     if check and proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"Command failed ({' '.join(cmd)}): {merged}")
+        raise cotermError(f"Command failed ({' '.join(cmd)}): {merged}")
     return proc
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [path for path in candidates if os.path.isfile(path) and os.access(path, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda path: os.path.getmtime(path), reverse=True)
     return candidates[0]
 
@@ -113,10 +113,10 @@ def _wait_for_ssh(host: str, host_port: int, key_path: Path, timeout: float = 20
         if probe.returncode == 0 and "ready" in probe.stdout:
             return
         time.sleep(0.4)
-    raise mosaicError("Timed out waiting for SSH server in docker fixture")
+    raise cotermError("Timed out waiting for SSH server in docker fixture")
 
 
-def _wait_remote_ready(client: mosaic, workspace_id: str, timeout: float = 45.0) -> None:
+def _wait_remote_ready(client: coterm, workspace_id: str, timeout: float = 45.0) -> None:
     deadline = time.time() + timeout
     last_status = {}
     while time.time() < deadline:
@@ -126,7 +126,7 @@ def _wait_remote_ready(client: mosaic, workspace_id: str, timeout: float = 45.0)
         if str(remote.get("state") or "") == "connected" and str(daemon.get("state") or "") == "ready":
             return
         time.sleep(0.25)
-    raise mosaicError(f"Remote did not become ready for {workspace_id}: {last_status}")
+    raise cotermError(f"Remote did not become ready for {workspace_id}: {last_status}")
 
 
 def _run_cli_json(
@@ -136,9 +136,9 @@ def _run_cli_json(
     timeout: float | None = DEFAULT_CMD_TIMEOUT,
 ) -> dict:
     env = dict(os.environ)
-    env.pop("MOSAIC_WORKSPACE_ID", None)
-    env.pop("MOSAIC_SURFACE_ID", None)
-    env.pop("MOSAIC_TAB_ID", None)
+    env.pop("COTERM_WORKSPACE_ID", None)
+    env.pop("COTERM_SURFACE_ID", None)
+    env.pop("COTERM_TAB_ID", None)
 
     try:
         proc = subprocess.run(
@@ -150,16 +150,16 @@ def _run_cli_json(
             timeout=timeout,
         )
     except subprocess.TimeoutExpired as exc:
-        raise mosaicError(f"mosaic {' '.join(args)} timed out after {timeout}s") from exc
+        raise cotermError(f"coterm {' '.join(args)} timed out after {timeout}s") from exc
     if proc.returncode != 0:
-        raise mosaicError(f"mosaic {' '.join(args)} failed: {(proc.stdout + proc.stderr).strip()}")
+        raise cotermError(f"coterm {' '.join(args)} failed: {(proc.stdout + proc.stderr).strip()}")
     try:
         return json.loads(proc.stdout or "{}")
     except json.JSONDecodeError as exc:
-        raise mosaicError(f"Invalid JSON output for {' '.join(args)}: {proc.stdout!r} ({exc})") from exc
+        raise cotermError(f"Invalid JSON output for {' '.join(args)}: {proc.stdout!r} ({exc})") from exc
 
 
-def _resolve_workspace_id(client: mosaic, payload: dict) -> str:
+def _resolve_workspace_id(client: coterm, payload: dict) -> str:
     workspace_id = str(payload.get("workspace_id") or "")
     if workspace_id:
         return workspace_id
@@ -173,18 +173,18 @@ def _resolve_workspace_id(client: mosaic, payload: dict) -> str:
                 if resolved:
                     return resolved
 
-    raise mosaicError(f"Unable to resolve workspace_id from payload: {payload}")
+    raise cotermError(f"Unable to resolve workspace_id from payload: {payload}")
 
 
-def _focused_surface_id(client: mosaic) -> str:
+def _focused_surface_id(client: coterm) -> str:
     ident = client.identify()
     surface_id = str((ident.get("focused") or {}).get("surface_id") or "")
     _must(bool(surface_id), f"Missing focused surface in identify payload: {ident}")
     return surface_id
 
 
-def _wait_for_remote_drop_paths(client: mosaic, surface_id: str, expected_count: int, timeout: float = 20.0) -> list[str]:
-    pattern = re.compile(r"/tmp/mosaic-drop-[0-9a-f-]+\.png")
+def _wait_for_remote_drop_paths(client: coterm, surface_id: str, expected_count: int, timeout: float = 20.0) -> list[str]:
+    pattern = re.compile(r"/tmp/coterm-drop-[0-9a-f-]+\.png")
     deadline = time.time() + timeout
     last = ""
     while time.time() < deadline:
@@ -197,7 +197,7 @@ def _wait_for_remote_drop_paths(client: mosaic, surface_id: str, expected_count:
         if len(remote_paths) >= expected_count:
             return remote_paths[:expected_count]
         time.sleep(0.25)
-    raise mosaicError(
+    raise cotermError(
         f"Timed out waiting for {expected_count} remote drop paths in terminal text: {last[-1000:]!r}"
     )
 
@@ -212,9 +212,9 @@ def main() -> int:
     fixture_dir = repo_root / "tests" / "fixtures" / "ssh-remote"
     _must(fixture_dir.is_dir(), f"Missing docker fixture directory: {fixture_dir}")
 
-    temp_dir = Path(tempfile.mkdtemp(prefix="mosaic-ssh-image-drop-"))
-    image_tag = f"mosaic-ssh-image-drop:{secrets.token_hex(4)}"
-    container_name = f"mosaic-ssh-image-drop-{secrets.token_hex(4)}"
+    temp_dir = Path(tempfile.mkdtemp(prefix="coterm-ssh-image-drop-"))
+    image_tag = f"coterm-ssh-image-drop:{secrets.token_hex(4)}"
+    container_name = f"coterm-ssh-image-drop-{secrets.token_hex(4)}"
     workspace_id = ""
 
     try:
@@ -236,7 +236,7 @@ def main() -> int:
         host = "root@127.0.0.1"
         _wait_for_ssh(host, host_ssh_port, key_path)
 
-        with mosaic(SOCKET_PATH) as client:
+        with coterm(SOCKET_PATH) as client:
             payload = _run_cli_json(
                 cli,
                 [

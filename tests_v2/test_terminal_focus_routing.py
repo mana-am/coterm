@@ -9,7 +9,7 @@ routed elsewhere).
 This test validates:
   1) The focused terminal is actually first responder (`is_terminal_focused`).
   2) Text insertion via debug socket (`simulate_type`) lands in the expected terminal by writing
-     $MOSAIC_SURFACE_ID to a temp file.
+     $COTERM_SURFACE_ID to a temp file.
 """
 
 import os
@@ -19,18 +19,18 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
-def _focused_surface_id(c: mosaic) -> str:
+def _focused_surface_id(c: coterm) -> str:
     surfaces = c.list_surfaces()
     for _, sid, focused in surfaces:
         if focused:
             return sid
-    raise mosaicError(f"No focused surface in list_surfaces: {surfaces}")
+    raise cotermError(f"No focused surface in list_surfaces: {surfaces}")
 
 
 def _wait_for_file_content(path: Path, timeout_s: float = 3.0) -> str:
@@ -44,19 +44,19 @@ def _wait_for_file_content(path: Path, timeout_s: float = 3.0) -> str:
             if data:
                 return data
         time.sleep(0.05)
-    raise mosaicError(f"Timed out waiting for file content: {path}")
+    raise cotermError(f"Timed out waiting for file content: {path}")
 
 
-def _wait_for_terminal_focus(c: mosaic, panel_id: str, timeout_s: float = 6.0) -> None:
+def _wait_for_terminal_focus(c: coterm, panel_id: str, timeout_s: float = 6.0) -> None:
     start = time.time()
     while time.time() - start < timeout_s:
         if c.is_terminal_focused(panel_id):
             return
         time.sleep(0.05)
-    raise mosaicError(f"Timed out waiting for terminal focus: {panel_id}")
+    raise cotermError(f"Timed out waiting for terminal focus: {panel_id}")
 
 
-def _focus_and_wait(c: mosaic, panel_id: str, *, total_timeout_s: float = 8.0) -> None:
+def _focus_and_wait(c: coterm, panel_id: str, *, total_timeout_s: float = 8.0) -> None:
     """
     Focus can be racy under split/tree churn. Re-issue focus a few times before failing.
     """
@@ -83,10 +83,10 @@ def _focus_and_wait(c: mosaic, panel_id: str, *, total_timeout_s: float = 8.0) -
             last_err = e
             time.sleep(0.15)
 
-    raise mosaicError(f"Failed to focus terminal surface (panel_id={panel_id}): {last_err}")
+    raise cotermError(f"Failed to focus terminal surface (panel_id={panel_id}): {last_err}")
 
 
-def _assert_routed_to_surface(c: mosaic, expected_surface_id: str, panel_id: str, focus_file: Path) -> None:
+def _assert_routed_to_surface(c: coterm, expected_surface_id: str, panel_id: str, focus_file: Path) -> None:
     last_actual = "<empty>"
     for attempt in range(4):
         _focus_and_wait(c, panel_id, total_timeout_s=4.0)
@@ -97,18 +97,18 @@ def _assert_routed_to_surface(c: mosaic, expected_surface_id: str, panel_id: str
                 pass
 
         # Write the currently focused surface id into a well-known file.
-        c.simulate_type(f"echo $MOSAIC_SURFACE_ID > {focus_file}")
+        c.simulate_type(f"echo $COTERM_SURFACE_ID > {focus_file}")
         c.simulate_shortcut("enter")
         try:
             actual = _wait_for_file_content(focus_file, timeout_s=3.0 + (attempt * 0.5))
-        except mosaicError:
+        except cotermError:
             actual = ""
         if actual == expected_surface_id:
             return
         last_actual = actual or "<empty>"
         time.sleep(0.15)
 
-    raise mosaicError(
+    raise cotermError(
         f"Input routed to wrong surface after retries: expected={expected_surface_id} actual={last_actual}"
     )
 
@@ -116,10 +116,10 @@ def _assert_routed_to_surface(c: mosaic, expected_surface_id: str, panel_id: str
 def main() -> int:
     # mkstemp atomically creates the file (no TOCTOU window vs the deprecated
     # mktemp); we only need the unique path, so close the fd immediately.
-    _focus_fd, _focus_path = tempfile.mkstemp(prefix="mosaic_focus_routing_", suffix=".txt")
+    _focus_fd, _focus_path = tempfile.mkstemp(prefix="coterm_focus_routing_", suffix=".txt")
     os.close(_focus_fd)
     focus_file = Path(_focus_path)
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         # Isolate from any user workspace state.
         c.new_workspace()
         time.sleep(0.2)
@@ -135,7 +135,7 @@ def main() -> int:
 
         surfaces = c.list_surfaces()
         if not surfaces:
-            raise mosaicError("Expected at least one surface after new_workspace")
+            raise cotermError("Expected at least one surface after new_workspace")
         left_id = surfaces[0][1]
 
         # Create a split to the right (this may trigger bonsplit reparenting/structural updates).

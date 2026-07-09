@@ -59,20 +59,20 @@ Usage:
                                   [--signing manual|automatic] [--external]
                                   [--archive-path <path>] [--export-only]
 
-Archives mosaic iOS, exports an App Store Connect IPA, and uploads it to
+Archives coterm iOS, exports an App Store Connect IPA, and uploads it to
 TestFlight. The default lane is beta:
 
-  bundle id: dev.mosaic.app.beta
-  profile:   mosaic Beta Distribution
+  bundle id: dev.coterm.app.beta
+  profile:   coterm Beta Distribution
 
 On the manual signing path the exported app is RE-SIGNED with the full
 entitlements before upload. The archive is built unsigned (to avoid
 distribution-cert churn), so -exportArchive re-adds only the profile baseline
 and silently DROPS app-capability entitlements like aps-environment. That is
-the https://github.com/emergent-inc/mosaic/pull/5496 regression that killed
+the https://github.com/emergent-inc/coterm/pull/5496 regression that killed
 beta/prod push. A config-level entitlements file alone does not prove the
 entitlement reaches the signed binary; only codesign -d --entitlements on the
-exported app does. So the re-sign merges Config/mosaic-release.entitlements into
+exported app does. So the re-sign merges Config/coterm-release.entitlements into
 the export baseline and signs with the local distribution cert, gated on
 codesign showing aps-environment and a strict signature verify.
 
@@ -106,7 +106,7 @@ Options:
                             the highest build as an update).
   --signing <mode>          Export signing mode: manual (default) or automatic.
                             manual uses the "Apple Distribution" certificate and
-                            the "mosaic Beta Distribution" provisioning profile from
+                            the "coterm Beta Distribution" provisioning profile from
                             the local keychain (for local/dev exports). automatic
                             uses Xcode cloud-managed signing via the ASC API key
                             and -allowProvisioningUpdates, so CI does not need an
@@ -114,18 +114,18 @@ Options:
   --external                Make the build eligible for EXTERNAL TestFlight
                             testers (sets testFlightInternalTestingOnly=NO).
                             Default is internal-only: builds reach internal
-                            groups (e.g. "mosaic beta") instantly but can never
+                            groups (e.g. "coterm beta") instantly but can never
                             be added to an external group. External-eligible
                             builds must pass Apple Beta App Review (~24h) before
                             external testers can install. Also set via
-                            MOSAIC_TESTFLIGHT_EXTERNAL=1.
+                            COTERM_TESTFLIGHT_EXTERNAL=1.
   --archive-path <path>     Reuse an existing archive instead of archiving.
   --export-only             Stop after exporting the signed IPA.
   --skip-notes              Do not set the TestFlight "What to Test" notes after
                             upload. By default a successful upload pushes the top
                             ios/CHANGELOG.md entry to the build (the Internal block,
                             or the External block with --external). Also via
-                            MOSAIC_TESTFLIGHT_SKIP_NOTES=1.
+                            COTERM_TESTFLIGHT_SKIP_NOTES=1.
   --notes-from-range <base> Auto-generate the "What to Test" notes from the
                             iOS-affecting commits in <base>..HEAD instead of the
                             ios/CHANGELOG.md top entry (used by the every-2h beta
@@ -177,18 +177,18 @@ EXPORT_ONLY=0
 SIGNING="manual"
 # Whether the exported build is eligible for external TestFlight testers.
 # Default 0 keeps the historical internal-only behavior (fast dogfood, no Apple
-# review). Set to 1 by --external or MOSAIC_TESTFLIGHT_EXTERNAL=1 to drop the
+# review). Set to 1 by --external or COTERM_TESTFLIGHT_EXTERNAL=1 to drop the
 # testFlightInternalTestingOnly flag so the build can be added to an external
 # group; such builds then require a one-time Apple Beta App Review per version.
 EXTERNAL_TESTING=0
-if [[ "${MOSAIC_TESTFLIGHT_EXTERNAL:-}" == "1" ]]; then
+if [[ "${COTERM_TESTFLIGHT_EXTERNAL:-}" == "1" ]]; then
   EXTERNAL_TESTING=1
 fi
 # After a successful upload, push the top ios/CHANGELOG.md entry to the build's
 # TestFlight "What to Test" so testers see what changed instead of an opaque
-# timestamp. Set to 1 by --skip-notes or MOSAIC_TESTFLIGHT_SKIP_NOTES=1.
+# timestamp. Set to 1 by --skip-notes or COTERM_TESTFLIGHT_SKIP_NOTES=1.
 SKIP_NOTES=0
-if [[ "${MOSAIC_TESTFLIGHT_SKIP_NOTES:-}" == "1" ]]; then
+if [[ "${COTERM_TESTFLIGHT_SKIP_NOTES:-}" == "1" ]]; then
   SKIP_NOTES=1
 fi
 # --notes-from-range <base>: auto-generate the "What to Test" notes from the
@@ -262,8 +262,8 @@ done
 
 case "$LANE" in
   beta)
-    PRODUCT_BUNDLE_IDENTIFIER="dev.mosaic.app.beta"
-    PROVISIONING_PROFILE_NAME="${IOS_BETA_PROVISIONING_PROFILE_NAME:-mosaic Beta Distribution}"
+    PRODUCT_BUNDLE_IDENTIFIER="dev.coterm.app.beta"
+    PROVISIONING_PROFILE_NAME="${IOS_BETA_PROVISIONING_PROFILE_NAME:-coterm Beta Distribution}"
     ;;
   *)
     echo "error: unsupported lane '$LANE'" >&2
@@ -283,8 +283,8 @@ esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IOS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-WORKSPACE="$IOS_DIR/mosaic.xcworkspace"
-SCHEME="mosaic-ios"
+WORKSPACE="$IOS_DIR/coterm.xcworkspace"
+SCHEME="coterm-ios"
 DEVELOPMENT_TEAM="${IOS_DEVELOPMENT_TEAM:-7WLXT3NR37}"
 
 # Notes audience is driven by the testing lane (External block for --external).
@@ -482,11 +482,11 @@ SHIPPED_BUILD_NUMBER="$BUILD_NUMBER"
 if [[ "$GUARD_REUSED_ARCHIVE" -eq 1 && "${ARCHIVE_BUILD_NUMBER:-}" =~ ^[0-9]+$ ]]; then
   SHIPPED_BUILD_NUMBER="$ARCHIVE_BUILD_NUMBER"
 fi
-if [[ -n "${MOSAIC_BUILD_NUMBER_OUT_FILE:-}" ]]; then
-  printf '%s\n' "$SHIPPED_BUILD_NUMBER" > "$MOSAIC_BUILD_NUMBER_OUT_FILE"
+if [[ -n "${COTERM_BUILD_NUMBER_OUT_FILE:-}" ]]; then
+  printf '%s\n' "$SHIPPED_BUILD_NUMBER" > "$COTERM_BUILD_NUMBER_OUT_FILE"
 fi
 
-OUT_DIR="${MOSAIC_IOS_UPLOAD_DIR:-/tmp/mosaic-ios-testflight-$BUILD_NUMBER}"
+OUT_DIR="${COTERM_IOS_UPLOAD_DIR:-/tmp/coterm-ios-testflight-$BUILD_NUMBER}"
 DERIVED_DATA="$OUT_DIR/DerivedData"
 EXPORT_PATH="$OUT_DIR/export"
 EXPORT_OPTIONS="$OUT_DIR/ExportOptions.plist"
@@ -503,7 +503,7 @@ if [[ -n "${ASC_API_KEY_ID:-}" && -n "${ASC_API_ISSUER_ID:-}" && -n "${ASC_API_K
 fi
 
 if [[ -z "$ARCHIVE_PATH" ]]; then
-  ARCHIVE_PATH="$OUT_DIR/mosaic.xcarchive"
+  ARCHIVE_PATH="$OUT_DIR/coterm.xcarchive"
   if [[ "$SIGNING" == "automatic" ]]; then
     # Automatic signing must archive a signed app so Xcode has the requested
     # Release entitlements to preserve during App Store Connect export. An
@@ -523,7 +523,7 @@ if [[ -z "$ARCHIVE_PATH" ]]; then
       CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
       "${MARKETING_VERSION_ARGS[@]}" \
       CODE_SIGN_STYLE=Automatic \
-      CODE_SIGN_ENTITLEMENTS="Config/mosaic-release.entitlements" \
+      CODE_SIGN_ENTITLEMENTS="Config/coterm-release.entitlements" \
       CODE_SIGN_IDENTITY="Apple Distribution" \
       CODE_SIGNING_ALLOWED=YES \
       CODE_SIGNING_REQUIRED=YES \
@@ -621,7 +621,7 @@ xcodebuild -exportArchive \
   "${XCODE_AUTH_ARGS[@]}" \
   | tee "$OUT_DIR/export.log"
 
-IPA_PATH="$EXPORT_PATH/mosaic.ipa"
+IPA_PATH="$EXPORT_PATH/coterm.ipa"
 if [[ ! -f "$IPA_PATH" ]]; then
   echo "error: IPA was not exported at $IPA_PATH" >&2
   exit 1
@@ -637,10 +637,10 @@ fi
 # com.apple.developer.team-identifier, get-task-allow, beta-reports-active) and
 # SILENTLY DROPS app-capability entitlements such as aps-environment. This
 # regressed in
-# https://github.com/emergent-inc/mosaic/pull/5496 (June 2026): the signed beta IPA
+# https://github.com/emergent-inc/coterm/pull/5496 (June 2026): the signed beta IPA
 # had aps-environment absent entirely, so the device registered no push token and
 # beta/prod push was dead. The per-config entitlements file fix
-# (Config/mosaic-release.entitlements) is necessary but NOT sufficient on its own:
+# (Config/coterm-release.entitlements) is necessary but NOT sufficient on its own:
 # a config-level entitlement only ships if it survives into the signed binary,
 # and only `codesign -d --entitlements` on the EXPORTED app proves that. So we
 # re-sign here with the export baseline MERGED with the Release entitlements file.
@@ -649,7 +649,7 @@ fi
 # both directions (hit 2026-06-11, ASC error 90163): App Store Connect rejects
 # any signed entitlement key the profile does not authorize. The Release file
 # carries com.apple.developer.usernotifications.time-sensitive, the App ID has
-# the capability enabled, but the installed "mosaic Beta Distribution" profile
+# the capability enabled, but the installed "coterm Beta Distribution" profile
 # predates it and does not list the key, so a naive baseline+Release merge is
 # rejected at upload ("bundle contains a key not in the provisioning profile").
 # The same naive merge also SHIPS WITHOUT keychain-access-groups (authorized by
@@ -662,7 +662,7 @@ fi
 #
 # This runs on the MANUAL signing path only: it re-signs with the named
 # distribution cert from the local keychain ("Apple Distribution: emergent.inc,
-# Inc."), which is present for local/fleet-archive beta cuts. The mosaic iOS app is
+# Inc."), which is present for local/fleet-archive beta cuts. The coterm iOS app is
 # a single self-contained bundle (no Frameworks/, no PlugIns/, GhosttyKit is
 # static), so only the top-level .app is signed; there is no nested code to
 # re-sign. Two alternatives were ruled out: an ad-hoc archive (CODE_SIGN_IDENTITY
@@ -670,9 +670,9 @@ fi
 # fleet would put distribution material on shared Macs.
 if [[ "$SIGNING" == "manual" ]]; then
   # Resolve the Release entitlements file. Release.xcconfig statically sets
-  # CODE_SIGN_ENTITLEMENTS = Config/mosaic-release.entitlements, so default to that
+  # CODE_SIGN_ENTITLEMENTS = Config/coterm-release.entitlements, so default to that
   # path rather than parsing xcodebuild -showBuildSettings (slower, more brittle).
-  RELEASE_ENTITLEMENTS="${IOS_RELEASE_ENTITLEMENTS:-$IOS_DIR/Config/mosaic-release.entitlements}"
+  RELEASE_ENTITLEMENTS="${IOS_RELEASE_ENTITLEMENTS:-$IOS_DIR/Config/coterm-release.entitlements}"
   RESIGN_IDENTITY="${IOS_DISTRIBUTION_IDENTITY:-Apple Distribution: emergent.inc (7WLXT3NR37)}"
 
   if [[ ! -f "$RELEASE_ENTITLEMENTS" ]]; then
@@ -761,7 +761,7 @@ PY
 
   # Re-zip with the exact IPA layout (Payload/ at archive root) and repoint
   # $IPA_PATH so the existing upload step ships the re-signed IPA.
-  RESIGNED_IPA="$EXPORT_PATH/mosaic-resigned.ipa"
+  RESIGNED_IPA="$EXPORT_PATH/coterm-resigned.ipa"
   rm -f "$RESIGNED_IPA"
   ( cd "$RESIGN_DIR" && zip -qrX "$RESIGNED_IPA" Payload )
 
@@ -781,7 +781,7 @@ else
   # keychain to re-sign with, so we cannot re-add a dropped entitlement here. The
   # archive is unsigned and -exportArchive does NOT mine the profile's
   # app-capability entitlements (verified: even a manual export with the
-  # push-capable "mosaic Beta Distribution" profile produced only the 4-key baseline
+  # push-capable "coterm Beta Distribution" profile produced only the 4-key baseline
   # with no aps-environment), so an automatic export almost certainly drops it too.
   #
   # Rather than upload a known-push-broken build with only a warning (CI warnings

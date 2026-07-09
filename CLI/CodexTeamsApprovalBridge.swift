@@ -184,7 +184,7 @@ enum CodexTeamsApprovalBridge {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: cwd, isDirectory: &isDirectory),
               isDirectory.boolValue else {
-            throw validationError("mosaic codex-teams cwd does not exist: \(cwd)")
+            throw validationError("coterm codex-teams cwd does not exist: \(cwd)")
         }
     }
 

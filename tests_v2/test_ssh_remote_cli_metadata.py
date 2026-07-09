@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression: `mosaic ssh` creates a remote-tagged workspace with remote metadata."""
+"""Regression: `coterm ssh` creates a remote-tagged workspace with remote metadata."""
 
 from __future__ import annotations
 
@@ -14,40 +14,40 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
 
 def _run_cli(cli: str, args: list[str], *, json_output: bool, extra_env: dict[str, str] | None = None) -> str:
     env = dict(os.environ)
-    env.pop("MOSAIC_WORKSPACE_ID", None)
-    env.pop("MOSAIC_SURFACE_ID", None)
-    env.pop("MOSAIC_TAB_ID", None)
+    env.pop("COTERM_WORKSPACE_ID", None)
+    env.pop("COTERM_SURFACE_ID", None)
+    env.pop("COTERM_TAB_ID", None)
     if extra_env:
         env.update(extra_env)
 
@@ -58,7 +58,7 @@ def _run_cli(cli: str, args: list[str], *, json_output: bool, extra_env: dict[st
     proc = subprocess.run(cmd, capture_output=True, text=True, check=False, env=env)
     if proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"CLI failed ({' '.join(cmd)}): {merged}")
+        raise cotermError(f"CLI failed ({' '.join(cmd)}): {merged}")
     return proc.stdout
 
 
@@ -67,7 +67,7 @@ def _run_cli_json(cli: str, args: list[str], *, extra_env: dict[str, str] | None
     try:
         return json.loads(output or "{}")
     except Exception as exc:  # noqa: BLE001
-        raise mosaicError(f"Invalid JSON output for {' '.join(args)}: {output!r} ({exc})")
+        raise cotermError(f"Invalid JSON output for {' '.join(args)}: {output!r} ({exc})")
 
 
 def _extract_control_path(ssh_command: str) -> str:
@@ -75,7 +75,7 @@ def _extract_control_path(ssh_command: str) -> str:
     return match.group(1) if match else ""
 
 
-def _read_any_terminal_text(client: mosaic, workspace_id: str, timeout: float = 8.0) -> str | None:
+def _read_any_terminal_text(client: coterm, workspace_id: str, timeout: float = 8.0) -> str | None:
     deadline = time.time() + timeout
     last_exc: Exception | None = None
     while time.time() < deadline:
@@ -83,7 +83,7 @@ def _read_any_terminal_text(client: mosaic, workspace_id: str, timeout: float = 
         for _, surface_id, _ in surfaces:
             try:
                 return client.read_terminal_text(surface_id)
-            except mosaicError as exc:
+            except cotermError as exc:
                 text = str(exc).lower()
                 if "terminal surface not found" in text:
                     last_exc = exc
@@ -94,7 +94,7 @@ def _read_any_terminal_text(client: mosaic, workspace_id: str, timeout: float = 
     return None
 
 
-def _resolve_workspace_id_from_payload(client: mosaic, payload: dict) -> str:
+def _resolve_workspace_id_from_payload(client: coterm, payload: dict) -> str:
     workspace_id = str(payload.get("workspace_id") or "")
     if workspace_id:
         return workspace_id
@@ -116,7 +116,7 @@ def _append_workspace_to_cleanup(workspaces_to_close: list[str], workspace_id: s
     return workspace_id
 
 
-def _find_workspace_row(client: mosaic, workspace_id: str) -> dict | None:
+def _find_workspace_row(client: coterm, workspace_id: str) -> dict | None:
     listed = client._call("workspace.list", {}) or {}
     for row in listed.get("workspaces") or []:
         if str(row.get("id") or "") == workspace_id:
@@ -127,7 +127,7 @@ def _find_workspace_row(client: mosaic, workspace_id: str) -> dict | None:
 def main() -> int:
     cli = _find_cli_binary()
     help_text = _run_cli(cli, ["ssh", "--help"], json_output=False)
-    _must("mosaic ssh" in help_text, "ssh --help output should include command header")
+    _must("coterm ssh" in help_text, "ssh --help output should include command header")
     _must("Create a new workspace" in help_text, "ssh --help output should describe workspace creation")
 
     workspace_id = ""
@@ -137,7 +137,7 @@ def main() -> int:
     workspace_id_invalid_proxy_port = ""
     workspaces_to_close: list[str] = []
     ssh_workspace_name = "ssh-meta-test"
-    with mosaic(SOCKET_PATH) as client:
+    with coterm(SOCKET_PATH) as client:
         try:
             payload = _run_cli_json(
                 cli,
@@ -150,7 +150,7 @@ def main() -> int:
             while time.time() < deadline_select:
                 try:
                     selected_workspace_id = client.current_workspace()
-                except mosaicError:
+                except cotermError:
                     time.sleep(0.05)
                     continue
                 listed_row = _find_workspace_row(client, selected_workspace_id)
@@ -173,137 +173,137 @@ def main() -> int:
                 and str(listed_row.get("title") or "") == ssh_workspace_name
                 and bool((listed_row.get("remote") or {}).get("enabled")) is True
                 and (not payload_workspace_id or selected_workspace_id == payload_workspace_id),
-                f"mosaic ssh should select the new remote workspace: selected={selected_workspace_id} row={listed_row} payload={payload}",
+                f"coterm ssh should select the new remote workspace: selected={selected_workspace_id} row={listed_row} payload={payload}",
             )
             workspace_id = _append_workspace_to_cleanup(
                 workspaces_to_close,
                 payload_workspace_id or selected_workspace_id,
             )
             remote_relay_port = payload.get("remote_relay_port")
-            _must(remote_relay_port is not None, f"mosaic ssh output missing remote_relay_port: {payload}")
+            _must(remote_relay_port is not None, f"coterm ssh output missing remote_relay_port: {payload}")
             remote_socket_addr = f"127.0.0.1:{int(remote_relay_port)}"
             ssh_command = str(payload.get("ssh_command") or "")
-            _must(bool(ssh_command), f"mosaic ssh output missing ssh_command: {payload}")
+            _must(bool(ssh_command), f"coterm ssh output missing ssh_command: {payload}")
             _must(
                 ssh_command.startswith("ssh "),
-                f"mosaic ssh should emit plain ssh command text (env is passed via workspace.create initial_env): {ssh_command!r}",
+                f"coterm ssh should emit plain ssh command text (env is passed via workspace.create initial_env): {ssh_command!r}",
             )
             ssh_terminal_command = str(payload.get("ssh_terminal_command") or "")
-            _must(bool(ssh_terminal_command), f"mosaic ssh output missing ssh_terminal_command: {payload}")
+            _must(bool(ssh_terminal_command), f"coterm ssh output missing ssh_terminal_command: {payload}")
             _must(
                 ssh_terminal_command.startswith("ssh "),
-                f"mosaic ssh should emit a terminal command that launches the remote bootstrap over ssh: {ssh_terminal_command!r}",
+                f"coterm ssh should emit a terminal command that launches the remote bootstrap over ssh: {ssh_terminal_command!r}",
             )
             ssh_startup_command = str(payload.get("ssh_startup_command") or "")
             _must(
-                "mosaic-ssh-startup-" in ssh_startup_command and ssh_startup_command.rstrip("'").endswith(".sh"),
-                f"mosaic ssh should launch a generated startup script that preserves shell integration and cleanup: {ssh_startup_command!r}",
+                "coterm-ssh-startup-" in ssh_startup_command and ssh_startup_command.rstrip("'").endswith(".sh"),
+                f"coterm ssh should launch a generated startup script that preserves shell integration and cleanup: {ssh_startup_command!r}",
             )
-            _must(os.path.isfile(ssh_startup_command), f"mosaic ssh startup script should exist on disk: {ssh_startup_command!r}")
+            _must(os.path.isfile(ssh_startup_command), f"coterm ssh startup script should exist on disk: {ssh_startup_command!r}")
             ssh_startup_script = Path(ssh_startup_command).read_text()
             _must(
-                f"mosaic_bootstrap_path=\"$HOME/.mosaic/relay/{int(remote_relay_port)}.bootstrap.sh\"" in ssh_startup_script,
-                f"mosaic ssh startup script should stage the remote bootstrap payload under ~/.mosaic/relay: {ssh_startup_command!r}",
+                f"coterm_bootstrap_path=\"$HOME/.coterm/relay/{int(remote_relay_port)}.bootstrap.sh\"" in ssh_startup_script,
+                f"coterm ssh startup script should stage the remote bootstrap payload under ~/.coterm/relay: {ssh_startup_command!r}",
             )
             _must(
-                "cat > \"$mosaic_bootstrap_path\"" in ssh_startup_script,
-                f"mosaic ssh startup script should upload the remote bootstrap over stdin before opening the interactive ssh session: {ssh_startup_command!r}",
+                "cat > \"$coterm_bootstrap_path\"" in ssh_startup_script,
+                f"coterm ssh startup script should upload the remote bootstrap over stdin before opening the interactive ssh session: {ssh_startup_command!r}",
             )
             _must(
                 "/bin/sh -c " in ssh_startup_script and "/bin/sh -lc " not in ssh_startup_script,
-                f"mosaic ssh startup script should install the bootstrap through a non-login POSIX shell: {ssh_startup_command!r}",
+                f"coterm ssh startup script should install the bootstrap through a non-login POSIX shell: {ssh_startup_command!r}",
             )
             _must(
-                f"/bin/sh \"$HOME/.mosaic/relay/{int(remote_relay_port)}.bootstrap.sh\"" in ssh_startup_script,
-                f"mosaic ssh startup script should execute the staged remote bootstrap file through /bin/sh: {ssh_startup_command!r}",
+                f"/bin/sh \"$HOME/.coterm/relay/{int(remote_relay_port)}.bootstrap.sh\"" in ssh_startup_script,
+                f"coterm ssh startup script should execute the staged remote bootstrap file through /bin/sh: {ssh_startup_command!r}",
             )
             _must(
-                "export MOSAIC_BOOTSTRAP_TTY=\"$mosaic_bootstrap_tty\"" in ssh_startup_script,
-                f"mosaic ssh startup script should preserve the bootstrap tty for relay warmup: {ssh_startup_command!r}",
+                "export COTERM_BOOTSTRAP_TTY=\"$coterm_bootstrap_tty\"" in ssh_startup_script,
+                f"coterm ssh startup script should preserve the bootstrap tty for relay warmup: {ssh_startup_command!r}",
             )
-            bootstrap_b64_match = re.search(r"^mosaic_remote_bootstrap_b64=([A-Za-z0-9+/=]+)$", ssh_startup_script, re.MULTILINE)
+            bootstrap_b64_match = re.search(r"^coterm_remote_bootstrap_b64=([A-Za-z0-9+/=]+)$", ssh_startup_script, re.MULTILINE)
             _must(
                 bootstrap_b64_match is not None,
-                f"mosaic ssh startup script should embed the remote bootstrap payload: {ssh_startup_command!r}",
+                f"coterm ssh startup script should embed the remote bootstrap payload: {ssh_startup_command!r}",
             )
             remote_bootstrap = base64.b64decode(str(bootstrap_b64_match.group(1))).decode("utf-8")
             ssh_env_overrides = payload.get("ssh_env_overrides") or {}
             _must(
                 str(ssh_env_overrides.get("GHOSTTY_SHELL_FEATURES") or "").endswith("ssh-env,ssh-terminfo"),
-                f"mosaic ssh should pass shell niceties via ssh_env_overrides: {payload}",
+                f"coterm ssh should pass shell niceties via ssh_env_overrides: {payload}",
             )
             _must(not ssh_command.startswith("env "), f"ssh command should not include env prefix: {ssh_command!r}")
             _must("-o StrictHostKeyChecking=accept-new" in ssh_command, f"ssh command prefix mismatch: {ssh_command!r}")
             _must("-o ControlMaster=auto" in ssh_command, f"ssh command should opt into connection reuse: {ssh_command!r}")
             _must("-o ControlPersist=600" in ssh_command, f"ssh command should keep master alive for reuse: {ssh_command!r}")
-            _must("ControlPath=/tmp/mosaic-ssh-" in ssh_command, f"ssh command should use shared control path template: {ssh_command!r}")
+            _must("ControlPath=/tmp/coterm-ssh-" in ssh_command, f"ssh command should use shared control path template: {ssh_command!r}")
             _must(
                 "RemoteCommand=" not in ssh_command,
-                f"mosaic ssh should keep the plain ssh_command separate from the terminal bootstrap wrapper: {ssh_command!r}",
+                f"coterm ssh should keep the plain ssh_command separate from the terminal bootstrap wrapper: {ssh_command!r}",
             )
             _must(
-                "mosaic_tmp=$(mktemp " in ssh_terminal_command,
-                f"mosaic ssh should stage a temp startup script through ssh_terminal_command: {ssh_terminal_command!r}",
+                "coterm_tmp=$(mktemp " in ssh_terminal_command,
+                f"coterm ssh should stage a temp startup script through ssh_terminal_command: {ssh_terminal_command!r}",
             )
             _must(
-                "export MOSAIC_BOOTSTRAP_TTY=\"$mosaic_bootstrap_tty\"" in ssh_terminal_command,
-                f"mosaic ssh should capture the bootstrap tty before handing off to the temp startup script: {ssh_terminal_command!r}",
+                "export COTERM_BOOTSTRAP_TTY=\"$coterm_bootstrap_tty\"" in ssh_terminal_command,
+                f"coterm ssh should capture the bootstrap tty before handing off to the temp startup script: {ssh_terminal_command!r}",
             )
             _must(
-                f"\"$HOME/.mosaic/relay/{int(remote_relay_port)}.tty\"" in ssh_terminal_command,
-                f"mosaic ssh should persist the bootstrap tty beside the relay metadata: {ssh_terminal_command!r}",
+                f"\"$HOME/.coterm/relay/{int(remote_relay_port)}.tty\"" in ssh_terminal_command,
+                f"coterm ssh should persist the bootstrap tty beside the relay metadata: {ssh_terminal_command!r}",
             )
             _must(
-                f"export PATH=\"$HOME/.mosaic/bin:$PATH\"" in remote_bootstrap,
-                f"mosaic ssh should still prepend the remote mosaic wrapper path in the remote bootstrap: {remote_bootstrap!r}",
+                f"export PATH=\"$HOME/.coterm/bin:$PATH\"" in remote_bootstrap,
+                f"coterm ssh should still prepend the remote coterm wrapper path in the remote bootstrap: {remote_bootstrap!r}",
             )
             _must(
-                f"export MOSAIC_SOCKET_PATH=127.0.0.1:{int(remote_relay_port)}" in remote_bootstrap,
-                f"mosaic ssh should still pin the relay socket path in the remote bootstrap: {remote_bootstrap!r}",
+                f"export COTERM_SOCKET_PATH=127.0.0.1:{int(remote_relay_port)}" in remote_bootstrap,
+                f"coterm ssh should still pin the relay socket path in the remote bootstrap: {remote_bootstrap!r}",
             )
             _must(
-                "export MOSAIC_WORKSPACE_ID='__MOSAIC_WORKSPACE_ID__'" in remote_bootstrap,
-                f"mosaic ssh should export the remote workspace id into the bootstrap shell: {remote_bootstrap!r}",
+                "export COTERM_WORKSPACE_ID='__COTERM_WORKSPACE_ID__'" in remote_bootstrap,
+                f"coterm ssh should export the remote workspace id into the bootstrap shell: {remote_bootstrap!r}",
             )
             _must(
-                "export MOSAIC_TAB_ID='__MOSAIC_WORKSPACE_ID__'" in remote_bootstrap,
-                f"mosaic ssh should keep MOSAIC_TAB_ID aligned with the workspace id for shell integration: {remote_bootstrap!r}",
+                "export COTERM_TAB_ID='__COTERM_WORKSPACE_ID__'" in remote_bootstrap,
+                f"coterm ssh should keep COTERM_TAB_ID aligned with the workspace id for shell integration: {remote_bootstrap!r}",
             )
             _must(
-                "export MOSAIC_SURFACE_ID='__MOSAIC_SURFACE_ID__'" in remote_bootstrap,
-                f"mosaic ssh should export the remote surface id into the bootstrap shell: {remote_bootstrap!r}",
+                "export COTERM_SURFACE_ID='__COTERM_SURFACE_ID__'" in remote_bootstrap,
+                f"coterm ssh should export the remote surface id into the bootstrap shell: {remote_bootstrap!r}",
             )
             _must(
-                "export MOSAIC_PANEL_ID='__MOSAIC_SURFACE_ID__'" in remote_bootstrap,
-                f"mosaic ssh should keep MOSAIC_PANEL_ID aligned with the surface id for shell integration: {remote_bootstrap!r}",
+                "export COTERM_PANEL_ID='__COTERM_SURFACE_ID__'" in remote_bootstrap,
+                f"coterm ssh should keep COTERM_PANEL_ID aligned with the surface id for shell integration: {remote_bootstrap!r}",
             )
             _must(
-                "case \"${MOSAIC_LOGIN_SHELL##*/}\" in" in remote_bootstrap,
-                f"mosaic ssh should still branch on the user's login shell when possible: {remote_bootstrap!r}",
+                "case \"${COTERM_LOGIN_SHELL##*/}\" in" in remote_bootstrap,
+                f"coterm ssh should still branch on the user's login shell when possible: {remote_bootstrap!r}",
             )
             _must(
-                "cat > \"$mosaic_shell_dir/.zshrc\"" in remote_bootstrap,
-                f"mosaic ssh should install a post-rc zsh wrapper so the remote mosaic wrapper stays first on PATH: {remote_bootstrap!r}",
+                "cat > \"$coterm_shell_dir/.zshrc\"" in remote_bootstrap,
+                f"coterm ssh should install a post-rc zsh wrapper so the remote coterm wrapper stays first on PATH: {remote_bootstrap!r}",
             )
             _must(
-                '"$mosaic_relay_cli" rpc surface.report_tty "$mosaic_relay_report_tty"' in remote_bootstrap,
-                f"mosaic ssh should synchronously report the relay TTY during bootstrap: {remote_bootstrap!r}",
+                '"$coterm_relay_cli" rpc surface.report_tty "$coterm_relay_report_tty"' in remote_bootstrap,
+                f"coterm ssh should synchronously report the relay TTY during bootstrap: {remote_bootstrap!r}",
             )
             _must(
-                'mosaic_relay_tty="${MOSAIC_BOOTSTRAP_TTY:-}"' in remote_bootstrap,
-                f"mosaic ssh should reuse the bootstrap tty when warming the relay-backed shell integration: {remote_bootstrap!r}",
+                'coterm_relay_tty="${COTERM_BOOTSTRAP_TTY:-}"' in remote_bootstrap,
+                f"coterm ssh should reuse the bootstrap tty when warming the relay-backed shell integration: {remote_bootstrap!r}",
             )
             _must(
-                '"$mosaic_relay_cli" rpc surface.ports_kick "$mosaic_relay_ports_kick"' in remote_bootstrap,
-                f"mosaic ssh should trigger an immediate relay-backed port scan during bootstrap: {remote_bootstrap!r}",
+                '"$coterm_relay_cli" rpc surface.ports_kick "$coterm_relay_ports_kick"' in remote_bootstrap,
+                f"coterm ssh should trigger an immediate relay-backed port scan during bootstrap: {remote_bootstrap!r}",
             )
             _must(
-                "exec \"$MOSAIC_LOGIN_SHELL\" --rcfile \"$mosaic_shell_dir/.bashrc\" -i" in remote_bootstrap,
-                f"mosaic ssh should still support bash login shells with a post-rc wrapper file: {remote_bootstrap!r}",
+                "exec \"$COTERM_LOGIN_SHELL\" --rcfile \"$coterm_shell_dir/.bashrc\" -i" in remote_bootstrap,
+                f"coterm ssh should still support bash login shells with a post-rc wrapper file: {remote_bootstrap!r}",
             )
             _must(
-                "exec \"$MOSAIC_LOGIN_SHELL\" -i" in remote_bootstrap,
-                f"mosaic ssh should still hand off to the user's interactive login shell when possible: {remote_bootstrap!r}",
+                "exec \"$COTERM_LOGIN_SHELL\" -i" in remote_bootstrap,
+                f"coterm ssh should still hand off to the user's interactive login shell when possible: {remote_bootstrap!r}",
             )
 
             _must(listed_row is not None, f"workspace.list did not include {workspace_id}")
@@ -332,12 +332,12 @@ def main() -> int:
                 bool(remote.get("has_ssh_options")) is True,
                 f"workspace remote payload should indicate ssh options are configured: {remote}",
             )
-            # Regression: mosaic ssh should launch through initial_command, not visibly type a giant command into the shell.
+            # Regression: coterm ssh should launch through initial_command, not visibly type a giant command into the shell.
             terminal_text = _read_any_terminal_text(client, workspace_id)
             if terminal_text is not None:
-                _must("ControlPersist=600" not in terminal_text, f"mosaic ssh should not inject raw ssh command text: {terminal_text!r}")
-                _must("GHOSTTY_SHELL_FEATURES=" not in terminal_text, f"mosaic ssh should not inject env assignment text: {terminal_text!r}")
-                _must("BASH_EXECUTION_STRING=set" not in terminal_text, f"mosaic ssh should not print the remote shell environment dump on connect: {terminal_text!r}")
+                _must("ControlPersist=600" not in terminal_text, f"coterm ssh should not inject raw ssh command text: {terminal_text!r}")
+                _must("GHOSTTY_SHELL_FEATURES=" not in terminal_text, f"coterm ssh should not inject env assignment text: {terminal_text!r}")
+                _must("BASH_EXECUTION_STRING=set" not in terminal_text, f"coterm ssh should not print the remote shell environment dump on connect: {terminal_text!r}")
 
             status = client._call("workspace.remote.status", {"workspace_id": workspace_id}) or {}
             status_remote = status.get("remote") or {}
@@ -365,7 +365,7 @@ def main() -> int:
                     break
                 time.sleep(0.2)
             else:
-                raise mosaicError(f"unreachable host should fail fast instead of hanging in connecting: {last_status}")
+                raise cotermError(f"unreachable host should fail fast instead of hanging in connecting: {last_status}")
 
             last_remote = last_status.get("remote") or {}
             last_daemon = last_remote.get("daemon") or {}
@@ -395,8 +395,8 @@ def main() -> int:
             _must(str(disconnected_daemon.get("state") or "") == "unavailable", f"daemon state should reset to unavailable: {disconnected}")
             try:
                 client._call("workspace.remote.reconnect", {"workspace_id": workspace_id})
-                raise mosaicError("workspace.remote.reconnect should fail when remote config was cleared")
-            except mosaicError as exc:
+                raise cotermError("workspace.remote.reconnect should fail when remote config was cleared")
+            except cotermError as exc:
                 text = str(exc).lower()
                 _must("invalid_state" in text, f"workspace.remote.reconnect missing invalid_state for cleared config: {exc}")
                 _must("not configured" in text, f"workspace.remote.reconnect should explain missing remote config: {exc}")
@@ -412,14 +412,14 @@ def main() -> int:
             )
             ssh_command_without_name = str(payload2.get("ssh_command") or "")
 
-            _must(bool(workspace_id_without_name), f"mosaic ssh without --name should still create workspace: {payload2}")
+            _must(bool(workspace_id_without_name), f"coterm ssh without --name should still create workspace: {payload2}")
             _must(
-                "ControlPath=/tmp/mosaic-ssh-" in ssh_command_without_name,
-                f"mosaic ssh without --name should still include control path defaults: {ssh_command_without_name!r}",
+                "ControlPath=/tmp/coterm-ssh-" in ssh_command_without_name,
+                f"coterm ssh without --name should still include control path defaults: {ssh_command_without_name!r}",
             )
             _must(
                 _extract_control_path(ssh_command) != _extract_control_path(ssh_command_without_name),
-                f"distinct mosaic ssh workspaces should get distinct control paths: {ssh_command!r} vs {ssh_command_without_name!r}",
+                f"distinct coterm ssh workspaces should get distinct control paths: {ssh_command!r} vs {ssh_command_without_name!r}",
             )
             row2 = None
             listed2 = client._call("workspace.list", {}) or {}
@@ -456,7 +456,7 @@ def main() -> int:
             )
             _must(
                 bool(workspace_id_strict_override),
-                f"mosaic ssh with StrictHostKeyChecking override should create workspace: {payload_strict_override}",
+                f"coterm ssh with StrictHostKeyChecking override should create workspace: {payload_strict_override}",
             )
             ssh_command_strict_override = str(payload_strict_override.get("ssh_command") or "")
             _must(
@@ -493,7 +493,7 @@ def main() -> int:
                     "--ssh-option",
                     "controlpersist=0",
                     "--ssh-option",
-                    "controlpath=/tmp/mosaic-ssh-%C-custom",
+                    "controlpath=/tmp/coterm-ssh-%C-custom",
                 ],
             )
             workspace_id_case_override = _append_workspace_to_cleanup(
@@ -502,7 +502,7 @@ def main() -> int:
             )
             _must(
                 bool(workspace_id_case_override),
-                f"mosaic ssh with lowercase SSH option overrides should create workspace: {payload_case_override}",
+                f"coterm ssh with lowercase SSH option overrides should create workspace: {payload_case_override}",
             )
             ssh_command_case_override = str(payload_case_override.get("ssh_command") or "")
             ssh_command_case_override_lower = ssh_command_case_override.lower()
@@ -531,7 +531,7 @@ def main() -> int:
                 f"ssh command should not force default ControlPersist when lowercase override is supplied: {ssh_command_case_override!r}",
             )
             _must(
-                "controlpath=/tmp/mosaic-ssh-%c-custom" in ssh_command_case_override_lower,
+                "controlpath=/tmp/coterm-ssh-%c-custom" in ssh_command_case_override_lower,
                 f"ssh command should preserve lowercase ControlPath override value: {ssh_command_case_override!r}",
             )
             _must(
@@ -557,7 +557,7 @@ def main() -> int:
             merged_features = str(payload3_env.get("GHOSTTY_SHELL_FEATURES") or "")
             _must(
                 merged_features == "cursor,title,ssh-env,ssh-terminfo",
-                f"mosaic ssh should merge existing shell features when present: {payload3!r}",
+                f"coterm ssh should merge existing shell features when present: {payload3!r}",
             )
             workspace_id3 = _append_workspace_to_cleanup(
                 workspaces_to_close,
@@ -660,10 +660,10 @@ def main() -> int:
                             "auto_connect": False,
                         },
                     )
-                    raise mosaicError(
+                    raise cotermError(
                         f"workspace.remote.configure should reject local_proxy_port={invalid_local_proxy_port!r}"
                     )
-                except mosaicError as exc:
+                except cotermError as exc:
                     text = str(exc)
                     lowered = text.lower()
                     _must(
@@ -686,10 +686,10 @@ def main() -> int:
                             "auto_connect": False,
                         },
                     )
-                    raise mosaicError(
+                    raise cotermError(
                         f"workspace.remote.configure should reject port={invalid_port!r}"
                     )
-                except mosaicError as exc:
+                except cotermError as exc:
                     text = str(exc)
                     lowered = text.lower()
                     _must(
@@ -716,7 +716,7 @@ def main() -> int:
                 except Exception:
                     pass
 
-    print("PASS: mosaic ssh marks workspace as remote, exposes remote metadata, and does not require --name")
+    print("PASS: coterm ssh marks workspace as remote, exposes remote metadata, and does not require --name")
     return 0
 
 

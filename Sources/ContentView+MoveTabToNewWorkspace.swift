@@ -1,6 +1,6 @@
-import MosaicCommandPalette
+import CotermCommandPalette
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 import SwiftUI
 
 extension ContentView {

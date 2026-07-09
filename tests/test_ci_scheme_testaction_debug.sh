@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCHEME_FILE="mosaic.xcodeproj/xcshareddata/xcschemes/mosaic.xcscheme"
+SCHEME_FILE="coterm.xcodeproj/xcshareddata/xcschemes/coterm.xcscheme"
 
 if [ ! -f "$SCHEME_FILE" ]; then
   echo "FAIL: Missing scheme file at $SCHEME_FILE" >&2
@@ -9,8 +9,8 @@ if [ ! -f "$SCHEME_FILE" ]; then
 fi
 
 if ! grep -q '<TestAction buildConfiguration="Debug"' "$SCHEME_FILE"; then
-  echo "FAIL: mosaic scheme TestAction must use Debug build configuration for UI test setup hooks" >&2
+  echo "FAIL: coterm scheme TestAction must use Debug build configuration for UI test setup hooks" >&2
   exit 1
 fi
 
-echo "PASS: mosaic scheme TestAction uses Debug"
+echo "PASS: coterm scheme TestAction uses Debug"

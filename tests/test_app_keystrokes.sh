@@ -1,24 +1,24 @@
 #!/bin/bash
-# Test script that sends keystrokes to mosaic via AppleScript
+# Test script that sends keystrokes to coterm via AppleScript
 # This tests the actual keyboard input path through the app
 
 set -e
 
-echo "=== Mosaic Keystroke Test ==="
+echo "=== Coterm Keystroke Test ==="
 echo ""
 
-# Check if Mosaic is running
-if ! pgrep -x "Mosaic" > /dev/null; then
-    echo "Error: Mosaic is not running"
-    echo "Please start Mosaic first"
+# Check if Coterm is running
+if ! pgrep -x "Coterm" > /dev/null; then
+    echo "Error: Coterm is not running"
+    echo "Please start Coterm first"
     exit 1
 fi
 
-echo "Mosaic is running"
+echo "Coterm is running"
 echo ""
 
-# Activate mosaic
-osascript -e 'tell application "Mosaic" to activate'
+# Activate coterm
+osascript -e 'tell application "Coterm" to activate'
 sleep 0.5
 
 echo "Test 1: Testing Ctrl+C (SIGINT)"
@@ -56,7 +56,7 @@ echo "  If cat exited, Ctrl+D is working!"
 echo ""
 
 echo "=== Manual Verification Required ==="
-echo "Please check the Mosaic window to verify:"
+echo "Please check the Coterm window to verify:"
 echo "  1. The 'sleep 30' command was interrupted by Ctrl+C"
 echo "  2. The 'cat' command exited after Ctrl+D"
 echo ""

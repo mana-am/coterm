@@ -1,14 +1,14 @@
-import MosaicSettings
+import CotermSettings
 import Foundation
 
 /// App-side placement resolution for new workspaces.
 ///
 /// Fused-enum split status (TabManager decomposition): the legacy
 /// `WorkspacePlacementSettings` namespace enum is gone — its storage key is
-/// the MosaicSettings catalog's `app.newWorkspacePlacement` entry and the
+/// the CotermSettings catalog's `app.newWorkspacePlacement` entry and the
 /// app's `WorkspacePlacement` enum converged onto the catalog's
 /// `WorkspacePlacement` value type. The pure resolvers below are **staged
-/// for MosaicWorkspaces (Wave 4)**, where they move with the workspace
+/// for CotermWorkspaces (Wave 4)**, where they move with the workspace
 /// creation coordinator.
 extension WorkspacePlacement {
     /// The placement to apply for a new workspace: an explicit call-site

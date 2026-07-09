@@ -1,4 +1,4 @@
-# Open-source mosaic device-presence service — Cloudflare Worker + Durable Objects.
+# Open-source coterm device-presence service — Cloudflare Worker + Durable Objects.
 #
 # Faithful port of workers/presence, with Stack Auth replaced by the pluggable
 # CollabAuthProvider (see src/auth-adapter.ts). The production custom domain and
@@ -14,7 +14,7 @@ workers_dev = true
 enabled = true
 
 [vars]
-COLLAB_AUTH_MODE = "noauth"
+COLLAB_AUTH_MODE = "hmac"
 
 # Secret (set via `wrangler secret put` or `.dev.vars`):
 #   COLLAB_AUTH_SECRET — shared HMAC secret (required when COLLAB_AUTH_MODE=hmac)

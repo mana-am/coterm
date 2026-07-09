@@ -1,9 +1,9 @@
-import MosaicFoundation
+import CotermFoundation
 import SwiftUI
 import Foundation
 import Bonsplit
 import AppKit
-import MosaicAppKitSupportUI
+import CotermAppKitSupportUI
 
 /// View that renders the appropriate panel view based on panel type
 struct PanelContentView: View {
@@ -137,8 +137,8 @@ struct PanelContentView: View {
                 )
             }
         case .extensionBrowser:
-            if let extensionBrowserPanel = panel as? MosaicSidebarExtensionBrowserPanel {
-                MosaicSidebarExtensionBrowserPanelView(
+            if let extensionBrowserPanel = panel as? CotermSidebarExtensionBrowserPanel {
+                CotermSidebarExtensionBrowserPanelView(
                     panel: extensionBrowserPanel,
                     onRequestPanelFocus: onRequestPanelFocus
                 )
@@ -177,11 +177,11 @@ struct PanelFilePathHeader<TrailingContent: View>: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            MosaicSystemSymbolImage(systemName: iconSystemName, pointSize: 16)
+            CotermSystemSymbolImage(systemName: iconSystemName, pointSize: 16)
                 .foregroundStyle(.secondary)
                 .frame(width: 16)
             Text(filePath)
-                .mosaicFont(size: 11, design: .monospaced)
+                .cotermFont(size: 11, design: .monospaced)
                 .foregroundStyle(Color(nsColor: foregroundColor).opacity(0.68))
                 .lineLimit(1)
                 .truncationMode(.middle)
@@ -227,7 +227,7 @@ struct PanelHeaderIconButton: View {
         .onHover { hovering in
             isHovering = hovering
         }
-        .mosaicCursorOnHover(hoverCursor, enabled: !isDisabled && isEnabled)
+        .cotermCursorOnHover(hoverCursor, enabled: !isDisabled && isEnabled)
     }
 
     private var effectiveIsHovering: Bool {
@@ -260,13 +260,13 @@ struct PanelHeaderIconGlyph: View {
     let systemName: String
 
     var body: some View {
-        MosaicSystemSymbolImage(systemName: systemName, pointSize: 13)
+        CotermSystemSymbolImage(systemName: systemName, pointSize: 13)
             .frame(width: 20, height: 20, alignment: .center)
             .contentShape(Rectangle())
     }
 }
 
-struct MosaicHoverCursorModifier: ViewModifier {
+struct CotermHoverCursorModifier: ViewModifier {
     let cursor: NSCursor
     let enabled: Bool
     @State private var cursorPushed = false
@@ -304,7 +304,7 @@ struct MosaicHoverCursorModifier: ViewModifier {
 }
 
 extension View {
-    func mosaicCursorOnHover(_ cursor: NSCursor, enabled: Bool = true) -> some View {
-        modifier(MosaicHoverCursorModifier(cursor: cursor, enabled: enabled))
+    func cotermCursorOnHover(_ cursor: NSCursor, enabled: Bool = true) -> some View {
+        modifier(CotermHoverCursorModifier(cursor: cursor, enabled: enabled))
     }
 }

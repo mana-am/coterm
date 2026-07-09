@@ -1,5 +1,5 @@
 import AppKit
-import MosaicProjectModel
+import CotermProjectModel
 import Combine
 import Foundation
 import SwiftUI

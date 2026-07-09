@@ -53,12 +53,12 @@ export type VmBillingGatewayShape = {
   readonly refundCreate: (reservation: VmCreateCreditReservation) => Effect.Effect<void, VmBillingError>;
 };
 
-export class VmBillingGateway extends Context.Tag("mosaic/VmBillingGateway")<
+export class VmBillingGateway extends Context.Tag("coterm/VmBillingGateway")<
   VmBillingGateway,
   VmBillingGatewayShape
 >() {}
 
-export const DEFAULT_FREE_CREATE_CREDIT_ITEM_ID = "mosaic-vm-create-credit";
+export const DEFAULT_FREE_CREATE_CREDIT_ITEM_ID = "coterm-vm-create-credit";
 export const DEFAULT_FREE_INITIAL_CREATE_CREDITS = 20;
 export const FREE_INITIAL_CREATE_CREDITS_REASON = "free-plan-initial-create-credits";
 
@@ -186,7 +186,7 @@ function createCreditItemId(
   if (planSpecific.kind === "disabled") return null;
   if (planSpecific.kind === "item") return planSpecific.itemId;
 
-  const global = resolvedCreateCreditItemIdValue(env.MOSAIC_VM_CREATE_CREDIT_ITEM_ID);
+  const global = resolvedCreateCreditItemIdValue(env.COTERM_VM_CREATE_CREDIT_ITEM_ID);
   if (global.kind === "disabled") return null;
   if (global.kind === "item") return global.itemId;
 
@@ -208,7 +208,7 @@ function isDisabledCreateCreditValue(value: string): boolean {
 }
 
 function createCreditItemIdEnvKey(planId: string): string {
-  return `MOSAIC_VM_PLAN_${planEnvKey(planId)}_CREATE_CREDIT_ITEM_ID`;
+  return `COTERM_VM_PLAN_${planEnvKey(planId)}_CREATE_CREDIT_ITEM_ID`;
 }
 
 function createCreditCost(
@@ -217,18 +217,18 @@ function createCreditCost(
   env: Record<string, string | undefined>,
 ): number {
   const planKey = planEnvKey(planId);
-  const providerKey = `MOSAIC_VM_CREATE_CREDIT_COST_${provider.toUpperCase()}`;
-  const planProviderKey = `MOSAIC_VM_PLAN_${planKey}_CREATE_CREDIT_COST_${provider.toUpperCase()}`;
-  const planKeyDefault = `MOSAIC_VM_PLAN_${planKey}_CREATE_CREDIT_COST`;
+  const providerKey = `COTERM_VM_CREATE_CREDIT_COST_${provider.toUpperCase()}`;
+  const planProviderKey = `COTERM_VM_PLAN_${planKey}_CREATE_CREDIT_COST_${provider.toUpperCase()}`;
+  const planKeyDefault = `COTERM_VM_PLAN_${planKey}_CREATE_CREDIT_COST`;
   const configured = firstConfiguredEnv(env, [
     planProviderKey,
     planKeyDefault,
     providerKey,
-    "MOSAIC_VM_CREATE_CREDIT_COST",
+    "COTERM_VM_CREATE_CREDIT_COST",
   ]);
   const raw = configured?.value ?? "1";
   const key = configured?.key ??
-    `${planProviderKey} or ${planKeyDefault} or ${providerKey} or MOSAIC_VM_CREATE_CREDIT_COST`;
+    `${planProviderKey} or ${planKeyDefault} or ${providerKey} or COTERM_VM_CREATE_CREDIT_COST`;
   return positiveInteger(raw, key);
 }
 
@@ -238,12 +238,12 @@ function initialCreateCreditGrantAmount(
 ): number {
   const planKey = planEnvKey(planId);
   const configured = firstConfiguredEnv(env, [
-    `MOSAIC_VM_PLAN_${planKey}_INITIAL_CREATE_CREDITS`,
-    "MOSAIC_VM_INITIAL_CREATE_CREDITS",
+    `COTERM_VM_PLAN_${planKey}_INITIAL_CREATE_CREDITS`,
+    "COTERM_VM_INITIAL_CREATE_CREDITS",
   ]);
   return positiveInteger(
     configured?.value ?? String(DEFAULT_FREE_INITIAL_CREATE_CREDITS),
-    configured?.key ?? `MOSAIC_VM_PLAN_${planKey}_INITIAL_CREATE_CREDITS or MOSAIC_VM_INITIAL_CREATE_CREDITS`,
+    configured?.key ?? `COTERM_VM_PLAN_${planKey}_INITIAL_CREATE_CREDITS or COTERM_VM_INITIAL_CREATE_CREDITS`,
   );
 }
 

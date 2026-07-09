@@ -1,7 +1,7 @@
 import AppKit
-import MosaicControlSocket
-import MosaicSettings
-import MosaicSwiftRenderUI
+import CotermControlSocket
+import CotermSettings
+import CotermSwiftRenderUI
 import Foundation
 
 extension TerminalController {
@@ -64,10 +64,10 @@ extension TerminalController {
             return .ok(payload)
         }
 
-        let providerId = MosaicExtensionSidebarSelection.customSidebarProviderPrefix + name
+        let providerId = CotermExtensionSidebarSelection.customSidebarProviderPrefix + name
         v2MainSync {
             UserDefaults.standard.set(true, forKey: SettingCatalog().betaFeatures.customSidebars.userDefaultsKey)
-            MosaicExtensionSidebarSelection.setProviderId(providerId)
+            CotermExtensionSidebarSelection.setProviderId(providerId)
             NotificationCenter.default.post(
                 name: .customSidebarReloadRequested,
                 object: nil,
@@ -189,12 +189,12 @@ extension TerminalController {
     }
 
     private nonisolated func v2CustomSidebarValidationReport(name: String?) -> CustomSidebarValidationReport {
-        CustomSidebarValidator().validate(directory: MosaicExtensionSidebarSelection.customSidebarsDirectory, name: name)
+        CustomSidebarValidator().validate(directory: CotermExtensionSidebarSelection.customSidebarsDirectory, name: name)
     }
 
     private nonisolated func v2CustomSidebarReportPayload(_ report: CustomSidebarValidationReport) -> [String: Any] {
         [
-            "directory": MosaicExtensionSidebarSelection.customSidebarsDirectory.path,
+            "directory": CotermExtensionSidebarSelection.customSidebarsDirectory.path,
             "valid_count": report.validCount,
             "error_count": report.errorCount,
             "sidebars": report.entries.map { entry in

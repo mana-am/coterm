@@ -1,5 +1,5 @@
 import Foundation
-import MosaicCore
+import CotermCore
 #if canImport(Security)
 import Security
 #endif

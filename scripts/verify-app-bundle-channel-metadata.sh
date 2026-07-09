@@ -32,13 +32,13 @@ fi
 
 case "$CHANNEL" in
   stable)
-    EXPECTED_NAME="Mosaic"
-    EXPECTED_BUNDLE_ID="mosaic.com.emergent.app"
+    EXPECTED_NAME="Coterm"
+    EXPECTED_BUNDLE_ID="coterm.com.emergent.app"
     EXPECTED_ICON_NAME="AppIcon"
     ;;
   nightly)
-    EXPECTED_NAME="Mosaic NIGHTLY"
-    EXPECTED_BUNDLE_ID="mosaic.com.emergent.app.nightly"
+    EXPECTED_NAME="Coterm NIGHTLY"
+    EXPECTED_BUNDLE_ID="coterm.com.emergent.app.nightly"
     EXPECTED_ICON_NAME="AppIcon-Nightly"
     ;;
   *)

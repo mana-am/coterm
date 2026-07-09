@@ -16,11 +16,11 @@ import urllib.request
 
 
 IMMUTABLE_ASSET_PATTERNS = [
-    re.compile(r"^mosaic-nightly-macos-(?P<build>\d+)\.dmg$"),
-    re.compile(r"^mosaic-nightly-universal-macos-(?P<build>\d+)\.dmg$"),
-    re.compile(r"^mosaicd-remote-(?:darwin-arm64|darwin-amd64|linux-arm64|linux-amd64)-(?P<build>\d+)$"),
-    re.compile(r"^mosaicd-remote-checksums-(?P<build>\d+)\.txt$"),
-    re.compile(r"^mosaicd-remote-manifest-(?P<build>\d+)\.json$"),
+    re.compile(r"^coterm-nightly-macos-(?P<build>\d+)\.dmg$"),
+    re.compile(r"^coterm-nightly-universal-macos-(?P<build>\d+)\.dmg$"),
+    re.compile(r"^cotermd-remote-(?:darwin-arm64|darwin-amd64|linux-arm64|linux-amd64)-(?P<build>\d+)$"),
+    re.compile(r"^cotermd-remote-checksums-(?P<build>\d+)\.txt$"),
+    re.compile(r"^cotermd-remote-manifest-(?P<build>\d+)\.json$"),
 ]
 
 
@@ -39,7 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Prune old immutable assets from the nightly GitHub release."
     )
-    parser.add_argument("--repo", required=True, help="owner/repo, for example emergent-inc/mosaic")
+    parser.add_argument("--repo", required=True, help="owner/repo, for example emergent-inc/coterm")
     parser.add_argument("--release-tag", default="nightly", help="GitHub release tag to prune")
     parser.add_argument(
         "--keep-builds",
@@ -94,7 +94,7 @@ def github_api_json(method: str, path: str) -> dict:
             headers={
                 "Accept": "application/vnd.github+json",
                 "Authorization": f"Bearer {token}",
-                "User-Agent": "mosaic-nightly-prune",
+                "User-Agent": "coterm-nightly-prune",
                 "X-GitHub-Api-Version": "2022-11-28",
             },
         )

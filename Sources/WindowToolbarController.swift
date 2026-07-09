@@ -1,12 +1,12 @@
 import AppKit
 import Combine
-import MosaicFoundation
+import CotermFoundation
 import SwiftUI
 
 @MainActor
 final class WindowToolbarController: NSObject, NSToolbarDelegate {
-    private let commandItemIdentifier = NSToolbarItem.Identifier("mosaic.focusedCommand")
-    private let layoutModeItemIdentifier = NSToolbarItem.Identifier("mosaic.layoutMode")
+    private let commandItemIdentifier = NSToolbarItem.Identifier("coterm.focusedCommand")
+    private let layoutModeItemIdentifier = NSToolbarItem.Identifier("coterm.layoutMode")
 
     private weak var tabManager: TabManager?
 
@@ -168,7 +168,7 @@ final class WindowToolbarController: NSObject, NSToolbarDelegate {
     private func attach(to window: NSWindow) {
         guard window.toolbar == nil else { return }
         guard !WorkspacePresentationModeSettings.isMinimal() else { return }
-        let toolbar = NSToolbar(identifier: NSToolbar.Identifier("mosaic.toolbar"))
+        let toolbar = NSToolbar(identifier: NSToolbar.Identifier("coterm.toolbar"))
         toolbar.delegate = self
         toolbar.displayMode = .iconOnly
         toolbar.sizeMode = .small

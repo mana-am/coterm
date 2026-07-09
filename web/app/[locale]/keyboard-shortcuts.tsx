@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { localizedShortcutText, shortcutCategories, type Shortcut } from "../../data/mosaic-shortcuts";
+import { localizedShortcutText, shortcutCategories, type Shortcut } from "../../data/coterm-shortcuts";
 
 function normalize(s: string) {
   return s.toLowerCase().replace(/\s+/g, " ").trim();

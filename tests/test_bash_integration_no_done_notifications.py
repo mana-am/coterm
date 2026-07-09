@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Regression coverage for bash job-control noise from mosaic shell integration.
+Regression coverage for bash job-control noise from coterm shell integration.
 
 The bug only appears in an interactive bash attached to a tty. A normal
 subprocess cannot reproduce the prompt-time "[N] Done" notifications, so this
@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 
-PROMPT = "__MOSAIC_TEST_PROMPT__ "
+PROMPT = "__COTERM_TEST_PROMPT__ "
 JOB_DONE_RE = re.compile(r"^\[[0-9]+\][^\n\r]*\bDone\b", re.MULTILINE)
 
 
@@ -122,11 +122,11 @@ class InteractiveBash:
 
 def test_bash_integration_does_not_emit_done_notifications() -> None:
     repo_root = Path(__file__).resolve().parents[1]
-    integration_script = repo_root / "Resources/shell-integration/mosaic-bash-integration.bash"
+    integration_script = repo_root / "Resources/shell-integration/coterm-bash-integration.bash"
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        socket_path = tmp_path / "mosaic.sock"
+        socket_path = tmp_path / "coterm.sock"
         repo_path = tmp_path / "repo"
         git_dir = repo_path / ".git"
         bin_path = tmp_path / "bin"
@@ -147,7 +147,7 @@ def test_bash_integration_does_not_emit_done_notifications() -> None:
             env = {
                 key: value
                 for key, value in os.environ.items()
-                if not key.startswith("MOSAIC")
+                if not key.startswith("COTERM")
             }
             env.update(
                 {
@@ -162,13 +162,13 @@ def test_bash_integration_does_not_emit_done_notifications() -> None:
                 bash.run("HISTCONTROL=ignorespace")
                 bash.run(f"source {integration_script}")
                 bash.run(
-                    "_mosaic_send() { printf '%s\\n' \"$1\" >> "
+                    "_coterm_send() { printf '%s\\n' \"$1\" >> "
                     f"{shlex.quote(str(send_log))}; }}"
                 )
-                bash.run(f"export MOSAIC_SOCKET_PATH={shlex.quote(str(socket_path))}")
-                bash.run("export MOSAIC_TAB_ID=tab-test")
-                bash.run("export MOSAIC_PANEL_ID=panel-test")
-                bash.run("_MOSAIC_TTY_NAME=ttys-test")
+                bash.run(f"export COTERM_SOCKET_PATH={shlex.quote(str(socket_path))}")
+                bash.run("export COTERM_TAB_ID=tab-test")
+                bash.run("export COTERM_PANEL_ID=panel-test")
+                bash.run("_COTERM_TTY_NAME=ttys-test")
                 bash.run(f"cd {repo_path}")
 
                 # The next prompts exercise the shell-state, port-kick, TTY,
@@ -178,7 +178,7 @@ def test_bash_integration_does_not_emit_done_notifications() -> None:
                 bash.run("cd ..")
                 bash.run("true")
                 bash.run("sleep 0.2")
-                bash.run("echo __MOSAIC_DONE_CHECK__")
+                bash.run("echo __COTERM_DONE_CHECK__")
 
                 sent_payloads = (
                     send_log.read_text(encoding="utf-8")

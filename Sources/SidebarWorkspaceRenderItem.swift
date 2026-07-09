@@ -1,4 +1,4 @@
-import MosaicWorkspaces
+import CotermWorkspaces
 import Foundation
 
 /// One drawable item in the workspace sidebar.

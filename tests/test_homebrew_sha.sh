@@ -1,13 +1,13 @@
 #!/bin/bash
 # Regression test: verify the homebrew cask SHA256 matches the actual release DMG.
-# Catches issues like https://github.com/emergent-inc/mosaic/issues/110 where a race
+# Catches issues like https://github.com/emergent-inc/coterm/issues/110 where a race
 # condition caused the cask to contain the SHA of a 404 page instead of the DMG.
 set -euo pipefail
 
-CASK_FILE="$(dirname "$0")/../homebrew-mosaic/Casks/mosaic.rb"
+CASK_FILE="$(dirname "$0")/../homebrew-coterm/Casks/coterm.rb"
 
 if [ ! -f "$CASK_FILE" ]; then
-  echo "SKIP: homebrew-mosaic submodule not initialized"
+  echo "SKIP: homebrew-coterm submodule not initialized"
   exit 0
 fi
 
@@ -22,7 +22,7 @@ fi
 echo "Cask version: $VERSION"
 echo "Cask SHA256:  $CASK_SHA"
 
-URL="https://download.mosaic.inc/releases/v${VERSION}/mosaic-macos.dmg"
+URL="https://download.coterm.cc/releases/v${VERSION}/coterm-macos.dmg"
 TMPFILE=$(mktemp)
 trap 'rm -f "$TMPFILE"' EXIT
 

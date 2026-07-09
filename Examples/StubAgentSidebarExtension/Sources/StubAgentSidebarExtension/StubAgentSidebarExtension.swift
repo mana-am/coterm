@@ -1,11 +1,11 @@
-import MosaicExtensionKit
+import CotermExtensionKit
 import Observation
 import SwiftUI
 
 @main
 @Observable
-public final class StubAgentSidebarExtension: @MainActor MosaicSidebarExtension {
-    public static let manifest = MosaicExtensionManifest(
+public final class StubAgentSidebarExtension: @MainActor CotermSidebarExtension {
+    public static let manifest = CotermExtensionManifest(
         id: "dev.example.stub-agent-sidebar",
         displayName: String(localized: "stubAgent.manifest.displayName", defaultValue: "Stub Agent Sidebar"),
         readScopes: [
@@ -20,11 +20,11 @@ public final class StubAgentSidebarExtension: @MainActor MosaicSidebarExtension 
         ]
     )
 
-    public private(set) var snapshot: MosaicSidebarSnapshot?
+    public private(set) var snapshot: CotermSidebarSnapshot?
     public private(set) var errorText: String?
 
     @ObservationIgnored
-    private var host: MosaicSidebarHost?
+    private var host: CotermSidebarHost?
 
     public required init() {}
 
@@ -53,7 +53,7 @@ public final class StubAgentSidebarExtension: @MainActor MosaicSidebarExtension 
         .padding()
     }
 
-    public func update(context: MosaicSidebarContext) {
+    public func update(context: CotermSidebarContext) {
         snapshot = context.snapshot
         host = context.host
         errorText = nil
@@ -76,12 +76,12 @@ public final class StubAgentSidebarExtension: @MainActor MosaicSidebarExtension 
         do {
             try await operation()
             errorText = nil
-        } catch MosaicSidebarActionError.rejected(let message) {
+        } catch CotermSidebarActionError.rejected(let message) {
             errorText = message
-        } catch MosaicSidebarActionError.cancelled {
+        } catch CotermSidebarActionError.cancelled {
             errorText = nil
         } catch {
-            errorText = String(localized: "stubAgent.actionDenied", defaultValue: "mosaic did not allow that action")
+            errorText = String(localized: "stubAgent.actionDenied", defaultValue: "coterm did not allow that action")
         }
     }
 }

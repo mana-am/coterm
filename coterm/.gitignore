@@ -1,5 +1,7 @@
 node_modules/
 .wrangler/
 .dev.vars
+.coterm-self-host.env
+.coterm-self-host.context.json
 dist/
 *.log

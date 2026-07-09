@@ -33,12 +33,12 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Global Font Magnification",
         description:
-          "Scale the entire mosaic interface up or down with a single magnification control, not just the terminal font.",
+          "Scale the entire coterm interface up or down with a single magnification control, not just the terminal font.",
       },
       {
         title: "Remote tmux Mirroring (Beta)",
         description:
-          "Mirror a remote tmux session over SSH using -CC control mode, so remote windows show up as native mosaic tabs that stay in sync with renames and reorders.",
+          "Mirror a remote tmux session over SSH using -CC control mode, so remote windows show up as native coterm tabs that stay in sync with renames and reorders.",
       },
       {
         title: "Browser and Diff Viewer Polish",
@@ -59,7 +59,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "AI Auto-Naming for Workspaces and Tabs",
         description:
-          "Opt in to have mosaic name your workspaces and tabs from the agent conversation running inside them, so a wall of sessions stays readable at a glance.",
+          "Opt in to have coterm name your workspaces and tabs from the agent conversation running inside them, so a wall of sessions stays readable at a glance.",
       },
       {
         title: "Per-Workspace Environment Variables",
@@ -116,7 +116,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "iPhone Companion App (Beta)",
         description:
-          "Pair an iPhone with your Mac from the new Mobile Connect window and attach to your terminals from your phone, with opt-in forwarding of terminal notifications. The iOS beta ships on TestFlight as mosaic BETA.",
+          "Pair an iPhone with your Mac from the new Mobile Connect window and attach to your terminals from your phone, with opt-in forwarding of terminal notifications. The iOS beta ships on TestFlight as coterm BETA.",
       },
       {
         title: "Cross-Window Workspace Drag",
@@ -126,7 +126,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Out-of-Process Custom Sidebars",
         description:
-          "Custom sidebar extensions now run in their own process with an isolated interpreter, so a broken sidebar can't hang or crash mosaic, and the interpreter covers a broader set of SwiftUI primitives.",
+          "Custom sidebar extensions now run in their own process with an isolated interpreter, so a broken sidebar can't hang or crash coterm, and the interpreter covers a broader set of SwiftUI primitives.",
       },
       {
         title: "Browser Polish",
@@ -136,7 +136,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Agent Session Fixes",
         description:
-          "Claude resume keeps mosaic hooks attached so notifications and status tracking survive resumes, Agent Hibernation works for node-backed Claude sessions, and Codex resume preserves CODEX_HOME and pane order.",
+          "Claude resume keeps coterm hooks attached so notifications and status tracking survive resumes, Agent Hibernation works for node-backed Claude sessions, and Codex resume preserves CODEX_HOME and pane order.",
       },
     ],
   },
@@ -152,7 +152,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "SSH Agent Forwarding",
         description:
-          "`mosaic ssh` now forwards your local SSH agent, so remote sessions can use your local keys for git pushes and further hops without copying private keys onto the remote.",
+          "`coterm ssh` now forwards your local SSH agent, so remote sessions can use your local keys for git pushes and further hops without copying private keys onto the remote.",
       },
       {
         title: "Vibe-Codable Custom Sidebars (Beta)",
@@ -178,7 +178,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Diff Viewer Shortcut",
         description:
-          "Open the diff viewer with a keyboard shortcut, configurable and editable in Settings alongside every other mosaic shortcut.",
+          "Open the diff viewer with a keyboard shortcut, configurable and editable in Settings alongside every other coterm shortcut.",
       },
       {
         title: "Markdown Viewer Zoom",
@@ -193,7 +193,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Prompt & Remote SSH Fixes",
         description:
-          "Starship and other custom bash prompts no longer go static: the prompt bootstrap composes with your existing PROMPT_COMMAND instead of overwriting it. And `mosaic ssh` now reports remote PTY allocation failures loudly instead of failing silently when a plain ssh would have worked.",
+          "Starship and other custom bash prompts no longer go static: the prompt bootstrap composes with your existing PROMPT_COMMAND instead of overwriting it. And `coterm ssh` now reports remote PTY allocation failures loudly instead of failing silently when a plain ssh would have worked.",
       },
       {
         title: "Restored Sidebar Views & Scrollback Colors",
@@ -209,7 +209,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Workspace Groups",
         description:
-          "Select sidebar workspaces and press ⌘⇧G to gather them under a collapsible header. Each group has an anchor workspace, its own color and icon, and an unread badge on the header. Drag workspaces in and out, reorder inside a group, and control where new workspaces land per group or via mosaic.json. A full `mosaic workspace-group` CLI namespace creates, colors, moves, focuses, and deletes groups from scripts.",
+          "Select sidebar workspaces and press ⌘⇧G to gather them under a collapsible header. Each group has an anchor workspace, its own color and icon, and an unread badge on the header. Drag workspaces in and out, reorder inside a group, and control where new workspaces land per group or via coterm.json. A full `coterm workspace-group` CLI namespace creates, colors, moves, focuses, and deletes groups from scripts.",
       },
       {
         title: "Focus & Recently Closed History",
@@ -234,7 +234,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Fork Conversation, Browser Mute, Diff Viewer",
         description:
-          "Fork Conversation moves into the tab right-click menu with configurable destinations, browser tabs gain an audio mute toggle, and `mosaic diff` opens a CodeView diff viewer that streams large git diffs before full render.",
+          "Fork Conversation moves into the tab right-click menu with configurable destinations, browser tabs gain an audio mute toggle, and `coterm diff` opens a CodeView diff viewer that streams large git diffs before full render.",
       },
     ],
   },
@@ -248,7 +248,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
           "Highlighting text in the terminal now copies it to the clipboard the instant the mouse is released. The setting is off by default and toggles from Settings so existing selection behavior stays untouched for anyone who relies on it.",
       },
       {
-        title: "MosaicExtensionKit Sidebar Prototypes",
+        title: "CotermExtensionKit Sidebar Prototypes",
         description:
           "An in-tree preview of the upcoming extension API for custom workspace sidebars. Sample sidebars cover an attention queue, browser stack, dev server status, last prompt, and project worktree views, each rendered through the same provider/reducer surface a third-party extension will use.",
       },
@@ -265,7 +265,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Workspace Reorder CLI",
         description:
-          "`mosaic reorder-workspaces` accepts batch input, supports `--dry-run`, and emits reorder events so scripted layouts can plan a full sidebar reshuffle in one call and react to the changes via the socket.",
+          "`coterm reorder-workspaces` accepts batch input, supports `--dry-run`, and emits reorder events so scripted layouts can plan a full sidebar reshuffle in one call and react to the changes via the socket.",
       },
       {
         title: "Tab Close Guards",
@@ -296,17 +296,17 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Antigravity CLI Integration",
         description:
-          "Antigravity joins the supported coding-agent lineup with hook notifications, task manager attribution, and Vault session restore, the same way Claude, Codex, Gemini, and Grok already work in mosaic.",
+          "Antigravity joins the supported coding-agent lineup with hook notifications, task manager attribution, and Vault session restore, the same way Claude, Codex, Gemini, and Grok already work in coterm.",
       },
       {
         title: "Native Grok Vault Resume",
         description:
-          "Grok sessions can now be resumed natively from Vault. mosaic parses registered Grok transcripts by layout, deduplicates sessions across shell-Grok homes, and quotes built-in resume commands so they round-trip cleanly.",
+          "Grok sessions can now be resumed natively from Vault. coterm parses registered Grok transcripts by layout, deduplicates sessions across shell-Grok homes, and quotes built-in resume commands so they round-trip cleanly.",
       },
       {
         title: "CLI Window Targeting",
         description:
-          "mosaic CLI commands now accept `--window` to scope workspace, pane, surface, SSH, VM, notifications, tree, and top flows to a specific window. Refs resolve inside the targeted window, and cross-window pane handles are rejected before they mutate state.",
+          "coterm CLI commands now accept `--window` to scope workspace, pane, surface, SSH, VM, notifications, tree, and top flows to a specific window. Refs resolve inside the targeted window, and cross-window pane handles are rejected before they mutate state.",
       },
       {
         title: "Browser Screenshot Clipboard Actions",
@@ -332,7 +332,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Grok Build CLI Integration",
         description:
-          "Grok Build joins the supported coding-agent lineup with notifications, task manager attribution, and session restore, the same way Claude, Codex, and Gemini already work in mosaic.",
+          "Grok Build joins the supported coding-agent lineup with notifications, task manager attribution, and session restore, the same way Claude, Codex, and Gemini already work in coterm.",
       },
       {
         title: "Browser Memory Reclaim and Background Preload",
@@ -347,7 +347,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Crash Diagnostics from Notifications",
         description:
-          "When mosaic logs a crash, the notification now opens directly into the crash diagnostics view so you can inspect the breadcrumb trail without digging through state.",
+          "When coterm logs a crash, the notification now opens directly into the crash diagnostics view so you can inspect the breadcrumb trail without digging through state.",
       },
       {
         title: "Bug Fixes",
@@ -362,7 +362,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "SSH Typing Restored",
         description:
-          "Fixes a critical regression in 0.64.5 where mosaic ssh sessions would connect and render the remote prompt but drop every keystroke. The backgrounded ssh inside the startup wrapper now inherits the wrapper's stdin via <&0, so typing reaches the remote shell again. Thanks @kays0x for the community fix.",
+          "Fixes a critical regression in 0.64.5 where coterm ssh sessions would connect and render the remote prompt but drop every keystroke. The backgrounded ssh inside the startup wrapper now inherits the wrapper's stdin via <&0, so typing reaches the remote shell again. Thanks @kays0x for the community fix.",
       },
       {
         title: "Command Palette Settings Toggles",
@@ -377,7 +377,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Cloud VM Error Guidance",
         description:
-          "mosaic vm errors now include actionable next steps: sign-in instructions when not authenticated, suggested fixes for unknown flags, and usage examples for missing arguments.",
+          "coterm vm errors now include actionable next steps: sign-in instructions when not authenticated, suggested fixes for unknown flags, and usage examples for missing arguments.",
       },
     ],
   },
@@ -387,7 +387,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Codex Teams Subagent Panes",
         description:
-          "mosaic codex-teams now maps Codex's subagent sessions into native mosaic panes, the same way claude-teams does for Claude Code. Spawned subagents stack in a right column with sidebar metadata and notifications routed through mosaic.",
+          "coterm codex-teams now maps Codex's subagent sessions into native coterm panes, the same way claude-teams does for Claude Code. Spawned subagents stack in a right column with sidebar metadata and notifications routed through coterm.",
       },
       {
         title: "Menubar Global Search",
@@ -417,7 +417,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "SSH Files Polish",
         description:
-          "The Files sidebar now follows SSH workspaces and shows the remote root instead of the local macOS path. SSH workspace descriptors restore on relaunch, and new guarded mosaic://ssh deep links prompt before launching ssh so unfamiliar links can't run arbitrary commands.",
+          "The Files sidebar now follows SSH workspaces and shows the remote root instead of the local macOS path. SSH workspace descriptors restore on relaunch, and new guarded coterm://ssh deep links prompt before launching ssh so unfamiliar links can't run arbitrary commands.",
       },
       {
         title: "Vault Pi and Hermes",
@@ -427,7 +427,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Browser Cookie Import",
         description:
-          "A new mosaic browser cookies import CLI brings cookies from other browsers into mosaic's browser panes so logged-in sessions follow you over.",
+          "A new Coterm browser cookies import CLI brings cookies from other browsers into coterm's browser panes so logged-in sessions follow you over.",
       },
       {
         title: "Quality-of-life Polish",
@@ -442,12 +442,12 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Session Restore on Quit",
         description:
-          "Closing the last window with the red X no longer drops your work. mosaic restores prior panes on relaunch and resumes Claude Code, Codex, OpenCode, Gemini, and Rovo Dev sessions where you left off.",
+          "Closing the last window with the red X no longer drops your work. coterm restores prior panes on relaunch and resumes Claude Code, Codex, OpenCode, Gemini, and Rovo Dev sessions where you left off.",
       },
       {
         title: "Passkeys, WebAuthn, and FIDO2",
         description:
-          "Sign in to passkey-protected sites directly inside mosaic browser panes. Reworked inside-out signing keeps the notarized Developer ID build compatible with macOS authentication services.",
+          "Sign in to passkey-protected sites directly inside Coterm browser panes. Reworked inside-out signing keeps the notarized Developer ID build compatible with macOS authentication services.",
       },
       {
         title: "File Explorer",
@@ -457,7 +457,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Task Manager",
         description:
-          "A built-in Task Manager window plus mosaic top CLI shows a live snapshot of windows, workspaces, panes, surfaces, and browser webviews, with jumps from the manager into the matching surface.",
+          "A built-in Task Manager window plus coterm top CLI shows a live snapshot of windows, workspaces, panes, surfaces, and browser webviews, with jumps from the manager into the matching surface.",
       },
     ],
   },
@@ -467,22 +467,22 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "SSH",
         description:
-          "mosaic ssh user@remote creates a workspace for a remote machine. Browser panes route through the remote network so localhost just works. Drag an image into a remote session to upload via scp. Coding agent notifications come home to your local sidebar. Reconnects on drops.",
+          "coterm ssh user@remote creates a workspace for a remote machine. Browser panes route through the remote network so localhost just works. Drag an image into a remote session to upload via scp. Coding agent notifications come home to your local sidebar. Reconnects on drops.",
       },
       {
         title: "Claude Code Teams",
         description:
-          "mosaic claude-teams launches Claude Code's experimental teammate mode with one command. It sets up the environment, fakes a tmux session, and translates tmux commands into native mosaic splits. Teammates stack vertically in a right column with sidebar metadata and notifications.",
+          "coterm claude-teams launches Claude Code's experimental teammate mode with one command. It sets up the environment, fakes a tmux session, and translates tmux commands into native coterm splits. Teammates stack vertically in a right column with sidebar metadata and notifications.",
       },
       {
         title: "oh-my-openagent",
         description:
-          "mosaic omo integrates oh-my-openagent (formerly oh-my-opencode), which orchestrates specialist agents across Claude, GPT, and Gemini in parallel. Same tmux shim as claude-teams, auto-installs the plugin, notifications route through mosaic.",
+          "coterm omo integrates oh-my-openagent (formerly oh-my-opencode), which orchestrates specialist agents across Claude, GPT, and Gemini in parallel. Same tmux shim as claude-teams, auto-installs the plugin, notifications route through coterm.",
       },
       {
         title: "Browser Profile Import",
         description:
-          "Import cookies, history, and sessions from Chrome, Arc, Brave, Firefox, Safari, and 20+ browsers. The import wizard detects installed browsers, lets you pick profiles, and injects everything into mosaic's browser panes so you're already logged in.",
+          "Import cookies, history, and sessions from Chrome, Arc, Brave, Firefox, Safari, and 20+ browsers. The import wizard detects installed browsers, lets you pick profiles, and injects everything into coterm's browser panes so you're already logged in.",
       },
       {
         title: "Minimal Mode",
@@ -492,7 +492,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Custom Commands",
         description:
-          "Define project-specific actions in mosaic.json that launch from the command palette. One file per repo, no global config needed.",
+          "Define project-specific actions in coterm.json that launch from the command palette. One file per repo, no global config needed.",
       },
     ],
   },
@@ -507,7 +507,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Find in Browser",
         description:
-          "Browser panels now support Cmd+F with inline find controls, so you can search long docs, dashboards, and issue threads without leaving mosaic.",
+          "Browser panels now support Cmd+F with inline find controls, so you can search long docs, dashboards, and issue threads without leaving coterm.",
       },
       {
         title: "Vi Copy Mode",
@@ -522,7 +522,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Language Setting",
         description:
-          "mosaic keeps an app language setting for choosing the system default or English.",
+          "coterm keeps an app language setting for choosing the system default or English.",
       },
     ],
   },
@@ -538,7 +538,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Command Palette",
         description:
-          "Hit Cmd+Shift+P to open a searchable command palette. Every action in mosaic is here: creating workspaces, toggling the sidebar, checking for updates, switching windows. Keyboard shortcuts are shown inline so you can learn them as you go.",
+          "Hit Cmd+Shift+P to open a searchable command palette. Every action in coterm is here: creating workspaces, toggling the sidebar, checking for updates, switching windows. Keyboard shortcuts are shown inline so you can learn them as you go.",
         image: "/changelog/0.61.0-command-palette.png",
       },
       {
@@ -573,7 +573,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
       {
         title: "Browser DevTools",
         description:
-          "The embedded browser now has full WebKit DevTools. Open them with the standard shortcut and they persist across tab switches. Inspect elements, debug JavaScript, and monitor network requests without leaving mosaic.",
+          "The embedded browser now has full WebKit DevTools. Open them with the standard shortcut and they persist across tab switches. Inspect elements, debug JavaScript, and monitor network requests without leaving coterm.",
         image: "/changelog/0.60.0-devtools.png",
       },
       {

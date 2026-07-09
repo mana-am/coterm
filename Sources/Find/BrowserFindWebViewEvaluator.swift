@@ -1,4 +1,4 @@
-import MosaicBrowser
+import CotermBrowser
 import WebKit
 
 /// Evaluates find-in-page scripts against the current `WKWebView` of a `BrowserPanel`.

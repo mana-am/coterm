@@ -49,12 +49,12 @@ export function resolveTeamId(requested: string | null, user: AuthedUser): TeamR
   return { ok: true, teamId: user.selectedTeamId ?? soleTeam ?? user.id };
 }
 
-/** Requested team from `X-Mosaic-Team-Id` (or legacy billing header) or the
+/** Requested team from `X-Coterm-Team-Id` (or legacy billing header) or the
  * `teamId`-family query params. */
 export function requestedTeamIdFromRequest(request: Request): string | null {
   const fromHeader =
-    normalized(request.headers.get("x-mosaic-team-id")) ??
-    normalized(request.headers.get("x-mosaic-billing-team-id"));
+    normalized(request.headers.get("x-coterm-team-id")) ??
+    normalized(request.headers.get("x-coterm-billing-team-id"));
   if (fromHeader) return fromHeader;
   let url: URL;
   try {

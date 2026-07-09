@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Regression tests for `mosaic __tmux-compat split-window`.
+Regression tests for `coterm __tmux-compat split-window`.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from claude_teams_test_utils import resolve_mosaic_cli
+from claude_teams_test_utils import resolve_coterm_cli
 
 WORKSPACE_ID = "11111111-1111-4111-8111-111111111111"
 PANE_ID = "33333333-3333-4333-8333-333333333333"
@@ -22,7 +22,7 @@ NEW_PANE_ID = "66666666-6666-4666-8666-666666666666"
 NEW_SURFACE_ID = "77777777-7777-4777-8777-777777777777"
 
 
-class FakeMosaicState:
+class FakeCotermState:
     def __init__(self) -> None:
         self.split_created = False
 
@@ -111,10 +111,10 @@ class FakeMosaicState:
             }
         if method == "workspace.equalize_splits":
             return {"ok": True}
-        raise RuntimeError(f"Unsupported fake mosaic method: {method}")
+        raise RuntimeError(f"Unsupported fake coterm method: {method}")
 
 
-class FakeMosaicHandler(socketserver.StreamRequestHandler):
+class FakeCotermHandler(socketserver.StreamRequestHandler):
     def handle(self) -> None:
         while True:
             line = self.rfile.readline()
@@ -139,12 +139,12 @@ class FakeMosaicHandler(socketserver.StreamRequestHandler):
             self.wfile.flush()
 
 
-class FakeMosaicUnixServer(socketserver.ThreadingUnixStreamServer):
+class FakeCotermUnixServer(socketserver.ThreadingUnixStreamServer):
     allow_reuse_address = True
 
-    def __init__(self, socket_path: str, state: FakeMosaicState) -> None:
+    def __init__(self, socket_path: str, state: FakeCotermState) -> None:
         self.state = state
-        super().__init__(socket_path, FakeMosaicHandler)
+        super().__init__(socket_path, FakeCotermHandler)
 
 
 def run_cli(
@@ -154,9 +154,9 @@ def run_cli(
     args: list[str],
 ) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
-    env["MOSAIC_SOCKET_PATH"] = str(socket_path)
-    env["MOSAIC_WORKSPACE_ID"] = "workspace:1"
-    env["MOSAIC_SURFACE_ID"] = "surface:1"
+    env["COTERM_SOCKET_PATH"] = str(socket_path)
+    env["COTERM_WORKSPACE_ID"] = "workspace:1"
+    env["COTERM_SURFACE_ID"] = "surface:1"
     env["TMUX_PANE"] = "%pane:1"
     env["HOME"] = str(fake_home)
     return subprocess.run(
@@ -218,17 +218,17 @@ def assert_resplit_after_close(
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1
 
     try:
-        with tempfile.TemporaryDirectory(prefix="mosaic-tmux-surface-ref-") as td:
+        with tempfile.TemporaryDirectory(prefix="coterm-tmux-surface-ref-") as td:
             tmp = Path(td)
-            socket_path = tmp / "fake-mosaic.sock"
-            state = FakeMosaicState()
-            server = FakeMosaicUnixServer(str(socket_path), state)
+            socket_path = tmp / "fake-coterm.sock"
+            state = FakeCotermState()
+            server = FakeCotermUnixServer(str(socket_path), state)
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
             fake_home = tmp / "home"

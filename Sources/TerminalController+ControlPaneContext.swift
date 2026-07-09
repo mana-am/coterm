@@ -1,6 +1,6 @@
 import AppKit
 import Bonsplit
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
 
 /// The pane-domain witnesses are the byte-faithful bodies of the former

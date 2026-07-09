@@ -13,26 +13,26 @@ from contextlib import contextmanager
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _expect_error_contains(label: str, fn, needle: str) -> None:
     try:
         fn()
-    except mosaicError as exc:
+    except cotermError as exc:
         text = str(exc)
         if needle in text:
             return
-        raise mosaicError(f"{label}: expected error containing {needle!r}, got: {text}")
-    raise mosaicError(f"{label}: expected error containing {needle!r}, but call succeeded")
+        raise cotermError(f"{label}: expected error containing {needle!r}, got: {text}")
+    raise cotermError(f"{label}: expected error containing {needle!r}, but call succeeded")
 
 
 def _wait_for(pred, timeout_s: float = 6.0, step_s: float = 0.05) -> None:
@@ -41,15 +41,15 @@ def _wait_for(pred, timeout_s: float = 6.0, step_s: float = 0.05) -> None:
         if pred():
             return
         time.sleep(step_s)
-    raise mosaicError("Timed out waiting for condition")
+    raise cotermError("Timed out waiting for condition")
 
 
-def _wait_selector(c: mosaic, surface_id: str, selector: str, timeout_s: float = 6.0) -> None:
+def _wait_selector(c: coterm, surface_id: str, selector: str, timeout_s: float = 6.0) -> None:
     timeout_ms = max(1, int(timeout_s * 1000.0))
     try:
         c._call("browser.wait", {"surface_id": surface_id, "selector": selector, "timeout_ms": timeout_ms})
         return
-    except mosaicError as exc:
+    except cotermError as exc:
         if "timeout" not in str(exc):
             raise
 
@@ -60,15 +60,15 @@ def _wait_selector(c: mosaic, surface_id: str, selector: str, timeout_s: float =
         if bool(probe.get("value")):
             return
         time.sleep(0.05)
-    raise mosaicError(f"Timed out waiting for selector {selector}")
+    raise cotermError(f"Timed out waiting for selector {selector}")
 
 
-def _wait_function(c: mosaic, surface_id: str, expression: str, timeout_s: float = 6.0) -> None:
+def _wait_function(c: coterm, surface_id: str, expression: str, timeout_s: float = 6.0) -> None:
     timeout_ms = max(1, int(timeout_s * 1000.0))
     try:
         c._call("browser.wait", {"surface_id": surface_id, "function": expression, "timeout_ms": timeout_ms})
         return
-    except mosaicError as exc:
+    except cotermError as exc:
         if "timeout" not in str(exc):
             raise
 
@@ -78,12 +78,12 @@ def _wait_function(c: mosaic, surface_id: str, expression: str, timeout_s: float
         if bool(probe.get("value")):
             return
         time.sleep(0.05)
-    raise mosaicError(f"Timed out waiting for function: {expression}")
+    raise cotermError(f"Timed out waiting for function: {expression}")
 
 
 @contextmanager
 def _local_test_server() -> str:
-    with tempfile.TemporaryDirectory(prefix="mosaic-browser-ext-") as root:
+    with tempfile.TemporaryDirectory(prefix="coterm-browser-ext-") as root:
         root_path = Path(root)
 
         pixel = base64.b64decode("R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==")
@@ -105,7 +105,7 @@ def _local_test_server() -> str:
             """<!doctype html>
 <html>
   <head>
-    <title>mosaic-browser-extended-second</title>
+    <title>coterm-browser-extended-second</title>
   </head>
   <body>
     <div id="second">second-page</div>
@@ -120,7 +120,7 @@ def _local_test_server() -> str:
             """<!doctype html>
 <html>
   <head>
-    <title>mosaic-browser-extended</title>
+    <title>coterm-browser-extended</title>
     <style>
       #style-target { color: rgb(255, 0, 0); }
     </style>
@@ -152,9 +152,9 @@ def _local_test_server() -> str:
         return true;
       };
       window.emitConsoleAndError = function () {
-        console.log('mosaic-console-entry');
+        console.log('coterm-console-entry');
         setTimeout(function () {
-          throw new Error('mosaic-boom');
+          throw new Error('coterm-boom');
         }, 0);
         return true;
       };
@@ -192,7 +192,7 @@ def main() -> int:
         index_url = f"{base_url}/index.html"
         second_url = f"{base_url}/second.html"
 
-        with mosaic(SOCKET_PATH) as c:
+        with coterm(SOCKET_PATH) as c:
             opened = c._call("browser.open_split", {"url": "about:blank"}) or {}
             sid = str(opened.get("surface_id") or "")
             _must(bool(sid), f"browser.open_split returned no surface_id: {opened}")
@@ -248,7 +248,7 @@ def main() -> int:
                 "not_found",
             )
 
-            download_path = tempfile.NamedTemporaryFile(delete=False, prefix="mosaic-download-", suffix=".txt").name
+            download_path = tempfile.NamedTemporaryFile(delete=False, prefix="coterm-download-", suffix=".txt").name
             os.unlink(download_path)
 
             def _write_download() -> None:
@@ -268,16 +268,16 @@ def main() -> int:
                 "browser.cookies.set",
                 {
                     "surface_id": sid,
-                    "name": "mosaic_cookie",
+                    "name": "coterm_cookie",
                     "value": "cookie_value",
                     "url": index_url,
                 },
             )
-            got_cookie = c._call("browser.cookies.get", {"surface_id": sid, "name": "mosaic_cookie"}) or {}
+            got_cookie = c._call("browser.cookies.get", {"surface_id": sid, "name": "coterm_cookie"}) or {}
             cookies = got_cookie.get("cookies") or []
-            _must(any(str(row.get("name")) == "mosaic_cookie" for row in cookies), f"Expected mosaic_cookie in cookies.get: {got_cookie}")
-            c._call("browser.cookies.clear", {"surface_id": sid, "name": "mosaic_cookie"})
-            got_after_clear = c._call("browser.cookies.get", {"surface_id": sid, "name": "mosaic_cookie"}) or {}
+            _must(any(str(row.get("name")) == "coterm_cookie" for row in cookies), f"Expected coterm_cookie in cookies.get: {got_cookie}")
+            c._call("browser.cookies.clear", {"surface_id": sid, "name": "coterm_cookie"})
+            got_after_clear = c._call("browser.cookies.get", {"surface_id": sid, "name": "coterm_cookie"}) or {}
             _must(len(got_after_clear.get("cookies") or []) == 0, f"Expected cookie cleared: {got_after_clear}")
 
             c._call("browser.storage.set", {"surface_id": sid, "type": "local", "key": "alpha", "value": "one"})
@@ -309,10 +309,10 @@ def main() -> int:
             style_color = c._call("browser.get.styles", {"surface_id": sid, "selector": "#style-target", "property": "color"}) or {}
             _must("0, 128, 0" in str(style_color.get("value") or ""), f"Expected updated style color: {style_color}")
 
-            c._call("browser.addinitscript", {"surface_id": sid, "script": "window.__mosaicInitMarker = 'init-ok';"})
+            c._call("browser.addinitscript", {"surface_id": sid, "script": "window.__cotermInitMarker = 'init-ok';"})
             c._call("browser.navigate", {"surface_id": sid, "url": second_url})
             _wait_selector(c, sid, "#second", timeout_s=7.0)
-            init_value = c._call("browser.eval", {"surface_id": sid, "script": "window.__mosaicInitMarker || ''"}) or {}
+            init_value = c._call("browser.eval", {"surface_id": sid, "script": "window.__cotermInitMarker || ''"}) or {}
             _must(str(init_value.get("value") or "") == "init-ok", f"Expected init script marker after navigation: {init_value}")
 
             c._call("browser.navigate", {"surface_id": sid, "url": index_url})
@@ -340,7 +340,7 @@ def main() -> int:
 
             c._call("browser.highlight", {"surface_id": sid, "selector": "#action-btn"})
 
-            state_path = tempfile.NamedTemporaryFile(delete=False, prefix="mosaic-state-", suffix=".json").name
+            state_path = tempfile.NamedTemporaryFile(delete=False, prefix="coterm-state-", suffix=".json").name
             c._call("browser.storage.set", {"surface_id": sid, "type": "local", "key": "persist", "value": "yes"})
             c._call("browser.state.save", {"surface_id": sid, "path": state_path})
             c._call("browser.storage.set", {"surface_id": sid, "type": "local", "key": "persist", "value": "no"})

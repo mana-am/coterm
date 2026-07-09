@@ -1,23 +1,23 @@
-import MosaicAppKitSupportUI
-import MosaicFoundation
+import CotermAppKitSupportUI
+import CotermFoundation
 import Foundation
-import MosaicCore
-import MosaicRemoteDaemon
-import MosaicRemoteSession
-import MosaicRemoteWorkspace
-import MosaicWorkspaces
-import MosaicTerminal
+import CotermCore
+import CotermRemoteDaemon
+import CotermRemoteSession
+import CotermRemoteWorkspace
+import CotermWorkspaces
+import Coterminal
 import SwiftUI
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 import Bonsplit
-import MosaicAgentLaunch
-import MosaicSettings
-import MosaicBrowser
-import MosaicCanvasUI
-import MosaicPanes
-import MosaicSidebar
-import MosaicNotifications
+import CotermAgentLaunch
+import CotermSettings
+import CotermBrowser
+import CotermCanvasUI
+import CotermPanes
+import CotermSidebar
+import CotermNotifications
 import Combine
 import CryptoKit
 import Darwin
@@ -689,7 +689,7 @@ extension Workspace {
         // prewarmed at launch so this is rare). A cached entry at most one refresh stale
         // is acceptable here because restore prefers the always-fresh in-memory
         // resumeBinding and only consults this agent snapshot when no binding exists, so
-        // mosaic-launched agents reopen correctly regardless of cache freshness.
+        // coterm-launched agents reopen correctly regardless of cache freshness.
         let agentIndex = SharedLiveAgentIndex.shared.currentIndexSchedulingRefresh()
             ?? RestorableAgentSessionIndex.load()
         let restorableAgent = agentIndex.snapshot(workspaceId: id, panelId: panelId)
@@ -1026,7 +1026,7 @@ extension Workspace {
         var totalCharacters = 0
         for panelId in panels.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
             guard panels[panelId] is TerminalPanel else { continue }
-            let header = "mosaic perf synthetic scrollback workspace=\(id.uuidString) panel=\(panelId.uuidString)\n"
+            let header = "coterm perf synthetic scrollback workspace=\(id.uuidString) panel=\(panelId.uuidString)\n"
             let paddingCount = max(0, targetCharacters - header.count)
             let scrollback = String((header + String(repeating: "s", count: paddingCount)).prefix(targetCharacters))
             debugSessionSnapshotSyntheticScrollbackByPanelId[panelId] = scrollback
@@ -1259,10 +1259,10 @@ extension Workspace {
                 tmuxStartCommand: restoredTmuxStartCommand,
                 hasResumeStartupWork: restoredBindingLaunch != nil || restoredAgentResumeLaunch != nil
             )
-            // mosaic is itself resuming this agent session onto the restored surface.
+            // coterm is itself resuming this agent session onto the restored surface.
             // Some agents (codex) fire NO SessionStart hook on resume, and an
             // `sr codex resume` bypasses the hook-injecting shim entirely, so
-            // record the (session, surface) binding from mosaic's own authority
+            // record the (session, surface) binding from coterm's own authority
             // instead of waiting for a hook that will not arrive; otherwise the
             // chat registry keeps the stale pre-relaunch record (dead pid ->
             // .ended) and the iOS GUI shows it read-only. The actual call is made
@@ -1339,7 +1339,7 @@ extension Workspace {
             if let restorableAgent {
                 let sessionPreview = String(restorableAgent.sessionId.prefix(8))
                 let launchArgc = restorableAgent.launchCommand?.arguments.count ?? 0
-                mosaicDebugLog(
+                cotermDebugLog(
                     "session.restore.agent panel=\(snapshot.id.uuidString.prefix(5)) " +
                     "kind=\(restorableAgent.kind.rawValue) session=\(sessionPreview) " +
                     "hasLaunch=\(restorableAgent.launchCommand == nil ? 0 : 1) " +
@@ -1349,7 +1349,7 @@ extension Workspace {
                 )
             }
             if let resumeBinding {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "session.restore.surfaceResume panel=\(snapshot.id.uuidString.prefix(5)) " +
                     "kind=\(resumeBinding.kind ?? "unknown") source=\(resumeBinding.source ?? "unknown") " +
                     "hasLaunch=\(restoredBindingLaunch == nil ? 0 : 1) " +
@@ -1384,13 +1384,13 @@ extension Workspace {
             ) else {
                 return nil
             }
-            // Re-bind the resumed agent session from mosaic's own authority, keyed
+            // Re-bind the resumed agent session from coterm's own authority, keyed
             // on the surface that was actually created. `terminalPanel.id` equals
             // `snapshot.id` on the normal path, but on a surface-id collision
             // (restore-into-live / duplicate-workspace) `newTerminalSurface`
             // minted a fresh id, so keying on `snapshot.id` would bind to a
             // surface that does not exist and the GUI would never find the
-            // session. This is unconditional on whether mosaic runs the resume
+            // session. This is unconditional on whether coterm runs the resume
             // command itself: a restored surface that CARRIES a resumable agent
             // binding must flip its registry record to live/.idle so the iOS GUI
             // is editable, even when auto-resume is off and the user resumes
@@ -1695,14 +1695,14 @@ extension Workspace {
     }
 }
 
-// MARK: - mosaic.json custom layout
+// MARK: - coterm.json custom layout
 
 extension Workspace {
 
-    func applyCustomLayout(_ layout: MosaicLayoutNode, baseCwd: String) {
+    func applyCustomLayout(_ layout: CotermLayoutNode, baseCwd: String) {
         guard let rootPaneId = bonsplitController.allPaneIds.first else { return }
 
-        var leaves: [(paneId: PaneID, surfaces: [MosaicSurfaceDefinition])] = []
+        var leaves: [(paneId: PaneID, surfaces: [CotermSurfaceDefinition])] = []
         buildCustomLayoutTree(layout, inPane: rootPaneId, leaves: &leaves)
 
         // First leaf reuses the initial terminal created by addWorkspace;
@@ -1722,9 +1722,9 @@ extension Workspace {
     }
 
     private func buildCustomLayoutTree(
-        _ node: MosaicLayoutNode,
+        _ node: CotermLayoutNode,
         inPane paneId: PaneID,
-        leaves: inout [(paneId: PaneID, surfaces: [MosaicSurfaceDefinition])]
+        leaves: inout [(paneId: PaneID, surfaces: [CotermSurfaceDefinition])]
     ) {
         switch node {
         case .pane(let pane):
@@ -1733,7 +1733,7 @@ extension Workspace {
         case .split(let split):
             guard split.children.count == 2 else {
                 #if DEBUG
-                NSLog("[MosaicConfig] split node requires exactly 2 children, got %d", split.children.count)
+                NSLog("[CotermConfig] split node requires exactly 2 children, got %d", split.children.count)
                 #endif
                 leaves.append((paneId: paneId, surfaces: []))
                 return
@@ -1767,7 +1767,7 @@ extension Workspace {
 
     private func populateCustomPane(
         _ paneId: PaneID,
-        surfaces: [MosaicSurfaceDefinition],
+        surfaces: [CotermSurfaceDefinition],
         baseCwd: String,
         focusPanelId: inout UUID?
     ) {
@@ -1801,14 +1801,14 @@ extension Workspace {
     private func configureExistingSurface(
         panelId: UUID,
         inPane paneId: PaneID,
-        surface: MosaicSurfaceDefinition,
+        surface: CotermSurfaceDefinition,
         baseCwd: String,
         focusPanelId: inout UUID?
     ) {
         switch surface.type {
         case .terminal where surface.cwd != nil || surface.env != nil:
             // Placeholder can't change cwd/env — replace it
-            let resolvedCwd = MosaicConfigStore.resolveCwd(surface.cwd, relativeTo: baseCwd)
+            let resolvedCwd = CotermConfigStore.resolveCwd(surface.cwd, relativeTo: baseCwd)
             if let panel = newTerminalSurface(
                 inPane: paneId,
                 focus: false,
@@ -1856,13 +1856,13 @@ extension Workspace {
 
     private func createNewSurface(
         inPane paneId: PaneID,
-        surface: MosaicSurfaceDefinition,
+        surface: CotermSurfaceDefinition,
         baseCwd: String,
         focusPanelId: inout UUID?
     ) {
         switch surface.type {
         case .terminal:
-            let resolvedCwd = MosaicConfigStore.resolveCwd(surface.cwd, relativeTo: baseCwd)
+            let resolvedCwd = CotermConfigStore.resolveCwd(surface.cwd, relativeTo: baseCwd)
             if let panel = newTerminalSurface(
                 inPane: paneId,
                 focus: false,
@@ -1899,7 +1899,7 @@ extension Workspace {
     }
 
     private func applyCustomDividerPositions(
-        configNode: MosaicLayoutNode,
+        configNode: CotermLayoutNode,
         liveNode: ExternalTreeNode
     ) {
         switch (configNode, liveNode) {
@@ -1968,7 +1968,7 @@ extension Workspace {
 
                 self.removePendingTerminalInputObserver(registration, forPanelId: panelId)
                 #if DEBUG
-                NSLog("[MosaicConfig] surface not ready after 3s, dropping command (%d chars)", text.count)
+                NSLog("[CotermConfig] surface not ready after 3s, dropping command (%d chars)", text.count)
                 #endif
             }
         }
@@ -2014,9 +2014,9 @@ extension Workspace {
 }
 
 
-/// Lifted to `MosaicBrowser.ClosedBrowserPanelRestoreSnapshot` (Workspace
+/// Lifted to `CotermBrowser.ClosedBrowserPanelRestoreSnapshot` (Workspace
 /// decomposition, Wave 3). This typealias keeps call sites byte-identical.
-typealias ClosedBrowserPanelRestoreSnapshot = MosaicBrowser.ClosedBrowserPanelRestoreSnapshot
+typealias ClosedBrowserPanelRestoreSnapshot = CotermBrowser.ClosedBrowserPanelRestoreSnapshot
 
 /// Process-wide, event-driven cache of `RestorableAgentSessionIndex.load()` results, used
 /// by the right-click "Fork Conversation" availability check and the close-history undo
@@ -2025,8 +2025,8 @@ typealias ClosedBrowserPanelRestoreSnapshot = MosaicBrowser.ClosedBrowserPanelRe
 /// main actor, so reloads run on a `Task.detached(priority: .utility)` and callers read
 /// the cached snapshot synchronously.
 ///
-/// Freshness is driven by a watcher on the hook-store directory (`~/.mosaicterm`), which the
-/// `mosaic hooks` CLI writes when an agent session starts or updates. The cache reloads
+/// Freshness is driven by a watcher on the hook-store directory (`~/.coterm`), which the
+/// `coterm hooks` CLI writes when an agent session starts or updates. The cache reloads
 /// shortly after an actual change (coalesced + rate-limited) and otherwise idles, with a
 /// long fallback TTL for pull access. This replaced a 1s pull TTL that reloaded
 /// near-continuously while the sidebar was visible, because each load outlasts a 1s TTL.
@@ -2053,7 +2053,7 @@ final class SharedLiveAgentIndex: ObservableObject {
     private static let minEventReloadInterval: TimeInterval = 2.0
 
     private var directoryWatchSource: DispatchSourceFileSystemObject?
-    private let watchQueue = DispatchQueue(label: "mosaic.com.emergent.app.sharedLiveAgentIndexWatch")
+    private let watchQueue = DispatchQueue(label: "coterm.com.emergent.app.sharedLiveAgentIndexWatch")
 
     private init() {}
 
@@ -2137,8 +2137,8 @@ final class SharedLiveAgentIndex: ObservableObject {
         // Ensure the hook-store directory exists so the watcher installs at launch and
         // observes the very first hook write. On a fresh/cleaned install it would
         // otherwise not exist yet, the watcher would not install, and the first agent's
-        // session could stay invisible behind the fallback TTL. This is mosaic's own state
-        // directory (the `mosaic hooks` CLI writes here too), so creating it empty is benign.
+        // session could stay invisible behind the fallback TTL. This is coterm's own state
+        // directory (the `coterm hooks` CLI writes here too), so creating it empty is benign.
         try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
         let fd = open(dir, O_EVTONLY)
         guard fd >= 0 else {
@@ -2151,9 +2151,9 @@ final class SharedLiveAgentIndex: ObservableObject {
         // because every hook-store write is atomic (write-temp + rename, e.g.
         // ClaudeHookSessionStore.saveUnlocked uses `.write(options: .atomic)`), so each
         // update lands as a rename into this directory and fires the source. This matches
-        // mosaic's existing MosaicConfig watcher, which relies on the same atomic-write
+        // coterm's existing CotermConfig watcher, which relies on the same atomic-write
         // invariant. The 60s fallback TTL backstops anything a future non-atomic writer
-        // to ~/.mosaicterm might add.
+        // to ~/.coterm might add.
         let source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: fd,
             eventMask: [.write, .link, .rename],
@@ -2165,7 +2165,7 @@ final class SharedLiveAgentIndex: ObservableObject {
         source.setCancelHandler { Darwin.close(fd) }
         source.resume()
         directoryWatchSource = source
-        // The watcher may have just been installed after `~/.mosaicterm` first appeared
+        // The watcher may have just been installed after `~/.coterm` first appeared
         // (first run / cleaned state); any hook writes before this moment were unobserved
         // and an earlier empty load may have stamped a "fresh" loadedAt that would
         // suppress the fallback-TTL reload. Force a catch-up reload now.
@@ -2196,7 +2196,7 @@ final class Workspace: Identifiable, ObservableObject {
     }
 
     static let terminalScrollBarHiddenDidChangeNotification = Notification.Name(
-        "mosaic.workspaceTerminalScrollBarHiddenDidChange"
+        "coterm.workspaceTerminalScrollBarHiddenDidChange"
     )
 
     let id: UUID
@@ -2221,12 +2221,12 @@ final class Workspace: Identifiable, ObservableObject {
     @Published var customColor: String?  // hex string, e.g. "#C0392B"
     /// User-defined environment variables applied to every shell spawned in this
     /// workspace: the initial terminal, every later pane/surface/split, and every
-    /// surface recreated on session restore. Managed `MOSAIC_*` and terminal-identity
+    /// surface recreated on session restore. Managed `COTERM_*` and terminal-identity
     /// variables always win — this dictionary is merged through the
     /// `additionalEnvironment` / `initialEnvironmentOverrides` channels, both of
     /// which skip `protectedStartupEnvironmentKeys` in
     /// `mergedStartupEnvironment(...)`, so a workspace env entry can never clobber
-    /// the variables the daemon relies on (MOSAIC_WORKSPACE_ID, MOSAIC_SOCKET_PATH, …).
+    /// the variables the daemon relies on (COTERM_WORKSPACE_ID, COTERM_SOCKET_PATH, …).
     /// Persisted in the session manifest and restored before surfaces are rebuilt.
     @Published var workspaceEnvironment: [String: String] = [:]
     // Legacy in-memory state for old helpers/tests. Product UI, rendering, and
@@ -2255,7 +2255,7 @@ final class Workspace: Identifiable, ObservableObject {
     @Published private(set) var surfaceTabBarDirectory: String?
     private(set) var preferredBrowserProfileID: UUID?
     let closeTabWarningDefaults, agentSessionAutoResumeDefaults: UserDefaults
-    /// Ordinal for MOSAIC_PORT range assignment (monotonically increasing per app session)
+    /// Ordinal for COTERM_PORT range assignment (monotonically increasing per app session)
     var portOrdinal: Int = 0
 
     /// The bonsplit controller managing the split panes for this workspace
@@ -2298,9 +2298,9 @@ final class Workspace: Identifiable, ObservableObject {
     /// workspace so it survives canvas view remounts and workspace switches.
     let canvasModel = CanvasModel(metricsProvider: { CanvasLayoutSettings.currentMetrics() })
     private struct SurfaceTabBarExecutableButton {
-        let button: MosaicSurfaceTabBarButton
-        let builtInAction: MosaicSurfaceTabBarBuiltInAction?
-        let workspaceCommand: MosaicResolvedCommand?
+        let button: CotermSurfaceTabBarButton
+        let builtInAction: CotermSurfaceTabBarBuiltInAction?
+        let workspaceCommand: CotermResolvedCommand?
         let terminalCommandSourcePath: String?
     }
 
@@ -2308,27 +2308,27 @@ final class Workspace: Identifiable, ObservableObject {
     private var surfaceTabBarButtonSourcePath: String?
     private var surfaceTabBarButtonGlobalConfigPath: String?
 
-    /// The pane-tree sub-model (MosaicPanes): owns the panel registry, the
+    /// The pane-tree sub-model (CotermPanes): owns the panel registry, the
     /// surface-id mapping, and the pane-layout bookkeeping. The legacy
     /// accessors below forward here; `Workspace` hosts the property-observer
     /// hooks via `PaneTreeHosting`.
     let paneTree = PaneTreeModel<any Panel>()
 
-    /// The surface-list derivation sub-model (MosaicWorkspaces): derives
+    /// The surface-list derivation sub-model (CotermWorkspaces): derives
     /// the ordered panel-id lists, focused panel, representative panel, per-pane
     /// selection, the `tabIdsTo*` pane queries, and the `paneLayoutVersion`
     /// reorder bump. `Workspace` is its tree-reading host via
     /// `WorkspaceSurfaceTreeReading`; the legacy accessors below forward here.
     let surfaceList = WorkspaceSurfaceListModel()
 
-    /// The surface-registry sub-model (MosaicWorkspaceCore): owns the
+    /// The surface-registry sub-model (CotermWorkspaceCore): owns the
     /// per-surface registry annotations (tty names, shell-activity states)
     /// and the transient tab-selection/focus-reassert request state. The
     /// legacy accessors below forward here. None of the moved properties
     /// were `@Published`, so no observer hooks are required.
     private let surfaceRegistry = SurfaceRegistryModel<PendingTabSelectionRequest>()
 
-    /// The split-layout sub-model (MosaicPanes): owns the split/detach
+    /// The split-layout sub-model (CotermPanes): owns the split/detach
     /// choreography bookkeeping (programmatic-split flag, detaching surface
     /// ids, captured transfer payloads, detach-close transaction count). The
     /// legacy accessors below forward here. None of the moved properties
@@ -2465,7 +2465,7 @@ final class Workspace: Identifiable, ObservableObject {
     @Published private(set) var tmuxWorkspaceFlashReason: WorkspaceAttentionFlashReason?
     @Published private(set) var tmuxWorkspaceFlashToken: UInt64 = 0
     var manualUnreadMarkedAt: [UUID: Date] = [:]
-    /// The sidebar-metadata sub-model (MosaicSidebar): owns the
+    /// The sidebar-metadata sub-model (CotermSidebar): owns the
     /// sidebar status entries, metadata blocks, log entries, progress, and
     /// git-branch / pull-request presentation state. The legacy accessors below
     /// forward here. The moved properties were `@Published` and fed the sidebar
@@ -2565,7 +2565,7 @@ final class Workspace: Identifiable, ObservableObject {
     private static let remotePortConflictStatusKey = "remote.port_conflicts"
     private static let remoteNotificationCooldown: TimeInterval = 5 * 60
     private static let sshControlMasterCleanupQueue = DispatchQueue(
-        label: "com.mosaic.remote-ssh.control-master-cleanup",
+        label: "com.coterm.remote-ssh.control-master-cleanup",
         qos: .utility
     )
     private static let remoteHeartbeatDateFormatter: ISO8601DateFormatter = {
@@ -2764,7 +2764,7 @@ final class Workspace: Identifiable, ObservableObject {
         alert.informativeText = String(
             format: String(
                 localized: "surfaceResumeApproval.runPrompt.message",
-                defaultValue: "mosaic is restoring a terminal with this resume command:\n\n%@\n\nWorking directory: %@"
+                defaultValue: "coterm is restoring a terminal with this resume command:\n\n%@\n\nWorking directory: %@"
             ),
             binding.command,
             binding.cwd ?? String(localized: "surfaceResumeApproval.cwd.none", defaultValue: "None")
@@ -2831,12 +2831,12 @@ final class Workspace: Identifiable, ObservableObject {
         renderingMode: GhosttyTerminalBackdropRenderingMode = .windowHostBackdrop
     ) -> BonsplitConfiguration.Appearance.ChromeColors {
         return .init(
-            backgroundHex: MosaicChromePalette.workspaceBackgroundHex,
-            tabBarBackgroundHex: MosaicChromePalette.chromeBackgroundHex,
-            activeTabBackgroundHex: MosaicChromePalette.workspaceBackgroundHex,
-            splitButtonBackdropHex: MosaicChromePalette.selectedSurfaceHex,
-            paneBackgroundHex: MosaicChromePalette.workspaceBackgroundHex,
-            borderHex: MosaicChromePalette.borderHex
+            backgroundHex: CotermChromePalette.workspaceBackgroundHex,
+            tabBarBackgroundHex: CotermChromePalette.chromeBackgroundHex,
+            activeTabBackgroundHex: CotermChromePalette.workspaceBackgroundHex,
+            splitButtonBackdropHex: CotermChromePalette.selectedSurfaceHex,
+            paneBackgroundHex: CotermChromePalette.workspaceBackgroundHex,
+            borderHex: CotermChromePalette.borderHex
         )
     }
 
@@ -2846,12 +2846,12 @@ final class Workspace: Identifiable, ObservableObject {
         renderingMode: GhosttyTerminalBackdropRenderingMode = .windowHostBackdrop
     ) -> BonsplitConfiguration.Appearance.ChromeColors {
         return .init(
-            backgroundHex: MosaicChromePalette.workspaceBackgroundHex,
-            tabBarBackgroundHex: MosaicChromePalette.chromeBackgroundHex,
-            activeTabBackgroundHex: MosaicChromePalette.workspaceBackgroundHex,
-            splitButtonBackdropHex: MosaicChromePalette.selectedSurfaceHex,
-            paneBackgroundHex: MosaicChromePalette.workspaceBackgroundHex,
-            borderHex: MosaicChromePalette.borderHex
+            backgroundHex: CotermChromePalette.workspaceBackgroundHex,
+            tabBarBackgroundHex: CotermChromePalette.chromeBackgroundHex,
+            activeTabBackgroundHex: CotermChromePalette.workspaceBackgroundHex,
+            splitButtonBackdropHex: CotermChromePalette.selectedSurfaceHex,
+            paneBackgroundHex: CotermChromePalette.workspaceBackgroundHex,
+            borderHex: CotermChromePalette.borderHex
         )
     }
 
@@ -3013,7 +3013,7 @@ final class Workspace: Identifiable, ObservableObject {
         title: String = "Terminal",
         workingDirectory: String? = nil,
         portOrdinal: Int = 0,
-        configTemplate: MosaicSurfaceConfigTemplate? = nil,
+        configTemplate: CotermSurfaceConfigTemplate? = nil,
         initialSurface: NewWorkspaceInitialSurface = .terminal,
         initialTerminalCommand: String? = nil,
         initialTerminalInput: String? = nil,
@@ -3071,15 +3071,15 @@ final class Workspace: Identifiable, ObservableObject {
         // Remove the default "Welcome" tab that bonsplit creates
         let welcomeTabIds = bonsplitController.allTabIds
 
-        // When the workspace boots with an explicit initial command (`mosaic ssh` /
-        // `mosaic vm new` both funnel their ssh startup script through this path),
+        // When the workspace boots with an explicit initial command (`coterm ssh` /
+        // `coterm vm new` both funnel their ssh startup script through this path),
         // hold the PTY open after that command exits. Without this Ghostty
         // silently respawns a local login shell and the user can't tell a dead
         // VM apart from a healthy local prompt.
         var resolvedConfigTemplate = configTemplate
         if let trimmedCommand = initialTerminalCommand?.trimmingCharacters(in: .whitespacesAndNewlines),
            !trimmedCommand.isEmpty {
-            var template = resolvedConfigTemplate ?? MosaicSurfaceConfigTemplate()
+            var template = resolvedConfigTemplate ?? CotermSurfaceConfigTemplate()
             template.waitAfterCommand = true
             resolvedConfigTemplate = template
         }
@@ -3264,11 +3264,11 @@ final class Workspace: Identifiable, ObservableObject {
     }
 
     func applySurfaceTabBarButtons(
-        _ buttons: [MosaicSurfaceTabBarButton],
+        _ buttons: [CotermSurfaceTabBarButton],
         sourcePath: String?,
         globalConfigPath: String,
         terminalCommandSourcePaths: [String: String],
-        workspaceCommands: [String: MosaicResolvedCommand]
+        workspaceCommands: [String: CotermResolvedCommand]
     ) {
         let executableButtons = Dictionary(
             uniqueKeysWithValues: buttons.compactMap { button in
@@ -3316,7 +3316,7 @@ final class Workspace: Identifiable, ObservableObject {
         let bonsplitButtons = buttons.map { button in
             let executable = executableButtons[button.id]
             let allowProjectLocalIcon = executable.map {
-                MosaicConfigExecutor.isTrustedSurfaceButton(
+                CotermConfigExecutor.isTrustedSurfaceButton(
                     $0.button,
                     workspaceCommand: $0.workspaceCommand,
                     terminalCommandSourcePath: $0.terminalCommandSourcePath,
@@ -3436,7 +3436,7 @@ final class Workspace: Identifiable, ObservableObject {
     private var isAttemptingLayoutFollowUp = false
     private var isNormalizingPinnedTabOrder = false
     /// The pending non-focusing-split focus re-assert request (the value
-    /// type now lives in MosaicWorkspaceCore); stored in the surface-registry
+    /// type now lives in CotermWorkspaceCore); stored in the surface-registry
     /// sub-model.
     private var pendingNonFocusSplitFocusReassert: PendingNonFocusSplitFocusReassert? {
         get { surfaceRegistry.pendingNonFocusSplitFocusReassert }
@@ -3634,7 +3634,7 @@ final class Workspace: Identifiable, ObservableObject {
             guard let self, let browserPanel else { return }
             guard self.panels[browserPanel.id] is BrowserPanel else { return }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.close.requestedByPage ws=\(self.id.uuidString.prefix(5)) " +
                 "panel=\(browserPanel.id.uuidString.prefix(5))"
             )
@@ -4423,7 +4423,7 @@ final class Workspace: Identifiable, ObservableObject {
         guard customTitle == nil else { return }
         guard self.title != title else { return }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "workspace.title.applyProcess workspace=\(id.uuidString.prefix(5)) " +
             "from=\"\(debugWorkspaceDescriptionPreview(self.title, limit: 80))\" " +
             "to=\"\(debugWorkspaceDescriptionPreview(title, limit: 80))\""
@@ -4490,7 +4490,7 @@ final class Workspace: Identifiable, ObservableObject {
         let normalizedNewlines = normalizedDescription?.reduce(into: 0) { count, character in
             if character == "\n" { count += 1 }
         } ?? 0
-        mosaicDebugLog(
+        cotermDebugLog(
             "workspace.customDescription.update workspace=\(id.uuidString.prefix(8)) " +
             "inputLen=\((description as NSString?)?.length ?? 0) " +
             "inputNewlines=\(inputNewlines) " +
@@ -4579,7 +4579,7 @@ final class Workspace: Identifiable, ObservableObject {
         if Self.unmountedVolumeRoot(for: restoredDirectory) != nil {
             // Keep guarding until the restored volume remounts and reports its cwd (#5278).
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "session.restore.cwdReport.ignored panel=\(panelId.uuidString.prefix(5)) " +
                 "saved=\(restoredDirectory) reported=\(reportedDirectory)"
             )
@@ -4592,7 +4592,7 @@ final class Workspace: Identifiable, ObservableObject {
         var restoredDirectoryIsDirectory: ObjCBool = false
         let restoredDirectoryStillExists = FileManager.default.fileExists(atPath: restoredDirectory, isDirectory: &restoredDirectoryIsDirectory) && restoredDirectoryIsDirectory.boolValue
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "session.restore.cwdReport.\(restoredDirectoryStillExists ? "ignoredOnce" : "accepted") " +
             "panel=\(panelId.uuidString.prefix(5)) saved=\(restoredDirectory) reported=\(reportedDirectory)"
         )
@@ -4613,7 +4613,7 @@ final class Workspace: Identifiable, ObservableObject {
             )
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "surface.shellState workspace=\(id.uuidString.prefix(5)) " +
             "panel=\(panelId.uuidString.prefix(5)) from=\(previousState.rawValue) to=\(state.rawValue)"
         )
@@ -4801,7 +4801,7 @@ final class Workspace: Identifiable, ObservableObject {
         clearRestoredAgentResumeBinding(panelId: panelId, restoredAgent: restoredAgent)
         clearRestoredAgentSnapshot(panelId: panelId)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "session.restore.agent.invalidate panel=\(panelId.uuidString.prefix(5)) " +
             "kind=\(restoredAgent.kind.rawValue) session=\(restoredAgent.sessionId.prefix(8))"
         )
@@ -5012,7 +5012,7 @@ final class Workspace: Identifiable, ObservableObject {
         guard !browserPanels.isEmpty else { return }
 
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "workspace.contextReset.browserPanels workspace=\(id.uuidString.prefix(5)) " +
             "reason=\(reason) count=\(browserPanels.count)"
         )
@@ -5088,7 +5088,7 @@ final class Workspace: Identifiable, ObservableObject {
 
 #if DEBUG
         if didMutate {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "workspace.title.updatePanel workspace=\(id.uuidString.prefix(5)) " +
                 "panel=\(panelId.uuidString.prefix(5)) panels=\(panels.count) custom=\(customTitle == nil ? 0 : 1) " +
                 "panelChanged=\(didMutatePanelTitle ? 1 : 0) workspaceChanged=\(didMutateWorkspaceTitle ? 1 : 0) " +
@@ -5347,7 +5347,7 @@ final class Workspace: Identifiable, ObservableObject {
         remoteConfiguration != nil
     }
 
-    /// Ephemeral remote tmux mirror; excluded from mosaic session restore.
+    /// Ephemeral remote tmux mirror; excluded from coterm session restore.
     var isRemoteTmuxMirror: Bool = false
 
     /// Per-window multi-pane renderers, keyed by mirrored window-tab panel id.
@@ -5471,7 +5471,7 @@ final class Workspace: Identifiable, ObservableObject {
 
     func listRemotePTYSessions() throws -> [[String: Any]] {
         guard let controller = remoteSessionController else {
-            throw NSError(domain: "mosaic.remote.pty", code: 10, userInfo: [
+            throw NSError(domain: "coterm.remote.pty", code: 10, userInfo: [
                 NSLocalizedDescriptionKey: "remote connection is not active",
             ])
         }
@@ -5480,7 +5480,7 @@ final class Workspace: Identifiable, ObservableObject {
 
     func closeRemotePTYSession(sessionID: String) throws {
         guard let controller = remoteSessionController else {
-            throw NSError(domain: "mosaic.remote.pty", code: 11, userInfo: [
+            throw NSError(domain: "coterm.remote.pty", code: 11, userInfo: [
                 NSLocalizedDescriptionKey: "remote connection is not active",
             ])
         }
@@ -5494,7 +5494,7 @@ final class Workspace: Identifiable, ObservableObject {
         requireExisting: Bool
     ) throws -> RemotePTYBridgeServer.Endpoint {
         guard let controller = remoteSessionController else {
-            throw NSError(domain: "mosaic.remote.pty", code: 12, userInfo: [
+            throw NSError(domain: "coterm.remote.pty", code: 12, userInfo: [
                 NSLocalizedDescriptionKey: "remote connection is not active",
             ])
         }
@@ -5508,7 +5508,7 @@ final class Workspace: Identifiable, ObservableObject {
 
     func resizeRemotePTY(sessionID: String, attachmentID: String, attachmentToken: String, cols: Int, rows: Int) throws {
         guard let controller = remoteSessionController else {
-            throw NSError(domain: "mosaic.remote.pty", code: 13, userInfo: [
+            throw NSError(domain: "coterm.remote.pty", code: 13, userInfo: [
                 NSLocalizedDescriptionKey: "remote connection is not active",
             ])
         }
@@ -5523,7 +5523,7 @@ final class Workspace: Identifiable, ObservableObject {
 
     func detachRemotePTYAttachment(sessionID: String, attachmentID: String, attachmentToken: String) throws {
         guard let controller = remoteSessionController else {
-            throw NSError(domain: "mosaic.remote.pty", code: 14, userInfo: [
+            throw NSError(domain: "coterm.remote.pty", code: 14, userInfo: [
                 NSLocalizedDescriptionKey: "remote connection is not active",
             ])
         }
@@ -5849,15 +5849,15 @@ final class Workspace: Identifiable, ObservableObject {
     /// empty values) and the `initialEnvironmentOverrides` channel (which would
     /// otherwise export a blank value on the initial shell only).
     ///
-    /// Reserved `MOSAIC_*` variables are intentionally *not* stripped by name — they
+    /// Reserved `COTERM_*` variables are intentionally *not* stripped by name — they
     /// are protected at spawn time by `mergedStartupEnvironment(protectedKeys:)`,
     /// the single authority on which keys are managed. That protection is an exact
     /// Swift-string match, but the env eventually crosses the Swift→C boundary
     /// (`strdup` / Ghostty), where a key is truncated at its first NUL. A key like
-    /// `"MOSAIC_SOCKET_PATH\0x"` would dodge the exact-match check yet collapse to
-    /// `MOSAIC_SOCKET_PATH` in the spawned shell, so reject any key containing a NUL
+    /// `"COTERM_SOCKET_PATH\0x"` would dodge the exact-match check yet collapse to
+    /// `COTERM_SOCKET_PATH` in the spawned shell, so reject any key containing a NUL
     /// (and `=`, which is never a valid env var name) and any value containing a
-    /// NUL. This is the single choke point for every entry point (CLI, mosaic.json,
+    /// NUL. This is the single choke point for every entry point (CLI, coterm.json,
     /// session restore), so the guard cannot be bypassed.
     // `nonisolated` so the nonisolated socket workspace-create parsing path
     // (`v2WorkspaceCreate`) can call this pure helper without hopping to the main
@@ -5876,7 +5876,7 @@ final class Workspace: Identifiable, ObservableObject {
     }
 
     /// Pure merge core: overlays `explicit` on top of `workspaceEnvironment`.
-    /// Managed `MOSAIC_*` / terminal-identity keys are protected downstream by
+    /// Managed `COTERM_*` / terminal-identity keys are protected downstream by
     /// `mergedStartupEnvironment(protectedKeys:)`; this only decides precedence
     /// among user-supplied values — explicit per-surface entries (layout `env`,
     /// scrollback replay, SSH startup) win over the workspace set. Static so the
@@ -6752,7 +6752,7 @@ final class Workspace: Identifiable, ObservableObject {
 
     private func seedTerminalInheritanceFontPoints(
         panelId: UUID,
-        configTemplate: MosaicSurfaceConfigTemplate?
+        configTemplate: CotermSurfaceConfigTemplate?
     ) {
         guard let fontPoints = configTemplate?.fontSize, fontPoints > 0 else { return }
         terminalInheritanceFontPointsByPanelId[panelId] = fontPoints
@@ -6762,9 +6762,9 @@ final class Workspace: Identifiable, ObservableObject {
     private func resolvedTerminalInheritanceFontPoints(
         for terminalPanel: TerminalPanel,
         sourceSurface: ghostty_surface_t,
-        inheritedConfig: MosaicSurfaceConfigTemplate
+        inheritedConfig: CotermSurfaceConfigTemplate
     ) -> Float? {
-        let runtimeBasePoints = mosaicCurrentSurfaceFontSizePoints(sourceSurface).map { MosaicSurfaceConfigTemplate.baseFontSize(fromRuntimePoints: $0, percent: GlobalFontMagnification.storedPercent) }
+        let runtimeBasePoints = cotermCurrentSurfaceFontSizePoints(sourceSurface).map { CotermSurfaceConfigTemplate.baseFontSize(fromRuntimePoints: $0, percent: GlobalFontMagnification.storedPercent) }
         if let rooted = terminalInheritanceFontPointsByPanelId[terminalPanel.id], rooted > 0 {
             if let runtimeBasePoints, abs(runtimeBasePoints - rooted) > 0.05 {
                 // Runtime zoom changed after lineage was seeded (manual zoom on descendant);
@@ -6782,8 +6782,8 @@ final class Workspace: Identifiable, ObservableObject {
     private func rememberTerminalConfigInheritanceSource(_ terminalPanel: TerminalPanel) {
         lastTerminalConfigInheritancePanelId = terminalPanel.id
         if let sourceSurface = terminalPanel.surface.surface,
-           let runtimePoints = mosaicCurrentSurfaceFontSizePoints(sourceSurface) {
-            let runtimeBasePoints = MosaicSurfaceConfigTemplate.baseFontSize(fromRuntimePoints: runtimePoints, percent: GlobalFontMagnification.storedPercent)
+           let runtimePoints = cotermCurrentSurfaceFontSizePoints(sourceSurface) {
+            let runtimeBasePoints = CotermSurfaceConfigTemplate.baseFontSize(fromRuntimePoints: runtimePoints, percent: GlobalFontMagnification.storedPercent)
             let existing = terminalInheritanceFontPointsByPanelId[terminalPanel.id]
             if existing == nil || abs((existing ?? runtimeBasePoints) - runtimeBasePoints) > 0.05 {
                 terminalInheritanceFontPointsByPanelId[terminalPanel.id] = runtimeBasePoints
@@ -6934,7 +6934,7 @@ final class Workspace: Identifiable, ObservableObject {
     private func inheritedTerminalConfig(
         preferredPanelId: UUID? = nil,
         inPane preferredPaneId: PaneID? = nil
-    ) -> MosaicSurfaceConfigTemplate? {
+    ) -> CotermSurfaceConfigTemplate? {
         // Walk candidates in priority order and use the first panel that still exposes
         // a runtime surface pointer.
         for terminalPanel in terminalPanelConfigInheritanceCandidates(
@@ -6944,11 +6944,11 @@ final class Workspace: Identifiable, ObservableObject {
             // Pin the panel and its TerminalSurface wrapper for the duration of
             // this iteration. The raw ghostty_surface_t extracted below is owned
             // by `surface` (the TerminalSurface) — ARC must not release it while
-            // ghostty_surface_inherited_config or mosaicCurrentSurfaceFontSizePoints
+            // ghostty_surface_inherited_config or cotermCurrentSurfaceFontSizePoints
             // is still reading through the pointer.
             let surface = terminalPanel.surface
             guard let sourceSurface = surface.surface else { continue }
-            var config = mosaicInheritedSurfaceConfig(
+            var config = cotermInheritedSurfaceConfig(
                 sourceSurface: sourceSurface,
                 context: GHOSTTY_SURFACE_CONTEXT_SPLIT
             )
@@ -6970,10 +6970,10 @@ final class Workspace: Identifiable, ObservableObject {
         }
 
         if let fallbackFontPoints = lastTerminalConfigInheritanceFontPoints {
-            var config = MosaicSurfaceConfigTemplate()
+            var config = CotermSurfaceConfigTemplate()
             config.fontSize = fallbackFontPoints
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "zoom.inherit fallback=lastKnownFont context=split font=\(String(format: "%.2f", fallbackFontPoints))"
             )
 #endif
@@ -7108,7 +7108,7 @@ final class Workspace: Identifiable, ObservableObject {
         // to $SHELL), and a dead VM looks identical to a healthy workspace with a
         // local prompt — which is what we saw during dogfood.
         if startupCommand != nil {
-            var template = inheritedConfig ?? MosaicSurfaceConfigTemplate()
+            var template = inheritedConfig ?? CotermSurfaceConfigTemplate()
             template.waitAfterCommand = true
             inheritedConfig = template
         }
@@ -7127,7 +7127,7 @@ final class Workspace: Identifiable, ObservableObject {
             sourcePanelId: panelId
         )
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.cwd panelId=\(panelId.uuidString.prefix(5)) panelDir=\(panelDirectories[panelId] ?? "nil") requestedDir=\(terminalPanel(for: panelId)?.requestedWorkingDirectory ?? "nil") currentDir=\(currentDirectory) resolved=\(splitWorkingDirectory ?? "nil")"
         )
 #endif
@@ -7196,11 +7196,11 @@ final class Workspace: Identifiable, ObservableObject {
             return nil
         }
         applyInitialSplitDividerPosition(initialDividerPosition, sourcePaneId: paneId, newPaneId: newPaneId)
-        publishMosaicSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: newPanel.id, kind: "terminal", origin: "terminal_split", focused: focus)
+        publishCotermSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: newPanel.id, kind: "terminal", origin: "terminal_split", focused: focus)
 
 #if DEBUG
-        mosaicDebugLog("split.created pane=\(paneId.id.uuidString.prefix(5)) orientation=\(orientation)")
-        mosaicDebugLog(
+        cotermDebugLog("split.created pane=\(paneId.id.uuidString.prefix(5)) orientation=\(orientation)")
+        cotermDebugLog(
             "split.timing workspace=\(id.uuidString.prefix(5)) panel=\(panelId.uuidString.prefix(5)) " +
             "transport=\(splitTransport) stage=layout_committed elapsedMs=\(debugElapsedMs(since: splitTimingStart)) " +
             "newPanel=\(newPanel.id.uuidString.prefix(5))"
@@ -7385,7 +7385,7 @@ final class Workspace: Identifiable, ObservableObject {
         // command exits so the user sees the error rather than a silently-respawned
         // local login shell.
         if startupCommand != nil {
-            var template = inheritedConfig ?? MosaicSurfaceConfigTemplate()
+            var template = inheritedConfig ?? CotermSurfaceConfigTemplate()
             template.waitAfterCommand = true
             inheritedConfig = template
         }
@@ -7450,7 +7450,7 @@ final class Workspace: Identifiable, ObservableObject {
         }
 
         bindSurface(newTabId, toPanelId: newPanel.id)
-        publishMosaicSurfaceCreated(newPanel.id, paneId: paneId, kind: "terminal", origin: "terminal_tab", focused: shouldFocusNewTab)
+        publishCotermSurfaceCreated(newPanel.id, paneId: paneId, kind: "terminal", origin: "terminal_tab", focused: shouldFocusNewTab)
 
         // bonsplit's createTab may not reliably emit didSelectTab, and its internal selection
         // updates can be deferred. Force a deterministic selection + focus path so the new
@@ -7483,7 +7483,7 @@ final class Workspace: Identifiable, ObservableObject {
     /// Creates a configured MANUAL-I/O ``TerminalPanel`` for one remote tmux pane,
     /// WITHOUT inserting it into the workspace's bonsplit/`panels` (the
     /// ``RemoteTmuxWindowMirror`` owns it and renders it via ``TerminalPanelView``
-    /// inside a single tab, so the pane gets the full native mosaic pane chrome —
+    /// inside a single tab, so the pane gets the full native coterm pane chrome —
     /// background, focus overlay, dividers).
     func makeRemoteTmuxPanePanel(onInput: @escaping @Sendable (Data) -> Void) -> TerminalPanel {
         let surface = TerminalSurface(
@@ -7849,7 +7849,7 @@ final class Workspace: Identifiable, ObservableObject {
         }
         applyInitialSplitDividerPosition(initialDividerPosition, sourcePaneId: paneId, newPaneId: newPaneId)
         setPreferredBrowserProfileID(browserPanel.profileID)
-        publishMosaicSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: browserPanel.id, kind: "browser", origin: "browser_split", focused: focus)
+        publishCotermSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: browserPanel.id, kind: "browser", origin: "browser_split", focused: focus)
 
         // See newTerminalSplit: suppress old view's becomeFirstResponder during reparenting.
         let previousHostedView = focusedTerminalPanel?.hostedView
@@ -7956,7 +7956,7 @@ final class Workspace: Identifiable, ObservableObject {
             let targetIndex = max(0, bonsplitController.tabs(inPane: paneId).count - 1)
             _ = bonsplitController.reorderTab(newTabId, toIndex: targetIndex)
         }
-        publishMosaicSurfaceCreated(browserPanel.id, paneId: paneId, kind: "browser", origin: "browser_tab", focused: shouldFocusNewTab)
+        publishCotermSurfaceCreated(browserPanel.id, paneId: paneId, kind: "browser", origin: "browser_tab", focused: shouldFocusNewTab)
 
         // Match terminal behavior: enforce deterministic selection + focus.
         if shouldFocusNewTab {
@@ -7993,9 +7993,9 @@ final class Workspace: Identifiable, ObservableObject {
         inPane paneId: PaneID,
         title: String,
         focus: Bool = true
-    ) -> MosaicSidebarExtensionBrowserPanel? {
+    ) -> CotermSidebarExtensionBrowserPanel? {
         let shouldFocusNewTab = focus || bonsplitController.focusedPaneId == paneId
-        let extensionBrowserPanel = MosaicSidebarExtensionBrowserPanel(title: title)
+        let extensionBrowserPanel = CotermSidebarExtensionBrowserPanel(title: title)
         panels[extensionBrowserPanel.id] = extensionBrowserPanel
         panelTitles[extensionBrowserPanel.id] = extensionBrowserPanel.displayTitle
 
@@ -8014,7 +8014,7 @@ final class Workspace: Identifiable, ObservableObject {
         }
 
         bindSurface(newTabId, toPanelId: extensionBrowserPanel.id)
-        publishMosaicSurfaceCreated(
+        publishCotermSurfaceCreated(
             extensionBrowserPanel.id,
             paneId: paneId,
             kind: SurfaceKind.extensionBrowser.rawValue,
@@ -8108,7 +8108,7 @@ final class Workspace: Identifiable, ObservableObject {
             panelTitles.removeValue(forKey: markdownPanel.id)
             return nil
         }
-        publishMosaicSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: markdownPanel.id, kind: "markdown", origin: "markdown_split", focused: focus)
+        publishCotermSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: markdownPanel.id, kind: "markdown", origin: "markdown_split", focused: focus)
 
         let previousHostedView = focusedTerminalPanel?.hostedView
         if focus {
@@ -8162,7 +8162,7 @@ final class Workspace: Identifiable, ObservableObject {
         if let targetIndex {
             _ = bonsplitController.reorderTab(newTabId, toIndex: targetIndex)
         }
-        publishMosaicSurfaceCreated(markdownPanel.id, paneId: paneId, kind: "markdown", origin: "markdown_tab", focused: shouldFocusNewTab)
+        publishCotermSurfaceCreated(markdownPanel.id, paneId: paneId, kind: "markdown", origin: "markdown_tab", focused: shouldFocusNewTab)
         if shouldFocusNewTab {
             bonsplitController.focusPane(paneId)
             bonsplitController.selectTab(newTabId)
@@ -8214,7 +8214,7 @@ final class Workspace: Identifiable, ObservableObject {
         if let targetIndex {
             _ = bonsplitController.reorderTab(newTabId, toIndex: targetIndex)
         }
-        publishMosaicSurfaceCreated(projectPanel.id, paneId: paneId, kind: SurfaceKind.project.rawValue, origin: "project_tab", focused: shouldFocusNewTab)
+        publishCotermSurfaceCreated(projectPanel.id, paneId: paneId, kind: SurfaceKind.project.rawValue, origin: "project_tab", focused: shouldFocusNewTab)
         if shouldFocusNewTab {
             bonsplitController.focusPane(paneId)
             bonsplitController.selectTab(newTabId)
@@ -8372,7 +8372,7 @@ final class Workspace: Identifiable, ObservableObject {
         if let targetIndex {
             _ = bonsplitController.reorderTab(newTabId, toIndex: targetIndex)
         }
-        publishMosaicSurfaceCreated(filePreviewPanel.id, paneId: paneId, kind: "file_preview", origin: "file_preview_tab", focused: shouldFocusNewTab)
+        publishCotermSurfaceCreated(filePreviewPanel.id, paneId: paneId, kind: "file_preview", origin: "file_preview_tab", focused: shouldFocusNewTab)
         if shouldFocusNewTab {
             bonsplitController.focusPane(paneId)
             bonsplitController.selectTab(newTabId)
@@ -8444,7 +8444,7 @@ final class Workspace: Identifiable, ObservableObject {
         if let targetIndex {
             _ = bonsplitController.reorderTab(newTabId, toIndex: targetIndex)
         }
-        publishMosaicSurfaceCreated(toolPanel.id, paneId: paneId, kind: "right_sidebar_tool", origin: "right_sidebar_tool_tab", focused: shouldFocusNewTab)
+        publishCotermSurfaceCreated(toolPanel.id, paneId: paneId, kind: "right_sidebar_tool", origin: "right_sidebar_tool_tab", focused: shouldFocusNewTab)
 
         if shouldFocusNewTab {
             focusPanel(toolPanel.id)
@@ -8503,7 +8503,7 @@ final class Workspace: Identifiable, ObservableObject {
         if let targetIndex {
             _ = bonsplitController.reorderTab(newTabId, toIndex: targetIndex)
         }
-        publishMosaicSurfaceCreated(
+        publishCotermSurfaceCreated(
             agentPanel.id,
             paneId: paneId,
             kind: "agent_session",
@@ -8558,7 +8558,7 @@ final class Workspace: Identifiable, ObservableObject {
             removeSurfaceMapping(forSurfaceId: newTab.id)
             return nil
         }
-        publishMosaicSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: filePreviewPanel.id, kind: "file_preview", origin: "file_preview_split", focused: true)
+        publishCotermSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: filePreviewPanel.id, kind: "file_preview", origin: "file_preview_split", focused: true)
 
         bonsplitController.selectTab(newTab.id)
         filePreviewPanel.focus()
@@ -8616,7 +8616,7 @@ final class Workspace: Identifiable, ObservableObject {
         // Mapping can transiently drift during split-tree mutations. If the target panel is
         // currently focused (or is the active terminal first responder), close whichever tab
         // bonsplit marks selected in that focused pane.
-        let firstResponderPanelId = mosaicOwningGhosttyView(
+        let firstResponderPanelId = cotermOwningGhosttyView(
             for: NSApp.keyWindow?.firstResponder ?? NSApp.mainWindow?.firstResponder
         )?.terminalSurface?.id
         let targetIsActive = focusedPanelId == panelId || firstResponderPanelId == panelId
@@ -8624,7 +8624,7 @@ final class Workspace: Identifiable, ObservableObject {
               let focusedPane = bonsplitController.focusedPaneId,
               let selected = bonsplitController.selectedTab(inPane: focusedPane) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "surface.close.fallback.skip panel=\(panelId.uuidString.prefix(5)) " +
                 "focusedPanel=\(focusedPanelId?.uuidString.prefix(5) ?? "nil") " +
                 "firstResponderPanel=\(firstResponderPanelId?.uuidString.prefix(5) ?? "nil") " +
@@ -8636,7 +8636,7 @@ final class Workspace: Identifiable, ObservableObject {
 
         let closed = requestCloseTab(selected.id, force: force)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "surface.close.fallback panel=\(panelId.uuidString.prefix(5)) " +
             "selectedTab=\(String(describing: selected.id).prefix(5)) " +
             "closed=\(closed ? 1 : 0)"
@@ -9039,7 +9039,7 @@ final class Workspace: Identifiable, ObservableObject {
     /// current tab selection and pane focus.
     ///
     /// This follows reorders that originate on the remote (a second tmux client, or
-    /// a manual `move-window` / a `new-window` inserted mid-list). The mosaic→tmux
+    /// a manual `move-window` / a `new-window` inserted mid-list). The coterm→tmux
     /// drag direction is handled by `handleMirrorWindowsReordered`. bonsplit's
     /// `reorderTab` selects+focuses the moved tab (and `selectTab`/`focusPane` fire
     /// the same activation), so the whole operation runs under
@@ -9064,7 +9064,7 @@ final class Workspace: Identifiable, ObservableObject {
         let currentPanelIds = bonsplitController.tabs(inPane: paneId).compactMap { panelIdFromSurfaceId($0.id) }
         guard let desired = RemoteTmuxSessionMirror.mirrorTabReorder(current: currentPanelIds, requested: panelOrder) else { return false }
 #if DEBUG
-        mosaicDebugLog("remote-tmux: reorder mirror tabs ws=\(id.uuidString.prefix(5)) count=\(desired.count)")
+        cotermDebugLog("remote-tmux: reorder mirror tabs ws=\(id.uuidString.prefix(5)) count=\(desired.count)")
 #endif
 
         let savedSelectedTabId = bonsplitController.selectedTab(inPane: paneId)?.id
@@ -9077,7 +9077,7 @@ final class Workspace: Identifiable, ObservableObject {
             _ = bonsplitController.reorderTab(tabId, toIndex: index)
         }
         // Restore bonsplit's internal selection + focus (the loop moved them to the
-        // last-reordered tab). mosaic's own focus/selection were never touched (the
+        // last-reordered tab). coterm's own focus/selection were never touched (the
         // delegate handlers short-circuited), so this just realigns bonsplit with
         // the user's unchanged state — no `applyTabSelection` runs.
         if let savedSelectedTabId { bonsplitController.selectTab(savedSelectedTabId) }
@@ -9096,7 +9096,7 @@ final class Workspace: Identifiable, ObservableObject {
             && activeRemoteTerminalSurfaceIds.count == 1
 #if DEBUG
         let detachStart = ProcessInfo.processInfo.systemUptime
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.detach.begin ws=\(id.uuidString.prefix(5)) panel=\(panelId.uuidString.prefix(5)) " +
             "tab=\(tabId.uuid.uuidString.prefix(5)) activeDetachTxn=\(activeDetachCloseTransactions) " +
             "pendingDetached=\(pendingDetachedSurfaces.count)"
@@ -9111,7 +9111,7 @@ final class Workspace: Identifiable, ObservableObject {
             splitLayout.cancelDetach(tabId)
             forceCloseTabIds.remove(tabId)
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "split.detach.fail ws=\(id.uuidString.prefix(5)) panel=\(panelId.uuidString.prefix(5)) " +
                 "tab=\(tabId.uuid.uuidString.prefix(5)) reason=closeTabRejected elapsedMs=\(debugElapsedMs(since: detachStart))"
             )
@@ -9126,9 +9126,9 @@ final class Workspace: Identifiable, ObservableObject {
                 detached = detachedTransfer.withRemoteCleanupConfiguration(remoteConfiguration)
             }
         }
-        publishMosaicSurfaceClosed(panelId, paneId: sourcePaneId, panel: sourcePanel, origin: detached == nil ? "detach_lost" : "detach")
+        publishCotermSurfaceClosed(panelId, paneId: sourcePaneId, panel: sourcePanel, origin: detached == nil ? "detach_lost" : "detach")
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.detach.end ws=\(id.uuidString.prefix(5)) panel=\(panelId.uuidString.prefix(5)) " +
             "tab=\(tabId.uuid.uuidString.prefix(5)) transfer=\(detached != nil ? 1 : 0) " +
             "elapsedMs=\(debugElapsedMs(since: detachStart))"
@@ -9147,14 +9147,14 @@ final class Workspace: Identifiable, ObservableObject {
     ) -> UUID? {
 #if DEBUG
         let attachStart = ProcessInfo.processInfo.systemUptime
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.attach.begin ws=\(id.uuidString.prefix(5)) panel=\(detached.panelId.uuidString.prefix(5)) " +
             "pane=\(paneId.id.uuidString.prefix(5)) index=\(index.map(String.init) ?? "nil") focus=\(focus ? 1 : 0)"
         )
 #endif
         guard bonsplitController.allPaneIds.contains(paneId) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "split.attach.fail ws=\(id.uuidString.prefix(5)) panel=\(detached.panelId.uuidString.prefix(5)) " +
                 "reason=invalidPane elapsedMs=\(debugElapsedMs(since: attachStart))"
             )
@@ -9163,7 +9163,7 @@ final class Workspace: Identifiable, ObservableObject {
         }
         guard panels[detached.panelId] == nil else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "split.attach.fail ws=\(id.uuidString.prefix(5)) panel=\(detached.panelId.uuidString.prefix(5)) " +
                 "reason=panelExists elapsedMs=\(debugElapsedMs(since: attachStart))"
             )
@@ -9240,7 +9240,7 @@ final class Workspace: Identifiable, ObservableObject {
                 agentSessionPanelCallbackIds.remove(detached.panelId)
             }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "split.attach.fail ws=\(id.uuidString.prefix(5)) panel=\(detached.panelId.uuidString.prefix(5)) " +
                 "reason=createTabFailed elapsedMs=\(debugElapsedMs(since: attachStart))"
             )
@@ -9334,7 +9334,7 @@ final class Workspace: Identifiable, ObservableObject {
         syncPinnedStateForTab(newTabId, panelId: detached.panelId)
         syncUnreadBadgeStateForPanel(detached.panelId)
         normalizePinnedTabs(in: paneId)
-        publishMosaicSurfaceCreated(detached.panelId, paneId: paneId, kind: Self.mosaicEventSurfaceKind(detached.panel), origin: "detach_attach", focused: focus)
+        publishCotermSurfaceCreated(detached.panelId, paneId: paneId, kind: Self.cotermEventSurfaceKind(detached.panel), origin: "detach_attach", focused: focus)
 
         if focus {
             bonsplitController.focusPane(paneId)
@@ -9346,7 +9346,7 @@ final class Workspace: Identifiable, ObservableObject {
         scheduleTerminalGeometryReconcile()
 
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.attach.end ws=\(id.uuidString.prefix(5)) panel=\(detached.panelId.uuidString.prefix(5)) " +
             "tab=\(newTabId.uuid.uuidString.prefix(5)) pane=\(paneId.id.uuidString.prefix(5)) " +
             "index=\(index.map(String.init) ?? "nil") focus=\(focus ? 1 : 0) " +
@@ -9466,7 +9466,7 @@ final class Workspace: Identifiable, ObservableObject {
 #if DEBUG
         let pane = bonsplitController.focusedPaneId?.id.uuidString.prefix(5) ?? "nil"
         let triggerLabel = trigger == .terminalFirstResponder ? "firstResponder" : "standard"
-        mosaicDebugLog("focus.panel panel=\(panelId.uuidString.prefix(5)) pane=\(pane) trigger=\(triggerLabel)")
+        cotermDebugLog("focus.panel panel=\(panelId.uuidString.prefix(5)) pane=\(pane) trigger=\(triggerLabel)")
         AppDelegate.shared?.focusLog.append(
             "Workspace.focusPanel panelId=\(panelId.uuidString) focusedPane=\(pane) trigger=\(triggerLabel)"
         )
@@ -9513,7 +9513,7 @@ final class Workspace: Identifiable, ObservableObject {
             .flatMap { bonsplitController.selectedTab(inPane: $0)?.id }
             .map { String($0.uuid.uuidString.prefix(5)) } ?? "nil"
         let currentPanelShort = currentlyFocusedPanelId.map { String($0.uuidString.prefix(5)) } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "focus.panel.begin workspace=\(id.uuidString.prefix(5)) " +
             "panel=\(panelId.uuidString.prefix(5)) trigger=\(String(describing: trigger)) " +
             "targetPane=\(targetPaneShort) focusedPane=\(focusedPaneShort) selectedTab=\(selectedTabShort) " +
@@ -9541,7 +9541,7 @@ final class Workspace: Identifiable, ObservableObject {
 
         if let targetPaneId, !selectionAlreadyConverged {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "focus.panel.focusPane workspace=\(id.uuidString.prefix(5)) " +
                 "panel=\(panelId.uuidString.prefix(5)) pane=\(targetPaneId.id.uuidString.prefix(5))"
             )
@@ -9551,7 +9551,7 @@ final class Workspace: Identifiable, ObservableObject {
 
         if !selectionAlreadyConverged {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "focus.panel.selectTab workspace=\(id.uuidString.prefix(5)) " +
                 "panel=\(panelId.uuidString.prefix(5)) tab=\(tabId.uuid.uuidString.prefix(5))"
             )
@@ -9810,7 +9810,7 @@ final class Workspace: Identifiable, ObservableObject {
     private static func remoteDisconnectPlaceholderScript(target: String, reconnectCommand: String?) -> String {
         let tempDir = FileManager.default.temporaryDirectory
         let scriptURL = tempDir.appendingPathComponent(
-            "mosaic-remote-disconnect-\(UUID().uuidString.lowercased()).sh"
+            "coterm-remote-disconnect-\(UUID().uuidString.lowercased()).sh"
         )
         // Encode the target as base64 and decode it inside the shell. This sidesteps every
         // layer of shell quoting: no matter what the target contains (`$(id)`, backticks,
@@ -9822,15 +9822,15 @@ final class Workspace: Identifiable, ObservableObject {
         // POSIX printf inside the shell wrapper, not by Swift's String(format:).
         let endedLineFormat = String(
             localized: "remote.disconnectBanner.sessionEnded",
-            defaultValue: "[mosaic] remote session disconnected: %s"
+            defaultValue: "[coterm] remote session disconnected: %s"
         )
         let reconnectLine = String(
             localized: "remote.disconnectBanner.reconnectHint",
-            defaultValue: "[mosaic] Press Enter to reconnect. This terminal will stay disconnected until then."
+            defaultValue: "[coterm] Press Enter to reconnect. This terminal will stay disconnected until then."
         )
         let reconnectUnavailableLine = String(
             localized: "remote.disconnectBanner.reconnectUnavailableHint",
-            defaultValue: "[mosaic] Reconnect this workspace from the sidebar or by running the original remote command again."
+            defaultValue: "[coterm] Reconnect this workspace from the sidebar or by running the original remote command again."
         )
         // Encode the localized lines the same way as the target, so a translator using
         // backticks or $(…) in a translation string can't unexpectedly execute in the
@@ -9841,44 +9841,44 @@ final class Workspace: Identifiable, ObservableObject {
         let encodedReconnectCommand = Data((reconnectCommand ?? "").utf8).base64EncodedString()
         let body = """
         #!/bin/sh
-        mosaic_disconnect_decode() {
+        coterm_disconnect_decode() {
           printf '%s' "$1" | base64 --decode 2>/dev/null || printf '%s' "$1" | base64 -D 2>/dev/null
         }
-        mosaic_disconnect_target="$(mosaic_disconnect_decode '\(encodedTarget)')"
-        mosaic_disconnect_ended_format="$(mosaic_disconnect_decode '\(encodedEndedFormat)')"
-        mosaic_disconnect_reconnect_line="$(mosaic_disconnect_decode '\(encodedReconnectLine)')"
-        mosaic_disconnect_reconnect_unavailable_line="$(mosaic_disconnect_decode '\(encodedReconnectUnavailableLine)')"
-        mosaic_disconnect_reconnect_command="$(mosaic_disconnect_decode '\(encodedReconnectCommand)')"
+        coterm_disconnect_target="$(coterm_disconnect_decode '\(encodedTarget)')"
+        coterm_disconnect_ended_format="$(coterm_disconnect_decode '\(encodedEndedFormat)')"
+        coterm_disconnect_reconnect_line="$(coterm_disconnect_decode '\(encodedReconnectLine)')"
+        coterm_disconnect_reconnect_unavailable_line="$(coterm_disconnect_decode '\(encodedReconnectUnavailableLine)')"
+        coterm_disconnect_reconnect_command="$(coterm_disconnect_decode '\(encodedReconnectCommand)')"
         # Append newline + color codes ourselves rather than trusting the translator to
         # preserve them in every locale.
         printf '\\033[1;33m'
-        printf "$mosaic_disconnect_ended_format" "$mosaic_disconnect_target"
+        printf "$coterm_disconnect_ended_format" "$coterm_disconnect_target"
         printf '\\033[0m\\n' >&2
         # Remove ourselves so /tmp doesn't accumulate these wrappers across sessions.
         rm -f -- "$0" 2>/dev/null || true
-        if [ -n "$mosaic_disconnect_reconnect_command" ]; then
-          printf '\\033[2m%s\\033[0m\\n\\n' "$mosaic_disconnect_reconnect_line" >&2
+        if [ -n "$coterm_disconnect_reconnect_command" ]; then
+          printf '\\033[2m%s\\033[0m\\n\\n' "$coterm_disconnect_reconnect_line" >&2
           IFS= read -r _ || exit 0
-          mosaic_reconnect_cli="${MOSAIC_BUNDLED_CLI_PATH:-}"
-          if [ -z "$mosaic_reconnect_cli" ] || [ ! -x "$mosaic_reconnect_cli" ]; then
-            mosaic_reconnect_cli="$(command -v mosaic 2>/dev/null || true)"
+          coterm_reconnect_cli="${COTERM_BUNDLED_CLI_PATH:-}"
+          if [ -z "$coterm_reconnect_cli" ] || [ ! -x "$coterm_reconnect_cli" ]; then
+            coterm_reconnect_cli="$(command -v coterm 2>/dev/null || true)"
           fi
-          mosaic_reconnect_socket="${MOSAIC_SOCKET_PATH:-${MOSAIC_SOCKET:-}}"
-          if [ -n "$mosaic_reconnect_cli" ] && [ -n "$mosaic_reconnect_socket" ] && [ -n "${MOSAIC_WORKSPACE_ID:-}" ]; then
-            mosaic_reconnect_payload="{\\"workspace_id\\":\\"$MOSAIC_WORKSPACE_ID\\""
-            if [ -n "${MOSAIC_SURFACE_ID:-}" ]; then
-              mosaic_reconnect_payload="$mosaic_reconnect_payload,\\"surface_id\\":\\"$MOSAIC_SURFACE_ID\\""
+          coterm_reconnect_socket="${COTERM_SOCKET_PATH:-${COTERM_SOCKET:-}}"
+          if [ -n "$coterm_reconnect_cli" ] && [ -n "$coterm_reconnect_socket" ] && [ -n "${COTERM_WORKSPACE_ID:-}" ]; then
+            coterm_reconnect_payload="{\\"workspace_id\\":\\"$COTERM_WORKSPACE_ID\\""
+            if [ -n "${COTERM_SURFACE_ID:-}" ]; then
+              coterm_reconnect_payload="$coterm_reconnect_payload,\\"surface_id\\":\\"$COTERM_SURFACE_ID\\""
             fi
-            mosaic_reconnect_payload="$mosaic_reconnect_payload}"
-            if "$mosaic_reconnect_cli" --socket "$mosaic_reconnect_socket" rpc workspace.remote.reconnect "$mosaic_reconnect_payload" >/dev/null 2>&1; then
-              exec /bin/sh -lc "$mosaic_disconnect_reconnect_command"
+            coterm_reconnect_payload="$coterm_reconnect_payload}"
+            if "$coterm_reconnect_cli" --socket "$coterm_reconnect_socket" rpc workspace.remote.reconnect "$coterm_reconnect_payload" >/dev/null 2>&1; then
+              exec /bin/sh -lc "$coterm_disconnect_reconnect_command"
             fi
           fi
-          printf '\\033[2m%s\\033[0m\\n' "$mosaic_disconnect_reconnect_unavailable_line" >&2
+          printf '\\033[2m%s\\033[0m\\n' "$coterm_disconnect_reconnect_unavailable_line" >&2
           while IFS= read -r _; do :; done
           exit 0
         fi
-        printf '\\033[2m%s\\033[0m\\n' "$mosaic_disconnect_reconnect_unavailable_line" >&2
+        printf '\\033[2m%s\\033[0m\\n' "$coterm_disconnect_reconnect_unavailable_line" >&2
         while IFS= read -r _; do :; done
         exit 0
 
@@ -9908,7 +9908,7 @@ final class Workspace: Identifiable, ObservableObject {
             )
         }
         if replacementInitialCommand != nil {
-            var config = replacementConfig ?? MosaicSurfaceConfigTemplate()
+            var config = replacementConfig ?? CotermSurfaceConfigTemplate()
             config.waitAfterCommand = true
             replacementConfig = config
         }
@@ -10080,7 +10080,7 @@ final class Workspace: Identifiable, ObservableObject {
         hostedView.suppressReparentFocus()
         pendingReparentFocusSuppressionViews[ObjectIdentifier(hostedView)] = hostedView
 #if DEBUG
-        mosaicDebugLog("focus.reparent.suppressPending reason=\(reason) count=\(pendingReparentFocusSuppressionViews.count)")
+        cotermDebugLog("focus.reparent.suppressPending reason=\(reason) count=\(pendingReparentFocusSuppressionViews.count)")
 #endif
 
         guard portalRenderingEnabled else {
@@ -10096,7 +10096,7 @@ final class Workspace: Identifiable, ObservableObject {
         let hostedViews = Array(pendingReparentFocusSuppressionViews.values)
         pendingReparentFocusSuppressionViews.removeAll()
 #if DEBUG
-        mosaicDebugLog("focus.reparent.clearPending reason=\(reason) count=\(hostedViews.count)")
+        cotermDebugLog("focus.reparent.clearPending reason=\(reason) count=\(hostedViews.count)")
 #endif
         for hostedView in hostedViews {
             hostedView.clearSuppressReparentFocus()
@@ -10114,7 +10114,7 @@ final class Workspace: Identifiable, ObservableObject {
             pendingReparentFocusSuppressionViews.removeValue(forKey: key)
         }
 #if DEBUG
-        mosaicDebugLog("focus.reparent.clearReady reason=\(reason) count=\(hostedViews.count)")
+        cotermDebugLog("focus.reparent.clearReady reason=\(reason) count=\(hostedViews.count)")
 #endif
         for hostedView in hostedViews {
             hostedView.clearSuppressReparentFocus()
@@ -10854,7 +10854,7 @@ final class Workspace: Identifiable, ObservableObject {
         let failure = NSAlert()
         failure.alertStyle = .warning
         failure.messageText = String(localized: "alert.moveTab.failed.title", defaultValue: "Move Failed")
-        failure.informativeText = String(localized: "alert.moveTab.failed.message", defaultValue: "mosaic could not move this tab to the selected destination.")
+        failure.informativeText = String(localized: "alert.moveTab.failed.message", defaultValue: "coterm could not move this tab to the selected destination.")
         failure.addButton(withTitle: String(localized: "alert.ok", defaultValue: "OK"))
         _ = failure.runModal()
     }
@@ -10992,7 +10992,7 @@ final class Workspace: Identifiable, ObservableObject {
             remoteStartupCommand: startupCommand
         )
         if startupCommand != nil {
-            var template = inheritedConfig ?? MosaicSurfaceConfigTemplate()
+            var template = inheritedConfig ?? CotermSurfaceConfigTemplate()
             template.waitAfterCommand = true
             inheritedConfig = template
         }
@@ -11036,7 +11036,7 @@ final class Workspace: Identifiable, ObservableObject {
             terminalInheritanceFontPointsByPanelId.removeValue(forKey: newPanel.id)
             return nil
         }
-        publishMosaicSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: newPanel.id, kind: "terminal", origin: "terminal_split", focused: true)
+        publishCotermSplitCreated(newPaneId, sourcePaneId: paneId, orientation: orientation, surfaceId: newPanel.id, kind: "terminal", origin: "terminal_split", focused: true)
 
         bonsplitController.selectTab(newTab.id)
         newPanel.focus()
@@ -11179,7 +11179,7 @@ final class Workspace: Identifiable, ObservableObject {
     /// Fork the panel's agent conversation into a brand-new sibling tab placed immediately
     /// to the right of `anchorTabId` in `paneId`. Uses the same `claude --resume --fork-session`
     /// startup input the existing split/new-workspace forks rely on, so divergence is owned by
-    /// the agent itself (Claude / Codex / OpenCode) instead of any mosaic-side history copy.
+    /// the agent itself (Claude / Codex / OpenCode) instead of any coterm-side history copy.
     @discardableResult
     func forkAgentConversationToNewTab(
         fromPanelId panelId: UUID,
@@ -11292,7 +11292,7 @@ final class Workspace: Identifiable, ObservableObject {
         }
 
         #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.externalDrop.begin ws=\(id.uuidString.prefix(5)) tab=\(request.tabId.uuid.uuidString.prefix(5)) " +
             "sourcePane=\(request.sourcePaneId.id.uuidString.prefix(5)) destination=\(destinationLabel)"
         )
@@ -11307,7 +11307,7 @@ final class Workspace: Identifiable, ObservableObject {
             focusWindow: true
         )
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.externalDrop.end ws=\(id.uuidString.prefix(5)) tab=\(request.tabId.uuid.uuidString.prefix(5)) " +
             "moved=\(moved ? 1 : 0) elapsedMs=\(debugElapsedMs(since: dropStart))"
         )
@@ -11490,7 +11490,7 @@ extension Workspace: BonsplitDelegate {
         let selectedTabBefore = bonsplitController.focusedPaneId
             .flatMap { bonsplitController.selectedTab(inPane: $0)?.id }
             .map { String($0.uuid.uuidString.prefix(5)) } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "focus.split.apply.begin workspace=\(id.uuidString.prefix(5)) " +
             "pane=\(pane.id.uuidString.prefix(5)) tab=\(tabId.uuid.uuidString.prefix(5)) " +
             "focusedPane=\(focusedPaneBefore) selectedTab=\(selectedTabBefore) " +
@@ -11609,7 +11609,7 @@ extension Workspace: BonsplitDelegate {
                 if !terminalPanel.hostedView.isSurfaceViewFirstResponder() {
 #if DEBUG
                     let previousExists = previousTerminalHostedView != nil ? 1 : 0
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "focus.split.moveFocus workspace=\(id.uuidString.prefix(5)) " +
                         "panel=\(panelId.uuidString.prefix(5)) previousExists=\(previousExists) " +
                         "to=\(panelId.uuidString.prefix(5))"
@@ -11618,7 +11618,7 @@ extension Workspace: BonsplitDelegate {
                     terminalPanel.hostedView.moveFocus(from: previousTerminalHostedView)
                 }
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "focus.split.ensureFocus workspace=\(id.uuidString.prefix(5)) " +
                     "panel=\(panelId.uuidString.prefix(5)) pane=\(focusedPane.id.uuidString.prefix(5)) " +
                     "tab=\(selectedTabId.uuid.uuidString.prefix(5)) intent=\(String(describing: activationIntent))"
@@ -11653,10 +11653,10 @@ extension Workspace: BonsplitDelegate {
                 explicitFocusIntent: explicitFocusIntent
             )
         )
-        publishMosaicFocusedSelection(paneId: focusedPane, surfaceId: panelId, origin: "bonsplit_selection")
+        publishCotermFocusedSelection(paneId: focusedPane, surfaceId: panelId, origin: "bonsplit_selection")
 #if DEBUG
         let prevPanelShort = previousFocusedPanelId.map { String($0.uuidString.prefix(5)) } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "focus.split.apply.end workspace=\(id.uuidString.prefix(5)) " +
             "panel=\(panelId.uuidString.prefix(5)) type=\(String(describing: type(of: panel))) " +
             "focusedPane=\(focusedPane.id.uuidString.prefix(5)) selectedTab=\(selectedTabId.uuid.uuidString.prefix(5)) " +
@@ -11711,7 +11711,7 @@ extension Workspace: BonsplitDelegate {
         for (panelId, panel) in panels where panelId != targetPanelId {
             guard let ownedIntent = panel.ownedFocusIntent(for: firstResponder, in: window) else { continue }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "focus.handoff.begin workspace=\(id.uuidString.prefix(5)) " +
                 "fromPanel=\(panelId.uuidString.prefix(5)) toPanel=\(targetPanelId.uuidString.prefix(5)) " +
                 "fromIntent=\(String(describing: ownedIntent)) toIntent=\(String(describing: targetIntent))"
@@ -12249,12 +12249,12 @@ extension Workspace: BonsplitDelegate {
             .map { String(String(describing: $0.id).prefix(5)) } ?? "nil"
         let focusedPaneBefore = controller.focusedPaneId?.id.uuidString.prefix(5) ?? "nil"
         let focusedPanelBefore = focusedPanelId?.uuidString.prefix(5) ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.moveTab idx=\(debugDidMoveTabEventCount) dtSincePrevMs=\(sincePrev) panel=\(movedPanel) " +
             "from=\(source.id.uuidString.prefix(5)) to=\(destination.id.uuidString.prefix(5)) " +
             "sourceTabs=\(controller.tabs(inPane: source).count) destTabs=\(controller.tabs(inPane: destination).count)"
         )
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.moveTab.state.before idx=\(debugDidMoveTabEventCount) panel=\(movedPanel) " +
             "destSelected=\(selectedBefore) focusedPane=\(focusedPaneBefore) focusedPanel=\(focusedPanelBefore)"
         )
@@ -12272,7 +12272,7 @@ extension Workspace: BonsplitDelegate {
         let focusedPaneAfter = controller.focusedPaneId?.id.uuidString.prefix(5) ?? "nil"
         let focusedPanelAfter = focusedPanelId?.uuidString.prefix(5) ?? "nil"
         let movedPanelFocused = (movedPanelIdAfter != nil && movedPanelIdAfter == focusedPanelId) ? 1 : 0
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.moveTab.state.after idx=\(debugDidMoveTabEventCount) panel=\(movedPanel) " +
             "destSelected=\(selectedAfter) focusedPane=\(focusedPaneAfter) focusedPanel=\(focusedPanelAfter) " +
             "movedFocused=\(movedPanelFocused)"
@@ -12312,7 +12312,7 @@ extension Workspace: BonsplitDelegate {
         let closedHistoryEntries = pendingPaneCloseHistoryEntries.removeValue(forKey: paneId.id) ?? []
         let shouldScheduleFocusReconcile = !isDetachingCloseTransaction
 
-        publishMosaicPaneClosed(paneId, closedPanelIds: closedPanelIds, origin: "pane_close")
+        publishCotermPaneClosed(paneId, closedPanelIds: closedPanelIds, origin: "pane_close")
         if !closedPanelIds.isEmpty {
             if !isDetachingCloseTransaction && !suppressClosedPanelHistory {
                 for entry in closedHistoryEntries {
@@ -12408,7 +12408,7 @@ extension Workspace: BonsplitDelegate {
         }
         let originalSelectedKind = controller.selectedTab(inPane: originalPane).map { panelKindForTab($0.id) } ?? "none"
         let newSelectedKind = controller.selectedTab(inPane: newPane).map { panelKindForTab($0.id) } ?? "none"
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.didSplit original=\(originalPane.id.uuidString.prefix(5)) new=\(newPane.id.uuidString.prefix(5)) " +
             "orientation=\(orientation) programmatic=\(isProgrammaticSplit ? 1 : 0) " +
             "originalTabs=\(controller.tabs(inPane: originalPane).count) newTabs=\(controller.tabs(inPane: newPane).count) " +
@@ -12444,7 +12444,7 @@ extension Workspace: BonsplitDelegate {
         // If the new pane already has a tab, this split moved an existing tab (drag-to-split).
         //
         // In the "drag the only tab to split edge" case, bonsplit inserts a placeholder "Empty"
-        // tab in the source pane to avoid leaving it tabless. In mosaic, this is undesirable:
+        // tab in the source pane to avoid leaving it tabless. In coterm, this is undesirable:
         // it creates a pane with no real surfaces and leaves an "Empty" tab in the tab bar.
         //
         // Replace placeholder-only source panes with a real terminal surface, then drop the
@@ -12453,7 +12453,7 @@ extension Workspace: BonsplitDelegate {
             let originalTabs = controller.tabs(inPane: originalPane)
             let hasRealSurface = originalTabs.contains { panelIdFromSurfaceId($0.id) != nil }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "split.didSplit.drag original=\(originalPane.id.uuidString.prefix(5)) " +
                 "new=\(newPane.id.uuidString.prefix(5)) originalTabs=\(originalTabs.count) " +
                 "newTabs=\(controller.tabs(inPane: newPane).count) hasRealSurface=\(hasRealSurface ? 1 : 0) " +
@@ -12463,7 +12463,7 @@ extension Workspace: BonsplitDelegate {
             if !hasRealSurface {
                 let placeholderTabs = originalTabs.filter { panelIdFromSurfaceId($0.id) == nil }
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "split.placeholderRepair pane=\(originalPane.id.uuidString.prefix(5)) " +
                     "action=reusePlaceholder placeholderCount=\(placeholderTabs.count)"
                 )
@@ -12499,14 +12499,14 @@ extension Workspace: BonsplitDelegate {
                         isLoading: false,
                         isPinned: false
                     )
-                    publishMosaicSurfaceCreated(replacementPanel.id, paneId: originalPane, kind: "terminal", origin: "placeholder_repair", focused: false)
+                    publishCotermSurfaceCreated(replacementPanel.id, paneId: originalPane, kind: "terminal", origin: "placeholder_repair", focused: false)
 
                     for extraPlaceholder in placeholderTabs.dropFirst() {
                         bonsplitController.closeTab(extraPlaceholder.id)
                     }
                 } else {
 #if DEBUG
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "split.placeholderRepair pane=\(originalPane.id.uuidString.prefix(5)) " +
                         "fallback=createTerminalAndDropPlaceholders"
                     )
@@ -12533,7 +12533,7 @@ extension Workspace: BonsplitDelegate {
         let sourcePanelId = sourceTabId.flatMap { panelIdFromSurfaceId($0) }
 
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.didSplit.autoCreate pane=\(newPane.id.uuidString.prefix(5)) " +
             "fromPane=\(originalPane.id.uuidString.prefix(5)) sourcePanel=\(sourcePanelId.map { String($0.uuidString.prefix(5)) } ?? "none")"
         )
@@ -12572,10 +12572,10 @@ extension Workspace: BonsplitDelegate {
 
         bindSurface(newTabId, toPanelId: newPanel.id)
         normalizePinnedTabs(in: newPane)
-        publishMosaicSplitCreated(newPane, sourcePaneId: originalPane, orientation: orientation, surfaceId: newPanel.id, kind: "terminal", origin: "ui_split", focused: true)
+        publishCotermSplitCreated(newPane, sourcePaneId: originalPane, orientation: orientation, surfaceId: newPanel.id, kind: "terminal", origin: "ui_split", focused: true)
         publishTerminalLayoutChanged(trigger: orientation == .horizontal ? .splitHorizontal : .splitVertical)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.didSplit.autoCreate.done pane=\(newPane.id.uuidString.prefix(5)) " +
             "panel=\(newPanel.id.uuidString.prefix(5))"
         )
@@ -12648,7 +12648,7 @@ extension Workspace: BonsplitDelegate {
             let trimmedCwd = rawCwd.trimmingCharacters(in: .whitespacesAndNewlines)
             let baseCwd = trimmedCwd.isEmpty ? FileManager.default.homeDirectoryForCurrentUser.path : trimmedCwd
             guard let tabManager = owningTabManager else { return }
-            _ = MosaicConfigExecutor.execute(
+            _ = CotermConfigExecutor.execute(
                 command: workspaceCommand.command,
                 tabManager: tabManager,
                 baseCwd: baseCwd,
@@ -12665,7 +12665,7 @@ extension Workspace: BonsplitDelegate {
 
         guard let command = executable.button.terminalCommand else { return }
         let target = executable.button.resolvedTerminalCommandTarget
-        let didExecute = MosaicConfigExecutor.prepareShellInputIfAuthorized(
+        let didExecute = CotermConfigExecutor.prepareShellInputIfAuthorized(
             command,
             confirm: executable.button.confirm ?? false,
             actionID: executable.button.id,
@@ -12709,7 +12709,7 @@ extension Workspace: BonsplitDelegate {
 
     func splitTabBar(_ controller: BonsplitController, didRequestCustomAction identifier: String, inPane pane: PaneID) {
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.customAction.request workspace=\(id.uuidString.prefix(5)) " +
             "pane=\(pane.id.uuidString.prefix(5)) identifier=\(identifier)"
         )

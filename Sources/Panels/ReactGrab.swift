@@ -143,7 +143,7 @@ enum ReactGrabScriptLoader {
 
 // MARK: - WKScriptMessageHandler
 
-private let reactGrabMessageHandlerName = "mosaicReactGrab"
+private let reactGrabMessageHandlerName = "cotermReactGrab"
 
 enum ReactGrabBridgeMessage {
     case stateChange(isActive: Bool)
@@ -180,18 +180,18 @@ class ReactGrabMessageHandler: NSObject, WKScriptMessageHandler {
         #if DEBUG
         switch bridgeMessage {
         case .stateChange(let isActive):
-            mosaicDebugLog("reactGrab.messageHandler type=stateChange isActive=\(isActive)")
+            cotermDebugLog("reactGrab.messageHandler type=stateChange isActive=\(isActive)")
         case .copySuccess(let content, _):
-            mosaicDebugLog("reactGrab.messageHandler type=copySuccess len=\(content.count)")
+            cotermDebugLog("reactGrab.messageHandler type=copySuccess len=\(content.count)")
         }
         #endif
         Task { @MainActor in
             #if DEBUG
             switch bridgeMessage {
             case .stateChange(let isActive):
-                mosaicDebugLog("reactGrab.messageHandler.mainActor type=stateChange isActive=\(isActive)")
+                cotermDebugLog("reactGrab.messageHandler.mainActor type=stateChange isActive=\(isActive)")
             case .copySuccess(let content, _):
-                mosaicDebugLog("reactGrab.messageHandler.mainActor type=copySuccess len=\(content.count)")
+                cotermDebugLog("reactGrab.messageHandler.mainActor type=copySuccess len=\(content.count)")
             }
             #endif
             onMessage(bridgeMessage)
@@ -229,7 +229,7 @@ extension BrowserPanel {
     func armReactGrabRoundTrip(returnTo panelId: UUID) {
         let token = UUID().uuidString
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "reactGrab.pasteback h3.arm " +
             "workspace=\(workspaceId.uuidString.prefix(5)) " +
             "browser=\(id.uuidString.prefix(5)) " +
@@ -245,7 +245,7 @@ extension BrowserPanel {
         let previousTarget = pendingReactGrabReturnTargetPanelId.map {
             String($0.uuidString.prefix(5))
         } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "reactGrab.pasteback h3.clear " +
             "workspace=\(workspaceId.uuidString.prefix(5)) " +
             "browser=\(id.uuidString.prefix(5)) " +
@@ -264,7 +264,7 @@ extension BrowserPanel {
             let pendingTarget = pendingReactGrabReturnTargetPanelId.map {
                 String($0.uuidString.prefix(5))
             } ?? "nil"
-            mosaicDebugLog(
+            cotermDebugLog(
                 "reactGrab.pasteback h3.stateChange " +
                 "workspace=\(workspaceId.uuidString.prefix(5)) " +
                 "browser=\(id.uuidString.prefix(5)) " +
@@ -275,7 +275,7 @@ extension BrowserPanel {
             guard let returnPanelId = pendingReactGrabReturnTargetPanelId,
                   let expectedToken = pendingReactGrabRoundTripToken else {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h3.copySuccess.drop " +
                     "workspace=\(workspaceId.uuidString.prefix(5)) " +
                     "browser=\(id.uuidString.prefix(5)) reason=noReturnTarget len=\(content.count)"
@@ -285,7 +285,7 @@ extension BrowserPanel {
             }
             guard token == expectedToken else {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h3.copySuccess.drop " +
                     "workspace=\(workspaceId.uuidString.prefix(5)) " +
                     "browser=\(id.uuidString.prefix(5)) reason=tokenMismatch len=\(content.count)"
@@ -295,7 +295,7 @@ extension BrowserPanel {
                 return
             }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "reactGrab.pasteback h3.copySuccess " +
                 "workspace=\(workspaceId.uuidString.prefix(5)) " +
                 "browser=\(id.uuidString.prefix(5)) " +
@@ -319,16 +319,16 @@ extension BrowserPanel {
 
     func injectReactGrab() async {
         #if DEBUG
-        mosaicDebugLog("reactGrab.inject.start")
+        cotermDebugLog("reactGrab.inject.start")
         #endif
         guard let scriptSource = await ReactGrabScriptLoader.fetch() else {
             #if DEBUG
-            mosaicDebugLog("reactGrab.inject.fetchFailed")
+            cotermDebugLog("reactGrab.inject.fetchFailed")
             #endif
             return
         }
         #if DEBUG
-        mosaicDebugLog("reactGrab.inject.fetched len=\(scriptSource.count)")
+        cotermDebugLog("reactGrab.inject.fetched len=\(scriptSource.count)")
         #endif
 
         let handlerName = reactGrabMessageHandlerName
@@ -343,8 +343,8 @@ extension BrowserPanel {
                 return !!syncToken(\(sessionTokenLiteral));
             };
             var installBridge = function(api) {
-                if (!api || window.__MOSAIC_REACT_GRAB_BRIDGE_INSTALLED__) return;
-                window.__MOSAIC_REACT_GRAB_BRIDGE_INSTALLED__ = true;
+                if (!api || window.__COTERM_REACT_GRAB_BRIDGE_INSTALLED__) return;
+                window.__COTERM_REACT_GRAB_BRIDGE_INSTALLED__ = true;
                 var activeToken = null;
                 var syncSessionToken = function(token) {
                     activeToken = (typeof token === 'string' && token.length > 0) ? token : null;
@@ -363,7 +363,7 @@ extension BrowserPanel {
                 refreshSessionToken();
                 var lastActive;
                 api.registerPlugin({
-                    name: 'mosaic-bridge',
+                    name: 'coterm-bridge',
                     hooks: {
                         onStateChange: function(state) {
                             if (state.isActive === lastActive) return;
@@ -395,11 +395,11 @@ extension BrowserPanel {
         \(scriptSource)
         """
         #if DEBUG
-        mosaicDebugLog("reactGrab.inject.evalJS len=\(combined.count)")
+        cotermDebugLog("reactGrab.inject.evalJS len=\(combined.count)")
         #endif
         webView.evaluateJavaScript(combined) { [weak self] _, error in
             #if DEBUG
-            mosaicDebugLog("reactGrab.inject.evalJS.done error=\(error?.localizedDescription ?? "none")")
+            cotermDebugLog("reactGrab.inject.evalJS.done error=\(error?.localizedDescription ?? "none")")
             #endif
             if let error {
                 NSLog("ReactGrab: injection failed: %@", error.localizedDescription)
@@ -407,18 +407,18 @@ extension BrowserPanel {
             }
         }
         #if DEBUG
-        mosaicDebugLog("reactGrab.inject.end")
+        cotermDebugLog("reactGrab.inject.end")
         #endif
     }
 
     func toggleReactGrab() {
         #if DEBUG
-        mosaicDebugLog("reactGrab.toggle.start")
+        cotermDebugLog("reactGrab.toggle.start")
         #endif
         let script = "window.__REACT_GRAB__?.toggle()"
         webView.evaluateJavaScript(script, completionHandler: nil)
         #if DEBUG
-        mosaicDebugLog("reactGrab.toggle.end")
+        cotermDebugLog("reactGrab.toggle.end")
         #endif
     }
 
@@ -447,7 +447,7 @@ extension BrowserPanel {
             return (result as? Bool) ?? false
         } catch {
 #if DEBUG
-            mosaicDebugLog("reactGrab.bridgeSessionRefresh.error error=\(error.localizedDescription)")
+            cotermDebugLog("reactGrab.bridgeSessionRefresh.error error=\(error.localizedDescription)")
 #endif
             return false
         }
@@ -461,7 +461,7 @@ extension BrowserPanel {
         let pendingTarget = pendingReactGrabReturnTargetPanelId.map {
             String($0.uuidString.prefix(5))
         } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "reactGrab.pasteback h3.reset " +
             "workspace=\(workspaceId.uuidString.prefix(5)) " +
             "browser=\(id.uuidString.prefix(5)) " +

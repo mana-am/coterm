@@ -25,6 +25,7 @@ struct CollaborationCreatedSession: Decodable, Sendable {
     let code: String?
     let relayURL: String
     let grant: String
+    let shareSecret: String?
     let entitlements: CollaborationEntitlements
 }
 
@@ -59,6 +60,14 @@ struct CollaborationJoinResult: Decodable, Sendable {
     let grant: String
 }
 
+struct CollaborationJoinRequestPending: Decodable, Sendable {
+    let status: String
+    let requestId: String
+    let room: String
+    let code: String?
+    let relayURL: String
+}
+
 enum CollaborationBackendError: LocalizedError {
     case invalidURL
     case http(status: Int, code: String?)
@@ -77,7 +86,7 @@ enum CollaborationBackendError: LocalizedError {
 }
 
 /// Typed client for the www `/api/collab` endpoints. All calls authenticate
-/// with the native `mosaicv1` access token (Bearer). Used from the main actor
+/// with the native `cotermv1` access token (Bearer). Used from the main actor
 /// by ``CollaborationRuntime``; the caller supplies a fresh access token.
 struct CollaborationBackendClient {
     let baseURL: URL
@@ -96,7 +105,8 @@ struct CollaborationBackendClient {
         accessToken: String,
         orgId: String,
         relayURL: String?,
-        precreatedCode: String? = nil
+        precreatedCode: String? = nil,
+        precreatedShareSecret: String? = nil
     ) async throws -> CollaborationCreatedSession {
         var body: [String: String] = ["orgId": orgId]
         if let relayURL { body["relayURL"] = relayURL }
@@ -105,6 +115,7 @@ struct CollaborationBackendClient {
         // www deployments ignore the extra field and create the room
         // themselves (the previous, higher-latency behavior).
         if let precreatedCode { body["code"] = precreatedCode }
+        if let precreatedShareSecret { body["shareSecret"] = precreatedShareSecret }
         return try await post("api/collab/sessions", accessToken: accessToken, body: body)
     }
 
@@ -166,9 +177,10 @@ struct CollaborationBackendClient {
     func joinByCode(
         accessToken: String,
         code: String,
+        shareSecret: String,
         relayURL: String?
     ) async throws -> CollaborationJoinResult {
-        var body: [String: String] = ["code": code]
+        var body: [String: String] = ["code": code, "shareSecret": shareSecret]
         if let relayURL { body["relayURL"] = relayURL }
         return try await post("api/collab/join", accessToken: accessToken, body: body)
     }

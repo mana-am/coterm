@@ -6,7 +6,7 @@ This specifically covers the regression where the sidebar directory can get
 stuck (e.g. showing "~" even after multiple `cd`s).
 
 Run with a tagged instance to avoid unix socket conflicts:
-  MOSAIC_TAG=<tag> python3 tests/test_sidebar_cwd_git.py
+  COTERM_TAG=<tag> python3 tests/test_sidebar_cwd_git.py
 """
 
 from __future__ import annotations
@@ -18,10 +18,10 @@ import sys
 import time
 from pathlib import Path
 
-# Add the directory containing mosaic.py to the path
+# Add the directory containing coterm.py to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic, mosaicError  # noqa: E402
+from coterm import coterm, cotermError  # noqa: E402
 
 
 def _parse_sidebar_state(text: str) -> dict[str, str]:
@@ -54,7 +54,7 @@ def _wait_for(predicate, timeout: float, interval: float, label: str):
 
 
 def _wait_for_state_field(
-    client: mosaic,
+    client: coterm,
     key: str,
     expected: str,
     timeout: float = 6.0,
@@ -68,7 +68,7 @@ def _wait_for_state_field(
 
 
 def _wait_for_git_branch(
-    client: mosaic,
+    client: coterm,
     expected: str,
     timeout: float = 12.0,
     interval: float = 0.15,
@@ -105,8 +105,8 @@ def _git(cwd: Path, *args: str) -> None:
 def _init_git_repo(repo: Path) -> None:
     repo.mkdir(parents=True, exist_ok=True)
     _git(repo, "init")
-    _git(repo, "config", "user.email", "mosaic-test@example.com")
-    _git(repo, "config", "user.name", "mosaic-test")
+    _git(repo, "config", "user.email", "coterm-test@example.com")
+    _git(repo, "config", "user.name", "coterm-test")
     (repo / "README.md").write_text("hello\n", encoding="utf-8")
     _git(repo, "add", "README.md")
     _git(repo, "commit", "-m", "init")
@@ -119,7 +119,7 @@ def _init_git_repo(repo: Path) -> None:
 
 
 def _send_cd_and_wait(
-    client: mosaic,
+    client: coterm,
     target: Path,
     attempts: int = 3,
     timeout: float = 6.0,
@@ -150,11 +150,11 @@ def _send_cd_and_wait(
 
 
 def main() -> int:
-    tag = os.environ.get("MOSAIC_TAG") or ""
+    tag = os.environ.get("COTERM_TAG") or ""
     if not tag:
-        print("Tip: set MOSAIC_TAG=<tag> when running this test to avoid socket conflicts.")
+        print("Tip: set COTERM_TAG=<tag> when running this test to avoid socket conflicts.")
 
-    base = Path("/tmp") / f"mosaic_sidebar_test_{os.getpid()}"
+    base = Path("/tmp") / f"coterm_sidebar_test_{os.getpid()}"
     repo = base / "repo"
     other = base / "other"
 
@@ -164,7 +164,7 @@ def main() -> int:
         other.mkdir(parents=True, exist_ok=True)
         _init_git_repo(repo)
 
-        with mosaic() as client:
+        with coterm() as client:
             new_tab_id = client.new_tab()
             client.select_tab(new_tab_id)
             time.sleep(0.6)
@@ -224,7 +224,7 @@ def main() -> int:
         print("Sidebar CWD + git branch test passed.")
         return 0
 
-    except (mosaicError, subprocess.CalledProcessError, AssertionError) as e:
+    except (cotermError, subprocess.CalledProcessError, AssertionError) as e:
         print(f"Sidebar CWD + git branch test failed: {e}")
         return 1
     finally:

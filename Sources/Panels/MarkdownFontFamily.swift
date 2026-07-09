@@ -9,13 +9,13 @@ import Foundation
 /// (mirroring the theme injection). Code blocks keep their own monospace stack
 /// from `github-markdown.css`.
 enum MarkdownFontFamily {
-    /// UserDefaults / mosaic.json key (`markdown.fontFamily`).
+    /// UserDefaults / coterm.json key (`markdown.fontFamily`).
     static let key = "markdown.fontFamily"
     /// Sentinel value for the System default (inherits the GitHub stack).
     static let systemDefault = ""
 
     /// Normalizes user/config input before persisting or applying it. Newlines
-    /// collapse to spaces so a malformed mosaic.json value cannot produce invalid
+    /// collapse to spaces so a malformed coterm.json value cannot produce invalid
     /// multiline CSS.
     static func normalized(_ family: String) -> String {
         family
@@ -36,7 +36,7 @@ enum MarkdownFontFamily {
     }
 
     /// The persistent default font family, honoring `markdown.fontFamily` from
-    /// UserDefaults / mosaic.json and falling back to the System default.
+    /// UserDefaults / coterm.json and falling back to the System default.
     static func resolvedDefault(defaults: UserDefaults = .standard) -> String {
         normalized(defaults.string(forKey: key) ?? systemDefault)
     }

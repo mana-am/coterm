@@ -29,18 +29,18 @@ import time
 import uuid
 
 
-def resolve_mosaic_cli() -> str:
-    explicit = os.environ.get("MOSAIC_CLI_BIN") or os.environ.get("MOSAIC_CLI")
+def resolve_coterm_cli() -> str:
+    explicit = os.environ.get("COTERM_CLI_BIN") or os.environ.get("COTERM_CLI")
     if explicit:
         if os.path.exists(explicit) and os.access(explicit, os.X_OK):
             return explicit
-        raise RuntimeError(f"Configured mosaic CLI is not executable: {explicit}")
+        raise RuntimeError(f"Configured coterm CLI is not executable: {explicit}")
 
-    in_path = shutil.which("mosaic")
+    in_path = shutil.which("coterm")
     if in_path:
         return in_path
 
-    raise RuntimeError("Unable to find mosaic CLI binary. Set MOSAIC_CLI_BIN.")
+    raise RuntimeError("Unable to find coterm CLI binary. Set COTERM_CLI_BIN.")
 
 
 class RoomHookSocketServer:
@@ -54,8 +54,8 @@ class RoomHookSocketServer:
         self.ready = threading.Event()
         self.stop = threading.Event()
         self.error: Exception | None = None
-        self.root = tempfile.TemporaryDirectory(prefix="mosaic-room-hook-")
-        self.socket_path = os.path.join(self.root.name, "mosaic.sock")
+        self.root = tempfile.TemporaryDirectory(prefix="coterm-room-hook-")
+        self.socket_path = os.path.join(self.root.name, "coterm.sock")
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.server: socket.socket | None = None
 
@@ -169,13 +169,13 @@ def run_claude_hook(cli_path, socket_path, subcommand, payload, env):
     )
     if proc.returncode != 0:
         raise RuntimeError(
-            f"mosaic claude-hook {subcommand} failed:\n"
+            f"coterm claude-hook {subcommand} failed:\n"
             f"exit={proc.returncode}\nstdout={proc.stdout}\nstderr={proc.stderr}"
         )
     return proc.stdout
 
 
-def run_mosaic(cli_path, socket_path, args, env):
+def run_coterm(cli_path, socket_path, args, env):
     proc = subprocess.run(
         [cli_path, "--socket", socket_path, *args],
         text=True,
@@ -186,7 +186,7 @@ def run_mosaic(cli_path, socket_path, args, env):
     )
     if proc.returncode != 0:
         raise RuntimeError(
-            f"mosaic {' '.join(args)} failed:\n"
+            f"coterm {' '.join(args)} failed:\n"
             f"exit={proc.returncode}\nstdout={proc.stdout}\nstderr={proc.stderr}"
         )
     return proc.stdout
@@ -203,7 +203,7 @@ def fail(message: str) -> int:
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         return fail(str(exc))
 
@@ -213,14 +213,14 @@ def main() -> int:
 
     with RoomHookSocketServer(workspace_id=workspace_id, surface_id=surface_id) as server:
         env = os.environ.copy()
-        env["MOSAIC_SOCKET_PATH"] = server.socket_path
-        env["MOSAIC_WORKSPACE_ID"] = workspace_id
-        env["MOSAIC_SURFACE_ID"] = surface_id
-        env["MOSAIC_CLI_SENTRY_DISABLED"] = "1"
-        env["MOSAIC_CLAUDE_HOOK_SENTRY_DISABLED"] = "1"
+        env["COTERM_SOCKET_PATH"] = server.socket_path
+        env["COTERM_WORKSPACE_ID"] = workspace_id
+        env["COTERM_SURFACE_ID"] = surface_id
+        env["COTERM_CLI_SENTRY_DISABLED"] = "1"
+        env["COTERM_CLAUDE_HOOK_SENTRY_DISABLED"] = "1"
         # Isolate the hook session store so parallel test runs never collide.
-        state_dir = tempfile.mkdtemp(prefix="mosaic-room-hook-state-")
-        env["MOSAIC_AGENT_HOOK_STATE_DIR"] = state_dir
+        state_dir = tempfile.mkdtemp(prefix="coterm-room-hook-state-")
+        env["COTERM_AGENT_HOOK_STATE_DIR"] = state_dir
 
         # Case 1: session-start with no room content registers and prints OK.
         stdout = run_claude_hook(
@@ -351,7 +351,7 @@ def main() -> int:
         # Case 8: the debug reset command clears stale persisted room state via
         # the app instead of requiring users to manually edit ~/.cmuxterm files.
         reset_start = len(server.commands)
-        run_mosaic(cli_path, server.socket_path, ["agent-room", "reset", "--room-id", "old-room"], env)
+        run_coterm(cli_path, server.socket_path, ["agent-room", "reset", "--room-id", "old-room"], env)
         resets = commands_with(server.commands[reset_start:], "agent.room.reset")
         if not resets or "old-room" not in resets[0]:
             return fail(f"agent-room reset must call agent.room.reset with the room id: {resets!r}")

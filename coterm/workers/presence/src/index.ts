@@ -1,4 +1,4 @@
-// mosaic device presence service — worker entry (open-source port).
+// coterm device presence service — worker entry (open-source port).
 //
 // Routes (all JSON unless noted):
 //   GET  /healthz                         liveness, no auth
@@ -87,7 +87,7 @@ export default {
       //   GET   read it back (the sign-in restore path on a fresh install)
       const team = await resolveTeamOr403(request, env);
       if (!team.ok) return team.response;
-      const rawClientScope = request.headers.get("x-mosaic-client-scope");
+      const rawClientScope = request.headers.get("x-coterm-client-scope");
       const trimmedClientScope = rawClientScope?.trim() ?? "";
       if (trimmedClientScope && normalizeClientScope(trimmedClientScope) === null) {
         return json({ error: "invalid_client_scope" }, 400);

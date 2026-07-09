@@ -1,4 +1,4 @@
-# mosaic agent notes
+# coterm agent notes
 
 ## Initial setup
 
@@ -19,10 +19,10 @@ After making code changes, always run the reload script with a tag to build the 
 For fast Swift/UI iteration on a tag that already has warmed DerivedData, use the opt-in fast path:
 
 ```bash
-MOSAIC_DEV_FAST_RELOAD=1 ./scripts/reload.sh --tag fix-zsh-autosuggestions
+COTERM_DEV_FAST_RELOAD=1 ./scripts/reload.sh --tag fix-zsh-autosuggestions
 ```
 
-`MOSAIC_DEV_FAST_RELOAD=1` keeps the same Xcode compile graph but skips slow dev packaging work: it skips the Ghostty CLI helper Zig rebuild, reuses an existing `mosaicd` binary when present, and retags the Xcode-built app in place instead of copying the whole `.app` bundle. In local timing, a warmed normal tagged reload took 226s, while warmed fast reloads took 26-36s. Use the normal `reload.sh --tag` path when changing Ghostty, `mosaicd`, helper binaries, signing/bundle packaging, or tag/socket isolation behavior.
+`COTERM_DEV_FAST_RELOAD=1` keeps the same Xcode compile graph but skips slow dev packaging work: it skips the Ghostty CLI helper Zig rebuild, reuses an existing `cotermd` binary when present, and retags the Xcode-built app in place instead of copying the whole `.app` bundle. In local timing, a warmed normal tagged reload took 226s, while warmed fast reloads took 26-36s. Use the normal `reload.sh --tag` path when changing Ghostty, `cotermd`, helper binaries, signing/bundle packaging, or tag/socket isolation behavior.
 
 By default, `reload.sh` builds but does **not** launch the app. The script prints the `.app` path so the user can cmd-click to open it. After a successful build, it always terminates any running app with the same tag (so cmd-clicking launches the freshly-built binary instead of foregrounding the stale instance). Pass `--launch` to open the app automatically after the build:
 
@@ -40,14 +40,14 @@ Example. If `reload.sh` output contains:
 
 ```text
 App path:
- /Users/someone/Library/Developer/Xcode/DerivedData/mosaic-my-tag/Build/Products/Debug/Mosaic DEV my-tag.app
+ /Users/someone/Library/Developer/Xcode/DerivedData/coterm-my-tag/Build/Products/Debug/Coterm DEV my-tag.app
 ```
 
 **Claude Code** outputs:
 
 ```markdown
 -------------------------------------------------------
-[Mosaic DEV my-tag.app](file:///Users/someone/Library/Developer/Xcode/DerivedData/mosaic-my-tag/Build/Products/Debug/Mosaic%20DEV%20my-tag.app)
+[Coterm DEV my-tag.app](file:///Users/someone/Library/Developer/Xcode/DerivedData/coterm-my-tag/Build/Products/Debug/Coterm%20DEV%20my-tag.app)
 -------------------------------------------------------
 ```
 
@@ -55,23 +55,23 @@ App path:
 
 ```markdown
 -------------------------------------------------------
-[my-tag: file:///Users/someone/Library/Developer/Xcode/DerivedData/mosaic-my-tag/Build/Products/Debug/Mosaic%20DEV%20my-tag.app](file:///Users/someone/Library/Developer/Xcode/DerivedData/mosaic-my-tag/Build/Products/Debug/Mosaic%20DEV%20my-tag.app)
+[my-tag: file:///Users/someone/Library/Developer/Xcode/DerivedData/coterm-my-tag/Build/Products/Debug/Coterm%20DEV%20my-tag.app](file:///Users/someone/Library/Developer/Xcode/DerivedData/coterm-my-tag/Build/Products/Debug/Coterm%20DEV%20my-tag.app)
 -------------------------------------------------------
 ```
 
-Never use `/tmp/mosaic-<tag>/...` app links in chat output.
+Never use `/tmp/coterm-<tag>/...` app links in chat output.
 
-For CLI or socket dogfood against a tagged Debug app, use the tag-bound helper and set `MOSAIC_TAG`.
-Do not use `/tmp/mosaic-cli` for tagged dogfood, since that symlink points at the most recently reloaded build and can target the user's main app socket.
+For CLI or socket dogfood against a tagged Debug app, use the tag-bound helper and set `COTERM_TAG`.
+Do not use `/tmp/coterm-cli` for tagged dogfood, since that symlink points at the most recently reloaded build and can target the user's main app socket.
 
 ```bash
-MOSAIC_TAG=<tag> scripts/mosaic-debug-cli.sh list-workspaces
-MOSAIC_TAG=<tag> scripts/mosaic-debug-cli.sh send --workspace workspace:1 --surface surface:1 "echo ok"
+COTERM_TAG=<tag> scripts/coterm-debug-cli.sh list-workspaces
+COTERM_TAG=<tag> scripts/coterm-debug-cli.sh send --workspace workspace:1 --surface surface:1 "echo ok"
 ```
 
-The helper refuses to run without `MOSAIC_TAG`, targets `/tmp/mosaic-debug-<tag>.sock`, and uses the matching tagged CLI from `~/Library/Developer/Xcode/DerivedData/mosaic-<tag>/...`. It also scrubs ambient mosaic terminal context (`MOSAIC_SOCKET`, `MOSAIC_SOCKET_PASSWORD`, workspace/surface/tab/panel IDs, mosaicd socket, and debug log), then sets `MOSAIC_SOCKET_PATH`, `MOSAIC_BUNDLE_ID`, and `MOSAIC_BUNDLED_CLI_PATH` for the selected tag.
+The helper refuses to run without `COTERM_TAG`, targets `/tmp/coterm-debug-<tag>.sock`, and uses the matching tagged CLI from `~/Library/Developer/Xcode/DerivedData/coterm-<tag>/...`. It also scrubs ambient coterm terminal context (`COTERM_SOCKET`, `COTERM_SOCKET_PASSWORD`, workspace/surface/tab/panel IDs, cotermd socket, and debug log), then sets `COTERM_SOCKET_PATH`, `COTERM_BUNDLE_ID`, and `COTERM_BUNDLED_CLI_PATH` for the selected tag.
 
-After making code changes, always use `reload.sh --tag` to build. **Never run bare `xcodebuild` or `open` an untagged `Mosaic DEV.app`.** Untagged builds share the default debug socket and bundle ID with other agents, causing conflicts and stealing focus.
+After making code changes, always use `reload.sh --tag` to build. **Never run bare `xcodebuild` or `open` an untagged `Coterm DEV.app`.** Untagged builds share the default debug socket and bundle ID with other agents, causing conflicts and stealing focus.
 
 ```bash
 ./scripts/reload.sh --tag <your-branch-slug>
@@ -80,7 +80,7 @@ After making code changes, always use `reload.sh --tag` to build. **Never run ba
 If you only need to verify the build compiles (no launch), use a tagged derivedDataPath:
 
 ```bash
-xcodebuild -project mosaic.xcodeproj -scheme mosaic -configuration Debug -destination 'platform=macOS' -derivedDataPath /tmp/mosaic-<your-tag> build
+xcodebuild -project coterm.xcodeproj -scheme coterm -configuration Debug -destination 'platform=macOS' -derivedDataPath /tmp/coterm-<your-tag> build
 ```
 
 When rebuilding GhosttyKit.xcframework, always use Release optimizations:
@@ -89,10 +89,10 @@ When rebuilding GhosttyKit.xcframework, always use Release optimizations:
 cd ghostty && zig build -Demit-xcframework=true -Dxcframework-target=universal -Doptimize=ReleaseFast
 ```
 
-When rebuilding mosaicd for release/bundling, always use ReleaseFast:
+When rebuilding cotermd for release/bundling, always use ReleaseFast:
 
 ```bash
-cd mosaicd && zig build -Doptimize=ReleaseFast
+cd cotermd && zig build -Doptimize=ReleaseFast
 ```
 
 `reload` = build the Debug app (tag required) and terminate any running app with the same tag. Pass `--launch` to also open the freshly-built app:
@@ -108,7 +108,7 @@ cd mosaicd && zig build -Doptimize=ReleaseFast
 ./scripts/reloadp.sh
 ```
 
-`reloads` = kill and launch the Release app as "Mosaic STAGING" (isolated from production mosaic):
+`reloads` = kill and launch the Release app as "Coterm STAGING" (isolated from production coterm):
 
 ```bash
 ./scripts/reloads.sh
@@ -147,7 +147,7 @@ This makes it visible in the GitHub PR UI (Commits tab, check statuses) that the
 
 ## Pitfalls
 
-- **Custom UTTypes** for drag-and-drop must be declared in `Resources/Info.plist` under `UTExportedTypeDeclarations` (e.g. `com.splittabbar.tabtransfer`, `com.mosaic.sidebar-tab-reorder`).
+- **Custom UTTypes** for drag-and-drop must be declared in `Resources/Info.plist` under `UTExportedTypeDeclarations` (e.g. `com.splittabbar.tabtransfer`, `com.coterm.sidebar-tab-reorder`).
 - Do not add an app-level display link or manual `ghostty_surface_draw` loop; rely on Ghostty wakeups/renderer to avoid typing lag.
 - **Typing-latency-sensitive paths** (read carefully before touching these areas):
   - `WindowTerminalHostView.hitTest()` in `TerminalWindowPortal.swift`: called on every event including keyboard. All divider/sidebar/drag routing is gated to pointer events only. Do not add work outside the `isPointerEvent` guard.
@@ -157,13 +157,13 @@ This makes it visible in the GitHub PR UI (Commits tab, check statuses) that the
 - **Submodule safety:** When modifying a submodule (ghostty, vendor/bonsplit, etc.), always push the submodule commit to its remote `main` branch BEFORE committing the updated pointer in the parent repo. Never commit on a detached HEAD or temporary branch — the commit will be orphaned and lost. Verify with: `cd <submodule> && git merge-base --is-ancestor HEAD origin/main`.
 - **All user-facing strings must be localized.** Use `String(localized: "key.name", defaultValue: "English text")` for every string shown in the UI (labels, buttons, menus, dialogs, tooltips, error messages). Keys go in `Resources/Localizable.xcstrings`; English is currently the only supported language. Never use bare string literals in SwiftUI `Text()`, `Button()`, alert titles, etc.
 - **Localization audit is required for every user-facing change.** Before finishing a task that changes UI, Settings rows, menus, shortcut metadata, schema/config text, docs, command/help text, alerts, or tooltips, enumerate the changed user-facing surfaces and verify each one has English entries in the appropriate catalog or message file. `defaultValue`, English fallback text, schema descriptions, or copied English strings do not count as localization. For Swift/AppKit strings, update `Resources/Localizable.xcstrings`; for web/docs content, update the English message catalog (currently `web/messages/en.json`) and any data structures that carry user-facing text. Parse touched localization files, verify changed message keys exist in the English catalog, and use `rg` over changed Swift/TS/TSX/docs files for newly introduced bare English. The final handoff must state what localization audit was performed or explicitly say what could not be verified.
-- **Shortcut policy:** Every new mosaic-owned keyboard shortcut must be added to `KeyboardShortcutSettings`, visible/editable in Settings, supported in `~/.config/mosaic/mosaic.json`, and documented in the keyboard shortcut and configuration docs.
-- **Snapshot boundary for list subtrees.** In any SwiftUI panel whose `body` contains a `LazyVStack` / `LazyHStack` / `List` / `ForEach` of rows, no view below that boundary may hold a reference to an `ObservableObject` / `@Observable` store (no `@ObservedObject`, `@EnvironmentObject`, `@StateObject`, `@Bindable`, or even a plain `let store: SomeStore` property). Rows and drop-gaps receive immutable value snapshots plus closure action bundles only. Violating this reintroduces the "orthogonal @Published change invalidates every row and thrashes `LazyLayoutViewCache`" class of 100% CPU spin loop that hit the Sessions panel and the workspace sidebar (https://github.com/emergent-inc/mosaic/issues/2586). Reference pattern: `IndexSectionActions` / `SectionGapActions` / `SessionSearchFn` in `Sources/SessionIndexView.swift`.
+- **Shortcut policy:** Every new coterm-owned keyboard shortcut must be added to `KeyboardShortcutSettings`, visible/editable in Settings, supported in `~/.config/coterm/coterm.json`, and documented in the keyboard shortcut and configuration docs.
+- **Snapshot boundary for list subtrees.** In any SwiftUI panel whose `body` contains a `LazyVStack` / `LazyHStack` / `List` / `ForEach` of rows, no view below that boundary may hold a reference to an `ObservableObject` / `@Observable` store (no `@ObservedObject`, `@EnvironmentObject`, `@StateObject`, `@Bindable`, or even a plain `let store: SomeStore` property). Rows and drop-gaps receive immutable value snapshots plus closure action bundles only. Violating this reintroduces the "orthogonal @Published change invalidates every row and thrashes `LazyLayoutViewCache`" class of 100% CPU spin loop that hit the Sessions panel and the workspace sidebar (https://github.com/emergent-inc/coterm/issues/2586). Reference pattern: `IndexSectionActions` / `SectionGapActions` / `SessionSearchFn` in `Sources/SessionIndexView.swift`.
 - **No state mutation inside view-body computations.** A function called from `body` (directly or through a helper) must not write `@Published` state, schedule a `Task { @MainActor in store.x = … }`, or `DispatchQueue.main.async` a store write. That creates a re-render feedback loop and pegs the main thread (same root-cause family as the snapshot-boundary rule). State-changing work triggered by "new data appeared" belongs in a `reload()` completion, a `didSet`, or a property-observer — never in the projection that feeds `ForEach`.
-- **Foundation, SwiftUI, AttributeGraph, and WebKit semantics change silently between macOS major versions.** A function that "obviously" returns the same value on every macOS is not a reliable assumption. Concrete case from https://github.com/emergent-inc/mosaic/issues/4529: `URL(fileURLWithPath: "/").deletingLastPathComponent().path` returns `"/.."` on macOS 14 and 15 but `"/"` on macOS 26 — Apple silently fixed the underlying CFURL normalization. The repo's `macos-26` CI and every maintainer's dev machine were on the fixed-behavior side; every reporter on the issue was on the broken side. Always test on the reporter's macOS before declaring a user-reported repro disproven. AWS M4 Pro builders (`mosaic-aws-mac`, `mosaic-aws-m4pro`, `aws-m4pro-1..6`) are pre-provisioned on macOS 15.7.4 and the preferred empirical-repro path; see the `regression-hunt` skill in the mosaicterm-hq sibling repo for the full playbook.
-- **Test files in `mosaicTests/` must be wired into `mosaic.xcodeproj/project.pbxproj`.** A `.swift` file added to the worktree without a matching `PBXFileReference` + `PBXSourcesBuildPhase` entry is silently ignored by Xcode and never compiles or runs on CI. Both `xcodebuild test -only-testing:mosaicTests/<TestClass>` and bot reviews pass with "Executed 0 tests" — so the missing wiring is indistinguishable from a clean two-commit red/green regression test until a real user hits the bug. The `workflow-guard-tests` job runs `./scripts/lint-pbxproj-test-wiring.sh` to catch this at PR time; surfaced during the https://github.com/emergent-inc/mosaic/issues/4529 investigation against https://github.com/emergent-inc/mosaic/pull/4536. Add via Xcode (drag the file into the mosaicTests target) or hand-edit the four pbxproj entries; reference any wired sibling like `TabManagerUnitTests.swift` as a template.
-- **SPM packages live in group folders, and the root workspace mirrors that folder shape exactly.** Every Swift package lives physically under exactly one group directory — `Packages/Shared/<pkg>` (used by both apps), `Packages/iOS/<pkg>` (iOS app only), or `Packages/macOS/<pkg>` (macOS app only) — and `mosaic.xcworkspace/contents.xcworkspacedata` has three groups whose container locations are those folders, with every package directory appearing as a FileRef under its folder's group. So opening the workspace shows all packages grouped exactly like the directory tree. The folder is the source of truth: to move a package between groups, `git mv` its directory, then run `python3 scripts/check-workspace-package-groups.py --write` to regenerate the workspace. A new package goes in the group folder matching its consumers (both apps → Shared, iOS only → iOS, macOS only → macOS). Cross-group `.package(path:)` deps use `../../<Group>/<Name>`; never hand-edit the workspace group membership. CI's `python3 scripts/check-workspace-package-groups.py --check` fails on drift.
-- **Do not ignore mosaic-owned `Package.resolved` files.** SwiftPM resolution changes must be visible in PR diffs. Track the root Xcode lockfile and every mosaic-owned package-local `Package.resolved` generated by standalone `swift package resolve`, `swift build`, or `swift test`; a package-local lockfile is the source of truth for that package's standalone resolution and is not replaced by `mosaic.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`. Vendored third-party directories may preserve their upstream ignore policy, but mosaic-owned package `.gitignore` files must not ignore `Package.resolved`. CI's `python3 scripts/check-package-resolved-policy.py` fails if this drifts.
+- **Foundation, SwiftUI, AttributeGraph, and WebKit semantics change silently between macOS major versions.** A function that "obviously" returns the same value on every macOS is not a reliable assumption. Concrete case from https://github.com/emergent-inc/coterm/issues/4529: `URL(fileURLWithPath: "/").deletingLastPathComponent().path` returns `"/.."` on macOS 14 and 15 but `"/"` on macOS 26 — Apple silently fixed the underlying CFURL normalization. The repo's `macos-26` CI and every maintainer's dev machine were on the fixed-behavior side; every reporter on the issue was on the broken side. Always test on the reporter's macOS before declaring a user-reported repro disproven. AWS M4 Pro builders (`coterm-aws-mac`, `coterm-aws-m4pro`, `aws-m4pro-1..6`) are pre-provisioned on macOS 15.7.4 and the preferred empirical-repro path; see the `regression-hunt` skill in the coterm-hq sibling repo for the full playbook.
+- **Test files in `cotermTests/` must be wired into `coterm.xcodeproj/project.pbxproj`.** A `.swift` file added to the worktree without a matching `PBXFileReference` + `PBXSourcesBuildPhase` entry is silently ignored by Xcode and never compiles or runs on CI. Both `xcodebuild test -only-testing:cotermTests/<TestClass>` and bot reviews pass with "Executed 0 tests" — so the missing wiring is indistinguishable from a clean two-commit red/green regression test until a real user hits the bug. The `workflow-guard-tests` job runs `./scripts/lint-pbxproj-test-wiring.sh` to catch this at PR time; surfaced during the https://github.com/emergent-inc/coterm/issues/4529 investigation against https://github.com/emergent-inc/coterm/pull/4536. Add via Xcode (drag the file into the cotermTests target) or hand-edit the four pbxproj entries; reference any wired sibling like `TabManagerUnitTests.swift` as a template.
+- **SPM packages live in group folders, and the root workspace mirrors that folder shape exactly.** Every Swift package lives physically under exactly one group directory — `Packages/Shared/<pkg>` (used by both apps), `Packages/iOS/<pkg>` (iOS app only), or `Packages/macOS/<pkg>` (macOS app only) — and `coterm.xcworkspace/contents.xcworkspacedata` has three groups whose container locations are those folders, with every package directory appearing as a FileRef under its folder's group. So opening the workspace shows all packages grouped exactly like the directory tree. The folder is the source of truth: to move a package between groups, `git mv` its directory, then run `python3 scripts/check-workspace-package-groups.py --write` to regenerate the workspace. A new package goes in the group folder matching its consumers (both apps → Shared, iOS only → iOS, macOS only → macOS). Cross-group `.package(path:)` deps use `../../<Group>/<Name>`; never hand-edit the workspace group membership. CI's `python3 scripts/check-workspace-package-groups.py --check` fails on drift.
+- **Do not ignore coterm-owned `Package.resolved` files.** SwiftPM resolution changes must be visible in PR diffs. Track the root Xcode lockfile and every coterm-owned package-local `Package.resolved` generated by standalone `swift package resolve`, `swift build`, or `swift test`; a package-local lockfile is the source of truth for that package's standalone resolution and is not replaced by `coterm.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`. Vendored third-party directories may preserve their upstream ignore policy, but coterm-owned package `.gitignore` files must not ignore `Package.resolved`. CI's `python3 scripts/check-package-resolved-policy.py` fails if this drifts.
 
 ## Ghostty submodule workflow
 
@@ -231,30 +231,30 @@ Manual release steps (if not using the command):
 ./scripts/release-pretag-guard.sh
 git tag vX.Y.Z
 git push origin vX.Y.Z
-gh run watch --repo emergent-inc/mosaic
+gh run watch --repo emergent-inc/coterm
 ```
 
 Notes:
 - Requires GitHub secrets: `APPLE_CERTIFICATE_BASE64`, `APPLE_CERTIFICATE_PASSWORD`,
   `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`.
-- The release asset is `mosaic-macos.dmg` attached to the tag.
-- README download button points to `https://download.mosaic.inc/mosaic-macos.dmg`.
+- The release asset is `coterm-macos.dmg` attached to the tag.
+- README download button points to `https://download.coterm.cc/coterm-macos.dmg`.
 - Versioning: bump the minor version for updates unless explicitly asked otherwise.
 - Changelog: update `CHANGELOG.md`; docs changelog is rendered from it.
 
 ## Skills
 
-Detailed mosaic contributor rules live in repo skills under `skills/`; use the task-specific skill before changing that area.
+Detailed coterm contributor rules live in repo skills under `skills/`; use the task-specific skill before changing that area.
 
 Core skill map:
 
-- `mosaic-dev-workflow`: setup, tagged reloads, Xcode project normalization, sidebar extension tagging, local dev build isolation.
-- `mosaic-architecture`: package boundaries, refactor architecture, file/API discipline, testability, Swift concurrency rules.
-- `mosaic-backend`: backend TypeScript, Effect, Cloud VM control plane, provider secrets, Postgres and migrations.
-- `mosaic-debugging`: debug event log, Debug menu, runtime pitfalls, typing-sensitive paths, SwiftUI list boundaries.
-- `mosaic-localization`: user-facing strings, localization files, shortcut text, and localization audit.
-- `mosaic-testing`: regression policy, Swift Testing, test quality, test wiring, local vs CI validation.
-- `mosaic-socket-policy`: socket command threading and focus preservation.
-- `mosaic-shared-behavior`: shared action paths for multi-entrypoint behavior and optimistic updates.
-- `mosaic-ghostty`: Ghostty submodule and GhosttyKit workflow.
-- `mosaic-release`: release, version bump, changelog, pretag guard, and release asset workflow.
+- `coterm-dev-workflow`: setup, tagged reloads, Xcode project normalization, sidebar extension tagging, local dev build isolation.
+- `coterm-architecture`: package boundaries, refactor architecture, file/API discipline, testability, Swift concurrency rules.
+- `coterm-backend`: backend TypeScript, Effect, Cloud VM control plane, provider secrets, Postgres and migrations.
+- `coterm-debugging`: debug event log, Debug menu, runtime pitfalls, typing-sensitive paths, SwiftUI list boundaries.
+- `coterm-localization`: user-facing strings, localization files, shortcut text, and localization audit.
+- `coterm-testing`: regression policy, Swift Testing, test quality, test wiring, local vs CI validation.
+- `coterm-socket-policy`: socket command threading and focus preservation.
+- `coterm-shared-behavior`: shared action paths for multi-entrypoint behavior and optimistic updates.
+- `coterm-ghostty`: Ghostty submodule and GhosttyKit workflow.
+- `coterm-release`: release, version bump, changelog, pretag guard, and release asset workflow.

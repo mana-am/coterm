@@ -1,6 +1,6 @@
-import MosaicFoundation
+import CotermFoundation
 import AppKit
-import MosaicMobileCore
+import CotermMobileCore
 import SwiftUI
 
 /// Renders a payload string as a crisp, square QR code for the iOS pairing
@@ -14,7 +14,7 @@ import SwiftUI
 /// SwiftUI upscales it with interpolation disabled, so every module stays a
 /// sharp nearest-neighbor square at any display size and backing scale.
 struct MobilePairingQRImageView: View {
-    /// The string encoded into the QR (the `mosaic-ios://attach?...` URL).
+    /// The string encoded into the QR (the `coterm-ios://attach?...` URL).
     let payload: String
 
     var body: some View {
@@ -36,7 +36,7 @@ struct MobilePairingQRImageView: View {
                     .aspectRatio(1, contentMode: .fit)
                     .overlay(
                         Image(systemName: "qrcode")
-                            .mosaicFont(size: 48)
+                            .cotermFont(size: 48)
                             .foregroundStyle(.secondary)
                     )
                     .accessibilityLabel(

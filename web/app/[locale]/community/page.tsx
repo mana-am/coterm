@@ -4,11 +4,11 @@ import { buildAlternates } from "../../../i18n/seo";
 import { SiteHeader } from "../components/site-header";
 import { OfficialLinks } from "../components/official-links";
 import {
-  awesomeMosaicCategoryOrder,
-  awesomeMosaicCuratedProjectRows,
-  awesomeMosaicProjects,
-  awesomeMosaicSourceUrl,
-} from "./awesome-mosaic-projects";
+  awesomeCotermCategoryOrder,
+  awesomeCotermCuratedProjectRows,
+  awesomeCotermProjects,
+  awesomeCotermSourceUrl,
+} from "./awesome-coterm-projects";
 import { CommunityProjectBrowser } from "./project-browser";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -21,16 +21,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-const categorySummaries = awesomeMosaicCategoryOrder
+const categorySummaries = awesomeCotermCategoryOrder
   .map((category) => ({
     category,
-    count: awesomeMosaicProjects.filter((project) =>
+    count: awesomeCotermProjects.filter((project) =>
       (project.categories as readonly string[]).includes(category),
     ).length,
   }))
   .filter(({ count }) => count > 0);
 
-const categoryPlacementCount = awesomeMosaicProjects.reduce(
+const categoryPlacementCount = awesomeCotermProjects.reduce(
   (total, project) => total + project.categories.length,
   0,
 );
@@ -41,7 +41,7 @@ export default function CommunityPage() {
   const numberFormatter = new Intl.NumberFormat(locale);
   const stats = [
     {
-      value: awesomeMosaicProjects.length,
+      value: awesomeCotermProjects.length,
       label: t("projectsLabel"),
     },
     {
@@ -69,7 +69,7 @@ export default function CommunityPage() {
 
         <div className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           <a
-            href={awesomeMosaicSourceUrl}
+            href={awesomeCotermSourceUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-2 decoration-border transition-colors hover:decoration-foreground"
@@ -77,7 +77,7 @@ export default function CommunityPage() {
             {t("sourceAction")}
           </a>
           <span className="text-muted">
-            {numberFormatter.format(awesomeMosaicCuratedProjectRows)}{" "}
+            {numberFormatter.format(awesomeCotermCuratedProjectRows)}{" "}
             {t("sourceRowsLabel")}
           </span>
         </div>
@@ -97,7 +97,7 @@ export default function CommunityPage() {
         </div>
 
         <CommunityProjectBrowser
-          projects={awesomeMosaicProjects}
+          projects={awesomeCotermProjects}
           categorySummaries={categorySummaries}
         />
       </main>

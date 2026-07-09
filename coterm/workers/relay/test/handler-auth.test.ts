@@ -11,7 +11,7 @@ class FakeSessionStub {
   constructor(code: string) {
     this.createdSessionCode = code;
   }
-  async create(sessionCode: string) {
+  async create(sessionCode: string, _shareSecret: string) {
     return { metadata: { sessionID: sessionCode, sessionCode }, created: true };
   }
   async fetch(request: Request) {
@@ -45,11 +45,11 @@ function connect(code: string, grant?: string): Request {
   return new Request(url, { method: "GET" });
 }
 
-test("noauth provider lets a code-only connect through (session code is the gate)", async () => {
+test("noauth provider rejects code-only connect without a grant", async () => {
   const namespace = new FakeSessionNamespace();
   namespace.get("ABCD1234");
   const response = await collaborationFetch(connect("ABCD1234"), envWith(namespace), new NoAuthProvider());
-  expect(response.status).toBe(299);
+  expect(response.status).toBe(403);
 });
 
 test("hmac provider rejects a connect without a grant", async () => {

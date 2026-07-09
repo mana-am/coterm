@@ -1,13 +1,13 @@
 import AppKit
-import MosaicMobileCore
-import MosaicWorkspaces
-import MosaicSettingsUI
-import MosaicFoundation
+import CotermMobileCore
+import CotermWorkspaces
+import CotermSettingsUI
+import CotermFoundation
 import Foundation
 import OSLog
 import SwiftUI
 
-private let hostSettingsLogger = Logger(subsystem: "mosaic.com.emergent.app", category: "Settings")
+private let hostSettingsLogger = Logger(subsystem: "coterm.com.emergent.app", category: "Settings")
 
 /// App-side implementation of the package's `SettingsHostActions`
 /// protocol. Routes UI-triggered actions to the existing host
@@ -25,7 +25,7 @@ final class HostSettingsActions: SettingsHostActions {
     /// Matches the value `ConfigSettingsView.configureWindow` assigns so the
     /// host reuses a config window opened from any entrypoint (the legacy
     /// in-app button's SwiftUI scene or this host-presented window).
-    private let configWindowIdentifier = "mosaic.configEditor"
+    private let configWindowIdentifier = "coterm.configEditor"
 
     /// Observes the `appIconMode` defaults key the settings package writes
     /// so the host can re-apply the dock/app-switcher icon when the user
@@ -114,13 +114,13 @@ final class HostSettingsActions: SettingsHostActions {
         // Honor the user's configured editor (`preferredEditorCommand`),
         // falling back to the OS default. Opening the config file directly
         // through `NSWorkspace.shared.open` would route to the default
-        // `.json` handler and ignore the mosaic setting.
+        // `.json` handler and ignore the coterm setting.
         PreferredEditorService(defaults: .standard).open(configFileURL)
     }
 
     func sendFeedback() {
         trackSettingsAction("settings.send_feedback")
-        guard let url = URL(string: "https://github.com/emergent-inc/mosaic/issues/new") else { return }
+        guard let url = URL(string: "https://github.com/emergent-inc/coterm/issues/new") else { return }
         NSWorkspace.shared.open(url)
     }
 
@@ -172,7 +172,7 @@ final class HostSettingsActions: SettingsHostActions {
         }
 
         let root = ConfigSettingsView()
-            .mosaicFixedColorScheme()
+            .cotermFixedColorScheme()
         let hostingController = NSHostingController(rootView: root)
 
         let window = NSWindow(contentViewController: hostingController)
@@ -232,16 +232,16 @@ final class HostSettingsActions: SettingsHostActions {
         // forcing a synchronous disk read on the main actor when Settings opens.
         SettingsFontSize(
             points: Double(GhosttyConfig.load().sidebarFontSize),
-            minimum: MosaicGhosttyConfigSettingEditor.minSidebarFontSize,
-            maximum: MosaicGhosttyConfigSettingEditor.maxSidebarFontSize,
-            defaultValue: MosaicGhosttyConfigSettingEditor.defaultSidebarFontSize
+            minimum: CotermGhosttyConfigSettingEditor.minSidebarFontSize,
+            maximum: CotermGhosttyConfigSettingEditor.maxSidebarFontSize,
+            defaultValue: CotermGhosttyConfigSettingEditor.defaultSidebarFontSize
         )
     }
 
     func setSidebarFontSize(_ points: Double) async -> Bool {
         let didPersist = await persistFontSize(
-            key: MosaicGhosttyConfigSettingEditor.sidebarFontSizeKey,
-            points: MosaicGhosttyConfigSettingEditor().clampedSidebarFontSize(points),
+            key: CotermGhosttyConfigSettingEditor.sidebarFontSizeKey,
+            points: CotermGhosttyConfigSettingEditor().clampedSidebarFontSize(points),
             reloadSource: "settings.sidebar.fontSize"
         )
         if didPersist {
@@ -254,16 +254,16 @@ final class HostSettingsActions: SettingsHostActions {
         // See ``sidebarFontSize()`` — uses the cached config to avoid main-actor disk I/O.
         SettingsFontSize(
             points: Double(GhosttyConfig.load().surfaceTabBarFontSize),
-            minimum: MosaicGhosttyConfigSettingEditor.minSurfaceTabBarFontSize,
-            maximum: MosaicGhosttyConfigSettingEditor.maxSurfaceTabBarFontSize,
-            defaultValue: MosaicGhosttyConfigSettingEditor.defaultSurfaceTabBarFontSize
+            minimum: CotermGhosttyConfigSettingEditor.minSurfaceTabBarFontSize,
+            maximum: CotermGhosttyConfigSettingEditor.maxSurfaceTabBarFontSize,
+            defaultValue: CotermGhosttyConfigSettingEditor.defaultSurfaceTabBarFontSize
         )
     }
 
     func setSurfaceTabBarFontSize(_ points: Double) async -> Bool {
         let didPersist = await persistFontSize(
-            key: MosaicGhosttyConfigSettingEditor.surfaceTabBarFontSizeKey,
-            points: MosaicGhosttyConfigSettingEditor().clampedSurfaceTabBarFontSize(points),
+            key: CotermGhosttyConfigSettingEditor.surfaceTabBarFontSizeKey,
+            points: CotermGhosttyConfigSettingEditor().clampedSurfaceTabBarFontSize(points),
             reloadSource: "settings.terminal.tabBarFontSize"
         )
         if didPersist {
@@ -273,7 +273,7 @@ final class HostSettingsActions: SettingsHostActions {
     }
 
     func formattedFontSize(_ points: Double) -> String {
-        MosaicGhosttyConfigSettingEditor().formattedFontSize(points)
+        CotermGhosttyConfigSettingEditor().formattedFontSize(points)
     }
 
     func mobilePairingStatus() -> MobilePairingStatusSnapshot? {
@@ -374,7 +374,7 @@ final class HostSettingsActions: SettingsHostActions {
         }
     }
 
-    /// Writes a clamped font-size value to mosaic's editable Ghostty config and
+    /// Writes a clamped font-size value to coterm's editable Ghostty config and
     /// triggers a live reload so open windows re-render at the new size.
     ///
     /// The disk write runs on the serial ``fontConfigWriter`` actor so the main
@@ -385,7 +385,7 @@ final class HostSettingsActions: SettingsHostActions {
     /// - Returns: `true` on success, `false` if the write failed (a generic
     ///   warning is logged here; the Settings UI surfaces a save-failed message).
     private func persistFontSize(key: String, points: Double, reloadSource: String) async -> Bool {
-        let formatted = MosaicGhosttyConfigSettingEditor().formattedFontSize(points)
+        let formatted = CotermGhosttyConfigSettingEditor().formattedFontSize(points)
         guard await fontConfigWriter.write(key: key, value: formatted) else {
             hostSettingsLogger.warning("failed to persist \(key, privacy: .public)")
             return false
@@ -399,7 +399,7 @@ final class HostSettingsActions: SettingsHostActions {
 /// Wraps the opaque observer returned by `NotificationCenter.addObserver` so the
 /// `@Sendable` stream-termination closure can hold it for removal. Objective-C
 /// doesn't model `Sendable`; the token is immutable and only hands the opaque
-/// observer back to NotificationCenter's thread-safe removal API. MosaicSettings
+/// observer back to NotificationCenter's thread-safe removal API. CotermSettings
 /// has an identical internal token, which isn't `public`, so it's duplicated.
 final class MobileHostStatusObserverToken: @unchecked Sendable {
     private let token: NSObjectProtocol
@@ -413,7 +413,7 @@ final class MobileHostStatusObserverToken: @unchecked Sendable {
     }
 }
 
-/// Serializes mosaic Ghostty config writes for the font-size settings so rapid
+/// Serializes coterm Ghostty config writes for the font-size settings so rapid
 /// successive saves apply in submission order instead of racing.
 ///
 /// The Settings sliders fire a save on every release and Reset tap. Routed
@@ -421,7 +421,7 @@ final class MobileHostStatusObserverToken: @unchecked Sendable {
 /// each write is a full overwrite of the key, so the most recently submitted
 /// value is always the one left on disk. The work runs off the main actor.
 private actor FontConfigWriter {
-    /// Writes a single mosaic-editable Ghostty config setting to disk.
+    /// Writes a single coterm-editable Ghostty config setting to disk.
     ///
     /// - Parameters:
     ///   - key: The Ghostty config key to write (e.g. `sidebar-font-size`).
@@ -429,7 +429,7 @@ private actor FontConfigWriter {
     /// - Returns: `true` if the write succeeded, `false` otherwise.
     func write(key: String, value: String) -> Bool {
         do {
-            try ConfigSourceEnvironment.live().writeMosaicConfigSetting(key: key, value: value)
+            try ConfigSourceEnvironment.live().writeCotermConfigSetting(key: key, value: value)
             return true
         } catch {
             return false

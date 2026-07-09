@@ -2,12 +2,12 @@
 """
 Tests for socket access control (process ancestry check).
 
-In mosaicOnly mode (default), only processes descended from the mosaic
+In cotermOnly mode (default), only processes descended from the coterm
 app process can connect. External processes (e.g., SSH) are rejected.
 
 Test strategy:
-  Phase 1: mosaicOnly — external processes get rejected
-  Phase 2: mosaicOnly — internal process CAN connect (inject via shell rc)
+  Phase 1: cotermOnly — external processes get rejected
+  Phase 2: cotermOnly — internal process CAN connect (inject via shell rc)
   Phase 3: allowAll env override — existing test commands still work
 
 Usage:
@@ -25,7 +25,7 @@ import glob
 import plistlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
 class TestResult:
@@ -44,7 +44,7 @@ class TestResult:
 
 
 def _find_socket_path():
-    return mosaic().socket_path
+    return coterm().socket_path
 
 
 def _raw_connect(socket_path: str, timeout: float = 3.0):
@@ -72,7 +72,7 @@ def _raw_send(sock, command: str, timeout: float = 3.0) -> str:
 
 
 def _preferred_worktree_slug():
-    env_slug = os.environ.get("MOSAIC_TAG") or os.environ.get("MOSAIC_BRANCH_SLUG")
+    env_slug = os.environ.get("COTERM_TAG") or os.environ.get("COTERM_BRANCH_SLUG")
     if env_slug:
         return env_slug.strip().lower()
 
@@ -87,9 +87,9 @@ def _preferred_worktree_slug():
 
 
 def _derived_app_candidates_for_current_worktree():
-    project_path = os.path.realpath(os.path.join(os.getcwd(), "mosaic.xcodeproj"))
+    project_path = os.path.realpath(os.path.join(os.getcwd(), "coterm.xcodeproj"))
     info_paths = glob.glob(os.path.expanduser(
-        "~/Library/Developer/Xcode/DerivedData/mosaic-*/info.plist"
+        "~/Library/Developer/Xcode/DerivedData/coterm-*/info.plist"
     ))
     matches = []
     for info_path in info_paths:
@@ -104,22 +104,22 @@ def _derived_app_candidates_for_current_worktree():
         if os.path.realpath(workspace_path) != project_path:
             continue
         derived_root = os.path.dirname(info_path)
-        app_path = os.path.join(derived_root, "Build/Products/Debug/Mosaic DEV.app")
+        app_path = os.path.join(derived_root, "Build/Products/Debug/Coterm DEV.app")
         if os.path.exists(app_path):
             matches.append(app_path)
     return matches
 
 
 def _find_app():
-    explicit = os.environ.get("MOSAIC_APP_PATH")
+    explicit = os.environ.get("COTERM_APP_PATH")
     if explicit and os.path.exists(explicit):
         return explicit
 
     preferred_slug = _preferred_worktree_slug()
     if preferred_slug:
         preferred_tmp = []
-        preferred_tmp.extend(glob.glob(f"/tmp/mosaic-{preferred_slug}/Build/Products/Debug/Mosaic DEV*.app"))
-        preferred_tmp.extend(glob.glob(f"/private/tmp/mosaic-{preferred_slug}/Build/Products/Debug/Mosaic DEV*.app"))
+        preferred_tmp.extend(glob.glob(f"/tmp/coterm-{preferred_slug}/Build/Products/Debug/Coterm DEV*.app"))
+        preferred_tmp.extend(glob.glob(f"/private/tmp/coterm-{preferred_slug}/Build/Products/Debug/Coterm DEV*.app"))
         preferred_tmp = [p for p in preferred_tmp if os.path.exists(p)]
         if preferred_tmp:
             preferred_tmp.sort(key=os.path.getmtime, reverse=True)
@@ -132,11 +132,11 @@ def _find_app():
 
     home = os.path.expanduser("~")
     derived_candidates = glob.glob(os.path.join(
-        home, "Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/Mosaic DEV.app"
+        home, "Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/Coterm DEV.app"
     ))
     tmp_candidates = []
-    tmp_candidates.extend(glob.glob("/tmp/mosaic-*/Build/Products/Debug/Mosaic DEV*.app"))
-    tmp_candidates.extend(glob.glob("/private/tmp/mosaic-*/Build/Products/Debug/Mosaic DEV*.app"))
+    tmp_candidates.extend(glob.glob("/tmp/coterm-*/Build/Products/Debug/Coterm DEV*.app"))
+    tmp_candidates.extend(glob.glob("/private/tmp/coterm-*/Build/Products/Debug/Coterm DEV*.app"))
 
     derived_candidates = [p for p in derived_candidates if os.path.exists(p)]
     tmp_candidates = [p for p in tmp_candidates if os.path.exists(p)]
@@ -161,23 +161,23 @@ def _find_app():
 
 
 def _find_cli(preferred_app_path: str = ""):
-    explicit = os.environ.get("MOSAIC_CLI_BIN") or os.environ.get("MOSAIC_CLI")
+    explicit = os.environ.get("COTERM_CLI_BIN") or os.environ.get("COTERM_CLI")
     if explicit and os.path.exists(explicit) and os.access(explicit, os.X_OK):
         return explicit
 
     if preferred_app_path:
         debug_dir = os.path.dirname(preferred_app_path)
-        sibling = os.path.join(debug_dir, "mosaic")
+        sibling = os.path.join(debug_dir, "coterm")
         if os.path.exists(sibling) and os.access(sibling, os.X_OK):
             return sibling
 
     candidates = []
     home = os.path.expanduser("~")
     candidates.extend(glob.glob(os.path.join(
-        home, "Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/mosaic"
+        home, "Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/coterm"
     )))
-    candidates.extend(glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic"))
-    candidates.extend(glob.glob("/private/tmp/mosaic-*/Build/Products/Debug/mosaic"))
+    candidates.extend(glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm"))
+    candidates.extend(glob.glob("/private/tmp/coterm-*/Build/Products/Debug/coterm"))
     candidates = [p for p in candidates if os.path.exists(p) and os.access(p, os.X_OK)]
     if not candidates:
         return ""
@@ -206,16 +206,16 @@ def _wait_for_socket(socket_path: str, timeout: float = 10.0) -> bool:
     return False
 
 
-def _kill_mosaic(app_path: str = None):
+def _kill_coterm(app_path: str = None):
     if app_path:
-        exe = os.path.join(app_path, "Contents/MacOS/Mosaic DEV")
+        exe = os.path.join(app_path, "Contents/MacOS/Coterm DEV")
         subprocess.run(["pkill", "-f", exe], capture_output=True)
     else:
-        subprocess.run(["pkill", "-x", "Mosaic DEV"], capture_output=True)
+        subprocess.run(["pkill", "-x", "Coterm DEV"], capture_output=True)
     time.sleep(1.5)
 
 
-def _launch_mosaic(app_path: str, socket_path: str, mode: str = None, extra_env: dict = None):
+def _launch_coterm(app_path: str, socket_path: str, mode: str = None, extra_env: dict = None):
     if os.path.exists(socket_path):
         try:
             os.unlink(socket_path)
@@ -224,10 +224,10 @@ def _launch_mosaic(app_path: str, socket_path: str, mode: str = None, extra_env:
 
     env_args = []
     if mode:
-        env_args = ["--env", f"MOSAIC_SOCKET_MODE={mode}"]
+        env_args = ["--env", f"COTERM_SOCKET_MODE={mode}"]
     launch_env = {
-        "MOSAIC_SOCKET_PATH": socket_path,
-        "MOSAIC_ALLOW_SOCKET_OVERRIDE": "1",
+        "COTERM_SOCKET_PATH": socket_path,
+        "COTERM_ALLOW_SOCKET_OVERRIDE": "1",
     }
     if extra_env:
         launch_env.update(extra_env)
@@ -349,13 +349,13 @@ else:
 
 def test_internal_process_allowed(socket_path: str, app_path: str) -> TestResult:
     """
-    Verify a mosaic-spawned terminal process CAN connect in mosaicOnly mode.
-    Inject a test via the shell rc file, then launch mosaic in mosaicOnly mode.
-    The shell (a descendant of mosaic) runs the test on startup.
+    Verify a coterm-spawned terminal process CAN connect in cotermOnly mode.
+    Inject a test via the shell rc file, then launch coterm in cotermOnly mode.
+    The shell (a descendant of coterm) runs the test on startup.
     """
-    result = TestResult("Internal process can connect (mosaicOnly)")
-    marker = os.path.join(tempfile.gettempdir(), f"mosaic_internal_{os.getpid()}")
-    hook_file = os.path.join(tempfile.gettempdir(), f"mosaic_rc_hook_{os.getpid()}.sh")
+    result = TestResult("Internal process can connect (cotermOnly)")
+    marker = os.path.join(tempfile.gettempdir(), f"coterm_internal_{os.getpid()}")
+    hook_file = os.path.join(tempfile.gettempdir(), f"coterm_rc_hook_{os.getpid()}.sh")
     zprofile_path = os.path.expanduser("~/.zprofile")
 
     try:
@@ -386,9 +386,9 @@ fi
         with open(zprofile_path, "a") as f:
             f.write(hook_line)
 
-        # Kill existing mosaic, launch in mosaicOnly mode (default)
-        _kill_mosaic(app_path)
-        _launch_mosaic(app_path, socket_path, mode="mosaicOnly")
+        # Kill existing coterm, launch in cotermOnly mode (default)
+        _kill_coterm(app_path)
+        _launch_coterm(app_path, socket_path, mode="cotermOnly")
 
         # Wait for marker (the shell sources .zprofile on startup)
         for _ in range(40):
@@ -404,7 +404,7 @@ fi
             content = f.read().strip()
 
         if content == "OK":
-            result.success("Internal process pinged socket successfully in mosaicOnly mode")
+            result.success("Internal process pinged socket successfully in cotermOnly mode")
         else:
             result.failure(f"Internal process got: {content!r}")
 
@@ -440,11 +440,11 @@ fi
 # ---------------------------------------------------------------------------
 
 def test_allowall_mode_works(socket_path: str, app_path: str) -> TestResult:
-    """Verify MOSAIC_SOCKET_MODE=allowAll bypasses ancestry check."""
+    """Verify COTERM_SOCKET_MODE=allowAll bypasses ancestry check."""
     result = TestResult("allowAll mode allows external")
     try:
-        _kill_mosaic(app_path)
-        _launch_mosaic(app_path, socket_path, mode="allowAll")
+        _kill_coterm(app_path)
+        _launch_coterm(app_path, socket_path, mode="allowAll")
 
         sock = _raw_connect(socket_path)
         response = _raw_send(sock, "ping")
@@ -462,14 +462,14 @@ def test_allowall_mode_works(socket_path: str, app_path: str) -> TestResult:
 def test_password_mode_requires_auth(socket_path: str, app_path: str) -> TestResult:
     """Verify password mode rejects unauthenticated commands."""
     result = TestResult("Password mode requires auth")
-    password = f"mosaic-pass-{os.getpid()}"
+    password = f"coterm-pass-{os.getpid()}"
     try:
-        _kill_mosaic(app_path)
-        _launch_mosaic(
+        _kill_coterm(app_path)
+        _launch_coterm(
             app_path,
             socket_path,
             mode="password",
-            extra_env={"MOSAIC_SOCKET_PASSWORD": password}
+            extra_env={"COTERM_SOCKET_PASSWORD": password}
         )
 
         sock = _raw_connect(socket_path)
@@ -488,14 +488,14 @@ def test_password_mode_requires_auth(socket_path: str, app_path: str) -> TestRes
 def test_password_mode_v1_auth_flow(socket_path: str, app_path: str) -> TestResult:
     """Verify v1 auth command unlocks the connection only with correct password."""
     result = TestResult("Password mode v1 auth flow")
-    password = f"mosaic-pass-{os.getpid()}"
+    password = f"coterm-pass-{os.getpid()}"
     try:
-        _kill_mosaic(app_path)
-        _launch_mosaic(
+        _kill_coterm(app_path)
+        _launch_coterm(
             app_path,
             socket_path,
             mode="password",
-            extra_env={"MOSAIC_SOCKET_PASSWORD": password}
+            extra_env={"COTERM_SOCKET_PASSWORD": password}
         )
 
         sock = _raw_connect(socket_path)
@@ -526,14 +526,14 @@ def test_password_mode_v1_auth_flow(socket_path: str, app_path: str) -> TestResu
 def test_password_mode_v2_auth_flow(socket_path: str, app_path: str) -> TestResult:
     """Verify v2 auth.login unlocks subsequent v2 requests."""
     result = TestResult("Password mode v2 auth flow")
-    password = f"mosaic-pass-{os.getpid()}"
+    password = f"coterm-pass-{os.getpid()}"
     try:
-        _kill_mosaic(app_path)
-        _launch_mosaic(
+        _kill_coterm(app_path)
+        _launch_coterm(
             app_path,
             socket_path,
             mode="password",
-            extra_env={"MOSAIC_SOCKET_PASSWORD": password}
+            extra_env={"COTERM_SOCKET_PASSWORD": password}
         )
 
         sock = _raw_connect(socket_path)
@@ -580,19 +580,19 @@ def test_password_mode_v2_auth_flow(socket_path: str, app_path: str) -> TestResu
 def test_password_mode_cli_exit_code(socket_path: str, app_path: str) -> TestResult:
     """Verify CLI exits non-zero on auth-required and succeeds with --password."""
     result = TestResult("Password mode CLI exit code")
-    password = f"mosaic-pass-{os.getpid()}"
+    password = f"coterm-pass-{os.getpid()}"
     try:
         cli_path = _find_cli(preferred_app_path=app_path)
         if not cli_path:
-            result.failure("Could not find mosaic CLI binary")
+            result.failure("Could not find coterm CLI binary")
             return result
 
-        _kill_mosaic(app_path)
-        _launch_mosaic(
+        _kill_coterm(app_path)
+        _launch_coterm(
             app_path,
             socket_path,
             mode="password",
-            extra_env={"MOSAIC_SOCKET_PASSWORD": password}
+            extra_env={"COTERM_SOCKET_PASSWORD": password}
         )
 
         no_auth = subprocess.run(
@@ -637,17 +637,17 @@ def test_password_mode_cli_exit_code(socket_path: str, app_path: str) -> TestRes
 
 def run_tests():
     print("=" * 60)
-    print("mosaic Socket Access Control Tests")
+    print("coterm Socket Access Control Tests")
     print("=" * 60)
     print()
 
     app_path = _find_app()
     if not app_path:
-        print("Error: Could not find Mosaic DEV.app in DerivedData")
+        print("Error: Could not find Coterm DEV.app in DerivedData")
         return 1
     print(f"App: {app_path}")
 
-    socket_path = f"/tmp/mosaic-test-socket-access-{os.getpid()}.sock"
+    socket_path = f"/tmp/coterm-test-socket-access-{os.getpid()}.sock"
     try:
         os.unlink(socket_path)
     except OSError:
@@ -665,14 +665,14 @@ def run_tests():
         status = "\u2705" if r.passed else "\u274c"
         print(f"    {status} {r.message}")
 
-    # ── Phase 1: mosaicOnly — external rejection ──
-    print("Phase 1: mosaicOnly mode — external rejection")
+    # ── Phase 1: cotermOnly — external rejection ──
+    print("Phase 1: cotermOnly mode — external rejection")
     print("-" * 50)
 
-    # Ensure mosaic is running in mosaicOnly mode
-    _kill_mosaic(app_path)
-    print("  Launching mosaic in mosaicOnly mode...")
-    _launch_mosaic(app_path, socket_path, mode="mosaicOnly")
+    # Ensure coterm is running in cotermOnly mode
+    _kill_coterm(app_path)
+    print("  Launching coterm in cotermOnly mode...")
+    _launch_coterm(app_path, socket_path, mode="cotermOnly")
 
     run_test(test_external_rejected, socket_path)
     run_test(test_connection_closed_after_reject, socket_path)
@@ -680,8 +680,8 @@ def run_tests():
     run_test(test_subprocess_rejected, socket_path)
     print()
 
-    # ── Phase 2: mosaicOnly — internal process CAN connect ──
-    print("Phase 2: mosaicOnly mode — internal process allowed")
+    # ── Phase 2: cotermOnly — internal process CAN connect ──
+    print("Phase 2: cotermOnly mode — internal process allowed")
     print("-" * 50)
 
     run_test(test_internal_process_allowed, socket_path, app_path)
@@ -704,9 +704,9 @@ def run_tests():
     run_test(test_password_mode_cli_exit_code, socket_path, app_path)
     print()
 
-    # ── Cleanup: leave mosaic in mosaicOnly mode ──
-    _kill_mosaic(app_path)
-    _launch_mosaic(app_path, socket_path, mode="mosaicOnly")
+    # ── Cleanup: leave coterm in cotermOnly mode ──
+    _kill_coterm(app_path)
+    _launch_coterm(app_path, socket_path, mode="cotermOnly")
 
     # ── Summary ──
     print("=" * 60)

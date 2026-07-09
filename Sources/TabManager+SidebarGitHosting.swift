@@ -1,11 +1,11 @@
 import Foundation
-import MosaicGit
-import MosaicSidebarGit
-import MosaicSidebar
+import CotermGit
+import CotermSidebarGit
+import CotermSidebar
 
 // MARK: - SidebarGitHosting conformance
 //
-// TabManager is the window-side host of the extracted MosaicSidebarGit
+// TabManager is the window-side host of the extracted CotermSidebarGit
 // services: snapshot reads of workspace/panel state, synchronous projection
 // writes of branch and PR badge state onto Workspace, and the environment
 // toggles (settings + mobile-host activity) the schedulers honor. Every

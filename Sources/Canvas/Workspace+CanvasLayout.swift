@@ -1,14 +1,14 @@
 import Foundation
 import AppKit
 import Bonsplit
-import MosaicCanvas
-import MosaicCanvasUI
+import CotermCanvas
+import CotermCanvasUI
 
 extension Notification.Name {
     /// Posted (object = the `Workspace`) whenever its `layoutMode` changes,
     /// so window chrome can reflect canvas vs splits without observing the
     /// workspace directly.
-    static let workspaceLayoutModeDidChange = Notification.Name("mosaic.workspaceLayoutModeDidChange")
+    static let workspaceLayoutModeDidChange = Notification.Name("coterm.workspaceLayoutModeDidChange")
 }
 
 /// Canvas-layout behavior for `Workspace`. The workspace stays the owner of

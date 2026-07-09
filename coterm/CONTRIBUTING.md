@@ -20,33 +20,35 @@ bun workers/relay/scripts/smoke-relay.ts     # relay: create → 2 peers → for
 bun scripts/smoke-e2e.ts                      # full chain across all three workers
 bun scripts/demo-two-clients.ts               # two users sharing a terminal + latency
 bun scripts/collab-cli.ts host --name alice   # interactive CLI, id = --name
+bun run context:self-host -- --format markdown
+bun run configure:client -- --guest-id alice
 ```
 
 ## Project layout
 
 ```
-packages/collab-auth   shared pluggable auth (HMAC + no-auth) + mosaicv1 token codec
+packages/collab-auth   shared pluggable auth (HMAC + no-auth) + cotermv1 token codec
 workers/relay          realtime WebSocket relay (session peers, frame fan-out, inbox)
 workers/control-plane  /api/collab/* REST + per-user invite-store Durable Object
 workers/presence       device/cursor presence + sync/v1 substrate
-scripts/               dev-all, smoke-e2e, demo, CLI
+scripts/               deploy, doctor, context, client config, preview, smoke, demo, CLI
 docs/                  self-hosting, client-setup, architecture
 ```
 
 ## The one hard rule: don't break wire compatibility
 
-Coterm is byte-compatible with the mosaic client. **Do not change** any of these
+Coterm is byte-compatible with the coterm client. **Do not change** any of these
 without a matching client change — they are the wire contract, not implementation
 detail:
 
 - HTTP paths: `/v1/collaboration/...`, `/api/collab/...`
 - WebSocket frame `type` strings (`session.joined`, `terminal.output`, …)
-- The `mosaicv1` token format
+- The `cotermv1` token format
 - Query param names on the connect URL (`peerID`, `participantID`, `grant`, …)
 - Durable Object class names + wrangler `[[migrations]]` tags (renaming a DO
   class without a migration destroys its storage)
-- Client-facing env var names the app reads (`MOSAIC_API_BASE_URL`,
-  `MOSAIC_COLLABORATION_RELAY_URL`, `MOSAIC_COLLAB_GUEST_ID`, …)
+- Client-facing env var names the app reads (`COTERM_API_BASE_URL`,
+  `COTERM_COLLABORATION_RELAY_URL`, `COTERM_COLLAB_GUEST_ID`, …)
 
 Everything else (package names, worker names, healthz strings, comments,
 internal helpers) is fair game.

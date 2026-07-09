@@ -36,38 +36,38 @@ setopt prompt_cr prompt_percent prompt_sp prompt_subst
 PROMPT='%F{4}%1~%f %# '
 RPROMPT=''
 
-typeset -gi _mosaic_redraw_done=0
-typeset -g _mosaic_redraw_fd=''
+typeset -gi _coterm_redraw_done=0
+typeset -g _coterm_redraw_fd=''
 
-_mosaic_redraw_precmd() {
-  _mosaic_redraw_done=0
+_coterm_redraw_precmd() {
+  _coterm_redraw_done=0
 }
 
-_mosaic_redraw_ready() {
+_coterm_redraw_ready() {
   emulate -L zsh
-  local fd="${1:-$_mosaic_redraw_fd}"
+  local fd="${1:-$_coterm_redraw_fd}"
   if [[ -n "$fd" ]]; then
     zle -F "$fd"
     exec {fd}<&-
   fi
-  _mosaic_redraw_fd=''
-  (( _mosaic_redraw_done )) && return 0
-  _mosaic_redraw_done=1
+  _coterm_redraw_fd=''
+  (( _coterm_redraw_done )) && return 0
+  _coterm_redraw_done=1
   zle reset-prompt
 }
 
-_mosaic_redraw_line_init() {
-  if (( !_mosaic_redraw_done )) && [[ -z "$_mosaic_redraw_fd" ]]; then
-    exec {_mosaic_redraw_fd}< <(
+_coterm_redraw_line_init() {
+  if (( !_coterm_redraw_done )) && [[ -z "$_coterm_redraw_fd" ]]; then
+    exec {_coterm_redraw_fd}< <(
       sleep 0.05
       printf 'ready\\n'
     )
-    zle -F "$_mosaic_redraw_fd" _mosaic_redraw_ready
+    zle -F "$_coterm_redraw_fd" _coterm_redraw_ready
   fi
 }
 
-add-zsh-hook precmd _mosaic_redraw_precmd
-zle -N zle-line-init _mosaic_redraw_line_init
+add-zsh-hook precmd _coterm_redraw_precmd
+zle -N zle-line-init _coterm_redraw_line_init
 """.lstrip(),
         encoding="utf-8",
     )
@@ -157,7 +157,7 @@ def main() -> int:
         print("SKIP: zsh not installed")
         return 0
 
-    base = Path(tempfile.mkdtemp(prefix="mosaic_ghostty_prompt_redraw_"))
+    base = Path(tempfile.mkdtemp(prefix="coterm_ghostty_prompt_redraw_"))
     try:
         home = base / "home"
         home.mkdir(parents=True, exist_ok=True)

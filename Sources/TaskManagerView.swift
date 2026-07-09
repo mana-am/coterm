@@ -1,9 +1,9 @@
-import MosaicFoundation
+import CotermFoundation
 import Observation
 import SwiftUI
 
-struct MosaicTaskManagerView: View {
-    @Bindable var model: MosaicTaskManagerModel
+struct CotermTaskManagerView: View {
+    @Bindable var model: CotermTaskManagerModel
 
     var body: some View {
         // Outer view observes the model so the toolbar/summary/sort
@@ -20,14 +20,14 @@ struct MosaicTaskManagerView: View {
             Divider()
             tableHeader
             Divider()
-            MosaicTaskManagerListView(
+            CotermTaskManagerListView(
                 errorMessage: model.errorMessage,
                 isInitialLoading: model.isInitialLoading,
                 rows: model.sortedRows,
                 agentRows: model.sortedAgentRows,
                 aggregateRows: model.sortedAggregateRows,
                 childMemoryRows: model.sortedChildMemoryRows,
-                actions: MosaicTaskManagerRowActions.bound(to: model)
+                actions: CotermTaskManagerRowActions.bound(to: model)
             )
         }
         .frame(minWidth: 820, minHeight: 480)
@@ -42,7 +42,7 @@ struct MosaicTaskManagerView: View {
     private var toolbar: some View {
         HStack(spacing: 12) {
             Text(String(localized: "taskManager.title", defaultValue: "Task Manager"))
-                .mosaicFont(.title3, weight: .semibold)
+                .cotermFont(.title3, weight: .semibold)
 
             if model.isRefreshing || model.isInitialLoading {
                 ProgressView()
@@ -72,20 +72,20 @@ struct MosaicTaskManagerView: View {
         HStack(spacing: 24) {
             metric(
                 title: String(localized: "taskManager.summary.cpu", defaultValue: "CPU"),
-                value: MosaicTaskManagerFormat.cpu(model.snapshot.total.cpuPercent)
+                value: CotermTaskManagerFormat.cpu(model.snapshot.total.cpuPercent)
             )
             metric(
                 title: String(localized: "taskManager.summary.memory", defaultValue: "Memory"),
-                value: MosaicTaskManagerFormat.bytes(model.snapshot.total.memoryBytes)
+                value: CotermTaskManagerFormat.bytes(model.snapshot.total.memoryBytes)
             )
             if let memoryDiagnostic = model.snapshot.memoryDiagnostic {
                 metric(
                     title: String(localized: "taskManager.summary.appFootprint", defaultValue: "App Footprint"),
-                    value: MosaicTaskManagerFormat.bytes(memoryDiagnostic.appFootprintBytes)
+                    value: CotermTaskManagerFormat.bytes(memoryDiagnostic.appFootprintBytes)
                 )
                 metric(
                     title: String(localized: "taskManager.summary.childRSS", defaultValue: "Child RSS"),
-                    value: MosaicTaskManagerFormat.bytes(memoryDiagnostic.childRSSBytes)
+                    value: CotermTaskManagerFormat.bytes(memoryDiagnostic.childRSSBytes)
                 )
             }
             metric(
@@ -105,10 +105,10 @@ struct MosaicTaskManagerView: View {
     private func metric(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .mosaicFont(.caption)
+                .cotermFont(.caption)
                 .foregroundStyle(.secondary)
             Text(value)
-                .mosaicFont(.body, weight: .semibold, design: .monospaced)
+                .cotermFont(.body, weight: .semibold, design: .monospaced)
                 .monospacedDigit()
         }
     }
@@ -140,7 +140,7 @@ struct MosaicTaskManagerView: View {
                 alignment: .trailing
             )
         }
-        .mosaicFont(size: 11, weight: .semibold)
+        .cotermFont(size: 11, weight: .semibold)
         .foregroundStyle(.secondary)
         .padding(.horizontal, 16)
         .padding(.vertical, 5)
@@ -148,7 +148,7 @@ struct MosaicTaskManagerView: View {
 
     private func sortHeader(
         title: String,
-        column: MosaicTaskManagerSortOrder.Column,
+        column: CotermTaskManagerSortOrder.Column,
         width: CGFloat? = nil,
         maxWidth: CGFloat? = nil,
         alignment: Alignment
@@ -171,11 +171,11 @@ struct MosaicTaskManagerView: View {
         .accessibilityLabel(title)
     }
 
-    private func sortIndicator(for column: MosaicTaskManagerSortOrder.Column) -> some View {
+    private func sortIndicator(for column: CotermTaskManagerSortOrder.Column) -> some View {
         let isActive = model.sortOrder.column == column
         let imageName = model.sortOrder.direction == .ascending ? "chevron.up" : "chevron.down"
         return Image(systemName: imageName)
-            .mosaicFont(size: 8, weight: .bold)
+            .cotermFont(size: 8, weight: .bold)
             .opacity(isActive ? 1 : 0)
             .frame(width: 8)
             .accessibilityHidden(true)
@@ -183,19 +183,19 @@ struct MosaicTaskManagerView: View {
 }
 
 /// Closure bundle handed down to row views so they never reference the
-/// `@Observable` `MosaicTaskManagerModel`. Matches the
+/// `@Observable` `CotermTaskManagerModel`. Matches the
 /// `IndexSectionActions` / `SectionGapActions` reference pattern in
 /// `Sources/SessionIndexView.swift`. See repo/CLAUDE.md
 /// "Snapshot boundary for list subtrees" rule and issues #2586 / #4529.
-struct MosaicTaskManagerRowActions {
-    let viewWorkspace: @MainActor (MosaicTaskManagerRow) -> Void
-    let viewTerminal: @MainActor (MosaicTaskManagerRow) -> Void
-    let killProcess: @MainActor (MosaicTaskManagerRow) -> Void
-    let activate: @MainActor (MosaicTaskManagerRow) -> Void
+struct CotermTaskManagerRowActions {
+    let viewWorkspace: @MainActor (CotermTaskManagerRow) -> Void
+    let viewTerminal: @MainActor (CotermTaskManagerRow) -> Void
+    let killProcess: @MainActor (CotermTaskManagerRow) -> Void
+    let activate: @MainActor (CotermTaskManagerRow) -> Void
 
     @MainActor
-    static func bound(to model: MosaicTaskManagerModel) -> MosaicTaskManagerRowActions {
-        MosaicTaskManagerRowActions(
+    static func bound(to model: CotermTaskManagerModel) -> CotermTaskManagerRowActions {
+        CotermTaskManagerRowActions(
             viewWorkspace: { row in model.viewWorkspace(for: row) },
             viewTerminal: { row in model.viewTerminal(for: row) },
             killProcess: { row in model.killProcess(for: row) },
@@ -206,28 +206,28 @@ struct MosaicTaskManagerRowActions {
 
 /// Lazy list subtree. Receives value-typed row arrays plus a closure
 /// action bundle so SwiftUI can prove rows never observe the
-/// `MosaicTaskManagerModel`. Combined with the `Equatable` conformance on
-/// `MosaicTaskManagerRowView`, this stops the 3 s refresh timer from
+/// `CotermTaskManagerModel`. Combined with the `Equatable` conformance on
+/// `CotermTaskManagerRowView`, this stops the 3 s refresh timer from
 /// invalidating every row on every tick.
-struct MosaicTaskManagerListView: View {
+struct CotermTaskManagerListView: View {
     let errorMessage: String?
     let isInitialLoading: Bool
-    let rows: [MosaicTaskManagerRow]
-    let agentRows: [MosaicTaskManagerRow]
-    let aggregateRows: [MosaicTaskManagerRow]
-    let childMemoryRows: [MosaicTaskManagerRow]
-    let actions: MosaicTaskManagerRowActions
+    let rows: [CotermTaskManagerRow]
+    let agentRows: [CotermTaskManagerRow]
+    let aggregateRows: [CotermTaskManagerRow]
+    let childMemoryRows: [CotermTaskManagerRow]
+    let actions: CotermTaskManagerRowActions
 
     var body: some View {
         if let errorMessage {
-            MosaicTaskManagerMessageView(
+            CotermTaskManagerMessageView(
                 title: String(localized: "taskManager.error.title", defaultValue: "Unable to load resource usage"),
                 detail: errorMessage
             )
         } else if isInitialLoading {
-            MosaicTaskManagerLoadingView()
+            CotermTaskManagerLoadingView()
         } else if rows.isEmpty && agentRows.isEmpty && aggregateRows.isEmpty && childMemoryRows.isEmpty {
-            MosaicTaskManagerMessageView(
+            CotermTaskManagerMessageView(
                 title: String(localized: "taskManager.empty.title", defaultValue: "No resource usage"),
                 detail: String(localized: "taskManager.empty.detail", defaultValue: "Open a workspace, terminal, or browser surface to see it here.")
             )
@@ -235,11 +235,11 @@ struct MosaicTaskManagerListView: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     if !agentRows.isEmpty {
-                        MosaicTaskManagerSectionHeaderView(
+                        CotermTaskManagerSectionHeaderView(
                             title: String(localized: "taskManager.section.codingAgents", defaultValue: "Coding Agents")
                         ).equatable()
                         ForEach(agentRows) { row in
-                            MosaicTaskManagerRowView(
+                            CotermTaskManagerRowView(
                                 row: row,
                                 onViewWorkspace: {},
                                 onViewTerminal: {},
@@ -251,11 +251,11 @@ struct MosaicTaskManagerListView: View {
                         }
                     }
                     if !aggregateRows.isEmpty {
-                        MosaicTaskManagerSectionHeaderView(
+                        CotermTaskManagerSectionHeaderView(
                             title: String(localized: "taskManager.section.programTotals", defaultValue: "Program Totals")
                         ).equatable()
                         ForEach(aggregateRows) { row in
-                            MosaicTaskManagerRowView(
+                            CotermTaskManagerRowView(
                                 row: row,
                                 onViewWorkspace: {},
                                 onViewTerminal: {},
@@ -267,11 +267,11 @@ struct MosaicTaskManagerListView: View {
                         }
                     }
                     if !childMemoryRows.isEmpty {
-                        MosaicTaskManagerSectionHeaderView(
+                        CotermTaskManagerSectionHeaderView(
                             title: String(localized: "taskManager.section.childProcessRSS", defaultValue: "Child Process RSS")
                         ).equatable()
                         ForEach(childMemoryRows) { row in
-                            MosaicTaskManagerRowView(
+                            CotermTaskManagerRowView(
                                 row: row,
                                 onViewWorkspace: { actions.viewWorkspace(row) },
                                 onViewTerminal: { actions.viewTerminal(row) },
@@ -283,12 +283,12 @@ struct MosaicTaskManagerListView: View {
                         }
                     }
                     if !rows.isEmpty && (!agentRows.isEmpty || !aggregateRows.isEmpty || !childMemoryRows.isEmpty) {
-                        MosaicTaskManagerSectionHeaderView(
+                        CotermTaskManagerSectionHeaderView(
                             title: String(localized: "taskManager.section.hierarchy", defaultValue: "Hierarchy")
                         ).equatable()
                     }
                     ForEach(rows) { row in
-                        MosaicTaskManagerRowView(
+                        CotermTaskManagerRowView(
                             row: row,
                             onViewWorkspace: { actions.viewWorkspace(row) },
                             onViewTerminal: { actions.viewTerminal(row) },
@@ -304,16 +304,16 @@ struct MosaicTaskManagerListView: View {
     }
 }
 
-private struct MosaicTaskManagerSectionHeaderView: View, Equatable {
+private struct CotermTaskManagerSectionHeaderView: View, Equatable {
     let title: String
 
-    static func == (lhs: MosaicTaskManagerSectionHeaderView, rhs: MosaicTaskManagerSectionHeaderView) -> Bool {
+    static func == (lhs: CotermTaskManagerSectionHeaderView, rhs: CotermTaskManagerSectionHeaderView) -> Bool {
         lhs.title == rhs.title
     }
 
     var body: some View {
         Text(title)
-            .mosaicFont(size: 11, weight: .semibold)
+            .cotermFont(size: 11, weight: .semibold)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16)
@@ -322,14 +322,14 @@ private struct MosaicTaskManagerSectionHeaderView: View, Equatable {
     }
 }
 
-private struct MosaicTaskManagerLoadingView: View {
+private struct CotermTaskManagerLoadingView: View {
     var body: some View {
         VStack(spacing: 10) {
             ProgressView()
                 .controlSize(.regular)
                 .accessibilityLabel(String(localized: "taskManager.loading.title", defaultValue: "Loading resource usage"))
             Text(String(localized: "taskManager.loading.title", defaultValue: "Loading resource usage"))
-                .mosaicFont(.headline)
+                .cotermFont(.headline)
                 .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -337,16 +337,16 @@ private struct MosaicTaskManagerLoadingView: View {
     }
 }
 
-private struct MosaicTaskManagerMessageView: View {
+private struct CotermTaskManagerMessageView: View {
     let title: String
     let detail: String
 
     var body: some View {
         VStack(spacing: 8) {
             Text(title)
-                .mosaicFont(.headline)
+                .cotermFont(.headline)
             Text(detail)
-                .mosaicFont(.callout)
+                .cotermFont(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .textSelection(.enabled)
@@ -364,14 +364,14 @@ private struct MosaicTaskManagerMessageView: View {
 /// model above the snapshot boundary) but their identity changes every
 /// render. Comparing closure identity would defeat the optimization
 /// and re-introduce the 0.64.8 memory leak (issue #4529).
-struct MosaicTaskManagerRowView: View, Equatable {
-    let row: MosaicTaskManagerRow
+struct CotermTaskManagerRowView: View, Equatable {
+    let row: CotermTaskManagerRow
     let onViewWorkspace: @MainActor () -> Void
     let onViewTerminal: @MainActor () -> Void
     let onKillProcess: @MainActor () -> Void
     let onActivate: @MainActor () -> Void
 
-    static func == (lhs: MosaicTaskManagerRowView, rhs: MosaicTaskManagerRowView) -> Bool {
+    static func == (lhs: CotermTaskManagerRowView, rhs: CotermTaskManagerRowView) -> Bool {
         // Closures excluded on purpose: the parent rebuilds the action
         // bundle on every render tick, but the row payload is what
         // actually drives visible state. Comparing closure identity
@@ -436,11 +436,11 @@ struct MosaicTaskManagerRowView: View, Equatable {
                 rowIcon
                 VStack(alignment: .leading, spacing: 0) {
                     Text(row.title)
-                        .mosaicFont(size: 12.5)
+                        .cotermFont(size: 12.5)
                         .lineLimit(1)
                     if !row.detail.isEmpty {
                         Text(row.detail)
-                            .mosaicFont(size: 11)
+                            .cotermFont(size: 11)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
@@ -448,14 +448,14 @@ struct MosaicTaskManagerRowView: View, Equatable {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(MosaicTaskManagerFormat.cpu(row.resources.cpuPercent))
+            Text(CotermTaskManagerFormat.cpu(row.resources.cpuPercent))
                 .frame(width: 82, alignment: .trailing)
-            Text(MosaicTaskManagerFormat.bytes(row.resources.memoryBytes))
+            Text(CotermTaskManagerFormat.bytes(row.resources.memoryBytes))
                 .frame(width: 96, alignment: .trailing)
             Text("\(row.resources.processCount)")
                 .frame(width: 70, alignment: .trailing)
         }
-        .mosaicFont(size: 12.5, design: .default)
+        .cotermFont(size: 12.5, design: .default)
         .monospacedDigit()
         .padding(.horizontal, 16)
         .padding(.vertical, 3)
@@ -474,7 +474,7 @@ struct MosaicTaskManagerRowView: View, Equatable {
         } else {
             Image(systemName: row.kind.systemImage)
                 .foregroundStyle(row.kind.tint)
-                .mosaicFont(size: 12)
+                .cotermFont(size: 12)
                 .frame(width: 14)
         }
     }

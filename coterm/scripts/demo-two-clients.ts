@@ -8,14 +8,14 @@
 //   bun scripts/demo-two-clients.ts
 //
 // Env (same as smoke-e2e):
-//   MOSAIC_COLLAB_CONTROL_URL         (default http://localhost:8788)
-//   MOSAIC_COLLABORATION_RELAY_URL    (default http://localhost:8787)
+//   COTERM_COLLAB_CONTROL_URL         (default http://localhost:8788)
+//   COTERM_COLLABORATION_RELAY_URL    (default http://localhost:8787)
 //   COLLAB_AUTH_SECRET                (default dev-secret; used to mint tokens)
 
-import { nowSeconds, signMosaicToken } from "../packages/collab-auth/src/index";
+import { nowSeconds, signCotermToken } from "../packages/collab-auth/src/index";
 
-const controlURL = (process.env.MOSAIC_COLLAB_CONTROL_URL ?? "http://localhost:8788").replace(/\/+$/, "");
-const relayURL = (process.env.MOSAIC_COLLABORATION_RELAY_URL ?? "http://localhost:8787").replace(/\/+$/, "");
+const controlURL = (process.env.COTERM_COLLAB_CONTROL_URL ?? "http://localhost:8788").replace(/\/+$/, "");
+const relayURL = (process.env.COTERM_COLLABORATION_RELAY_URL ?? "http://localhost:8787").replace(/\/+$/, "");
 const secret = process.env.COLLAB_AUTH_SECRET ?? "dev-secret";
 const OUTPUT_FRAMES = Number(process.env.DEMO_FRAMES ?? "40");
 
@@ -24,7 +24,7 @@ function fail(message: string): never {
 }
 
 async function token(userId: string): Promise<string> {
-  return signMosaicToken({ kind: "access", userId, teamIds: [], selectedTeamId: null, exp: nowSeconds() + 900 }, secret);
+  return signCotermToken({ kind: "access", userId, teamIds: [], selectedTeamId: null, exp: nowSeconds() + 900 }, secret);
 }
 
 async function api(path: string, userId: string, body?: unknown): Promise<Record<string, unknown>> {
@@ -39,10 +39,11 @@ async function api(path: string, userId: string, body?: unknown): Promise<Record
   return (await response.json()) as Record<string, unknown>;
 }
 
-async function preCreateRoom(): Promise<string> {
+async function preCreateRoom(): Promise<{ code: string; shareSecret: string | null }> {
   const r = await fetch(`${relayURL}/v1/collaboration/sessions`, { method: "POST" });
   if (!r.ok) fail(`relay pre-create → ${r.status}`);
-  return ((await r.json()) as { sessionCode: string }).sessionCode;
+  const body = (await r.json()) as { sessionCode: string; shareSecret?: string };
+  return { code: body.sessionCode, shareSecret: body.shareSecret ?? null };
 }
 
 function wsURL(room: string, peerID: string, grant: string | null): string {
@@ -82,10 +83,21 @@ const unb64 = (s: string): string => Buffer.from(s, "base64").toString("utf8");
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 async function main(): Promise<void> {
-  const room = await preCreateRoom();
-  await api("/api/collab/sessions", "host", { orgId: "demo", code: room, relayURL });
-  const hostGrant = ((await api("/api/collab/join", "host", { code: room })).grant as string) || null;
-  const guestGrant = ((await api("/api/collab/join", "guest", { code: room })).grant as string) || null;
+  const precreated = await preCreateRoom();
+  const room = precreated.code;
+  const created = await api("/api/collab/sessions", "host", {
+    orgId: "demo",
+    code: room,
+    relayURL,
+    ...(precreated.shareSecret ? { shareSecret: precreated.shareSecret } : {}),
+  });
+  const shareSecret = created.shareSecret as string;
+  const hostGrant = (created.grant as string) || null;
+  const pending = await api("/api/collab/join", "guest", { code: room, shareSecret });
+  const requestId = pending.requestId as string;
+  await api("/api/collab/join-requests/approve", "host", { requestId });
+  const claimed = await api("/api/collab/join-requests/claim", "guest", { room, requestId });
+  const guestGrant = (claimed.grant as string) || null;
   console.log(`room = ${room}`);
 
   const terminalID = `${room}:terminal:00000000-0000-0000-0000-000000000000:11111111-1111-1111-1111-111111111111`;

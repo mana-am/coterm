@@ -5,8 +5,8 @@ import { DocsSchema } from "../docs-schema";
 import { Link } from "../../../../i18n/navigation";
 import { CodeBlock } from "../../components/code-block";
 import { Callout } from "../../components/callout";
-import settingsSchema from "../../../../data/mosaic.schema.json";
-import { localizedShortcutText, shortcutCategories } from "../../../../data/mosaic-shortcuts";
+import settingsSchema from "../../../../data/coterm.schema.json";
+import { localizedShortcutText, shortcutCategories } from "../../../../data/coterm-shortcuts";
 import { DocsHeading } from "../../components/docs-heading";
 
 type SchemaProperty = {
@@ -33,9 +33,9 @@ const typedSettingsSchema = settingsSchema as SchemaDocument;
 const schemaProperties = typedSettingsSchema.properties ?? {};
 const schemaUrl =
   typedSettingsSchema.$id ??
-  "https://raw.githubusercontent.com/emergent-inc/mosaic/main/web/data/mosaic.schema.json";
+  "https://raw.githubusercontent.com/emergent-inc/coterm/main/web/data/coterm.schema.json";
 const schemaSourceUrl =
-  "https://github.com/emergent-inc/mosaic/blob/main/web/data/mosaic.schema.json";
+  "https://github.com/emergent-inc/coterm/blob/main/web/data/coterm.schema.json";
 const sectionOrder = [
   "app",
   "terminal",
@@ -65,9 +65,9 @@ function buildSettingsFileExample(t: ConfigurationTranslation) {
   // "app": {
   //   "menuBarOnly": false,
   //   "newWorkspacePlacement": "afterCurrent",
-  //   "windowTitleTemplate": "[mosaic:{windowToken}] {activeWorkspace}",
+  //   "windowTitleTemplate": "[coterm:{windowToken}] {activeWorkspace}",
   //   "confirmQuit": "always",
-  //   "openSupportedFilesInMosaic": true,
+  //   "openSupportedFilesInCoterm": true,
   //   "workspaceInheritWorkingDirectory": true,
   //   "iMessageMode": true
   // },
@@ -91,7 +91,7 @@ function buildSettingsFileExample(t: ConfigurationTranslation) {
   //   // For an unlisted provider, set "defaultSearchEngine": "custom" and fill these:
   //   "customSearchEngineName": "My Search",
   //   "customSearchEngineURLTemplate": "https://search.example.com/?q={query}",
-  //   "openTerminalLinksInMosaicBrowser": true,
+  //   "openTerminalLinksInCotermBrowser": true,
   //   "hostsToOpenInEmbeddedBrowser": ["localhost", "*.internal.example"]
   // },
 
@@ -317,38 +317,38 @@ scrollback-limit = 50000000
 split-divider-color = #3e4451
 working-directory = ~/code`}</CodeBlock>
 
-      <DocsHeading level={2} id="mosaic-json" className="scroll-mt-24">mosaic.json</DocsHeading>
+      <DocsHeading level={2} id="coterm-json" className="scroll-mt-24">coterm.json</DocsHeading>
       <p>
-        mosaic keeps app-owned settings, shortcuts, actions, custom commands, and workspace layouts in{" "}
-        <code>~/.config/mosaic/mosaic.json</code>. Terminal rendering still lives in Ghostty config.
-        On launch, if the file is missing, mosaic writes a commented template there.
+        coterm keeps app-owned settings, shortcuts, actions, custom commands, and workspace layouts in{" "}
+        <code>~/.config/coterm/coterm.json</code>. Terminal rendering still lives in Ghostty config.
+        On launch, if the file is missing, coterm writes a commented template there.
       </p>
       <p>
-        Open mosaic Settings, then use the <code>mosaic.json</code> section to open the canonical file
+        Open coterm Settings, then use the <code>coterm.json</code> section to open the canonical file
         in your preferred text editor.
       </p>
       <ol>
         <li>
-          <code>~/.config/mosaic/mosaic.json</code>
+          <code>~/.config/coterm/coterm.json</code>
         </li>
         <li>
-          <code>.mosaic/mosaic.json</code> in a project for project-scoped actions and workspace commands
+          <code>.coterm/coterm.json</code> in a project for project-scoped actions and workspace commands
         </li>
       </ol>
       <Callout type="info">
-        <strong>Precedence:</strong> global <code>~/.config/mosaic/mosaic.json</code> settings override
-        values saved in the Settings window. Legacy <code>~/.config/mosaic/settings.json</code> and
+        <strong>Precedence:</strong> global <code>~/.config/coterm/coterm.json</code> settings override
+        values saved in the Settings window. Legacy <code>~/.config/coterm/settings.json</code> and
         Application Support settings files are read only as fallback for missing settings keys.
-        Project-local <code>.mosaic/mosaic.json</code> can override actions, commands, UI action
+        Project-local <code>.coterm/coterm.json</code> can override actions, commands, UI action
         wiring, and notification hooks, but not global app preferences.
       </Callout>
       <Callout type="info">
         <strong>Reload:</strong> edit the file, then use <code>Cmd+Shift+,</code> or{" "}
-        <code>mosaic reload-config</code> to re-read it without restarting the app.
+        <code>coterm reload-config</code> to re-read it without restarting the app.
       </Callout>
       <Callout type="warn">
         <strong>Migrations:</strong> keep <code>schemaVersion</code> at <code>1</code> for now.
-        Future mosaic versions will use that field for upgrades. If mosaic sees a newer schema version,
+        Future coterm versions will use that field for upgrades. If coterm sees a newer schema version,
         it logs a warning and parses known keys only.
       </Callout>
       <p>
@@ -356,14 +356,14 @@ working-directory = ~/code`}</CodeBlock>
         at <a href={schemaUrl}>{schemaUrl}</a> and the source lives at{" "}
         <a href={schemaSourceUrl}>{schemaSourceUrl}</a>.
       </p>
-      <CodeBlock title="~/.config/mosaic/mosaic.json" lang="json">
+      <CodeBlock title="~/.config/coterm/coterm.json" lang="json">
         {buildSettingsFileExample(t)}
       </CodeBlock>
 
       <DocsHeading level={2} id="schema-reference">Schema reference</DocsHeading>
       <p>
-        This reference covers every supported global settings key in <code>mosaic.json</code>. The embedded
-        browser, terminal, sidebar, notifications, automation, and mosaic-owned keyboard shortcuts
+        This reference covers every supported global settings key in <code>coterm.json</code>. The embedded
+        browser, terminal, sidebar, notifications, automation, and coterm-owned keyboard shortcuts
         all live here. Actions and workspace commands are documented on the{" "}
         <Link href="/docs/custom-commands">custom commands page</Link>.
       </p>
@@ -429,7 +429,7 @@ working-directory = ~/code`}</CodeBlock>
         <code>9</code>.
       </p>
       <p>
-        The defaults below are the same mosaic-owned actions listed on the{" "}
+        The defaults below are the same coterm-owned actions listed on the{" "}
         <Link href="/docs/keyboard-shortcuts">keyboard shortcuts page</Link>.
       </p>
       {shortcutCategories.map((category) => (

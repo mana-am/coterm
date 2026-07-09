@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:coterm.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:ios/coterm-ios.xcodeproj">
+   </FileRef>
+   <Group
+      location = "container:Packages/Shared"
+      name = "Packages (Shared)">
+      <FileRef
+         location = "group:CotermAgentChat">
+      </FileRef>
+      <FileRef
+         location = "group:CotermAuthCore">
+      </FileRef>
+      <FileRef
+         location = "group:CotermAuthRuntime">
+      </FileRef>
+      <FileRef
+         location = "group:CotermCollaboration">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileCore">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSyncStore">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:Packages/iOS"
+      name = "Packages (iOS)">
+      <FileRef
+         location = "container:ios/cotermPackage">
+      </FileRef>
+      <FileRef
+         location = "group:CotermAgentChatUI">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileAnalytics">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileBrowser">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileCamera">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileDiagnostics">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobilePairedMac">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileRPC">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileShell">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileShellModel">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileShellUI">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileSupport">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileTerminal">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileTerminalKit">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileTransport">
+      </FileRef>
+      <FileRef
+         location = "group:CotermMobileWorkspace">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:Packages/macOS"
+      name = "Packages (macOS)">
+      <FileRef
+         location = "group:CotermAgentLaunch">
+      </FileRef>
+      <FileRef
+         location = "group:CotermAppKitSupportUI">
+      </FileRef>
+      <FileRef
+         location = "group:CotermBrowser">
+      </FileRef>
+      <FileRef
+         location = "group:CotermCanvas">
+      </FileRef>
+      <FileRef
+         location = "group:CotermCanvasUI">
+      </FileRef>
+      <FileRef
+         location = "group:CotermCommandPalette">
+      </FileRef>
+      <FileRef
+         location = "group:CotermControlSocket">
+      </FileRef>
+      <FileRef
+         location = "group:CotermCore">
+      </FileRef>
+      <FileRef
+         location = "group:CotermDebugLog">
+      </FileRef>
+      <FileRef
+         location = "group:CotermExtensionKit">
+      </FileRef>
+      <FileRef
+         location = "group:CotermFeedback">
+      </FileRef>
+      <FileRef
+         location = "group:CotermFoundation">
+      </FileRef>
+      <FileRef
+         location = "group:CotermGit">
+      </FileRef>
+      <FileRef
+         location = "group:Coterminal">
+      </FileRef>
+      <FileRef
+         location = "group:CoterminalCore">
+      </FileRef>
+      <FileRef
+         location = "group:CotermLiveEval">
+      </FileRef>
+      <FileRef
+         location = "group:CotermNotifications">
+      </FileRef>
+      <FileRef
+         location = "group:CotermPanes">
+      </FileRef>
+      <FileRef
+         location = "group:CotermProjectModel">
+      </FileRef>
+      <FileRef
+         location = "group:CotermRemoteDaemon">
+      </FileRef>
+      <FileRef
+         location = "group:CotermRemoteSession">
+      </FileRef>
+      <FileRef
+         location = "group:CotermRemoteWorkspace">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSettings">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSettingsUI">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSidebar">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSidebarGit">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSidebarInterpreterService">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSidebarProviderKit">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSwiftRender">
+      </FileRef>
+      <FileRef
+         location = "group:CotermSwiftRenderUI">
+      </FileRef>
+      <FileRef
+         location = "group:CotermTestSupport">
+      </FileRef>
+      <FileRef
+         location = "group:CotermUpdater">
+      </FileRef>
+      <FileRef
+         location = "group:CotermUpdaterUI">
+      </FileRef>
+      <FileRef
+         location = "group:CotermWindowing">
+      </FileRef>
+      <FileRef
+         location = "group:CotermWorkspaces">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:Examples"
+      name = "Examples">
+      <FileRef
+         location = "group:TabsVisibleSidebar/TabsVisibleSidebar.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:SampleSidebarExtensionApp/SampleSidebarExtensionApp.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:CotermExtensionSidebarExamples">
+      </FileRef>
+   </Group>
+</Workspace>

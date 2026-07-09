@@ -1,9 +1,9 @@
 import AppKit
-import MosaicCanvasUI
-import MosaicControlSocket
-import MosaicSettings
+import CotermCanvasUI
+import CotermControlSocket
+import CotermSettings
 import Foundation
-import MosaicTerminal
+import Coterminal
 
 /// The debug-domain witnesses are the byte-faithful bodies of the former
 /// `v2Debug*` dispatchers `processV2Command` routed (DEBUG builds only), minus

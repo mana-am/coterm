@@ -29,9 +29,9 @@ GhosttyKit.xcframework
 GhosttyKit.xcframework.bak-*/
 
 # Release artifacts
-mosaic-*.zip
-mosaic-macos.dmg
-mosaic-macos.dmg
+coterm-*.zip
+coterm-macos.dmg
+coterm-macos.dmg
 appcast.xml
 
 # Python

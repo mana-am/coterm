@@ -16,10 +16,10 @@ import sys
 import time
 from typing import List, Optional, Tuple
 
-# Add the directory containing mosaic.py to the path
+# Add the directory containing coterm.py to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic
+from coterm import coterm
 
 
 class TestResult:
@@ -49,7 +49,7 @@ def _by_index(workspaces: List[WorkspaceTuple], index: int) -> Optional[Workspac
 
 
 def _wait_selected_id(
-    client: mosaic, expected_id: str, timeout: float = 6.0, interval: float = 0.05
+    client: coterm, expected_id: str, timeout: float = 6.0, interval: float = 0.05
 ) -> List[WorkspaceTuple]:
     """
     Poll list_workspaces until the selected workspace's id equals expected_id.
@@ -70,7 +70,7 @@ def _wait_selected_id(
     return after
 
 
-def _ensure_workspaces(client: mosaic, count: int) -> List[str]:
+def _ensure_workspaces(client: coterm, count: int) -> List[str]:
     """
     Ensure at least `count` workspaces exist. Returns IDs of newly created workspaces.
     """
@@ -83,7 +83,7 @@ def _ensure_workspaces(client: mosaic, count: int) -> List[str]:
     return created
 
 
-def test_close_middle_selects_next(client: mosaic) -> TestResult:
+def test_close_middle_selects_next(client: coterm) -> TestResult:
     result = TestResult("Close Selected Middle Workspace Selects Next")
     try:
         _ensure_workspaces(client, 3)
@@ -124,7 +124,7 @@ def test_close_middle_selects_next(client: mosaic) -> TestResult:
     return result
 
 
-def test_close_last_selects_previous(client: mosaic) -> TestResult:
+def test_close_last_selects_previous(client: coterm) -> TestResult:
     result = TestResult("Close Selected Last Workspace Selects Previous")
     try:
         _ensure_workspaces(client, 3)
@@ -170,7 +170,7 @@ def test_close_last_selects_previous(client: mosaic) -> TestResult:
 
 def run_tests() -> int:
     results = []
-    with mosaic() as client:
+    with coterm() as client:
         results.append(test_close_middle_selects_next(client))
         results.append(test_close_last_selects_previous(client))
 

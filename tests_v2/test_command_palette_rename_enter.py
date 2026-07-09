@@ -12,10 +12,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _wait_until(predicate, timeout_s=4.0, interval_s=0.05, message="timeout"):
@@ -24,7 +24,7 @@ def _wait_until(predicate, timeout_s=4.0, interval_s=0.05, message="timeout"):
         if predicate():
             return
         time.sleep(interval_s)
-    raise mosaicError(message)
+    raise cotermError(message)
 
 
 def _palette_visible(client, window_id):
@@ -40,7 +40,7 @@ def _focused_pane_id(client):
     panes = client.list_panes()
     focused = [row for row in panes if bool(row[3])]
     if not focused:
-        raise mosaicError(f"no focused pane: {panes}")
+        raise cotermError(f"no focused pane: {panes}")
     return str(focused[0][1])
 
 
@@ -48,12 +48,12 @@ def _selected_surface_title(client, pane_id):
     rows = client.list_pane_surfaces(pane_id)
     selected = [row for row in rows if bool(row[3])]
     if not selected:
-        raise mosaicError(f"no selected surface in pane {pane_id}: {rows}")
+        raise cotermError(f"no selected surface in pane {pane_id}: {rows}")
     return str(selected[0][2])
 
 
 def main():
-    with mosaic(SOCKET_PATH) as client:
+    with coterm(SOCKET_PATH) as client:
         client.activate_app()
         time.sleep(0.2)
 
@@ -100,7 +100,7 @@ def main():
 
         new_title = _selected_surface_title(client, pane_id)
         if new_title != rename_to:
-            raise mosaicError(f"rename not applied: expected '{rename_to}', got '{new_title}'")
+            raise cotermError(f"rename not applied: expected '{rename_to}', got '{new_title}'")
 
     print("PASS: command-palette rename flow accepts Enter in input")
     return 0

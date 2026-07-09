@@ -41,7 +41,7 @@ mock.module("node:dns", () => ({
 const { POST } = await import("../app/api/waitlist/route");
 
 function post(body: unknown): Request {
-  return new Request("https://mosaic.test/api/waitlist", {
+  return new Request("https://coterm.test/api/waitlist", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

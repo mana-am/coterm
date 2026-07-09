@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Regression test: `mosaic claude-teams` skips mosaic wrapper scripts on PATH.
+Regression test: `coterm claude-teams` skips coterm wrapper scripts on PATH.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from claude_teams_test_utils import resolve_mosaic_cli
+from claude_teams_test_utils import resolve_coterm_cli
 
 
 def make_executable(path: Path, content: str) -> None:
@@ -20,12 +20,12 @@ def make_executable(path: Path, content: str) -> None:
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-teams-wrapper-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-teams-wrapper-") as td:
         tmp = Path(td)
         wrapper_bin = tmp / "wrapper-bin"
         real_bin = tmp / "real-bin"
@@ -39,7 +39,7 @@ def main() -> int:
         make_executable(
             wrapper_bin / "claude",
             """#!/usr/bin/env bash
-# mosaic claude wrapper - injects hooks and session tracking
+# coterm claude wrapper - injects hooks and session tracking
 set -euo pipefail
 echo WRAPPER_EXECUTED >&2
 exit 91
@@ -67,7 +67,7 @@ printf 'REAL\\n' > {real_hit}
         )
 
         if proc.returncode != 0:
-            print("FAIL: `mosaic claude-teams --version` executed a wrapper instead of the real claude binary")
+            print("FAIL: `coterm claude-teams --version` executed a wrapper instead of the real claude binary")
             print(f"exit={proc.returncode}")
             print(f"stdout={proc.stdout.strip()}")
             print(f"stderr={proc.stderr.strip()}")
@@ -77,7 +77,7 @@ printf 'REAL\\n' > {real_hit}
             print("FAIL: real claude binary was not reached")
             return 1
 
-    print("PASS: mosaic claude-teams skips mosaic wrapper scripts on PATH")
+    print("PASS: coterm claude-teams skips coterm wrapper scripts on PATH")
     return 0
 
 

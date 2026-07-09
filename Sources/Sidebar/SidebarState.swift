@@ -1,4 +1,4 @@
-import MosaicWorkspaces
+import CotermWorkspaces
 import Combine
 import CoreGraphics
 import Foundation

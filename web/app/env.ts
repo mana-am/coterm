@@ -34,37 +34,37 @@ const clerkEnv = (
 export const env = createEnv({
   server: {
     RESEND_API_KEY: z.string().min(1),
-    MOSAIC_FEEDBACK_FROM_EMAIL: z.string().email(),
-    MOSAIC_FEEDBACK_RATE_LIMIT_ID: z.string().min(1),
+    COTERM_FEEDBACK_FROM_EMAIL: z.string().email(),
+    COTERM_FEEDBACK_RATE_LIMIT_ID: z.string().min(1),
     STACK_SECRET_SERVER_KEY: z.string().min(1).optional(),
     CLERK_SECRET_KEY: z.string().min(1),
-    MOSAIC_NATIVE_AUTH_SECRET: z.string().min(32).optional(),
+    COTERM_NATIVE_AUTH_SECRET: z.string().min(32).optional(),
     // APNs push (iOS notifications). Optional: the app boots without them; the
     // push route returns a clear "not configured" error until they are set.
-    // MOSAIC_APNS_KEY_P8 holds the .p8 PEM (literal "\n" escapes are normalized
+    // COTERM_APNS_KEY_P8 holds the .p8 PEM (literal "\n" escapes are normalized
     // by the sender).
-    MOSAIC_APNS_KEY_P8: z.string().min(1).optional(),
-    MOSAIC_APNS_KEY_ID: z.string().min(1).optional(),
-    MOSAIC_APNS_TEAM_ID: z.string().min(1).optional(),
-    MOSAIC_PUSH_RATE_LIMIT_ID: z.string().min(1).optional(),
-    // mosaic Founder's Edition welcome email (Stripe webhook -> Resend). Optional:
+    COTERM_APNS_KEY_P8: z.string().min(1).optional(),
+    COTERM_APNS_KEY_ID: z.string().min(1).optional(),
+    COTERM_APNS_TEAM_ID: z.string().min(1).optional(),
+    COTERM_PUSH_RATE_LIMIT_ID: z.string().min(1).optional(),
+    // coterm Founder's Edition welcome email (Stripe webhook -> Resend). Optional:
     // the /api/stripe/founders-welcome route returns "not configured" until the
-    // webhook signing secret is set. MOSAIC_FOUNDERS_FROM_EMAIL overrides the
+    // webhook signing secret is set. COTERM_FOUNDERS_FROM_EMAIL overrides the
     // sender (defaults to austin@emergent.inc) so the verified Resend domain can
     // change without a code edit.
     STRIPE_FOUNDERS_WEBHOOK_SECRET: z.string().min(1).optional(),
-    MOSAIC_FOUNDERS_FROM_EMAIL: z.string().email().optional(),
+    COTERM_FOUNDERS_FROM_EMAIL: z.string().email().optional(),
     // Slack Incoming Webhook for the #website-waitlist channel. Optional: the
     // /api/waitlist route silently skips the Slack ping when it is unset.
     SLACK_WAITLIST_WEBHOOK_URL: z.string().url().optional(),
     // Slack-compatible webhook for high-signal app bug/error notifications.
     // Optional: /api/bug-alerts accepts and records the event but skips fan-out.
-    MOSAIC_BUG_ALERTS_WEBHOOK_URL: z.string().url().optional(),
+    COTERM_BUG_ALERTS_WEBHOOK_URL: z.string().url().optional(),
     // Optional shared secret required by /api/bug-alerts when configured.
-    MOSAIC_BUG_ALERTS_SHARED_SECRET: z.string().min(1).optional(),
-    // Public R2 base used by Mosaic download/update proxy routes. Example:
+    COTERM_BUG_ALERTS_SHARED_SECRET: z.string().min(1).optional(),
+    // Public R2 base used by Coterm download/update proxy routes. Example:
     // https://pub-xxxxxxxx.r2.dev
-    MOSAIC_R2_PUBLIC_BASE_URL: z.string().url().optional(),
+    COTERM_R2_PUBLIC_BASE_URL: z.string().url().optional(),
   },
   client: {
     NEXT_PUBLIC_STACK_PROJECT_ID: z.string().min(1).optional(),
@@ -76,23 +76,23 @@ export const env = createEnv({
   },
   runtimeEnv: {
     RESEND_API_KEY: trimEnv(process.env.RESEND_API_KEY),
-    MOSAIC_FEEDBACK_FROM_EMAIL: trimEnv(process.env.MOSAIC_FEEDBACK_FROM_EMAIL),
-    MOSAIC_FEEDBACK_RATE_LIMIT_ID: trimEnv(process.env.MOSAIC_FEEDBACK_RATE_LIMIT_ID),
-    MOSAIC_APNS_KEY_P8: trimEnv(process.env.MOSAIC_APNS_KEY_P8),
-    MOSAIC_APNS_KEY_ID: trimEnv(process.env.MOSAIC_APNS_KEY_ID),
-    MOSAIC_APNS_TEAM_ID: trimEnv(process.env.MOSAIC_APNS_TEAM_ID),
-    MOSAIC_PUSH_RATE_LIMIT_ID: trimEnv(process.env.MOSAIC_PUSH_RATE_LIMIT_ID),
+    COTERM_FEEDBACK_FROM_EMAIL: trimEnv(process.env.COTERM_FEEDBACK_FROM_EMAIL),
+    COTERM_FEEDBACK_RATE_LIMIT_ID: trimEnv(process.env.COTERM_FEEDBACK_RATE_LIMIT_ID),
+    COTERM_APNS_KEY_P8: trimEnv(process.env.COTERM_APNS_KEY_P8),
+    COTERM_APNS_KEY_ID: trimEnv(process.env.COTERM_APNS_KEY_ID),
+    COTERM_APNS_TEAM_ID: trimEnv(process.env.COTERM_APNS_TEAM_ID),
+    COTERM_PUSH_RATE_LIMIT_ID: trimEnv(process.env.COTERM_PUSH_RATE_LIMIT_ID),
     CLERK_SECRET_KEY: clerkEnv(
       process.env.CLERK_SECRET_KEY,
       "sk_test_preview_clerk_secret_key"
     ),
-    MOSAIC_NATIVE_AUTH_SECRET: trimEnv(process.env.MOSAIC_NATIVE_AUTH_SECRET),
+    COTERM_NATIVE_AUTH_SECRET: trimEnv(process.env.COTERM_NATIVE_AUTH_SECRET),
     STRIPE_FOUNDERS_WEBHOOK_SECRET: trimEnv(process.env.STRIPE_FOUNDERS_WEBHOOK_SECRET),
-    MOSAIC_FOUNDERS_FROM_EMAIL: trimEnv(process.env.MOSAIC_FOUNDERS_FROM_EMAIL),
+    COTERM_FOUNDERS_FROM_EMAIL: trimEnv(process.env.COTERM_FOUNDERS_FROM_EMAIL),
     SLACK_WAITLIST_WEBHOOK_URL: trimEnv(process.env.SLACK_WAITLIST_WEBHOOK_URL),
-    MOSAIC_BUG_ALERTS_WEBHOOK_URL: trimEnv(process.env.MOSAIC_BUG_ALERTS_WEBHOOK_URL),
-    MOSAIC_BUG_ALERTS_SHARED_SECRET: trimEnv(process.env.MOSAIC_BUG_ALERTS_SHARED_SECRET),
-    MOSAIC_R2_PUBLIC_BASE_URL: trimEnv(process.env.MOSAIC_R2_PUBLIC_BASE_URL),
+    COTERM_BUG_ALERTS_WEBHOOK_URL: trimEnv(process.env.COTERM_BUG_ALERTS_WEBHOOK_URL),
+    COTERM_BUG_ALERTS_SHARED_SECRET: trimEnv(process.env.COTERM_BUG_ALERTS_SHARED_SECRET),
+    COTERM_R2_PUBLIC_BASE_URL: trimEnv(process.env.COTERM_R2_PUBLIC_BASE_URL),
     NEXT_PUBLIC_STACK_PROJECT_ID: stackEnv(
       process.env.NEXT_PUBLIC_STACK_PROJECT_ID,
       "00000000-0000-4000-8000-000000000000"

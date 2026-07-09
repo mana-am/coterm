@@ -86,8 +86,8 @@ extension AppDelegate {
             return false
         }
 
-        let configuredMosaicShortcutContext = preferredMainWindowContextForShortcutRouting(event: event)
-        return !configuredMosaicShortcutActions(for: configuredMosaicShortcutContext).contains {
+        let configuredCotermShortcutContext = preferredMainWindowContextForShortcutRouting(event: event)
+        return !configuredCotermShortcutActions(for: configuredCotermShortcutContext).contains {
             $0.shortcut?.bareShortcutStartKey == bareShortcutKey
         }
     }

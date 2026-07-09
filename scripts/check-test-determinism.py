@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""High-precision static checker for test-code determinism in mosaic.
+"""High-precision static checker for test-code determinism in coterm.
 
 Two principles are enforced:
 
@@ -56,9 +56,9 @@ from typing import Iterable, Optional
 # ---------------------------------------------------------------------------
 
 DEFAULT_ROOTS: tuple[str, ...] = (
-    "mosaicTests",
-    "mosaicUITests",
-    "ios/mosaicUITests",
+    "cotermTests",
+    "cotermUITests",
+    "ios/cotermUITests",
     "Packages",
     "tests",
     "tests_v2",
@@ -602,7 +602,7 @@ def _self_test() -> int:
     # (filename, source, expected rules present, rules that must NOT be present)
     positives: list[tuple[str, str, set[str]]] = [
         (
-            "mosaicTests/a.swift",
+            "cotermTests/a.swift",
             "let elapsed = end - start\nXCTAssertLessThan(elapsedMs, 250)\n",
             {RULE_ASSERT_ON_DURATION},
         ),
@@ -642,7 +642,7 @@ def _self_test() -> int:
             {RULE_SLEEP_THEN_ASSERT},
         ),
         (
-            "mosaicUITests/f.swift",
+            "cotermUITests/f.swift",
             "try await Task.sleep(nanoseconds: 300_000_000)\nXCTAssertTrue(view.exists)\n",
             {RULE_SLEEP_THEN_ASSERT},
         ),
@@ -697,12 +697,12 @@ def _self_test() -> int:
         ),
         # Virtual-clock advance + invariant assert: not a wall-clock assert.
         (
-            "mosaicTests/n7.swift",
+            "cotermTests/n7.swift",
             "clock.advance(by: .milliseconds(250))\nXCTAssertEqual(model.state, .timedOut)\n",
         ),
         # Awaiting a real expectation/signal then asserting an invariant.
         (
-            "mosaicTests/n8.swift",
+            "cotermTests/n8.swift",
             "await fulfillment(of: [didFinish], timeout: 5)\nXCTAssertEqual(result, .ok)\n",
         ),
         # Asserting a count (non-duration) against a literal is fine.
@@ -742,22 +742,22 @@ def _self_test() -> int:
         ),
         # XCTAssertEqual on a non-duration value with a literal: not a latency assert.
         (
-            "mosaicTests/n16.swift",
+            "cotermTests/n16.swift",
             "XCTAssertEqual(rows.count, 3)\n",
         ),
         # Public URL used as a STRING fixture (no network verb): not live network.
         (
             "web/tests/n17.ts",
-            'expect(text).toContain("Docs: https://mosaic.inc/docs/api")\n',
+            'expect(text).toContain("Docs: https://coterm.cc/docs/api")\n',
         ),
         (
             "web/tests/n18.ts",
-            'const llms = buildLlmsText("https://mosaic.inc")\n',
+            'const llms = buildLlmsText("https://coterm.cc")\n',
         ),
         # A quoted shell command embedded in a Swift terminal-parser fixture is a
         # STRING literal, not a real delay: "sleep 5" must not flag sleep-then-assert.
         (
-            "mosaicTests/n19.swift",
+            "cotermTests/n19.swift",
             'parser.consume(mark("A") + "sleep 5" + mark("C"))\n#expect(parser.blocks.count == 1)\n',
         ),
         # Same bare-command form in Python source is also a string fixture, not a sleep.

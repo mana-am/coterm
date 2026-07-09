@@ -1,5 +1,5 @@
-import MosaicAuthCore
-import MosaicAuthRuntime
+import CotermAuthCore
+import CotermAuthRuntime
 import AppKit
 import Foundation
 
@@ -7,8 +7,8 @@ import Foundation
 ///
 /// Constructs the de-singletonized auth graph once at app startup, mirroring
 /// the iOS `MobileAuthComposition`: the keychain/file fallback token store,
-/// the mosaic-native Clerk session client,
-/// the shared ``MosaicAuthRuntime/AuthCoordinator`` bound to the historical mac
+/// the coterm-native Clerk session client,
+/// the shared ``CotermAuthRuntime/AuthCoordinator`` bound to the historical mac
 /// defaults keys, and the ``HostBrowserSignInFlow``. Replaces
 /// `AuthManager.shared`.
 @MainActor
@@ -26,7 +26,7 @@ struct MacAuthComposition {
     /// - Parameters:
     ///   - environment: The process environment (UI-test launch options).
     ///   - defaults: Persistence for the cached user / has-tokens flag /
-    ///     selected team (historical `mosaic.auth.*` keys).
+    ///     selected team (historical `coterm.auth.*` keys).
     init(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         defaults: UserDefaults = .standard
@@ -45,25 +45,25 @@ struct MacAuthComposition {
             tokenStore: tokenStore
         )
 
-        let userCache = MosaicAuthIdentityStore(
+        let userCache = CotermAuthIdentityStore(
             keyValueStore: defaults,
-            key: "mosaic.auth.cachedUser"
+            key: "coterm.auth.cachedUser"
         )
-        let sessionCache = MosaicAuthSessionCache(
+        let sessionCache = CotermAuthSessionCache(
             keyValueStore: defaults,
-            key: "mosaic.auth.hasTokens"
+            key: "coterm.auth.hasTokens"
         )
         // One-time migration: the deleted AuthManager never wrote a has-tokens
         // flag. Prime it from the cached user so the first post-migration
         // launch primes as "restoring" instead of flashing signed-out while
         // the stored session validates.
-        if defaults.object(forKey: "mosaic.auth.hasTokens") == nil,
+        if defaults.object(forKey: "coterm.auth.hasTokens") == nil,
            (try? userCache.load()) != nil {
             sessionCache.setHasTokens(true)
         }
 
         let config = AuthConfig(
-            stack: MosaicAuthConfig(
+            stack: CotermAuthConfig(
                 projectId: "clerk",
                 publishableClientKey: "clerk"
             ),
@@ -72,25 +72,25 @@ struct MacAuthComposition {
                 .absoluteString,
             apiBaseURL: AuthEnvironment.apiBaseURL.absoluteString
         )
-        // DEBUG-only: make a tagged `mosaic DEV` build come up already signed in
+        // DEBUG-only: make a tagged `coterm DEV` build come up already signed in
         // as the dogfood account, mirroring iOS. A tagged build is a separate
         // bundle (separate keychain), so it starts signed out. iOS injects
-        // `MOSAIC_UITEST_STACK_*` into the launch environment; the Mac app needs
-        // the same, but a `mosaic DEV` opened from Finder / the MOSAIC Tag Opener
+        // `COTERM_UITEST_STACK_*` into the launch environment; the Mac app needs
+        // the same, but a `coterm DEV` opened from Finder / the COTERM Tag Opener
         // does not inherit a shell's environment, so the resolver also reads
-        // `~/.secrets/mosaicterm-dev.env` / `~/.secrets/mosaic.env` directly. The
+        // `~/.secrets/coterm-dev.env` / `~/.secrets/coterm.env` directly. The
         // resolver runs unconditionally and applies dogfood-account-first
         // precedence, so on the dog Mac the human dogfood file wins even when an
-        // agent's `MOSAIC_UITEST_STACK_*` are already in the environment; only the
+        // agent's `COTERM_UITEST_STACK_*` are already in the environment; only the
         // two resolved cred keys are filled in (never the whole file). When the
-        // only creds are `MOSAIC_UITEST_STACK_*` env (a CI UI test with no
+        // only creds are `COTERM_UITEST_STACK_*` env (a CI UI test with no
         // `~/.secrets` files), the resolver returns that same pair, so the merge
-        // is a no-op. The existing `MosaicAuthAutoLoginCredentials` +
+        // is a no-op. The existing `CotermAuthAutoLoginCredentials` +
         // `shouldStartAutoLogin` gate then fires unchanged. Compiled out of
         // release builds.
         let resolvedEnvironment = Self.environmentWithDogfoodAutoSignIn(environment)
         let launch = AuthLaunchOptions(
-            clearAuthRequested: resolvedEnvironment["MOSAIC_UITEST_CLEAR_AUTH"] == "1",
+            clearAuthRequested: resolvedEnvironment["COTERM_UITEST_CLEAR_AUTH"] == "1",
             mockDataEnabled: false,
             environment: resolvedEnvironment,
             includesDevAuth: Self.includesDevAuth
@@ -101,9 +101,9 @@ struct MacAuthComposition {
             client: client,
             sessionCache: sessionCache,
             userCache: userCache,
-            teamSelection: MosaicAuthTeamSelectionStore(
+            teamSelection: CotermAuthTeamSelectionStore(
                 keyValueStore: defaults,
-                key: "mosaic.auth.selectedTeamID"
+                key: "coterm.auth.selectedTeamID"
             ),
             anchor: anchor,
             config: config,
@@ -146,8 +146,8 @@ struct MacAuthComposition {
             in: .userDomainMask
         ).first ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support")
         return support
-            .appendingPathComponent("mosaic", isDirectory: true)
-            .appendingPathComponent(bundleIdentifier ?? "mosaic", isDirectory: true)
+            .appendingPathComponent("coterm", isDirectory: true)
+            .appendingPathComponent(bundleIdentifier ?? "coterm", isDirectory: true)
     }
 
     private static var includesDevAuth: Bool {
@@ -160,24 +160,24 @@ struct MacAuthComposition {
 
     #if DEBUG
     /// Returns `environment` with the dogfood auto-sign-in credentials filled in
-    /// under the `MOSAIC_UITEST_STACK_*` keys (DEBUG only; the whole method is
+    /// under the `COTERM_UITEST_STACK_*` keys (DEBUG only; the whole method is
     /// compiled out of release, so the auto-sign-in path can never run in
     /// production).
     ///
     /// Always consults ``DebugDogfoodCredentialResolver`` so the resolver's
-    /// dogfood-over-agent precedence is honored even when `MOSAIC_UITEST_STACK_*`
+    /// dogfood-over-agent precedence is honored even when `COTERM_UITEST_STACK_*`
     /// are already present in the environment: on the dog Mac an iOS dogfood
-    /// flow can leave the agent's `MOSAIC_UITEST_STACK_*` in the environment while
-    /// the human dogfood creds live only in `~/.secrets/mosaicterm-dev.env`, and
-    /// the build must come up as the human account. When only `MOSAIC_UITEST_STACK_*`
+    /// flow can leave the agent's `COTERM_UITEST_STACK_*` in the environment while
+    /// the human dogfood creds live only in `~/.secrets/coterm-dev.env`, and
+    /// the build must come up as the human account. When only `COTERM_UITEST_STACK_*`
     /// env creds exist (e.g. a CI UI test with no `~/.secrets` files), the
     /// resolver returns that same pair, so the merge is a no-op.
     ///
     /// - Parameters:
     ///   - environment: The launch environment.
     ///   - secretFilePaths: Ordered secret-file candidates for the resolver.
-    ///     Defaults to `nil` so the resolver uses `~/.secrets/mosaicterm-dev.env`
-    ///     then `~/.secrets/mosaic.env`. Injected by tests to exercise the
+    ///     Defaults to `nil` so the resolver uses `~/.secrets/coterm-dev.env`
+    ///     then `~/.secrets/coterm.env`. Injected by tests to exercise the
     ///     dog-Mac precedence without touching real files.
     ///   - readFile: File reader seam for the resolver. Defaults to a real read;
     ///     injected by tests.
@@ -206,8 +206,8 @@ struct MacAuthComposition {
             return environment
         }
         var merged = environment
-        merged["MOSAIC_UITEST_STACK_EMAIL"] = resolved.email
-        merged["MOSAIC_UITEST_STACK_PASSWORD"] = resolved.password
+        merged["COTERM_UITEST_STACK_EMAIL"] = resolved.email
+        merged["COTERM_UITEST_STACK_PASSWORD"] = resolved.password
         return merged
     }
     #else

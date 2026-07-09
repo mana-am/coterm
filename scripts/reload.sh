@@ -1,31 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="Mosaic DEV"
-BUNDLE_ID="mosaic.com.emergent.app.debug"
-BASE_APP_NAME="Mosaic DEV"
+APP_NAME="Coterm DEV"
+BUNDLE_ID="coterm.com.emergent.app.debug"
+BASE_APP_NAME="Coterm DEV"
 DERIVED_DATA=""
 NAME_SET=0
 BUNDLE_SET=0
 DERIVED_SET=0
 TAG=""
 LAUNCH=0
-MOSAIC_DEBUG_LOG=""
-MOSAIC_DEV_PORT=""
-MOSAIC_DEV_PORT_END=""
-MOSAIC_DEV_PORT_RANGE=""
-MOSAIC_DEV_ORIGIN=""
+COTERM_DEBUG_LOG=""
+COTERM_DEV_PORT=""
+COTERM_DEV_PORT_END=""
+COTERM_DEV_PORT_RANGE=""
+COTERM_DEV_ORIGIN=""
 CLI_PATH=""
-# Matches MosaicStateDirectory (non-TCC ~/.local/state/mosaic) where the app/CLI now
-# read the last-socket-path markers (https://github.com/emergent-inc/mosaic/issues/5146).
+# Matches CotermStateDirectory (non-TCC ~/.local/state/coterm) where the app/CLI now
+# read the last-socket-path markers (https://github.com/emergent-inc/coterm/issues/5146).
 # Resolve the real account home via getpwuid (the same syscall
 # homeDirectoryForCurrentUser uses) rather than $HOME, which a shell can override.
 # perl ships with macOS and returns the full home path even when it contains spaces;
 # `dscl ... | awk` mis-parses such paths because dscl wraps a value with spaces onto
 # a second line. `|| true` keeps the lookup from aborting the script under
 # `set -euo pipefail`; an empty result falls back to $HOME.
-_mosaic_account_home="$(perl -e 'print((getpwuid($<))[7])' 2>/dev/null || true)"
-LAST_SOCKET_PATH_DIR="${_mosaic_account_home:-$HOME}/.local/state/mosaic"
+_coterm_account_home="$(perl -e 'print((getpwuid($<))[7])' 2>/dev/null || true)"
+LAST_SOCKET_PATH_DIR="${_coterm_account_home:-$HOME}/.local/state/coterm"
 AUTO_SKIP_ZIG_BUILD_REASON=""
 SWIFT_FRONTEND_WORKAROUND=0
 XCODEBUILD_STARTED=0
@@ -33,8 +33,8 @@ XCODEBUILD_OUTPUT_VALID=0
 XCODEBUILD_CLEANED_OUTPUTS=0
 
 should_skip_ghostty_cli_helper_zig_build() {
-  if [[ "${MOSAIC_SKIP_ZIG_BUILD:-}" == "1" ]]; then
-    AUTO_SKIP_ZIG_BUILD_REASON="MOSAIC_SKIP_ZIG_BUILD=1"
+  if [[ "${COTERM_SKIP_ZIG_BUILD:-}" == "1" ]]; then
+    AUTO_SKIP_ZIG_BUILD_REASON="COTERM_SKIP_ZIG_BUILD=1"
     return 0
   fi
 
@@ -48,10 +48,10 @@ write_dev_cli_shim() {
   mkdir -p "$(dirname "$target")"
   cat > "$target" <<EOF
 #!/usr/bin/env bash
-# mosaic dev shim (managed by scripts/reload.sh)
+# coterm dev shim (managed by scripts/reload.sh)
 set -euo pipefail
 
-CLI_PATH_FILE="/tmp/mosaic-last-cli-path"
+CLI_PATH_FILE="/tmp/coterm-last-cli-path"
 SOCKET_ARG=""
 EXPECT_SOCKET_VALUE=0
 for arg in "\$@"; do
@@ -71,19 +71,19 @@ for arg in "\$@"; do
 done
 if [[ -n "\$SOCKET_ARG" ]]; then
   SOCKET_NAME="\$(basename "\$SOCKET_ARG")"
-  if [[ "\$SOCKET_NAME" == mosaic-debug-*.sock ]]; then
-    TAG="\${SOCKET_NAME#mosaic-debug-}"
+  if [[ "\$SOCKET_NAME" == coterm-debug-*.sock ]]; then
+    TAG="\${SOCKET_NAME#coterm-debug-}"
     TAG="\${TAG%.sock}"
     if [[ "\$TAG" =~ ^[A-Za-z0-9_-]+$ ]]; then
-      TAG_CLI="\$HOME/Library/Developer/Xcode/DerivedData/mosaic-\$TAG/Build/Products/Debug/Mosaic DEV \$TAG.app/Contents/Resources/bin/mosaic"
+      TAG_CLI="\$HOME/Library/Developer/Xcode/DerivedData/coterm-\$TAG/Build/Products/Debug/Coterm DEV \$TAG.app/Contents/Resources/bin/coterm"
       if [[ -x "\$TAG_CLI" ]] && [[ "\$TAG_CLI" != "\$0" ]]; then
         exec "\$TAG_CLI" "\$@"
       fi
     fi
   fi
 fi
-if [[ -n "\${MOSAIC_BUNDLED_CLI_PATH:-}" ]] && [[ -f "\$MOSAIC_BUNDLED_CLI_PATH" ]] && [[ -x "\$MOSAIC_BUNDLED_CLI_PATH" ]] && [[ "\$MOSAIC_BUNDLED_CLI_PATH" != "\$0" ]]; then
-  exec "\$MOSAIC_BUNDLED_CLI_PATH" "\$@"
+if [[ -n "\${COTERM_BUNDLED_CLI_PATH:-}" ]] && [[ -f "\$COTERM_BUNDLED_CLI_PATH" ]] && [[ -x "\$COTERM_BUNDLED_CLI_PATH" ]] && [[ "\$COTERM_BUNDLED_CLI_PATH" != "\$0" ]]; then
+  exec "\$COTERM_BUNDLED_CLI_PATH" "\$@"
 fi
 
 CLI_PATH_OWNER="\$(stat -f '%u' "\$CLI_PATH_FILE" 2>/dev/null || stat -c '%u' "\$CLI_PATH_FILE" 2>/dev/null || echo -1)"
@@ -98,15 +98,15 @@ if [[ -x "$fallback_bin" ]]; then
   exec "$fallback_bin" "\$@"
 fi
 
-echo "error: no reload-selected dev mosaic CLI found. Run ./scripts/reload.sh --tag <name> first." >&2
+echo "error: no reload-selected dev coterm CLI found. Run ./scripts/reload.sh --tag <name> first." >&2
 exit 1
 EOF
   chmod +x "$target"
 }
 
-select_mosaic_shim_target() {
-  local app_cli_dir="/Applications/Mosaic.app/Contents/Resources/bin"
-  local marker="mosaic dev shim (managed by scripts/reload.sh)"
+select_coterm_shim_target() {
+  local app_cli_dir="/Applications/Coterm.app/Contents/Resources/bin"
+  local marker="coterm dev shim (managed by scripts/reload.sh)"
   local target=""
   local path_entry=""
   local candidate=""
@@ -121,7 +121,7 @@ select_mosaic_shim_target() {
       break
     fi
     [[ -d "$path_entry" && -w "$path_entry" ]] || continue
-    candidate="$path_entry/mosaic"
+    candidate="$path_entry/coterm"
     if [[ ! -e "$candidate" ]]; then
       target="$candidate"
       break
@@ -140,7 +140,7 @@ select_mosaic_shim_target() {
   # Fallback for PATH layouts where app CLI isn't listed or no earlier entries were writable.
   for path_entry in /opt/homebrew/bin /usr/local/bin "$HOME/.local/bin" "$HOME/bin"; do
     [[ -d "$path_entry" && -w "$path_entry" ]] || continue
-    candidate="$path_entry/mosaic"
+    candidate="$path_entry/coterm"
     if [[ ! -e "$candidate" ]]; then
       echo "$candidate"
       return 0
@@ -157,60 +157,60 @@ select_mosaic_shim_target() {
 write_last_socket_path() {
   local socket_path="$1"
   local marker_name="dev-last-socket-path"
-  local tmp_marker="/tmp/mosaic-dev-last-socket-path"
+  local tmp_marker="/tmp/coterm-dev-last-socket-path"
   local bundle_id="${BUNDLE_ID:-}"
   local slug=""
 
   case "$bundle_id" in
-    mosaic.com.emergent.app)
+    coterm.com.emergent.app)
       marker_name="last-socket-path"
-      tmp_marker="/tmp/mosaic-last-socket-path"
+      tmp_marker="/tmp/coterm-last-socket-path"
       ;;
-    mosaic.com.emergent.app.nightly)
+    coterm.com.emergent.app.nightly)
       marker_name="nightly-last-socket-path"
-      tmp_marker="/tmp/mosaic-nightly-last-socket-path"
+      tmp_marker="/tmp/coterm-nightly-last-socket-path"
       ;;
-    mosaic.com.emergent.app.nightly.*)
-      slug="$(sanitize_path "${bundle_id#mosaic.com.emergent.app.nightly.}")"
+    coterm.com.emergent.app.nightly.*)
+      slug="$(sanitize_path "${bundle_id#coterm.com.emergent.app.nightly.}")"
       if [[ -n "$slug" ]]; then
         marker_name="nightly-${slug}-last-socket-path"
-        tmp_marker="/tmp/mosaic-nightly-${slug}-last-socket-path"
+        tmp_marker="/tmp/coterm-nightly-${slug}-last-socket-path"
       else
         marker_name="nightly-last-socket-path"
-        tmp_marker="/tmp/mosaic-nightly-last-socket-path"
+        tmp_marker="/tmp/coterm-nightly-last-socket-path"
       fi
       ;;
-    mosaic.com.emergent.app.staging)
+    coterm.com.emergent.app.staging)
       marker_name="staging-last-socket-path"
-      tmp_marker="/tmp/mosaic-staging-last-socket-path"
+      tmp_marker="/tmp/coterm-staging-last-socket-path"
       ;;
-    mosaic.com.emergent.app.staging.*)
-      slug="$(sanitize_path "${bundle_id#mosaic.com.emergent.app.staging.}")"
+    coterm.com.emergent.app.staging.*)
+      slug="$(sanitize_path "${bundle_id#coterm.com.emergent.app.staging.}")"
       if [[ -n "$slug" ]]; then
         marker_name="staging-${slug}-last-socket-path"
-        tmp_marker="/tmp/mosaic-staging-${slug}-last-socket-path"
+        tmp_marker="/tmp/coterm-staging-${slug}-last-socket-path"
       else
         marker_name="staging-last-socket-path"
-        tmp_marker="/tmp/mosaic-staging-last-socket-path"
+        tmp_marker="/tmp/coterm-staging-last-socket-path"
       fi
       ;;
-    mosaic.com.emergent.app.debug)
+    coterm.com.emergent.app.debug)
       slug="${TAG_SLUG:-}"
       if [[ -n "$slug" ]]; then
         marker_name="dev-${slug}-last-socket-path"
-        tmp_marker="/tmp/mosaic-dev-${slug}-last-socket-path"
+        tmp_marker="/tmp/coterm-dev-${slug}-last-socket-path"
       fi
       ;;
-    mosaic.com.emergent.app.debug.*)
-      slug="$(sanitize_path "${bundle_id#mosaic.com.emergent.app.debug.}")"
+    coterm.com.emergent.app.debug.*)
+      slug="$(sanitize_path "${bundle_id#coterm.com.emergent.app.debug.}")"
       if [[ -n "$slug" ]]; then
         marker_name="dev-${slug}-last-socket-path"
-        tmp_marker="/tmp/mosaic-dev-${slug}-last-socket-path"
+        tmp_marker="/tmp/coterm-dev-${slug}-last-socket-path"
       fi
       ;;
     *)
       marker_name="last-socket-path"
-      tmp_marker="/tmp/mosaic-last-socket-path"
+      tmp_marker="/tmp/coterm-last-socket-path"
       ;;
   esac
 
@@ -237,7 +237,7 @@ Options:
                          Work around Swift arm64 frontend spins for this reload
                          only by disabling batch mode, debug symbol emission,
                          and AArch64 GlobalISel. Also enabled by
-                         MOSAIC_SWIFT_FRONTEND_WORKAROUND=1.
+                         COTERM_SWIFT_FRONTEND_WORKAROUND=1.
   --swift-disable-global-isel
                          Alias for --swift-frontend-workaround.
   -h, --help             Show this help.
@@ -275,9 +275,9 @@ is_positive_integer() {
   (( numeric > 0 ))
 }
 
-choose_mosaic_dev_port() {
-  if is_valid_port "${MOSAIC_PORT:-}"; then
-    echo "$MOSAIC_PORT"
+choose_coterm_dev_port() {
+  if is_valid_port "${COTERM_PORT:-}"; then
+    echo "$COTERM_PORT"
     return 0
   fi
   if is_valid_port "${PORT:-}"; then
@@ -287,19 +287,19 @@ choose_mosaic_dev_port() {
   echo "3777"
 }
 
-choose_mosaic_dev_port_range() {
-  if is_positive_integer "${MOSAIC_PORT_RANGE:-}"; then
-    echo "$MOSAIC_PORT_RANGE"
+choose_coterm_dev_port_range() {
+  if is_positive_integer "${COTERM_PORT_RANGE:-}"; then
+    echo "$COTERM_PORT_RANGE"
     return 0
   fi
   echo "1"
 }
 
-choose_mosaic_dev_port_end() {
+choose_coterm_dev_port_end() {
   local start="$1"
   local range="$2"
-  if is_valid_port "${MOSAIC_PORT_END:-}"; then
-    echo "$MOSAIC_PORT_END"
+  if is_valid_port "${COTERM_PORT_END:-}"; then
+    echo "$COTERM_PORT_END"
     return 0
   fi
   local start_num=$((10#$start))
@@ -328,7 +328,7 @@ set_plist_url_scheme() {
 
 tagged_derived_data_path() {
   local slug="$1"
-  echo "$HOME/Library/Developer/Xcode/DerivedData/mosaic-${slug}"
+  echo "$HOME/Library/Developer/Xcode/DerivedData/coterm-${slug}"
 }
 
 remove_app_bundle_output() {
@@ -388,10 +388,10 @@ print_tag_cleanup_reminder() {
   local -a stale_tags=()
 
   while IFS= read -r -d '' path; do
-    if [[ "$path" == /tmp/mosaic-* ]]; then
-      tag="${path#/tmp/mosaic-}"
-    elif [[ "$path" == "$HOME/Library/Developer/Xcode/DerivedData/mosaic-"* ]]; then
-      tag="${path#$HOME/Library/Developer/Xcode/DerivedData/mosaic-}"
+    if [[ "$path" == /tmp/coterm-* ]]; then
+      tag="${path#/tmp/coterm-}"
+    elif [[ "$path" == "$HOME/Library/Developer/Xcode/DerivedData/coterm-"* ]]; then
+      tag="${path#$HOME/Library/Developer/Xcode/DerivedData/coterm-}"
     else
       continue
     fi
@@ -408,8 +408,8 @@ print_tag_cleanup_reminder() {
     seen="${seen}${tag} "
     stale_tags+=("$tag")
   done < <(
-    find /tmp -maxdepth 1 -name 'mosaic-*' -print0 2>/dev/null
-    find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name 'mosaic-*' -print0 2>/dev/null
+    find /tmp -maxdepth 1 -name 'coterm-*' -print0 2>/dev/null
+    find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name 'coterm-*' -print0 2>/dev/null
   )
 
   echo
@@ -425,17 +425,17 @@ print_tag_cleanup_reminder() {
     done
     echo "Cleanup stale tags only:"
     for tag in "${stale_tags[@]}"; do
-      echo "  pkill -f \"Mosaic DEV ${tag}.app/Contents/MacOS/Mosaic DEV\""
-      echo "  rm -rf \"$(tagged_derived_data_path "$tag")\" \"/tmp/mosaic-${tag}\" \"/tmp/mosaic-debug-${tag}.sock\""
-      echo "  rm -f \"/tmp/mosaic-debug-${tag}.log\""
-      echo "  rm -f \"$HOME/Library/Application Support/mosaic/mosaicd-dev-${tag}.sock\""
+      echo "  pkill -f \"Coterm DEV ${tag}.app/Contents/MacOS/Coterm DEV\""
+      echo "  rm -rf \"$(tagged_derived_data_path "$tag")\" \"/tmp/coterm-${tag}\" \"/tmp/coterm-debug-${tag}.sock\""
+      echo "  rm -f \"/tmp/coterm-debug-${tag}.log\""
+      echo "  rm -f \"$HOME/Library/Application Support/coterm/cotermd-dev-${tag}.sock\""
     done
   fi
   echo "After you verify current tag, cleanup command:"
-  echo "  pkill -f \"Mosaic DEV ${current_slug}.app/Contents/MacOS/Mosaic DEV\""
-  echo "  rm -rf \"$(tagged_derived_data_path "$current_slug")\" \"/tmp/mosaic-${current_slug}\" \"/tmp/mosaic-debug-${current_slug}.sock\""
-  echo "  rm -f \"/tmp/mosaic-debug-${current_slug}.log\""
-  echo "  rm -f \"$HOME/Library/Application Support/mosaic/mosaicd-dev-${current_slug}.sock\""
+  echo "  pkill -f \"Coterm DEV ${current_slug}.app/Contents/MacOS/Coterm DEV\""
+  echo "  rm -rf \"$(tagged_derived_data_path "$current_slug")\" \"/tmp/coterm-${current_slug}\" \"/tmp/coterm-debug-${current_slug}.sock\""
+  echo "  rm -f \"/tmp/coterm-debug-${current_slug}.log\""
+  echo "  rm -f \"$HOME/Library/Application Support/coterm/cotermd-dev-${current_slug}.sock\""
 }
 
 while [[ $# -gt 0 ]]; do
@@ -513,25 +513,25 @@ if [[ -n "$TAG" ]]; then
     exit 1
   fi
   if [[ "$NAME_SET" -eq 0 ]]; then
-    APP_NAME="Mosaic DEV ${TAG_SLUG}"
+    APP_NAME="Coterm DEV ${TAG_SLUG}"
   fi
   if [[ "$BUNDLE_SET" -eq 0 ]]; then
-    BUNDLE_ID="mosaic.com.emergent.app.debug.${TAG_ID}"
+    BUNDLE_ID="coterm.com.emergent.app.debug.${TAG_ID}"
   fi
   if [[ "$DERIVED_SET" -eq 0 ]]; then
     DERIVED_DATA="$(tagged_derived_data_path "$TAG_SLUG")"
   fi
 fi
 
-MOSAIC_DEV_PORT="$(choose_mosaic_dev_port)"
-MOSAIC_DEV_PORT_RANGE="$(choose_mosaic_dev_port_range)"
-MOSAIC_DEV_PORT_END="$(choose_mosaic_dev_port_end "$MOSAIC_DEV_PORT" "$MOSAIC_DEV_PORT_RANGE")"
-MOSAIC_DEV_ORIGIN="http://localhost:${MOSAIC_DEV_PORT}"
+COTERM_DEV_PORT="$(choose_coterm_dev_port)"
+COTERM_DEV_PORT_RANGE="$(choose_coterm_dev_port_range)"
+COTERM_DEV_PORT_END="$(choose_coterm_dev_port_end "$COTERM_DEV_PORT" "$COTERM_DEV_PORT_RANGE")"
+COTERM_DEV_ORIGIN="http://localhost:${COTERM_DEV_PORT}"
 
 # Quiet logging: capture all noisy build output (xcodebuild, zig, codesign,
 # plistbuddy, etc.) to a single log file. On success we print only a one-line
 # summary plus the App/CLI paths. On failure we dump the log.
-RELOAD_LOG="/tmp/mosaic-reload-${TAG_SLUG}.log"
+RELOAD_LOG="/tmp/coterm-reload-${TAG_SLUG}.log"
 RELOAD_START_TIME="$(date +%s)"
 : > "$RELOAD_LOG"
 
@@ -585,15 +585,15 @@ reload_finalize() {
     echo "App path:"
     echo "  $APP_PATH"
   fi
-  if [[ -n "${MOSAIC_DEV_ORIGIN:-}" ]]; then
+  if [[ -n "${COTERM_DEV_ORIGIN:-}" ]]; then
     echo
     echo "Dev web origin:"
-    echo "  $MOSAIC_DEV_ORIGIN"
+    echo "  $COTERM_DEV_ORIGIN"
     if [[ -n "${TAG_SLUG:-}" ]]; then
-      AUTH_WWW_HINT="${MOSAIC_AUTH_WWW_ORIGIN:-$MOSAIC_DEV_ORIGIN}"
+      AUTH_WWW_HINT="${COTERM_AUTH_WWW_ORIGIN:-$COTERM_DEV_ORIGIN}"
       echo "Dev web command:"
       echo "  cd ../www && NEXT_PUBLIC_APP_URL=$AUTH_WWW_HINT pnpm dev"
-      echo "  # Ensure ../www/.env has Clerk keys and MOSAIC_NATIVE_AUTH_SECRET; native callback scheme: mosaic-dev-$TAG_SLUG"
+      echo "  # Ensure ../www/.env has Clerk keys and COTERM_NATIVE_AUTH_SECRET; native callback scheme: coterm-dev-$TAG_SLUG"
     fi
   fi
   if [[ -x "${CLI_PATH:-}" ]]; then
@@ -601,12 +601,12 @@ reload_finalize() {
     echo "CLI path:"
     echo "  $CLI_PATH"
     echo "CLI helpers:"
-    echo "  /tmp/mosaic-cli ..."
-    echo "  $HOME/.local/bin/mosaic-dev ..."
-    if [[ -n "${MOSAIC_SHIM_TARGET:-}" ]]; then
-      echo "  $MOSAIC_SHIM_TARGET ..."
+    echo "  /tmp/coterm-cli ..."
+    echo "  $HOME/.local/bin/coterm-dev ..."
+    if [[ -n "${COTERM_SHIM_TARGET:-}" ]]; then
+      echo "  $COTERM_SHIM_TARGET ..."
     fi
-    echo "If your shell still resolves the old mosaic, run: rehash"
+    echo "If your shell still resolves the old coterm, run: rehash"
   fi
   if [[ "${SWIFT_FRONTEND_WORKAROUND_EFFECTIVE:-0}" -eq 1 ]]; then
     echo
@@ -623,33 +623,33 @@ trap reload_finalize EXIT
 # Tell the user we're starting (visible even though body output is redirected).
 echo "==> reload starting (tag: ${TAG}, log: ${RELOAD_LOG})" >&3
 
-if [[ "${MOSAIC_DEV_FAST_RELOAD:-}" == "1" ]]; then
-  echo "==> fast reload path enabled (MOSAIC_DEV_FAST_RELOAD=1)"
-  export MOSAIC_SKIP_ZIG_BUILD=1
-  export MOSAIC_SKIP_MOSAICD_BUILD=1
-  export MOSAIC_RETAG_IN_PLACE=1
+if [[ "${COTERM_DEV_FAST_RELOAD:-}" == "1" ]]; then
+  echo "==> fast reload path enabled (COTERM_DEV_FAST_RELOAD=1)"
+  export COTERM_SKIP_ZIG_BUILD=1
+  export COTERM_SKIP_COTERMD_BUILD=1
+  export COTERM_RETAG_IN_PLACE=1
 fi
 
 "$PWD/scripts/ensure-ghosttykit.sh"
 
 if should_skip_ghostty_cli_helper_zig_build; then
-  export MOSAIC_SKIP_ZIG_BUILD=1
+  export COTERM_SKIP_ZIG_BUILD=1
 fi
 
 XCODEBUILD_ARGS=(
-  -project mosaic.xcodeproj
-  -scheme mosaic
+  -project coterm.xcodeproj
+  -scheme coterm
   -configuration Debug
   -destination 'platform=macOS'
 )
 if [[ -n "$DERIVED_DATA" ]]; then
   XCODEBUILD_ARGS+=(-derivedDataPath "$DERIVED_DATA")
 fi
-if [[ -n "${MOSAIC_SOURCE_PACKAGES_DIR:-}" ]]; then
-  mkdir -p "$MOSAIC_SOURCE_PACKAGES_DIR"
-  XCODEBUILD_ARGS+=(-clonedSourcePackagesDirPath "$MOSAIC_SOURCE_PACKAGES_DIR")
+if [[ -n "${COTERM_SOURCE_PACKAGES_DIR:-}" ]]; then
+  mkdir -p "$COTERM_SOURCE_PACKAGES_DIR"
+  XCODEBUILD_ARGS+=(-clonedSourcePackagesDirPath "$COTERM_SOURCE_PACKAGES_DIR")
 fi
-if [[ "${MOSAIC_DISABLE_AUTOMATIC_PACKAGE_RESOLUTION:-}" == "1" ]]; then
+if [[ "${COTERM_DISABLE_AUTOMATIC_PACKAGE_RESOLUTION:-}" == "1" ]]; then
   XCODEBUILD_ARGS+=(-disableAutomaticPackageResolution)
 fi
 if [[ -z "$TAG" ]]; then
@@ -663,13 +663,13 @@ XCODEBUILD_ARGS+=(PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID")
 # their tagged sample extensions) don't share one point. The host bundle declares
 # the point under Contents/Extensions, and Info.plist carries the same identifier.
 if [[ -n "$TAG" ]]; then
-  XCODEBUILD_ARGS+=(MOSAIC_SIDEBAR_EXTENSION_POINT_ID="${BUNDLE_ID}.mosaic.sidebar")
+  XCODEBUILD_ARGS+=(COTERM_SIDEBAR_EXTENSION_POINT_ID="${BUNDLE_ID}.coterm.sidebar")
 fi
-# Forward explicit MOSAIC_SKIP_ZIG_BUILD to xcodebuild run script phases.
-if [[ "${MOSAIC_SKIP_ZIG_BUILD:-}" == "1" ]]; then
-  XCODEBUILD_ARGS+=(MOSAIC_SKIP_ZIG_BUILD=1)
+# Forward explicit COTERM_SKIP_ZIG_BUILD to xcodebuild run script phases.
+if [[ "${COTERM_SKIP_ZIG_BUILD:-}" == "1" ]]; then
+  XCODEBUILD_ARGS+=(COTERM_SKIP_ZIG_BUILD=1)
 fi
-if [[ "$SWIFT_FRONTEND_WORKAROUND" -eq 1 || "${MOSAIC_SWIFT_FRONTEND_WORKAROUND:-}" == "1" || "${MOSAIC_SWIFT_DISABLE_GLOBAL_ISEL:-}" == "1" ]]; then
+if [[ "$SWIFT_FRONTEND_WORKAROUND" -eq 1 || "${COTERM_SWIFT_FRONTEND_WORKAROUND:-}" == "1" || "${COTERM_SWIFT_DISABLE_GLOBAL_ISEL:-}" == "1" ]]; then
   SWIFT_FRONTEND_WORKAROUND_EFFECTIVE=1
   echo "==> Swift frontend workaround enabled for this reload"
   XCODEBUILD_ARGS+=(SWIFT_ENABLE_BATCH_MODE=NO)
@@ -687,13 +687,13 @@ if [[ -n "$BUILD_PRODUCTS_DEBUG_DIR" ]]; then
   XCODEBUILD_CLEANED_OUTPUTS=0
 fi
 
-XCODEBUILD_LOCK_DIR="${TMPDIR:-/tmp}/mosaic-xcodebuild-$(id -u).locks"
-XCODEBUILD_LOCK_CONCURRENCY="${MOSAIC_XCODEBUILD_LOCK_CONCURRENCY:-5}"
+XCODEBUILD_LOCK_DIR="${TMPDIR:-/tmp}/coterm-xcodebuild-$(id -u).locks"
+XCODEBUILD_LOCK_CONCURRENCY="${COTERM_XCODEBUILD_LOCK_CONCURRENCY:-5}"
 if ! is_positive_integer "$XCODEBUILD_LOCK_CONCURRENCY"; then
   echo "error: xcodebuild lock concurrency must be a positive integer" >&2
   exit 1
 fi
-XCODEBUILD_LOCK_WAIT_SECONDS="${MOSAIC_XCODEBUILD_LOCK_WAIT_SECONDS:-1800}"
+XCODEBUILD_LOCK_WAIT_SECONDS="${COTERM_XCODEBUILD_LOCK_WAIT_SECONDS:-1800}"
 if ! is_positive_integer "$XCODEBUILD_LOCK_WAIT_SECONDS"; then
   echo "error: xcodebuild lock wait timeout must be a positive integer" >&2
   exit 1
@@ -893,7 +893,7 @@ validate_app_bundle "$APP_PATH" "$APP_EXECUTABLE_NAME"
 XCODEBUILD_OUTPUT_VALID=1
 
 if [[ -n "${TAG_SLUG:-}" ]]; then
-  TMP_COMPAT_DERIVED_LINK="/tmp/mosaic-${TAG_SLUG}"
+  TMP_COMPAT_DERIVED_LINK="/tmp/coterm-${TAG_SLUG}"
   if [[ "$DERIVED_DATA" != "$TMP_COMPAT_DERIVED_LINK" ]]; then
     ABS_DERIVED_DATA="$(cd "$DERIVED_DATA" && pwd)"
     rm -rf "$TMP_COMPAT_DERIVED_LINK"
@@ -904,8 +904,8 @@ fi
 if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
   TAG_APP_FINAL_PATH="$(dirname "$APP_PATH")/${APP_NAME}.app"
   TAG_APP_STAGING_PATH="$(dirname "$APP_PATH")/.${APP_NAME}.reload-$$.app"
-  if [[ "${MOSAIC_RETAG_IN_PLACE:-}" == "1" ]]; then
-    echo "==> retagging Xcode-built app in place (MOSAIC_RETAG_IN_PLACE=1)"
+  if [[ "${COTERM_RETAG_IN_PLACE:-}" == "1" ]]; then
+    echo "==> retagging Xcode-built app in place (COTERM_RETAG_IN_PLACE=1)"
     TAG_APP_FINAL_PATH="$APP_PATH"
     TAG_APP_STAGING_PATH=""
   else
@@ -914,7 +914,7 @@ if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
     APP_PATH="$TAG_APP_STAGING_PATH"
   fi
   INFO_PLIST="$TAG_APP_STAGING_PATH/Contents/Info.plist"
-  if [[ "${MOSAIC_RETAG_IN_PLACE:-}" == "1" ]]; then
+  if [[ "${COTERM_RETAG_IN_PLACE:-}" == "1" ]]; then
     INFO_PLIST="$APP_PATH/Contents/Info.plist"
   fi
   if [[ -f "$INFO_PLIST" ]]; then
@@ -925,76 +925,76 @@ if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
     /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" "$INFO_PLIST" 2>/dev/null \
       || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string $BUNDLE_ID" "$INFO_PLIST"
     if [[ -n "${TAG_SLUG:-}" ]]; then
-      APP_SUPPORT_DIR="$HOME/Library/Application Support/mosaic"
-      MOSAICD_SOCKET="${APP_SUPPORT_DIR}/mosaicd-dev-${TAG_SLUG}.sock"
-      MOSAIC_SOCKET_PATH_VALUE="/tmp/mosaic-debug-${TAG_SLUG}.sock"
-      MOSAIC_DEBUG_LOG="/tmp/mosaic-debug-${TAG_SLUG}.log"
-      MOSAIC_AUTH_CALLBACK_SCHEME_VALUE="mosaic-dev-${TAG_SLUG}"
-      write_last_socket_path "$MOSAIC_SOCKET_PATH_VALUE"
-      echo "$MOSAIC_DEBUG_LOG" > /tmp/mosaic-last-debug-log-path || true
+      APP_SUPPORT_DIR="$HOME/Library/Application Support/coterm"
+      COTERMD_SOCKET="${APP_SUPPORT_DIR}/cotermd-dev-${TAG_SLUG}.sock"
+      COTERM_SOCKET_PATH_VALUE="/tmp/coterm-debug-${TAG_SLUG}.sock"
+      COTERM_DEBUG_LOG="/tmp/coterm-debug-${TAG_SLUG}.log"
+      COTERM_AUTH_CALLBACK_SCHEME_VALUE="coterm-dev-${TAG_SLUG}"
+      write_last_socket_path "$COTERM_SOCKET_PATH_VALUE"
+      echo "$COTERM_DEBUG_LOG" > /tmp/coterm-last-debug-log-path || true
       /usr/libexec/PlistBuddy -c "Add :LSEnvironment dict" "$INFO_PLIST" 2>/dev/null || true
-      set_plist_url_scheme "$INFO_PLIST" "$MOSAIC_AUTH_CALLBACK_SCHEME_VALUE"
-      set_plist_env "$INFO_PLIST" MOSAIC_BUNDLE_ID "$BUNDLE_ID"
-      set_plist_env "$INFO_PLIST" MOSAICD_UNIX_PATH "$MOSAICD_SOCKET"
-      set_plist_env "$INFO_PLIST" MOSAIC_SOCKET_PATH "$MOSAIC_SOCKET_PATH_VALUE"
-      set_plist_env "$INFO_PLIST" MOSAIC_DEBUG_LOG "$MOSAIC_DEBUG_LOG"
-      set_plist_env "$INFO_PLIST" MOSAIC_TAG "$TAG_SLUG"
-      set_plist_env "$INFO_PLIST" MOSAIC_AUTH_CALLBACK_SCHEME "$MOSAIC_AUTH_CALLBACK_SCHEME_VALUE"
-      set_plist_env "$INFO_PLIST" MOSAIC_SOCKET_ENABLE "1"
-      set_plist_env "$INFO_PLIST" MOSAIC_SOCKET_MODE "allowAll"
-      set_plist_env "$INFO_PLIST" MOSAIC_REMOTE_DAEMON_ALLOW_LOCAL_BUILD "1"
-      set_plist_env "$INFO_PLIST" MOSAICTERM_REPO_ROOT "$PWD"
-      set_plist_env "$INFO_PLIST" MOSAIC_BUNDLED_CLI_PATH "$TAG_APP_FINAL_PATH/Contents/Resources/bin/mosaic"
-      set_plist_env "$INFO_PLIST" MOSAIC_SHELL_INTEGRATION_DIR "$TAG_APP_FINAL_PATH/Contents/Resources/shell-integration"
-      set_plist_env "$INFO_PLIST" MOSAIC_PORT "$MOSAIC_DEV_PORT"
-      set_plist_env "$INFO_PLIST" MOSAIC_PORT_END "$MOSAIC_DEV_PORT_END"
-      set_plist_env "$INFO_PLIST" MOSAIC_PORT_RANGE "$MOSAIC_DEV_PORT_RANGE"
-      set_plist_env "$INFO_PLIST" PORT "$MOSAIC_DEV_PORT"
-      set_plist_env "$INFO_PLIST" MOSAIC_VM_API_BASE_URL "$MOSAIC_DEV_ORIGIN"
-      if [[ -n "${MOSAIC_AUTH_WWW_ORIGIN:-}" ]]; then
-        set_plist_env "$INFO_PLIST" MOSAIC_AUTH_WWW_ORIGIN "$MOSAIC_AUTH_WWW_ORIGIN"
+      set_plist_url_scheme "$INFO_PLIST" "$COTERM_AUTH_CALLBACK_SCHEME_VALUE"
+      set_plist_env "$INFO_PLIST" COTERM_BUNDLE_ID "$BUNDLE_ID"
+      set_plist_env "$INFO_PLIST" COTERMD_UNIX_PATH "$COTERMD_SOCKET"
+      set_plist_env "$INFO_PLIST" COTERM_SOCKET_PATH "$COTERM_SOCKET_PATH_VALUE"
+      set_plist_env "$INFO_PLIST" COTERM_DEBUG_LOG "$COTERM_DEBUG_LOG"
+      set_plist_env "$INFO_PLIST" COTERM_TAG "$TAG_SLUG"
+      set_plist_env "$INFO_PLIST" COTERM_AUTH_CALLBACK_SCHEME "$COTERM_AUTH_CALLBACK_SCHEME_VALUE"
+      set_plist_env "$INFO_PLIST" COTERM_SOCKET_ENABLE "1"
+      set_plist_env "$INFO_PLIST" COTERM_SOCKET_MODE "allowAll"
+      set_plist_env "$INFO_PLIST" COTERM_REMOTE_DAEMON_ALLOW_LOCAL_BUILD "1"
+      set_plist_env "$INFO_PLIST" COTERM_REPO_ROOT "$PWD"
+      set_plist_env "$INFO_PLIST" COTERM_BUNDLED_CLI_PATH "$TAG_APP_FINAL_PATH/Contents/Resources/bin/coterm"
+      set_plist_env "$INFO_PLIST" COTERM_SHELL_INTEGRATION_DIR "$TAG_APP_FINAL_PATH/Contents/Resources/shell-integration"
+      set_plist_env "$INFO_PLIST" COTERM_PORT "$COTERM_DEV_PORT"
+      set_plist_env "$INFO_PLIST" COTERM_PORT_END "$COTERM_DEV_PORT_END"
+      set_plist_env "$INFO_PLIST" COTERM_PORT_RANGE "$COTERM_DEV_PORT_RANGE"
+      set_plist_env "$INFO_PLIST" PORT "$COTERM_DEV_PORT"
+      set_plist_env "$INFO_PLIST" COTERM_VM_API_BASE_URL "$COTERM_DEV_ORIGIN"
+      if [[ -n "${COTERM_AUTH_WWW_ORIGIN:-}" ]]; then
+        set_plist_env "$INFO_PLIST" COTERM_AUTH_WWW_ORIGIN "$COTERM_AUTH_WWW_ORIGIN"
       fi
-      if [[ -n "${MOSAIC_API_BASE_URL:-}" ]]; then
-        set_plist_env "$INFO_PLIST" MOSAIC_API_BASE_URL "$MOSAIC_API_BASE_URL"
+      if [[ -n "${COTERM_API_BASE_URL:-}" ]]; then
+        set_plist_env "$INFO_PLIST" COTERM_API_BASE_URL "$COTERM_API_BASE_URL"
       fi
-      if [[ -S "$MOSAICD_SOCKET" ]]; then
-        for PID in $(lsof -t "$MOSAICD_SOCKET" 2>/dev/null); do
+      if [[ -S "$COTERMD_SOCKET" ]]; then
+        for PID in $(lsof -t "$COTERMD_SOCKET" 2>/dev/null); do
           kill "$PID" 2>/dev/null || true
         done
-        rm -f "$MOSAICD_SOCKET"
+        rm -f "$COTERMD_SOCKET"
       fi
-      if [[ -S "$MOSAIC_SOCKET_PATH_VALUE" ]]; then
-        rm -f "$MOSAIC_SOCKET_PATH_VALUE"
+      if [[ -S "$COTERM_SOCKET_PATH_VALUE" ]]; then
+        rm -f "$COTERM_SOCKET_PATH_VALUE"
       fi
     fi
   fi
 fi
 
-CLI_PATH="$(dirname "$APP_PATH")/mosaic"
+CLI_PATH="$(dirname "$APP_PATH")/coterm"
 if [[ -x "$CLI_PATH" ]]; then
-  (umask 077; printf '%s\n' "$CLI_PATH" > /tmp/mosaic-last-cli-path) || true
-  ln -sfn "$CLI_PATH" /tmp/mosaic-cli || true
+  (umask 077; printf '%s\n' "$CLI_PATH" > /tmp/coterm-last-cli-path) || true
+  ln -sfn "$CLI_PATH" /tmp/coterm-cli || true
 
   # Stable shim that always follows the last reload-selected dev CLI.
-  DEV_CLI_SHIM="$HOME/.local/bin/mosaic-dev"
-  write_dev_cli_shim "$DEV_CLI_SHIM" "/Applications/Mosaic.app/Contents/Resources/bin/mosaic"
+  DEV_CLI_SHIM="$HOME/.local/bin/coterm-dev"
+  write_dev_cli_shim "$DEV_CLI_SHIM" "/Applications/Coterm.app/Contents/Resources/bin/coterm"
 
-  MOSAIC_SHIM_TARGET="$(select_mosaic_shim_target || true)"
-  if [[ -n "${MOSAIC_SHIM_TARGET:-}" ]]; then
-    write_dev_cli_shim "$MOSAIC_SHIM_TARGET" "/Applications/Mosaic.app/Contents/Resources/bin/mosaic"
+  COTERM_SHIM_TARGET="$(select_coterm_shim_target || true)"
+  if [[ -n "${COTERM_SHIM_TARGET:-}" ]]; then
+    write_dev_cli_shim "$COTERM_SHIM_TARGET" "/Applications/Coterm.app/Contents/Resources/bin/coterm"
   fi
 fi
 
-# Build mosaicd and ensure helper binaries are present (needed for both launch and no-launch).
-MOSAICD_SRC="$PWD/mosaicd/zig-out/bin/mosaicd"
-if [[ -d "$PWD/mosaicd" ]]; then
-  if [[ "${MOSAIC_SKIP_MOSAICD_BUILD:-}" == "1" && -x "$MOSAICD_SRC" ]]; then
-    echo "Reusing existing mosaicd at $MOSAICD_SRC (MOSAIC_SKIP_MOSAICD_BUILD=1)"
+# Build cotermd and ensure helper binaries are present (needed for both launch and no-launch).
+COTERMD_SRC="$PWD/cotermd/zig-out/bin/cotermd"
+if [[ -d "$PWD/cotermd" ]]; then
+  if [[ "${COTERM_SKIP_COTERMD_BUILD:-}" == "1" && -x "$COTERMD_SRC" ]]; then
+    echo "Reusing existing cotermd at $COTERMD_SRC (COTERM_SKIP_COTERMD_BUILD=1)"
   else
-    if [[ "${MOSAIC_SKIP_MOSAICD_BUILD:-}" == "1" ]]; then
-      echo "mosaicd output missing; building once despite MOSAIC_SKIP_MOSAICD_BUILD=1"
+    if [[ "${COTERM_SKIP_COTERMD_BUILD:-}" == "1" ]]; then
+      echo "cotermd output missing; building once despite COTERM_SKIP_COTERMD_BUILD=1"
     fi
-    (cd "$PWD/mosaicd" && zig build -Doptimize=ReleaseFast)
+    (cd "$PWD/cotermd" && zig build -Doptimize=ReleaseFast)
   fi
 fi
 if [[ -d "$PWD/ghostty" ]]; then
@@ -1002,25 +1002,25 @@ if [[ -d "$PWD/ghostty" ]]; then
   GHOSTTY_HELPER_DEST="$BIN_DIR/ghostty"
   if [[ -x "$GHOSTTY_HELPER_DEST" ]]; then
     echo "Preserving Xcode-built ghostty CLI helper at $GHOSTTY_HELPER_DEST"
-  elif [[ "${MOSAIC_SKIP_ZIG_BUILD:-}" == "1" ]]; then
-    echo "Skipping direct ghostty CLI helper zig build (MOSAIC_SKIP_ZIG_BUILD=1)"
+  elif [[ "${COTERM_SKIP_ZIG_BUILD:-}" == "1" ]]; then
+    echo "Skipping direct ghostty CLI helper zig build (COTERM_SKIP_ZIG_BUILD=1)"
   else
     mkdir -p "$BIN_DIR"
     "$PWD/scripts/build-ghostty-cli-helper.sh" --output "$GHOSTTY_HELPER_DEST"
   fi
 fi
-if [[ -x "$MOSAICD_SRC" ]]; then
+if [[ -x "$COTERMD_SRC" ]]; then
   BIN_DIR="$APP_PATH/Contents/Resources/bin"
   mkdir -p "$BIN_DIR"
-  cp "$MOSAICD_SRC" "$BIN_DIR/mosaicd"
-  chmod +x "$BIN_DIR/mosaicd"
+  cp "$COTERMD_SRC" "$BIN_DIR/cotermd"
+  chmod +x "$BIN_DIR/cotermd"
 fi
 if command -v xattr >/dev/null 2>&1; then
   xattr -cr "$APP_PATH" || true
 fi
 if ! /usr/bin/codesign --force --sign - --timestamp=none --generate-entitlement-der "$APP_PATH" >/dev/null 2>&1; then
-  if [[ "${MOSAIC_ALLOW_UNSIGNED_DEV_APP:-}" == "1" ]]; then
-    echo "warning: codesign failed for $APP_PATH; continuing because MOSAIC_ALLOW_UNSIGNED_DEV_APP=1" >&2
+  if [[ "${COTERM_ALLOW_UNSIGNED_DEV_APP:-}" == "1" ]]; then
+    echo "warning: codesign failed for $APP_PATH; continuing because COTERM_ALLOW_UNSIGNED_DEV_APP=1" >&2
   else
     echo "error: codesign failed for $APP_PATH" >&2
     exit 1
@@ -1031,10 +1031,10 @@ if [[ -n "${TAG_APP_FINAL_PATH:-}" && -n "${TAG_APP_STAGING_PATH:-}" ]]; then
   mv "$TAG_APP_STAGING_PATH" "$TAG_APP_FINAL_PATH"
   APP_PATH="$TAG_APP_FINAL_PATH"
 fi
-CLI_PATH="$APP_PATH/Contents/Resources/bin/mosaic"
+CLI_PATH="$APP_PATH/Contents/Resources/bin/coterm"
 if [[ -x "$CLI_PATH" ]]; then
-  echo "$CLI_PATH" > /tmp/mosaic-last-cli-path || true
-  ln -sfn "$CLI_PATH" /tmp/mosaic-cli || true
+  echo "$CLI_PATH" > /tmp/coterm-last-cli-path || true
+  ln -sfn "$CLI_PATH" /tmp/coterm-cli || true
 fi
 
 # Tag mode: always terminate the existing same-tag instance after a successful build,
@@ -1057,32 +1057,32 @@ if [[ "$LAUNCH" -eq 1 ]]; then
     sleep 0.3
   fi
 
-  # Avoid inheriting mosaic/ghostty environment variables from the terminal that
-  # runs this script (often inside another mosaic instance), which can cause
+  # Avoid inheriting coterm/ghostty environment variables from the terminal that
+  # runs this script (often inside another coterm instance), which can cause
   # socket and resource-path conflicts.
   OPEN_CLEAN_ENV=(
     env
-    -u MOSAIC_SOCKET
-    -u MOSAIC_SOCKET_PASSWORD
-    -u MOSAIC_SOCKET_PATH
-    -u MOSAIC_WORKSPACE_ID
-    -u MOSAIC_SURFACE_ID
-    -u MOSAIC_TAB_ID
-    -u MOSAIC_PANEL_ID
-    -u MOSAICD_UNIX_PATH
-    -u MOSAIC_TAG
-    -u MOSAIC_DEBUG_LOG
-    -u MOSAIC_BUNDLE_ID
-    -u MOSAIC_BUNDLED_CLI_PATH
-    -u MOSAIC_SHELL_INTEGRATION
-    -u MOSAIC_SHELL_INTEGRATION_DIR
-    -u MOSAIC_LOAD_GHOSTTY_ZSH_INTEGRATION
+    -u COTERM_SOCKET
+    -u COTERM_SOCKET_PASSWORD
+    -u COTERM_SOCKET_PATH
+    -u COTERM_WORKSPACE_ID
+    -u COTERM_SURFACE_ID
+    -u COTERM_TAB_ID
+    -u COTERM_PANEL_ID
+    -u COTERMD_UNIX_PATH
+    -u COTERM_TAG
+    -u COTERM_DEBUG_LOG
+    -u COTERM_BUNDLE_ID
+    -u COTERM_BUNDLED_CLI_PATH
+    -u COTERM_SHELL_INTEGRATION
+    -u COTERM_SHELL_INTEGRATION_DIR
+    -u COTERM_LOAD_GHOSTTY_ZSH_INTEGRATION
     -u GHOSTTY_BIN_DIR
     -u GHOSTTY_RESOURCES_DIR
     -u GHOSTTY_SHELL_FEATURES
     -u GHOSTTY_SURFACE_ID
     # Dev shells (including CI/Codex) often force-disable paging by exporting these.
-    # Don't leak that into mosaic, otherwise `git diff` won't page even with PAGER=less.
+    # Don't leak that into coterm, otherwise `git diff` won't page even with PAGER=less.
     -u GIT_PAGER
     -u GH_PAGER
     -u TERMINFO
@@ -1090,38 +1090,38 @@ if [[ "$LAUNCH" -eq 1 ]]; then
   )
 
   # DEBUG dogfood auto-sign-in needs no env injection here: the in-app resolver
-  # reads ~/.secrets/mosaicterm-dev.env (then ~/.secrets/mosaic.env) directly on
-  # launch, which fires for every launch method including Finder / the MOSAIC Tag
+  # reads ~/.secrets/coterm-dev.env (then ~/.secrets/coterm.env) directly on
+  # launch, which fires for every launch method including Finder / the COTERM Tag
   # Opener that this script's TAG_LAUNCH_ENV never reaches. Exporting the Stack
   # password into the long-lived GUI process environment would leak it to every
   # child terminal/CLI it spawns, for zero added coverage, so we deliberately do
-  # not set MOSAIC_UITEST_STACK_* here.
-  LAUNCH_AUTH_CALLBACK_SCHEME="mosaic-dev"
+  # not set COTERM_UITEST_STACK_* here.
+  LAUNCH_AUTH_CALLBACK_SCHEME="coterm-dev"
   if [[ -n "${TAG_SLUG:-}" ]]; then
-    LAUNCH_AUTH_CALLBACK_SCHEME="mosaic-dev-${TAG_SLUG}"
+    LAUNCH_AUTH_CALLBACK_SCHEME="coterm-dev-${TAG_SLUG}"
   fi
   TAG_LAUNCH_ENV=(
-    MOSAIC_TAG="${TAG_SLUG:-}"
-    MOSAIC_BUNDLE_ID="$BUNDLE_ID"
-    MOSAIC_AUTH_CALLBACK_SCHEME="$LAUNCH_AUTH_CALLBACK_SCHEME"
-    MOSAIC_SOCKET_ENABLE=1
-    MOSAIC_SOCKET_MODE=allowAll
-    MOSAIC_DEBUG_LOG="$MOSAIC_DEBUG_LOG"
-    MOSAIC_REMOTE_DAEMON_ALLOW_LOCAL_BUILD=1
-    MOSAICTERM_REPO_ROOT="$PWD"
-    MOSAIC_BUNDLED_CLI_PATH="$CLI_PATH"
-    MOSAIC_SHELL_INTEGRATION_DIR="$APP_PATH/Contents/Resources/shell-integration"
-    MOSAIC_PORT="$MOSAIC_DEV_PORT"
-    MOSAIC_PORT_END="$MOSAIC_DEV_PORT_END"
-    MOSAIC_PORT_RANGE="$MOSAIC_DEV_PORT_RANGE"
-    PORT="$MOSAIC_DEV_PORT"
-    MOSAIC_VM_API_BASE_URL="$MOSAIC_DEV_ORIGIN"
+    COTERM_TAG="${TAG_SLUG:-}"
+    COTERM_BUNDLE_ID="$BUNDLE_ID"
+    COTERM_AUTH_CALLBACK_SCHEME="$LAUNCH_AUTH_CALLBACK_SCHEME"
+    COTERM_SOCKET_ENABLE=1
+    COTERM_SOCKET_MODE=allowAll
+    COTERM_DEBUG_LOG="$COTERM_DEBUG_LOG"
+    COTERM_REMOTE_DAEMON_ALLOW_LOCAL_BUILD=1
+    COTERM_REPO_ROOT="$PWD"
+    COTERM_BUNDLED_CLI_PATH="$CLI_PATH"
+    COTERM_SHELL_INTEGRATION_DIR="$APP_PATH/Contents/Resources/shell-integration"
+    COTERM_PORT="$COTERM_DEV_PORT"
+    COTERM_PORT_END="$COTERM_DEV_PORT_END"
+    COTERM_PORT_RANGE="$COTERM_DEV_PORT_RANGE"
+    PORT="$COTERM_DEV_PORT"
+    COTERM_VM_API_BASE_URL="$COTERM_DEV_ORIGIN"
   )
-  if [[ -n "${MOSAIC_AUTH_WWW_ORIGIN:-}" ]]; then
-    TAG_LAUNCH_ENV+=(MOSAIC_AUTH_WWW_ORIGIN="$MOSAIC_AUTH_WWW_ORIGIN")
+  if [[ -n "${COTERM_AUTH_WWW_ORIGIN:-}" ]]; then
+    TAG_LAUNCH_ENV+=(COTERM_AUTH_WWW_ORIGIN="$COTERM_AUTH_WWW_ORIGIN")
   fi
-  if [[ -n "${MOSAIC_API_BASE_URL:-}" ]]; then
-    TAG_LAUNCH_ENV+=(MOSAIC_API_BASE_URL="$MOSAIC_API_BASE_URL")
+  if [[ -n "${COTERM_API_BASE_URL:-}" ]]; then
+    TAG_LAUNCH_ENV+=(COTERM_API_BASE_URL="$COTERM_API_BASE_URL")
   fi
 
   LAUNCH_CMD=()
@@ -1134,19 +1134,19 @@ if [[ "$LAUNCH" -eq 1 ]]; then
       echo "error: tagged app executable not found: $APP_EXECUTABLE" >&2
       exit 1
     fi
-    TAG_LAUNCH_LOG="/tmp/mosaic-launch-${TAG_SLUG}.out"
-    if [[ -n "${MOSAIC_SOCKET_PATH_VALUE:-}" ]]; then
-      nohup "${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" MOSAIC_SOCKET_PATH="$MOSAIC_SOCKET_PATH_VALUE" MOSAICD_UNIX_PATH="$MOSAICD_SOCKET" "$APP_EXECUTABLE" >"$TAG_LAUNCH_LOG" 2>&1 &
+    TAG_LAUNCH_LOG="/tmp/coterm-launch-${TAG_SLUG}.out"
+    if [[ -n "${COTERM_SOCKET_PATH_VALUE:-}" ]]; then
+      nohup "${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" COTERM_SOCKET_PATH="$COTERM_SOCKET_PATH_VALUE" COTERMD_UNIX_PATH="$COTERMD_SOCKET" "$APP_EXECUTABLE" >"$TAG_LAUNCH_LOG" 2>&1 &
     else
       nohup "${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" "$APP_EXECUTABLE" >"$TAG_LAUNCH_LOG" 2>&1 &
     fi
   else
-    echo "/tmp/mosaic-debug.sock" > /tmp/mosaic-last-socket-path || true
-    echo "/tmp/mosaic-debug.log" > /tmp/mosaic-last-debug-log-path || true
-    if [[ -n "${MOSAIC_SOCKET_PATH_VALUE:-}" ]]; then
-      # Ensure explicit socket paths win even if the caller has MOSAIC_* overrides.
-      LAUNCH_CMD=("${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" MOSAIC_SOCKET_PATH="$MOSAIC_SOCKET_PATH_VALUE" MOSAICD_UNIX_PATH="$MOSAICD_SOCKET" open -g "$APP_PATH")
-      LAUNCH_RETRY_CMD=("${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" MOSAIC_SOCKET_PATH="$MOSAIC_SOCKET_PATH_VALUE" MOSAICD_UNIX_PATH="$MOSAICD_SOCKET" open -n -g "$APP_PATH")
+    echo "/tmp/coterm-debug.sock" > /tmp/coterm-last-socket-path || true
+    echo "/tmp/coterm-debug.log" > /tmp/coterm-last-debug-log-path || true
+    if [[ -n "${COTERM_SOCKET_PATH_VALUE:-}" ]]; then
+      # Ensure explicit socket paths win even if the caller has COTERM_* overrides.
+      LAUNCH_CMD=("${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" COTERM_SOCKET_PATH="$COTERM_SOCKET_PATH_VALUE" COTERMD_UNIX_PATH="$COTERMD_SOCKET" open -g "$APP_PATH")
+      LAUNCH_RETRY_CMD=("${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" COTERM_SOCKET_PATH="$COTERM_SOCKET_PATH_VALUE" COTERMD_UNIX_PATH="$COTERMD_SOCKET" open -n -g "$APP_PATH")
     else
       LAUNCH_CMD=("${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" open -g "$APP_PATH")
       LAUNCH_RETRY_CMD=("${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" open -n -g "$APP_PATH")
@@ -1185,10 +1185,10 @@ if [[ "$LAUNCH" -eq 1 ]]; then
       fi
     done
   fi
-  if [[ -n "${TAG_SLUG:-}" && -n "${MOSAIC_SOCKET_PATH_VALUE:-}" ]]; then
+  if [[ -n "${TAG_SLUG:-}" && -n "${COTERM_SOCKET_PATH_VALUE:-}" ]]; then
     SOCKET_READY=0
     for _ in {1..80}; do
-      if [[ -S "$MOSAIC_SOCKET_PATH_VALUE" ]]; then
+      if [[ -S "$COTERM_SOCKET_PATH_VALUE" ]]; then
         SOCKET_READY=1
         break
       fi
@@ -1198,7 +1198,7 @@ if [[ "$LAUNCH" -eq 1 ]]; then
       sleep 0.1
     done
     if [[ "$SOCKET_READY" -ne 1 ]]; then
-      echo "error: tagged app did not create socket: $MOSAIC_SOCKET_PATH_VALUE" >&2
+      echo "error: tagged app did not create socket: $COTERM_SOCKET_PATH_VALUE" >&2
       if [[ -n "${TAG_LAUNCH_LOG:-}" && -f "$TAG_LAUNCH_LOG" ]]; then
         echo "Launch log: $TAG_LAUNCH_LOG" >&2
         tail -n 80 "$TAG_LAUNCH_LOG" >&2 || true

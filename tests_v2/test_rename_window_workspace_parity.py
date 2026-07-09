@@ -10,63 +10,63 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
 
 def _run_cli(cli: str, args: List[str], env_overrides: Optional[Dict[str, str]] = None) -> str:
     env = dict(os.environ)
-    # Keep this test deterministic when running from inside another mosaic shell.
-    env.pop("MOSAIC_WORKSPACE_ID", None)
-    env.pop("MOSAIC_SURFACE_ID", None)
+    # Keep this test deterministic when running from inside another coterm shell.
+    env.pop("COTERM_WORKSPACE_ID", None)
+    env.pop("COTERM_SURFACE_ID", None)
     if env_overrides:
         env.update(env_overrides)
     cmd = [cli, "--socket", SOCKET_PATH] + args
     proc = subprocess.run(cmd, capture_output=True, text=True, check=False, env=env)
     if proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"CLI failed ({' '.join(cmd)}): {merged}")
+        raise cotermError(f"CLI failed ({' '.join(cmd)}): {merged}")
     return proc.stdout
 
 
-def _workspace_title(c: mosaic, workspace_id: str) -> str:
+def _workspace_title(c: coterm, workspace_id: str) -> str:
     payload = c._call("workspace.list") or {}
     for row in payload.get("workspaces") or []:
         if str(row.get("id") or "") == workspace_id:
             return str(row.get("title") or "")
-    raise mosaicError(f"workspace.list missing workspace {workspace_id}: {payload}")
+    raise cotermError(f"workspace.list missing workspace {workspace_id}: {payload}")
 
 
 def main() -> int:
     cli = _find_cli_binary()
     stamp = int(time.time() * 1000)
 
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         caps = c.capabilities() or {}
         methods = set(caps.get("methods") or [])
         _must("workspace.rename" in methods, f"Missing workspace.rename in capabilities: {sorted(methods)[:30]}")
@@ -82,33 +82,33 @@ def main() -> int:
 
         cli_title = f"tmux cli {stamp}"
         _run_cli(cli, ["rename-workspace", "--workspace", ws_id, cli_title])
-        _must(_workspace_title(c, ws_id) == cli_title, "mosaic rename-workspace did not update workspace title")
+        _must(_workspace_title(c, ws_id) == cli_title, "coterm rename-workspace did not update workspace title")
 
         alias_title = f"tmux alias {stamp}"
         _run_cli(cli, ["rename-window", "--workspace", ws_id, alias_title])
-        _must(_workspace_title(c, ws_id) == alias_title, "mosaic rename-window did not update workspace title")
+        _must(_workspace_title(c, ws_id) == alias_title, "coterm rename-window did not update workspace title")
 
         current_title = f"tmux current {stamp}"
         _run_cli(cli, ["rename-window", current_title])
         _must(
             _workspace_title(c, ws_id) == current_title,
-            "mosaic rename-window without --workspace should target current workspace",
+            "coterm rename-window without --workspace should target current workspace",
         )
 
         env_title = f"tmux env {stamp}"
         _run_cli(
             cli,
             ["rename-workspace", env_title],
-            env_overrides={"MOSAIC_WORKSPACE_ID": ws_id},
+            env_overrides={"COTERM_WORKSPACE_ID": ws_id},
         )
         _must(
             _workspace_title(c, ws_id) == env_title,
-            "mosaic rename-workspace should default to MOSAIC_WORKSPACE_ID",
+            "coterm rename-workspace should default to COTERM_WORKSPACE_ID",
         )
 
         env = dict(os.environ)
-        env.pop("MOSAIC_WORKSPACE_ID", None)
-        env.pop("MOSAIC_SURFACE_ID", None)
+        env.pop("COTERM_WORKSPACE_ID", None)
+        env.pop("COTERM_SURFACE_ID", None)
         invalid = subprocess.run(
             [cli, "--socket", SOCKET_PATH, "rename-window", "--workspace", ws_id],
             capture_output=True,

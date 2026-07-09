@@ -36,7 +36,7 @@ fi
 if ! awk '
   /^      - name: Inject universal Ghostty CLI helper/ { in_inject=1; next }
   in_inject && /^      - name:/ { in_inject=0 }
-  in_inject && /install -m 755 \/tmp\/mosaic-ghostty-helper-universal "\$DEST"/ { saw_install=1 }
+  in_inject && /install -m 755 \/tmp\/coterm-ghostty-helper-universal "\$DEST"/ { saw_install=1 }
   END { exit !saw_install }
 ' "$WORKFLOW_FILE"; then
   echo "FAIL: nightly workflow must inject the verified universal Ghostty helper into the app"
@@ -58,7 +58,7 @@ if ! awk '
   exit 1
 fi
 
-if ! grep -Fq 'bundle ID `mosaic.com.emergent.app.nightly`' "$WORKFLOW_FILE"; then
+if ! grep -Fq 'bundle ID `coterm.com.emergent.app.nightly`' "$WORKFLOW_FILE"; then
   echo "FAIL: nightly workflow must publish the unified nightly bundle ID"
   exit 1
 fi
@@ -68,7 +68,7 @@ if ! grep -Fq 'cp appcast.xml appcast-universal.xml' "$WORKFLOW_FILE"; then
   exit 1
 fi
 
-if ! grep -Fq 'DOWNLOAD_URL_PREFIX="https://download.mosaic.inc/nightly/"' "$WORKFLOW_FILE" ||
+if ! grep -Fq 'DOWNLOAD_URL_PREFIX="https://download.coterm.cc/nightly/"' "$WORKFLOW_FILE" ||
   ! grep -Fq './scripts/sparkle_generate_appcast.sh "$NIGHTLY_DMG_IMMUTABLE" nightly appcast.xml' "$WORKFLOW_FILE"; then
   echo "FAIL: nightly workflow must generate the unified nightly appcast"
   exit 1
@@ -84,7 +84,7 @@ if ! awk '
   in_upload && /^      - name:/ { in_upload=0 }
   in_upload && /if: needs\.decide\.outputs\.should_publish != '\''true'\''/ { saw_if=1 }
   in_upload && /uses: actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7/ { saw_upload=1 }
-  in_upload && /mosaic-nightly-macos\*\.dmg/ { saw_arm_artifacts=1 }
+  in_upload && /coterm-nightly-macos\*\.dmg/ { saw_arm_artifacts=1 }
   in_upload && /appcast-universal\.xml/ { saw_universal_appcast=1 }
   END { exit !(saw_if && saw_upload && saw_arm_artifacts && saw_universal_appcast) }
 ' "$WORKFLOW_FILE"; then
@@ -106,8 +106,8 @@ if ! awk '
   /^      - name: Publish nightly release assets/ { in_publish=1; next }
   in_publish && /^      - name:/ { in_publish=0 }
   in_publish && /if: needs\.decide\.outputs\.should_publish == '\''true'\''/ { saw_publish_if=1 }
-  in_publish && /mosaic-nightly-macos-\$\{\{ github\.run_id \}\}\*\.dmg/ { saw_immutable=1 }
-  in_publish && /mosaic-nightly-macos\.dmg/ { saw_stable=1 }
+  in_publish && /coterm-nightly-macos-\$\{\{ github\.run_id \}\}\*\.dmg/ { saw_immutable=1 }
+  in_publish && /coterm-nightly-macos\.dmg/ { saw_stable=1 }
   in_publish && /appcast-universal\.xml/ { saw_universal_appcast=1 }
   END { exit !(saw_publish_if && saw_immutable && saw_stable && saw_universal_appcast) }
 ' "$WORKFLOW_FILE"; then

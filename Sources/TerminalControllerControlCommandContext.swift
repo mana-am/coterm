@@ -1,4 +1,4 @@
-import MosaicControlSocket
+import CotermControlSocket
 import Foundation
 
 /// `TerminalController` conforms to ``ControlCommandContext`` as the interim

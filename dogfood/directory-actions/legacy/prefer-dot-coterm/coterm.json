@@ -1,0 +1,27 @@
+{
+  "actions": {
+    "coterm.newTerminal": {
+      "type": "command",
+      "title": "Losing coterm.json",
+      "subtitle": "You should not see this in prefer-dot-coterm",
+      "command": "echo 'LOSING COTERM.JSON'; echo 'THIS SHOULD NOT WIN'; pwd",
+      "target": "newTabInCurrentPane",
+      "icon": { "type": "emoji", "value": "❌" }
+    },
+    "legacy.loser": {
+      "type": "command",
+      "title": "Losing Action",
+      "command": "echo 'LOSING ACTION'; pwd",
+      "target": "newTabInCurrentPane",
+      "icon": { "type": "emoji", "value": "❌" }
+    }
+  },
+  "ui": {
+    "surfaceTabBar": {
+      "buttons": [
+        "coterm.newTerminal",
+        "legacy.loser"
+      ]
+    }
+  }
+}

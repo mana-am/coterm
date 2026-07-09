@@ -1,5 +1,5 @@
-#ifndef MOSAIC_GHOSTTY_BRIDGE_HEADER_H
-#define MOSAIC_GHOSTTY_BRIDGE_HEADER_H
+#ifndef COTERM_GHOSTTY_BRIDGE_HEADER_H
+#define COTERM_GHOSTTY_BRIDGE_HEADER_H
 
 // Keep the Swift bridge on Ghostty's canonical C API header so Xcode and the
 // bundled GhosttyKit stay ABI-aligned across submodule upgrades.

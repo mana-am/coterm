@@ -1,4 +1,4 @@
-import MosaicAgentChat
+import CotermAgentChat
 import Foundation
 
 /// Drives the live agent-prose streaming preview for in-flight turns.

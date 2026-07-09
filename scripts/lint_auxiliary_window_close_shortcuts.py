@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Require standalone mosaic windows to own the standard close shortcut."""
+"""Require standalone coterm windows to own the standard close shortcut."""
 
 from __future__ import annotations
 
@@ -10,43 +10,43 @@ import sys
 
 
 DEFAULT_ROOTS = ("Sources",)
-OWNER_LIST_PATH = pathlib.Path("Sources/mosaicApp.swift")
-OWNER_LIST_NAME = "mosaicAuxiliaryWindowIdentifiers"
+OWNER_LIST_PATH = pathlib.Path("Sources/cotermApp.swift")
+OWNER_LIST_NAME = "cotermAuxiliaryWindowIdentifiers"
 
 # Hidden/internal bootstrap windows should not take Cmd+W away from the active
 # main window. Add to this set only when a window is intentionally not user
 # closable.
 IGNORED_IDENTIFIERS = {
     # Hidden WebKit preload host; it is not user closable and must not own Cmd+W.
-    "mosaic.browserBackgroundPreload",
+    "coterm.browserBackgroundPreload",
     # Hidden WebKit visual automation host; it renders offscreen and never becomes key/main.
-    "mosaic.browserVisualAutomationRender",
-    "mosaic.bootstrap",
+    "coterm.browserVisualAutomationRender",
+    "coterm.bootstrap",
     # Cursor-anchored textbox completion popup; it never becomes key/main.
-    "mosaic.textbox.mentionCompletionPanel",
+    "coterm.textbox.mentionCompletionPanel",
     # Full-screen Sleepy Mode screensaver overlay: it intentionally consumes
     # every key (including Cmd+W, via performKeyEquivalent) to wake/dismiss the
     # cover, so it must not own a standard Close-window shortcut.
-    "mosaic.sleepyMode",
+    "coterm.sleepyMode",
 }
 
 IDENTIFIER_ASSIGNMENT_RE = re.compile(
-    r"""\b[A-Za-z_][A-Za-z0-9_]*\.identifier\s*=\s*NSUserInterfaceItemIdentifier\("(?P<identifier>mosaic\.[^"]+)"\)"""
+    r"""\b[A-Za-z_][A-Za-z0-9_]*\.identifier\s*=\s*NSUserInterfaceItemIdentifier\("(?P<identifier>coterm\.[^"]+)"\)"""
 )
 # `window.identifier = NSUserInterfaceItemIdentifier(Self.windowIdentifier)` —
 # the identifier comes from a named constant instead of an inline literal. The
-# constant is resolved against `let <name> = "mosaic...."` declarations in the
+# constant is resolved against `let <name> = "coterm...."` declarations in the
 # same file (the prevailing pattern: a `static let windowIdentifier` next to
 # the controller that assigns it). The pairing window regressed exactly here:
-# the literal-only regex never saw `mosaic.mobilePairingWindow`, so the lint
+# the literal-only regex never saw `coterm.mobilePairingWindow`, so the lint
 # passed while Cmd+W fell through to the terminal's Close Tab.
 CONSTANT_ASSIGNMENT_RE = re.compile(
     r"""\b[A-Za-z_][A-Za-z0-9_]*\.identifier\s*=\s*NSUserInterfaceItemIdentifier\(\s*(?P<expr>[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\s*\)"""
 )
 STRING_CONSTANT_DECL_RE = re.compile(
-    r"""\blet\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*(?::\s*String\s*)?=\s*"(?P<identifier>mosaic\.[^"]+)\""""
+    r"""\blet\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*(?::\s*String\s*)?=\s*"(?P<identifier>coterm\.[^"]+)\""""
 )
-STRING_LITERAL_RE = re.compile(r'"(?P<identifier>mosaic\.[^"]+)"')
+STRING_LITERAL_RE = re.compile(r'"(?P<identifier>coterm\.[^"]+)"')
 BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
 LINE_COMMENT_RE = re.compile(r"//[^\n]*")
 
@@ -154,7 +154,7 @@ def main(argv: list[str]) -> int:
         print("Auxiliary window close-shortcut lint failed.")
         print("")
         print(
-            "These mosaic window identifiers are assigned to NSWindow/NSPanel "
+            "These coterm window identifiers are assigned to NSWindow/NSPanel "
             f"but are missing from {OWNER_LIST_NAME}:"
         )
         for identifier in sorted(missing):
@@ -169,7 +169,7 @@ def main(argv: list[str]) -> int:
         return 1
 
     print("Auxiliary window close-shortcut lint passed.")
-    print(f"Checked {len(assignments)} mosaic window identifier(s).")
+    print(f"Checked {len(assignments)} coterm window identifier(s).")
     return 0
 
 

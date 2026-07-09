@@ -10,15 +10,15 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _send_v1(command: str, *, expect_ok: bool = True) -> str:
@@ -38,23 +38,23 @@ def _send_v1(command: str, *, expect_ok: bool = True) -> str:
             sock.settimeout(0.1)
     payload = b"".join(chunks).decode("utf-8", errors="replace").strip()
     if expect_ok and not payload.startswith("OK"):
-        raise mosaicError(f"{command!r} failed: {payload!r}")
+        raise cotermError(f"{command!r} failed: {payload!r}")
     return payload
 
 
-def _focused_surface_id(client: mosaic, workspace_id: str) -> str:
+def _focused_surface_id(client: coterm, workspace_id: str) -> str:
     surfaces = client.list_surfaces(workspace=workspace_id)
     for _, surface_id, focused in surfaces:
         if focused:
             return surface_id
-    raise mosaicError(f"no focused surface in workspace {workspace_id}: {surfaces}")
+    raise cotermError(f"no focused surface in workspace {workspace_id}: {surfaces}")
 
 
-def _surface_ids(client: mosaic, workspace_id: str) -> set[str]:
+def _surface_ids(client: coterm, workspace_id: str) -> set[str]:
     return {surface_id for _, surface_id, _ in client.list_surfaces(workspace=workspace_id)}
 
 
-def _wait_for_surface(client: mosaic, workspace_id: str, surface_id: str, *, timeout_s: float = 5.0) -> None:
+def _wait_for_surface(client: coterm, workspace_id: str, surface_id: str, *, timeout_s: float = 5.0) -> None:
     """Block until a v1-created surface is registered, returning the instant it appears."""
     deadline = time.time() + timeout_s
     seen: set[str] = set()
@@ -63,10 +63,10 @@ def _wait_for_surface(client: mosaic, workspace_id: str, surface_id: str, *, tim
         if surface_id in seen:
             return
         time.sleep(0.02)
-    raise mosaicError(f"surface {surface_id!r} never appeared in workspace {workspace_id}: {seen}")
+    raise cotermError(f"surface {surface_id!r} never appeared in workspace {workspace_id}: {seen}")
 
 
-def _wait_for_current_workspace(client: mosaic, workspace_id: str, *, timeout_s: float = 5.0) -> None:
+def _wait_for_current_workspace(client: coterm, workspace_id: str, *, timeout_s: float = 5.0) -> None:
     """Block until workspace selection has settled on the target, returning the instant it holds."""
     deadline = time.time() + timeout_s
     current = ""
@@ -75,7 +75,7 @@ def _wait_for_current_workspace(client: mosaic, workspace_id: str, *, timeout_s:
         if current == workspace_id:
             return
         time.sleep(0.02)
-    raise mosaicError(f"workspace selection never settled on {workspace_id!r}: current={current!r}")
+    raise cotermError(f"workspace selection never settled on {workspace_id!r}: current={current!r}")
 
 
 def _created_surface_id(response: str) -> str:
@@ -87,13 +87,13 @@ def _created_surface_id(response: str) -> str:
 def _sidebar_state(workspace_id: str) -> str:
     payload = _send_v1(f"sidebar_state --tab={workspace_id}", expect_ok=False)
     if payload.startswith("ERROR"):
-        raise mosaicError(f"sidebar_state failed: {payload!r}")
+        raise cotermError(f"sidebar_state failed: {payload!r}")
     return payload
 
 
 def main() -> int:
     created_workspaces: list[str] = []
-    with mosaic(SOCKET_PATH) as client:
+    with coterm(SOCKET_PATH) as client:
         try:
             created_workspace = client.new_workspace()
             created_workspaces.append(created_workspace)
@@ -144,7 +144,7 @@ def main() -> int:
             client.select_workspace(background_workspace)
             _wait_for_current_workspace(client, background_workspace)
 
-            target_directory = f"/tmp/mosaic-v1-report-pwd-{int(time.time() * 1000)}"
+            target_directory = f"/tmp/coterm-v1-report-pwd-{int(time.time() * 1000)}"
             _send_v1(
                 f"report_pwd {target_directory} --tab={created_workspace} --panel={baseline_focused_surface}"
             )

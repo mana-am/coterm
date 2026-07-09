@@ -1,4 +1,4 @@
-import MosaicFoundation
+import CotermFoundation
 import AppKit
 import SwiftUI
 
@@ -31,7 +31,7 @@ struct KeyboardShortcutRecorder: View {
                     Text(label)
                     if let subtitle {
                         Text(subtitle)
-                            .mosaicFont(.caption)
+                            .cotermFont(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -86,24 +86,24 @@ struct KeyboardShortcutRecorder: View {
             if let validationMessage {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .mosaicFont(.caption)
+                        .cotermFont(.caption)
                         .foregroundStyle(.red)
 
                     Text(validationMessage)
-                        .mosaicFont(.caption)
+                        .cotermFont(.caption)
                         .foregroundStyle(.red)
                         .fixedSize(horizontal: false, vertical: true)
 
                     if let validationButtonTitle, let onValidationButtonPressed {
                         TrackedButton("keyboardshortcutrecorder_button_98", validationButtonTitle, action: onValidationButtonPressed)
                             .buttonStyle(.link)
-                            .mosaicFont(.caption)
+                            .cotermFont(.caption)
                     }
 
                     if let undoButtonTitle, let onUndoButtonPressed {
                         TrackedButton("keyboardshortcutrecorder_button_104", undoButtonTitle, action: onUndoButtonPressed)
                             .buttonStyle(.link)
-                            .mosaicFont(.caption)
+                            .cotermFont(.caption)
                     }
                 }
                 .padding(.horizontal, 8)

@@ -1,13 +1,13 @@
 import Bonsplit
-import MosaicSettings
-import MosaicCore
+import CotermSettings
+import CotermCore
 import Darwin
 import Foundation
-import MosaicSidebar
+import CotermSidebar
 
 extension Workspace {
     private static let structuredAgentHookStatusKeys = AgentHibernationLifecycleStatusKeys.allowedStatusKeys
-    private static let managedSubagentEnvironmentKey = "MOSAIC_AGENT_MANAGED_SUBAGENT"
+    private static let managedSubagentEnvironmentKey = "COTERM_AGENT_MANAGED_SUBAGENT"
     private static let truthyStartupEnvironmentValues: Set<String> = ["1", "true", "yes", "on", "enabled"]
 
     var agentPIDs: [String: pid_t] {
@@ -319,7 +319,7 @@ extension Workspace {
         cleanupControllerSurfaceState: Bool = false
     ) -> WorkspaceRemoteConfiguration? {
         if publishSurfaceClosedEvent {
-            publishMosaicSurfaceClosed(panelId, paneId: paneId, panel: panel, origin: origin)
+            publishCotermSurfaceClosed(panelId, paneId: paneId, panel: panel, origin: origin)
         }
 
         let closedAgentRuntimeState = agentRuntimeState(forPanelId: panelId)

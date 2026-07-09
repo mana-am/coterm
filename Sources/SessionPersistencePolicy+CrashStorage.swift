@@ -1,26 +1,26 @@
 import Foundation
 
 extension SessionPersistencePolicy {
-    static func defaultMosaicCrashDirectoryURL(
+    static func defaultCotermCrashDirectoryURL(
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
     ) -> URL {
         homeDirectory
             .appendingPathComponent(".local", isDirectory: true)
             .appendingPathComponent("state", isDirectory: true)
-            .appendingPathComponent("mosaic", isDirectory: true)
+            .appendingPathComponent("coterm", isDirectory: true)
             .appendingPathComponent("crash", isDirectory: true)
     }
 
     /// State-directory subdirectory names scanned for Ghostty crash breadcrumbs.
     ///
-    /// `mosaic` is the current name and the default write location. `cmux` is retained
+    /// `coterm` is the current name and the default write location. `cmux` is retained
     /// because the pinned prebuilt `GhosttyKit.xcframework` is still built with
-    /// `-Dcrash-report-subdir=cmux/crash` (no `mosaic`-flavored artifact has been
+    /// `-Dcrash-report-subdir=cmux/crash` (no `coterm`-flavored artifact has been
     /// published), so libghostty writes breadcrumbs to `<state>/cmux/crash` at runtime.
-    /// Scanning both keeps crash detection working until a `mosaic`-flavored artifact ships.
-    static let crashStateSubdirectoryNames = ["mosaic", "cmux"]
+    /// Scanning both keeps crash detection working until a `coterm`-flavored artifact ships.
+    static let crashStateSubdirectoryNames = ["coterm", "cmux"]
 
-    static func mosaicCrashDirectoryURLs(
+    static func cotermCrashDirectoryURLs(
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> [URL] {
@@ -53,48 +53,48 @@ extension SessionPersistencePolicy {
         }
     }
 
-    static func isMosaicCrashStorageURL(
+    static func isCotermCrashStorageURL(
         _ url: URL,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> Bool {
         guard url.isFileURL else { return false }
-        return isMosaicCrashStoragePath(
+        return isCotermCrashStoragePath(
             url.path(percentEncoded: false),
             homeDirectory: homeDirectory,
             environment: environment
         )
     }
 
-    static func isMosaicCrashStoragePath(
+    static func isCotermCrashStoragePath(
         _ path: String,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> Bool {
         let trimmedPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedPath.isEmpty else { return false }
-        let crashDirectoryComponents = mosaicCrashDirectoryURLs(homeDirectory: homeDirectory, environment: environment)
+        let crashDirectoryComponents = cotermCrashDirectoryURLs(homeDirectory: homeDirectory, environment: environment)
             .map { pathComponents(for: $0.path(percentEncoded: false)) }
         var pathCache: [String: Bool] = [:]
-        return isMosaicCrashStoragePath(
+        return isCotermCrashStoragePath(
             trimmedPath,
             crashDirectoryComponents: crashDirectoryComponents,
             pathCache: &pathCache
         )
     }
 
-    static func pruningMosaicCrashDiagnosticWindows(
+    static func pruningCotermCrashDiagnosticWindows(
         from snapshot: AppSessionSnapshot,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> (snapshot: AppSessionSnapshot?, removedAny: Bool) {
-        let crashDirectoryComponents = mosaicCrashDirectoryURLs(homeDirectory: homeDirectory, environment: environment)
+        let crashDirectoryComponents = cotermCrashDirectoryURLs(homeDirectory: homeDirectory, environment: environment)
             .map { pathComponents(for: $0.path(percentEncoded: false)) }
         var removedAny = false
         var pathCache: [String: Bool] = [:]
         var windows: [SessionWindowSnapshot] = []
         for window in snapshot.windows {
-            let result = pruningMosaicCrashDiagnosticWorkspaces(
+            let result = pruningCotermCrashDiagnosticWorkspaces(
                 from: window,
                 crashDirectoryComponents: crashDirectoryComponents,
                 pathCache: &pathCache
@@ -117,18 +117,18 @@ extension SessionPersistencePolicy {
         return (pruned, removedAny)
     }
 
-    static func isMosaicCrashDiagnosticWindow(
+    static func isCotermCrashDiagnosticWindow(
         _ window: SessionWindowSnapshot,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> Bool {
-        let crashDirectoryComponents = mosaicCrashDirectoryURLs(homeDirectory: homeDirectory, environment: environment)
+        let crashDirectoryComponents = cotermCrashDirectoryURLs(homeDirectory: homeDirectory, environment: environment)
             .map { pathComponents(for: $0.path(percentEncoded: false)) }
         let workspaces = window.tabManager.workspaces
         guard !workspaces.isEmpty else { return false }
         var pathCache: [String: Bool] = [:]
         for workspace in workspaces {
-            guard isMosaicCrashDiagnosticWorkspace(
+            guard isCotermCrashDiagnosticWorkspace(
                 workspace,
                 crashDirectoryComponents: crashDirectoryComponents,
                 pathCache: &pathCache
@@ -139,7 +139,7 @@ extension SessionPersistencePolicy {
         return true
     }
 
-    private static func pruningMosaicCrashDiagnosticWorkspaces(
+    private static func pruningCotermCrashDiagnosticWorkspaces(
         from window: SessionWindowSnapshot,
         crashDirectoryComponents: [[String]],
         pathCache: inout [String: Bool]
@@ -147,7 +147,7 @@ extension SessionPersistencePolicy {
         let originalWorkspaces = window.tabManager.workspaces
         var kept: [(offset: Int, element: SessionWorkspaceSnapshot)] = []
         for (offset, workspace) in originalWorkspaces.enumerated() {
-            if !isMosaicCrashDiagnosticWorkspace(
+            if !isCotermCrashDiagnosticWorkspace(
                 workspace,
                 crashDirectoryComponents: crashDirectoryComponents,
                 pathCache: &pathCache
@@ -177,7 +177,7 @@ extension SessionPersistencePolicy {
         return (prunedWindow, true)
     }
 
-    private static func isMosaicCrashDiagnosticWorkspace(
+    private static func isCotermCrashDiagnosticWorkspace(
         _ workspace: SessionWorkspaceSnapshot,
         crashDirectoryComponents: [[String]],
         pathCache: inout [String: Bool]
@@ -185,7 +185,7 @@ extension SessionPersistencePolicy {
         guard workspace.remote == nil else { return false }
         guard !workspaceCarriesRestorableUserState(workspace) else { return false }
         if workspace.panels.isEmpty {
-            return isMosaicCrashStoragePath(
+            return isCotermCrashStoragePath(
                 workspace.currentDirectory,
                 crashDirectoryComponents: crashDirectoryComponents,
                 pathCache: &pathCache
@@ -201,7 +201,7 @@ extension SessionPersistencePolicy {
 
         guard !paths.isEmpty else { return false }
         for path in paths {
-            guard isMosaicCrashStoragePath(
+            guard isCotermCrashStoragePath(
                 path,
                 crashDirectoryComponents: crashDirectoryComponents,
                 pathCache: &pathCache
@@ -316,7 +316,7 @@ extension SessionPersistencePolicy {
         return pruned.isEmpty ? nil : pruned
     }
 
-    private static func isMosaicCrashStoragePath(
+    private static func isCotermCrashStoragePath(
         _ path: String,
         crashDirectoryComponents: [[String]],
         pathCache: inout [String: Bool]

@@ -1,8 +1,8 @@
 #if DEBUG
-import MosaicDebugLog
+import CotermDebugLog
 
 @inline(__always)
-func mosaicDebugLog(_ message: @autoclosure () -> String) {
-    MosaicDebugLog.logDebugEvent(message())
+func cotermDebugLog(_ message: @autoclosure () -> String) {
+    CotermDebugLog.logDebugEvent(message())
 }
 #endif

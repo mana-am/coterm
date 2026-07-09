@@ -2,9 +2,9 @@ type WebviewKind = "agent-session" | "diff";
 
 function resolveWebviewKind(): WebviewKind {
   if (
-    document.documentElement.dataset.mosaicWebviewKind === "agent-session" ||
-    document.body.dataset.mosaicWebviewKind === "agent-session" ||
-    document.getElementById("mosaic-agent-session-config")
+    document.documentElement.dataset.cotermWebviewKind === "agent-session" ||
+    document.body.dataset.cotermWebviewKind === "agent-session" ||
+    document.getElementById("coterm-agent-session-config")
   ) {
     return "agent-session";
   }
@@ -13,7 +13,7 @@ function resolveWebviewKind(): WebviewKind {
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
-  throw new Error("Missing mosaic webview root");
+  throw new Error("Missing coterm webview root");
 }
 
 // Load only the active surface so each one ships as its own chunk: the diff

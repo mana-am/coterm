@@ -1,6 +1,6 @@
 import AppKit
 import Combine
-import MosaicTestSupport
+import CotermTestSupport
 import SwiftUI
 
 struct MinimalModeSidebarControlActionProxyView: NSViewRepresentable {
@@ -162,8 +162,8 @@ final class MinimalModeSidebarControlActionView: NSView {
         }
         guard shouldAcceptAction(at: point) else { return nil }
         #if DEBUG
-        if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_BONSPLIT_TAB_DRAG_SETUP"] == "1" {
-            _ = UITestCaptureSink().mutateJSONObjectIfConfigured(envKey: "MOSAIC_UI_TEST_BONSPLIT_TAB_DRAG_PATH") { payload in
+        if ProcessInfo.processInfo.environment["COTERM_UI_TEST_BONSPLIT_TAB_DRAG_SETUP"] == "1" {
+            _ = UITestCaptureSink().mutateJSONObjectIfConfigured(envKey: "COTERM_UI_TEST_BONSPLIT_TAB_DRAG_PATH") { payload in
                 payload["\(telemetryPrefix)LastHitTestSlot"] = slot.debugName
                 payload["\(telemetryPrefix)LastHitTestPoint"] = windowDragHandleFormatPoint(point)
                 payload["\(telemetryPrefix)LastHitTestWindowNumber"] = window.map { String($0.windowNumber) } ?? "nil"
@@ -196,7 +196,7 @@ final class MinimalModeSidebarControlActionView: NSView {
         }
         switch slot {
         case .toggleSidebar:
-            MosaicExtensionSidebarSelection.showMenu(anchorView: self, event: event)
+            CotermExtensionSidebarSelection.showMenu(anchorView: self, event: event)
         case .newTab:
             _ = AppDelegate.shared?.showNewWorkspaceContextMenu(anchorView: self, event: event)
         case .focusHistoryBack:
@@ -242,8 +242,8 @@ final class MinimalModeSidebarControlActionView: NSView {
         guard isEnabled else { return }
 
         #if DEBUG
-        if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_BONSPLIT_TAB_DRAG_SETUP"] == "1" {
-            _ = UITestCaptureSink().mutateJSONObjectIfConfigured(envKey: "MOSAIC_UI_TEST_BONSPLIT_TAB_DRAG_PATH") { payload in
+        if ProcessInfo.processInfo.environment["COTERM_UI_TEST_BONSPLIT_TAB_DRAG_SETUP"] == "1" {
+            _ = UITestCaptureSink().mutateJSONObjectIfConfigured(envKey: "COTERM_UI_TEST_BONSPLIT_TAB_DRAG_PATH") { payload in
                 payload["\(telemetryPrefix)LastAction"] = slot.debugName
                 payload["\(telemetryPrefix)LastPoint"] = windowDragHandleFormatPoint(convert(locationInWindow, from: nil))
                 payload["\(telemetryPrefix)WindowNumber"] = window.map { String($0.windowNumber) } ?? "nil"

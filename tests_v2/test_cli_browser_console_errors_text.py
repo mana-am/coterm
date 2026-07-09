@@ -15,31 +15,31 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
@@ -54,7 +54,7 @@ def _run_cli(cli: str, args: list[str]) -> str:
     )
     if proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"CLI failed ({' '.join(args)}): {merged}")
+        raise cotermError(f"CLI failed ({' '.join(args)}): {merged}")
     return proc.stdout.strip()
 
 
@@ -64,16 +64,16 @@ def _wait_for(pred, timeout_s: float = 6.0, step_s: float = 0.05) -> None:
         if pred():
             return
         time.sleep(step_s)
-    raise mosaicError("Timed out waiting for condition")
+    raise cotermError("Timed out waiting for condition")
 
 
-def _wait_selector(c: mosaic, surface_id: str, selector: str, timeout_s: float = 6.0) -> None:
+def _wait_selector(c: coterm, surface_id: str, selector: str, timeout_s: float = 6.0) -> None:
     timeout_ms = max(1, int(timeout_s * 1000.0))
     c._call("browser.wait", {"surface_id": surface_id, "selector": selector, "timeout_ms": timeout_ms})
 
 
 def _open_server() -> tuple[str, socketserver.TCPServer, threading.Thread, tempfile.TemporaryDirectory[str]]:
-    root = tempfile.TemporaryDirectory(prefix="mosaic-browser-cli-logs-")
+    root = tempfile.TemporaryDirectory(prefix="coterm-browser-cli-logs-")
     root_path = Path(root.name)
     (root_path / "index.html").write_text(
         """<!doctype html>
@@ -82,8 +82,8 @@ def _open_server() -> tuple[str, socketserver.TCPServer, threading.Thread, tempf
     <div id="ready">ready</div>
     <script>
       window.emitLogs = function () {
-        console.log('mosaic-console-entry');
-        setTimeout(function () { throw new Error('mosaic-browser-boom'); }, 0);
+        console.log('coterm-console-entry');
+        setTimeout(function () { throw new Error('coterm-browser-boom'); }, 0);
         return true;
       };
     </script>
@@ -116,7 +116,7 @@ def main() -> int:
     base_url, server, thread, root = _open_server()
     workspace_id = ""
     try:
-        with mosaic(SOCKET_PATH) as c:
+        with coterm(SOCKET_PATH) as c:
             opened = c._call("browser.open_split", {"url": f"{base_url}/index.html"}) or {}
             workspace_id = str(opened.get("workspace_id") or "")
             surface_id = str(opened.get("surface_id") or "")
@@ -137,11 +137,11 @@ def main() -> int:
             _wait_for(errors_ready, timeout_s=7.0)
 
             console_output = _run_cli(cli, ["browser", surface_id, "console"])
-            _must("mosaic-console-entry" in console_output, f"browser console text mode should print entries: {console_output!r}")
+            _must("coterm-console-entry" in console_output, f"browser console text mode should print entries: {console_output!r}")
             _must(console_output != "OK", f"browser console text mode should not collapse to OK: {console_output!r}")
 
             errors_output = _run_cli(cli, ["browser", surface_id, "errors"])
-            _must("mosaic-browser-boom" in errors_output, f"browser errors text mode should print entries: {errors_output!r}")
+            _must("coterm-browser-boom" in errors_output, f"browser errors text mode should print entries: {errors_output!r}")
             _must(errors_output != "OK", f"browser errors text mode should not collapse to OK: {errors_output!r}")
     finally:
         try:
@@ -153,7 +153,7 @@ def main() -> int:
         root.cleanup()
         if workspace_id:
             try:
-                with mosaic(SOCKET_PATH) as cleanup_client:
+                with coterm(SOCKET_PATH) as cleanup_client:
                     cleanup_client.close_workspace(workspace_id)
             except Exception:
                 pass

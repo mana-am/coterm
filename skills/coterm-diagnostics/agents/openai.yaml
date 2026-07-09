@@ -1,0 +1,4 @@
+interface:
+  display_name: "coterm Diagnostics"
+  short_description: "Check coterm hooks, restore, CLI, and settings."
+  default_prompt: "Use $coterm-diagnostics to collect a read-only coterm health report and explain any hook or session restore problems."

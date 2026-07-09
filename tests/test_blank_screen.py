@@ -10,7 +10,7 @@ Usage:
     python3 test_blank_screen.py
 
 Requirements:
-    - mosaic must be running with the socket controller enabled
+    - coterm must be running with the socket controller enabled
 """
 
 import os
@@ -19,7 +19,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
 class TestResult:
@@ -37,7 +37,7 @@ class TestResult:
         self.message = msg
 
 
-def test_screen_not_blank(client: mosaic) -> TestResult:
+def test_screen_not_blank(client: coterm) -> TestResult:
     """Test that the terminal has some visible content (shell prompt)."""
     result = TestResult("Screen not blank")
     try:
@@ -57,7 +57,7 @@ def test_screen_not_blank(client: mosaic) -> TestResult:
     return result
 
 
-def test_render_marker(client: mosaic) -> TestResult:
+def test_render_marker(client: coterm) -> TestResult:
     """Test that echoed text actually renders on screen."""
     result = TestResult("Render marker")
     marker = "RENDER_TEST_MARKER_12345"
@@ -90,17 +90,17 @@ def run_tests():
     print("=" * 60)
     print()
 
-    socket_path = mosaic().socket_path
+    socket_path = coterm().socket_path
     if not os.path.exists(socket_path):
         print(f"Error: Socket not found at {socket_path}")
-        print("Please make sure mosaic is running.")
-        print("Tip: set MOSAIC_TAG=<tag> or MOSAIC_SOCKET_PATH=<path> to target a tagged instance.")
+        print("Please make sure coterm is running.")
+        print("Tip: set COTERM_TAG=<tag> or COTERM_SOCKET_PATH=<path> to target a tagged instance.")
         return 1
 
     results = []
 
     try:
-        with mosaic() as client:
+        with coterm() as client:
             print("Testing connection...")
             if not client.ping():
                 print("  FAIL: Ping failed")
@@ -122,7 +122,7 @@ def run_tests():
             print(f"  {status}: {results[-1].message}")
             print()
 
-    except mosaicError as e:
+    except cotermError as e:
         print(f"Error: {e}")
         return 1
 

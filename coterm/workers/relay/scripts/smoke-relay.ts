@@ -1,9 +1,9 @@
 type JsonObject = Record<string, unknown>;
 
-// Runs against a `noauth` relay (session code is the only gate). For the grant-gated
-// hmac path, use scripts/smoke-e2e.ts which fetches a grant from the control-plane.
-const relayURL = normalizeRelayURL(process.env.MOSAIC_COLLABORATION_RELAY_URL ?? process.argv[2] ?? "http://localhost:8787");
-const timeoutMs = Number(process.env.MOSAIC_COLLABORATION_SMOKE_TIMEOUT_MS ?? "15000");
+// Runs the bare relay create/connect path. For the production grant-gated path,
+// use scripts/smoke-e2e.ts which fetches a grant from the control-plane.
+const relayURL = normalizeRelayURL(process.env.COTERM_COLLABORATION_RELAY_URL ?? process.argv[2] ?? "http://localhost:8787");
+const timeoutMs = Number(process.env.COTERM_COLLABORATION_SMOKE_TIMEOUT_MS ?? "15000");
 
 function normalizeRelayURL(value: string): URL {
   const url = new URL(value);

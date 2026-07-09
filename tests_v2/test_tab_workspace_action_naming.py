@@ -10,40 +10,40 @@ from pathlib import Path
 from typing import Dict, List
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
 
 def _run_cli(cli: str, args: List[str], json_output: bool) -> str:
     env = dict(os.environ)
-    env.pop("MOSAIC_WORKSPACE_ID", None)
-    env.pop("MOSAIC_SURFACE_ID", None)
-    env.pop("MOSAIC_TAB_ID", None)
+    env.pop("COTERM_WORKSPACE_ID", None)
+    env.pop("COTERM_SURFACE_ID", None)
+    env.pop("COTERM_TAB_ID", None)
 
     cmd = [cli, "--socket", SOCKET_PATH]
     if json_output:
@@ -53,7 +53,7 @@ def _run_cli(cli: str, args: List[str], json_output: bool) -> str:
     proc = subprocess.run(cmd, capture_output=True, text=True, check=False, env=env)
     if proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"CLI failed ({' '.join(cmd)}): {merged}")
+        raise cotermError(f"CLI failed ({' '.join(cmd)}): {merged}")
     return proc.stdout
 
 
@@ -62,10 +62,10 @@ def _run_cli_json(cli: str, args: List[str]) -> Dict:
     try:
         return json.loads(output or "{}")
     except Exception as exc:  # noqa: BLE001
-        raise mosaicError(f"Invalid JSON output for {' '.join(args)}: {output!r} ({exc})")
+        raise cotermError(f"Invalid JSON output for {' '.join(args)}: {output!r} ({exc})")
 
 
-def _focused_surface_ref(c: mosaic, workspace_id: str) -> str:
+def _focused_surface_ref(c: coterm, workspace_id: str) -> str:
     current = c._call("surface.current", {"workspace_id": workspace_id}) or {}
     surface_ref = str(current.get("surface_ref") or "")
     if surface_ref.startswith("surface:"):
@@ -83,7 +83,7 @@ def _focused_surface_ref(c: mosaic, workspace_id: str) -> str:
         if ref.startswith("surface:"):
             return ref
 
-    raise mosaicError(f"Unable to resolve focused surface ref in workspace {workspace_id}: {listed}")
+    raise cotermError(f"Unable to resolve focused surface ref in workspace {workspace_id}: {listed}")
 
 
 def main() -> int:
@@ -94,7 +94,7 @@ def main() -> int:
     _must("tab:<n>" in help_text, "tab-action --help should mention tab:<n> refs")
     _must("--tab tab:" in help_text, "tab-action examples should use tab: refs")
 
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         caps = c.capabilities() or {}
         methods = set(caps.get("methods") or [])
         for method in ["workspace.action", "tab.action", "surface.action"]:

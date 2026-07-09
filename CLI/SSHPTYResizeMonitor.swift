@@ -45,11 +45,11 @@ actor SSHPTYResizeMonitor {
         self.eventContinuation = events.continuation
         self.source = DispatchSource.makeSignalSource(
             signal: SIGWINCH,
-            queue: DispatchQueue(label: "com.mosaic.ssh-pty.resize.signal")
+            queue: DispatchQueue(label: "com.coterm.ssh-pty.resize.signal")
         )
         signal(SIGWINCH, SIG_IGN)
         source.setEventHandler { [eventContinuation] in
-            let size = MosaicCLI.currentCLITerminalSize()
+            let size = CotermCLI.currentCLITerminalSize()
             eventContinuation.yield((size: size, force: true))
         }
         source.resume()
@@ -59,14 +59,14 @@ actor SSHPTYResizeMonitor {
     }
 
     func resizeBeforeInputIfNeeded() async {
-        let size = MosaicCLI.currentCLITerminalSize()
+        let size = CotermCLI.currentCLITerminalSize()
         await withCheckedContinuation { continuation in
             recordPendingResize(size: size, force: false, waiter: continuation)
         }
     }
 
     nonisolated func requestCurrentResize() {
-        let size = MosaicCLI.currentCLITerminalSize()
+        let size = CotermCLI.currentCLITerminalSize()
         eventContinuation.yield((size: size, force: true))
     }
 
@@ -153,7 +153,7 @@ actor SSHPTYResizeMonitor {
             }
             if sent {
                 lastSentSize = size
-                let currentSize = MosaicCLI.currentCLITerminalSize()
+                let currentSize = CotermCLI.currentCLITerminalSize()
                 pendingSize = Self.sameSize(currentSize, lastSentSize) ? nil : currentSize
                 if pendingSize == nil {
                     resumeInputWaiters()
@@ -227,7 +227,7 @@ actor SSHPTYResizeMonitor {
         defer { resizeClient.close() }
         do {
             try resizeClient.connectWithoutRetry(responseTimeout: Self.resizeResponseTimeout)
-            try MosaicCLI.authenticateSocketClientIfNeeded(
+            try CotermCLI.authenticateSocketClientIfNeeded(
                 resizeClient,
                 explicitPassword: explicitPassword,
                 socketPath: socketPath,

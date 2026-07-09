@@ -24,7 +24,7 @@ export async function withSpan<T>(
       recordSpanError(span, err);
       throw err;
     } finally {
-      span.setAttribute("mosaic.duration_ms", Math.round((performance.now() - start) * 100) / 100);
+      span.setAttribute("coterm.duration_ms", Math.round((performance.now() - start) * 100) / 100);
       span.end();
     }
   });
@@ -38,11 +38,11 @@ export async function withApiRouteSpan<T extends Response>(
 ): Promise<T> {
   const path = requestPath(request);
   return withSpan(
-    "mosaic-api",
-    `mosaic.api.${request.method} ${route}`,
+    "coterm-api",
+    `coterm.api.${request.method} ${route}`,
     {
-      "mosaic.subsystem": "web",
-      "mosaic.runtime": "next-api",
+      "coterm.subsystem": "web",
+      "coterm.runtime": "next-api",
       "http.request.method": request.method,
       "http.route": route,
       "url.path": path,
@@ -51,7 +51,7 @@ export async function withApiRouteSpan<T extends Response>(
     async (span) => {
       const response = await fn(span);
       span.setAttribute("http.response.status_code", response.status);
-      span.setAttribute("mosaic.http.response_error", response.status >= 400);
+      span.setAttribute("coterm.http.response_error", response.status >= 400);
       if (response.status >= 500) {
         span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${response.status}` });
       }
@@ -69,8 +69,8 @@ export function recordSpanError(span: Span, err: unknown): void {
     span.recordException(err);
     span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
     span.setAttributes({
-      "mosaic.error_name": err.name,
-      "mosaic.error_message": err.message,
+      "coterm.error_name": err.name,
+      "coterm.error_message": err.message,
     });
     return;
   }
@@ -78,8 +78,8 @@ export function recordSpanError(span: Span, err: unknown): void {
   span.recordException(message);
   span.setStatus({ code: SpanStatusCode.ERROR, message });
   span.setAttributes({
-    "mosaic.error_name": "NonError",
-    "mosaic.error_message": message,
+    "coterm.error_name": "NonError",
+    "coterm.error_message": message,
   });
 }
 

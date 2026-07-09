@@ -26,7 +26,7 @@ export function createWebviewsRouter(WebviewComponent: WebviewRouteComponent) {
   });
   const generatedDiffRoute = createRoute({
     getParentRoute: () => rootRoute,
-    path: "/mosaic-diff-viewer",
+    path: "/coterm-diff-viewer",
     component: WebviewComponent,
   });
   const agentSessionRoute = createRoute({

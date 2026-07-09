@@ -1,4 +1,4 @@
-import MosaicAgentLaunch
+import CotermAgentLaunch
 import Foundation
 
 enum IMessageModeSettings {
@@ -22,7 +22,7 @@ enum IMessageModeSettings {
 ///   reorders by its most-recent unread member.
 ///
 /// Both knobs are persisted to UserDefaults via the keys below and mirrored
-/// in `~/.config/mosaic/mosaic.json` under `sidebar.imessageMode.*`. The sort
+/// in `~/.config/coterm/coterm.json` under `sidebar.imessageMode.*`. The sort
 /// path treats the current build as passthrough until the broader iMessage
 /// sort logic exists; the knobs land here so user-set values survive the
 /// upgrade that activates the behavior.
@@ -190,7 +190,7 @@ extension TabManager {
         case .promptSubmission:
             messageRecorded = workspace.recordSubmittedMessage(message)
             if messageRecorded {
-                MosaicEventBus.shared.publishWorkspacePromptSubmitted(
+                CotermEventBus.shared.publishWorkspacePromptSubmitted(
                     workspaceId: workspaceId,
                     message: message,
                     preview: Workspace.conversationMessagePreview(from: message)

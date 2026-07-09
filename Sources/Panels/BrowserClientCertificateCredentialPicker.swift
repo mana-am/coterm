@@ -1,5 +1,5 @@
 import AppKit
-import MosaicBrowser
+import CotermBrowser
 import Foundation
 import WebKit
 

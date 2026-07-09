@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Automated tests for Ctrl+C and Ctrl+D using the mosaic socket interface.
+Automated tests for Ctrl+C and Ctrl+D using the coterm socket interface.
 
 Usage:
     python3 test_ctrl_socket.py
 
 Requirements:
-    - mosaic must be running with the socket controller enabled
+    - coterm must be running with the socket controller enabled
 """
 
 import json
@@ -16,10 +16,10 @@ import time
 import tempfile
 from pathlib import Path
 
-# Add the directory containing mosaic.py to the path
+# Add the directory containing coterm.py to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
 class TestResult:
@@ -37,7 +37,7 @@ class TestResult:
         self.message = msg
 
 
-def test_connection(client: mosaic) -> TestResult:
+def test_connection(client: coterm) -> TestResult:
     """Test that we can connect and ping the server"""
     result = TestResult("Connection")
     try:
@@ -50,7 +50,7 @@ def test_connection(client: mosaic) -> TestResult:
     return result
 
 
-def test_ctrl_c(client: mosaic) -> TestResult:
+def test_ctrl_c(client: coterm) -> TestResult:
     """
     Test Ctrl+C by:
     1. Starting sleep command
@@ -98,7 +98,7 @@ def test_ctrl_c(client: mosaic) -> TestResult:
     return result
 
 
-def test_ctrl_d(client: mosaic) -> TestResult:
+def test_ctrl_d(client: coterm) -> TestResult:
     """
     Test Ctrl+D by:
     1. Running cat command
@@ -140,7 +140,7 @@ def test_ctrl_d(client: mosaic) -> TestResult:
     return result
 
 
-def test_ctrl_c_python(client: mosaic) -> TestResult:
+def test_ctrl_c_python(client: coterm) -> TestResult:
     """
     Test Ctrl+C with Python process
     """
@@ -185,13 +185,13 @@ def test_ctrl_c_python(client: mosaic) -> TestResult:
     return result
 
 
-def test_environment_paths(client: mosaic) -> TestResult:
+def test_environment_paths(client: coterm) -> TestResult:
     """
     Verify that TERMINFO points to a real terminfo directory and that
     XDG_DATA_DIRS includes the app resources path (and defaults when unset).
     """
     result = TestResult("Environment Paths")
-    env_path = Path(tempfile.gettempdir()) / f"mosaic_env_{os.getpid()}.json"
+    env_path = Path(tempfile.gettempdir()) / f"coterm_env_{os.getpid()}.json"
     env_path.unlink(missing_ok=True)
 
     try:
@@ -273,20 +273,20 @@ def test_environment_paths(client: mosaic) -> TestResult:
 def run_tests():
     """Run all tests"""
     print("=" * 60)
-    print("mosaic Ctrl+C/D Automated Tests")
+    print("coterm Ctrl+C/D Automated Tests")
     print("=" * 60)
     print()
 
-    socket_path = mosaic.default_socket_path()
+    socket_path = coterm.default_socket_path()
     if not os.path.exists(socket_path):
         print(f"Error: Socket not found at {socket_path}")
-        print("Please make sure mosaic is running.")
+        print("Please make sure coterm is running.")
         return 1
 
     results = []
 
     try:
-        with mosaic() as client:
+        with coterm() as client:
             # Test connection
             print("Testing connection...")
             results.append(test_connection(client))
@@ -343,7 +343,7 @@ def run_tests():
             print(f"  {status} {results[-1].message}")
             print()
 
-    except mosaicError as e:
+    except cotermError as e:
         print(f"Error: {e}")
         return 1
 

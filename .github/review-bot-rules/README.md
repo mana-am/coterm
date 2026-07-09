@@ -1,4 +1,4 @@
-# mosaic Review Bot Rules
+# coterm Review Bot Rules
 
 These rules are the shared source of truth for Greptile and CodeRabbit custom review behavior.
 

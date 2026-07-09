@@ -2,16 +2,16 @@ import Darwin
 import Foundation
 import os
 
-nonisolated private let rosettaRelaunchLogger = Logger(subsystem: "mosaic.com.emergent.app", category: "RosettaRelaunch")
+nonisolated private let rosettaRelaunchLogger = Logger(subsystem: "coterm.com.emergent.app", category: "RosettaRelaunch")
 
-/// Launch-time self-heal that re-execs mosaic natively when the process is
+/// Launch-time self-heal that re-execs coterm natively when the process is
 /// running translated under Rosetta on Apple Silicon.
 ///
-/// mosaic ships a universal (`x86_64 arm64`) binary so it keeps supporting Intel
+/// coterm ships a universal (`x86_64 arm64`) binary so it keeps supporting Intel
 /// Macs. On Apple Silicon, a stale LaunchServices architecture preference (set
 /// once from the DMG volume copy and inherited by the `/Applications` copy) can
 /// pin the app to its `x86_64` slice, so the whole process tree — login shell,
-/// `zsh`, and every tool launched in a mosaic terminal — runs translated. macOS 26
+/// `zsh`, and every tool launched in a coterm terminal — runs translated. macOS 26
 /// then shows a Rosetta deprecation dialog. `LSArchitecturePriority = (arm64)`
 /// in the app `Info.plist` fixes future launches; this type corrects an
 /// already-mis-pinned install by re-launching the arm64 slice in place at
@@ -19,7 +19,7 @@ nonisolated private let rosettaRelaunchLogger = Logger(subsystem: "mosaic.com.em
 enum RosettaNativeRelaunch {
     /// Environment guard that marks a process as the product of a native
     /// relaunch, so a relaunch that fails to escape translation never loops.
-    private static let guardKey = "MOSAIC_ROSETTA_RELAUNCHED"
+    private static let guardKey = "COTERM_ROSETTA_RELAUNCHED"
 
     /// Whether the current process should re-exec itself as a native arm64
     /// binary.
@@ -53,7 +53,7 @@ enum RosettaNativeRelaunch {
         return value == 1
     }
 
-    /// Re-exec mosaic as a native arm64 process when it is running translated.
+    /// Re-exec coterm as a native arm64 process when it is running translated.
     ///
     /// Call this as early as possible at launch — before CLI forwarding and
     /// before AppKit is brought up — so a translated launch invoked with

@@ -9,7 +9,7 @@ extension AppDelegate {
             }
             if contextForMainWindow(window) != nil
                 || isMainTerminalWindow(window)
-                || mosaicWindowShouldOwnCloseShortcut(window) {
+                || cotermWindowShouldOwnCloseShortcut(window) {
                 return window
             }
             debugShortcutRoutingFocusedWindowOverrideForTesting.window = nil

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Regression test: `mosaic claude-teams` main-vertical layout stacks teammates
+Regression test: `coterm claude-teams` main-vertical layout stacks teammates
 vertically in a right-side column instead of creating nested horizontal splits.
 
 Simulates Claude creating 3 teammates:
@@ -27,7 +27,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from claude_teams_test_utils import resolve_mosaic_cli
+from claude_teams_test_utils import resolve_coterm_cli
 
 INITIAL_WORKSPACE_ID = "11111111-1111-4111-8111-111111111111"
 INITIAL_WINDOW_ID = "22222222-2222-4222-8222-222222222222"
@@ -53,7 +53,7 @@ def make_executable(path: Path, content: str) -> None:
     path.chmod(0o755)
 
 
-class FakeMosaicState:
+class FakeCotermState:
     def __init__(self) -> None:
         self.lock = threading.Lock()
         self.requests: list[str] = []
@@ -216,7 +216,7 @@ class FakeMosaicState:
                 return {"ok": True}
             if method == "surface.send_text":
                 return {"ok": True}
-            raise RuntimeError(f"Unsupported fake mosaic method: {method}")
+            raise RuntimeError(f"Unsupported fake coterm method: {method}")
 
     def _pane_by_id(self, pane_id: str) -> dict:
         for p in self.panes:
@@ -241,15 +241,15 @@ class FakeMosaicState:
         return sids[0] if sids else ""
 
 
-class FakeMosaicUnixServer(socketserver.ThreadingUnixStreamServer):
+class FakeCotermUnixServer(socketserver.ThreadingUnixStreamServer):
     allow_reuse_address = True
 
-    def __init__(self, socket_path: str, state: FakeMosaicState) -> None:
+    def __init__(self, socket_path: str, state: FakeCotermState) -> None:
         self.state = state
-        super().__init__(socket_path, FakeMosaicHandler)
+        super().__init__(socket_path, FakeCotermHandler)
 
 
-class FakeMosaicHandler(socketserver.StreamRequestHandler):
+class FakeCotermHandler(socketserver.StreamRequestHandler):
     def handle(self) -> None:
         while True:
             line = self.rfile.readline()
@@ -270,19 +270,19 @@ class FakeMosaicHandler(socketserver.StreamRequestHandler):
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-claude-teams-mv-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-claude-teams-mv-") as td:
         tmp = Path(td)
         home = tmp / "home"
         home.mkdir(parents=True, exist_ok=True)
 
-        socket_path = tmp / "fake-mosaic.sock"
-        state = FakeMosaicState()
-        server = FakeMosaicUnixServer(str(socket_path), state)
+        socket_path = tmp / "fake-coterm.sock"
+        state = FakeCotermState()
+        server = FakeCotermUnixServer(str(socket_path), state)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
 
@@ -324,7 +324,7 @@ printf '%s\\n%s\\n%s\\n' "$t1" "$t2" "$t3" > "$RESULT_LOG"
         env = os.environ.copy()
         env["HOME"] = str(home)
         env["PATH"] = f"{real_bin}:/usr/bin:/bin"
-        env["MOSAIC_SOCKET_PATH"] = str(socket_path)
+        env["COTERM_SOCKET_PATH"] = str(socket_path)
         env["RESULT_LOG"] = str(result_log)
 
         try:

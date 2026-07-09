@@ -32,13 +32,13 @@ import {
 // an identity token the backend mints per attach session (short TTL, revoked on rm).
 const SSH_HOST = "vm-ssh.freestyle.sh";
 const SSH_PORT = 22;
-const MOSAIC_LINUX_USER = "mosaic"; // must match Resources/install.sh in scratch/vm-experiments
-const MOSAICD_WS_PTY_LEASE_PATH = "/tmp/mosaic/attach-pty-lease.json";
-const MOSAICD_WS_LEGACY_PTY_LEASE_PATH = "/tmp/mosaic/attach-lease.json";
-const MOSAICD_WS_RPC_CLIENT_PATH = "/tmp/mosaic/attach-rpc-client.json";
-const MOSAICD_WS_PTY_LEASE_TTL_SECONDS = 5 * 60;
-const MOSAICD_WS_RPC_LEASE_TTL_SECONDS = 12 * 60 * 60;
-const MOSAICD_WS_RPC_RENEW_BEFORE_SECONDS = 60;
+const COTERM_LINUX_USER = "coterm"; // must match Resources/install.sh in scratch/vm-experiments
+const COTERMD_WS_PTY_LEASE_PATH = "/tmp/coterm/attach-pty-lease.json";
+const COTERMD_WS_LEGACY_PTY_LEASE_PATH = "/tmp/coterm/attach-lease.json";
+const COTERMD_WS_RPC_CLIENT_PATH = "/tmp/coterm/attach-rpc-client.json";
+const COTERMD_WS_PTY_LEASE_TTL_SECONDS = 5 * 60;
+const COTERMD_WS_RPC_LEASE_TTL_SECONDS = 12 * 60 * 60;
+const COTERMD_WS_RPC_RENEW_BEFORE_SECONDS = 60;
 const FREESTYLE_WS_PORTS = [{ port: 443, targetPort: 7777 }];
 
 const DEFAULT_TIMEOUT_MS = 60_000;
@@ -85,12 +85,12 @@ export class FreestyleProvider implements VMProvider {
       throw new ProviderError("freestyle", "create requires a resolved image");
     }
     return withVmSpan(
-      "mosaic.vm.provider.create",
+      "coterm.vm.provider.create",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "create",
-        "mosaic.vm.image": image,
-        "mosaic.timeout_ms": CREATE_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "create",
+        "coterm.vm.image": image,
+        "coterm.timeout_ms": CREATE_TIMEOUT_MS,
       },
       async (span) => {
         const fs = client(CREATE_TIMEOUT_MS);
@@ -101,7 +101,7 @@ export class FreestyleProvider implements VMProvider {
             ports: FREESTYLE_WS_PORTS,
             readySignalTimeoutSeconds: 600,
           });
-          setSpanAttributes(span, { "mosaic.vm.id": created.vmId });
+          setSpanAttributes(span, { "coterm.vm.id": created.vmId });
           return {
             provider: "freestyle",
             providerVmId: created.vmId,
@@ -118,12 +118,12 @@ export class FreestyleProvider implements VMProvider {
 
   async destroy(vmId: string): Promise<void> {
     return withVmSpan(
-      "mosaic.vm.provider.destroy",
+      "coterm.vm.provider.destroy",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "destroy",
-        "mosaic.vm.id": vmId,
-        "mosaic.timeout_ms": DEFAULT_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "destroy",
+        "coterm.vm.id": vmId,
+        "coterm.timeout_ms": DEFAULT_TIMEOUT_MS,
       },
       async () => {
         try {
@@ -139,18 +139,18 @@ export class FreestyleProvider implements VMProvider {
 
   async getStatus(vmId: string): Promise<VMStatus> {
     return withVmSpan(
-      "mosaic.vm.provider.get_status",
+      "coterm.vm.provider.get_status",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "get_status",
-        "mosaic.vm.id": vmId,
-        "mosaic.timeout_ms": DEFAULT_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "get_status",
+        "coterm.vm.id": vmId,
+        "coterm.timeout_ms": DEFAULT_TIMEOUT_MS,
       },
       async (span) => {
         try {
           const info = await client().vms.ref({ vmId }).getInfo();
           const status = mapStatus(info.state);
-          setSpanAttributes(span, { "mosaic.vm.provider_state": info.state, "mosaic.vm.status": status });
+          setSpanAttributes(span, { "coterm.vm.provider_state": info.state, "coterm.vm.status": status });
           return status;
         } catch (err) {
           throw new ProviderError("freestyle", `getStatus(${vmId})`, err);
@@ -161,12 +161,12 @@ export class FreestyleProvider implements VMProvider {
 
   async pause(vmId: string): Promise<void> {
     return withVmSpan(
-      "mosaic.vm.provider.pause",
+      "coterm.vm.provider.pause",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "pause",
-        "mosaic.vm.id": vmId,
-        "mosaic.timeout_ms": DEFAULT_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "pause",
+        "coterm.vm.id": vmId,
+        "coterm.timeout_ms": DEFAULT_TIMEOUT_MS,
       },
       async () => {
         try {
@@ -182,12 +182,12 @@ export class FreestyleProvider implements VMProvider {
 
   async resume(vmId: string): Promise<VMHandle> {
     return withVmSpan(
-      "mosaic.vm.provider.resume",
+      "coterm.vm.provider.resume",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "resume",
-        "mosaic.vm.id": vmId,
-        "mosaic.timeout_ms": DEFAULT_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "resume",
+        "coterm.vm.id": vmId,
+        "coterm.timeout_ms": DEFAULT_TIMEOUT_MS,
       },
       async (span) => {
         try {
@@ -196,7 +196,7 @@ export class FreestyleProvider implements VMProvider {
           await ref.start();
           const info = await ref.getInfo();
           const status = mapStatus(info.state);
-          setSpanAttributes(span, { "mosaic.vm.provider_state": info.state, "mosaic.vm.status": status });
+          setSpanAttributes(span, { "coterm.vm.provider_state": info.state, "coterm.vm.status": status });
           return {
             provider: "freestyle",
             providerVmId: info.id,
@@ -218,13 +218,13 @@ export class FreestyleProvider implements VMProvider {
   ): Promise<ExecResult> {
     const timeoutMs = normalizeExecTimeout(opts?.timeoutMs);
     return withVmSpan(
-      "mosaic.vm.provider.exec",
+      "coterm.vm.provider.exec",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "exec",
-        "mosaic.vm.id": vmId,
-        "mosaic.command_length": command.length,
-        "mosaic.timeout_ms": timeoutMs,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "exec",
+        "coterm.vm.id": vmId,
+        "coterm.command_length": command.length,
+        "coterm.timeout_ms": timeoutMs,
       },
       async (span) => {
         try {
@@ -232,7 +232,7 @@ export class FreestyleProvider implements VMProvider {
           const ref = fs.vms.ref({ vmId });
           const r = await ref.exec({ command, timeoutMs });
           const exitCode = (r as { statusCode?: number }).statusCode ?? 0;
-          setSpanAttributes(span, { "mosaic.exec.exit_code": exitCode });
+          setSpanAttributes(span, { "coterm.exec.exit_code": exitCode });
           // ResponsePostV1VmsVmIdExecAwait200 shape: { stdout, stderr, statusCode }
           return {
             exitCode,
@@ -248,13 +248,13 @@ export class FreestyleProvider implements VMProvider {
 
   async snapshot(vmId: string, name?: string): Promise<SnapshotRef> {
     return withVmSpan(
-      "mosaic.vm.provider.snapshot",
+      "coterm.vm.provider.snapshot",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "snapshot",
-        "mosaic.vm.id": vmId,
-        "mosaic.snapshot.named": !!name,
-        "mosaic.timeout_ms": SNAPSHOT_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "snapshot",
+        "coterm.vm.id": vmId,
+        "coterm.snapshot.named": !!name,
+        "coterm.timeout_ms": SNAPSHOT_TIMEOUT_MS,
       },
       async (span) => {
         try {
@@ -266,7 +266,7 @@ export class FreestyleProvider implements VMProvider {
             (out as { id?: string }).id ??
             "";
           if (!id) throw new Error("snapshot response missing snapshotId");
-          setSpanAttributes(span, { "mosaic.snapshot.id": id });
+          setSpanAttributes(span, { "coterm.snapshot.id": id });
           return { id, createdAt: Date.now(), name };
         } catch (err) {
           throw new ProviderError("freestyle", `snapshot(${vmId})`, err);
@@ -277,12 +277,12 @@ export class FreestyleProvider implements VMProvider {
 
   async restore(snapshotId: string): Promise<VMHandle> {
     return withVmSpan(
-      "mosaic.vm.provider.restore",
+      "coterm.vm.provider.restore",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "restore",
-        "mosaic.snapshot.id": snapshotId,
-        "mosaic.timeout_ms": CREATE_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "restore",
+        "coterm.snapshot.id": snapshotId,
+        "coterm.timeout_ms": CREATE_TIMEOUT_MS,
       },
       async (span) => {
         try {
@@ -292,7 +292,7 @@ export class FreestyleProvider implements VMProvider {
             ports: FREESTYLE_WS_PORTS,
             readySignalTimeoutSeconds: 600,
           });
-          setSpanAttributes(span, { "mosaic.vm.id": created.vmId });
+          setSpanAttributes(span, { "coterm.vm.id": created.vmId });
           return {
             provider: "freestyle",
             providerVmId: created.vmId,
@@ -308,7 +308,7 @@ export class FreestyleProvider implements VMProvider {
   }
 
   /**
-   * Prefer the baked mosaicd WebSocket daemon. Older VMs without an exposed 443 -> 7777 port
+   * Prefer the baked cotermd WebSocket daemon. Older VMs without an exposed 443 -> 7777 port
    * still fall back to Freestyle SSH, but the mac client must treat that as shell-only.
    */
   async openAttach(vmId: string, options?: AttachOptions): Promise<AttachEndpoint> {
@@ -317,7 +317,7 @@ export class FreestyleProvider implements VMProvider {
       if (options?.requireDaemon && !endpoint.daemon) {
         throw new ProviderError(
           "freestyle",
-          `openAttach(${vmId}) requires a mosaicd RPC endpoint, but this VM snapshot only exposes the PTY WebSocket. Rebuild it with the current mosaicd-remote snapshot.`,
+          `openAttach(${vmId}) requires a cotermd RPC endpoint, but this VM snapshot only exposes the PTY WebSocket. Rebuild it with the current cotermd-remote snapshot.`,
         );
       }
       return endpoint;
@@ -326,16 +326,16 @@ export class FreestyleProvider implements VMProvider {
         throw err;
       }
       return await withVmSpan(
-        "mosaic.vm.provider.open_attach_ssh_fallback",
+        "coterm.vm.provider.open_attach_ssh_fallback",
         {
-          "mosaic.vm.provider": "freestyle",
-          "mosaic.vm.operation": "open_attach_ssh_fallback",
-          "mosaic.vm.id": vmId,
-          "mosaic.vm.attach.require_daemon": options?.requireDaemon === true,
+          "coterm.vm.provider": "freestyle",
+          "coterm.vm.operation": "open_attach_ssh_fallback",
+          "coterm.vm.id": vmId,
+          "coterm.vm.attach.require_daemon": options?.requireDaemon === true,
         },
         async (span) => {
           recordSpanError(span, err);
-          setSpanAttributes(span, { "mosaic.vm.attach.fallback": "ssh" });
+          setSpanAttributes(span, { "coterm.vm.attach.fallback": "ssh" });
           return await this.openSSH(vmId);
         },
       );
@@ -344,11 +344,11 @@ export class FreestyleProvider implements VMProvider {
 
   async openWebSocketPty(vmId: string): Promise<WebSocketPtyEndpoint> {
     return withVmSpan(
-      "mosaic.vm.provider.open_websocket_pty",
+      "coterm.vm.provider.open_websocket_pty",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "open_websocket_pty",
-        "mosaic.vm.id": vmId,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "open_websocket_pty",
+        "coterm.vm.id": vmId,
       },
       async (span) => {
         try {
@@ -358,7 +358,7 @@ export class FreestyleProvider implements VMProvider {
           const service = await readFreestyleWebSocketService(vm);
           await ensureFreestyleWebSocketHealthy(domain);
 
-          const pty = makeWebSocketLease("freestyle", "pty", true, MOSAICD_WS_PTY_LEASE_TTL_SECONDS);
+          const pty = makeWebSocketLease("freestyle", "pty", true, COTERMD_WS_PTY_LEASE_TTL_SECONDS);
           const encodedPTY = Buffer.from(JSON.stringify(pty.lease)).toString("base64");
           const commands = [
             ensurePrivateDirectoryCommand(service.ptyLeasePath),
@@ -371,7 +371,7 @@ export class FreestyleProvider implements VMProvider {
             const existingDaemon = await readReusableRpcLease(vm, service.rpcLeasePath);
             const newDaemon = existingDaemon
               ? null
-              : makeWebSocketLease("freestyle", "rpc", false, MOSAICD_WS_RPC_LEASE_TTL_SECONDS);
+              : makeWebSocketLease("freestyle", "rpc", false, COTERMD_WS_RPC_LEASE_TTL_SECONDS);
             daemon = existingDaemon ?? newDaemon!;
             daemonReused = !!existingDaemon;
             if (newDaemon) {
@@ -381,18 +381,18 @@ export class FreestyleProvider implements VMProvider {
                 ensurePrivateDirectoryCommand(service.rpcLeasePath),
                 `printf '%s' '${encodedDaemon}' | base64 -d > ${shellQuote(service.rpcLeasePath)}`,
                 `chmod 600 ${shellQuote(service.rpcLeasePath)}`,
-                `printf '%s' '${encodedDaemonClient}' | base64 -d > ${shellQuote(MOSAICD_WS_RPC_CLIENT_PATH)}`,
-                `chmod 600 ${shellQuote(MOSAICD_WS_RPC_CLIENT_PATH)}`,
+                `printf '%s' '${encodedDaemonClient}' | base64 -d > ${shellQuote(COTERMD_WS_RPC_CLIENT_PATH)}`,
+                `chmod 600 ${shellQuote(COTERMD_WS_RPC_CLIENT_PATH)}`,
               );
             }
           }
           await execFreestyleOrThrow(vm, commands.join(" && "));
-          span.setAttribute("mosaic.vm.attach.transport", "websocket");
-          span.setAttribute("mosaic.vm.attach.expires_at_unix", pty.expiresAtUnix);
-          span.setAttribute("mosaic.vm.attach.daemon_available", !!daemon);
+          span.setAttribute("coterm.vm.attach.transport", "websocket");
+          span.setAttribute("coterm.vm.attach.expires_at_unix", pty.expiresAtUnix);
+          span.setAttribute("coterm.vm.attach.daemon_available", !!daemon);
           if (daemon) {
-            span.setAttribute("mosaic.vm.attach.daemon_expires_at_unix", daemon.expiresAtUnix);
-            span.setAttribute("mosaic.vm.attach.daemon_reused", daemonReused);
+            span.setAttribute("coterm.vm.attach.daemon_expires_at_unix", daemon.expiresAtUnix);
+            span.setAttribute("coterm.vm.attach.daemon_reused", daemonReused);
           }
           return {
             transport: "websocket",
@@ -423,18 +423,18 @@ export class FreestyleProvider implements VMProvider {
    */
   async openSSH(vmId: string): Promise<SSHEndpoint> {
     return withVmSpan(
-      "mosaic.vm.provider.open_ssh",
+      "coterm.vm.provider.open_ssh",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "open_ssh",
-        "mosaic.vm.id": vmId,
-        "mosaic.timeout_ms": DEFAULT_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "open_ssh",
+        "coterm.vm.id": vmId,
+        "coterm.timeout_ms": DEFAULT_TIMEOUT_MS,
       },
       async (span) => {
         const fs = client();
         // A fresh identity per attach session. The VM workflow persists the identityId so it can
         // call `revokeSSHIdentity` on VM destroy / before minting a replacement, otherwise
-        // every `mosaic vm shell` invocation would leak a live credential under the Freestyle
+        // every `coterm vm shell` invocation would leak a live credential under the Freestyle
         // account indefinitely.
         let identity: Awaited<ReturnType<typeof fs.identities.create>>["identity"] | undefined;
         let identityId = "";
@@ -442,17 +442,17 @@ export class FreestyleProvider implements VMProvider {
           const created = await fs.identities.create({});
           identity = created.identity;
           identityId = created.identityId;
-          setSpanAttributes(span, { "mosaic.ssh.identity_created": true });
+          setSpanAttributes(span, { "coterm.ssh.identity_created": true });
           await identity.permissions.vms.grant({
             vmId,
-            allowedUsers: [MOSAIC_LINUX_USER],
+            allowedUsers: [COTERM_LINUX_USER],
           });
           const { token } = await identity.tokens.create();
           return {
             transport: "ssh",
             host: SSH_HOST,
             port: SSH_PORT,
-            username: `${vmId}+${MOSAIC_LINUX_USER}`,
+            username: `${vmId}+${COTERM_LINUX_USER}`,
             publicKeyFingerprint: null,
             credential: { kind: "password", value: token },
             identityHandle: identityId,
@@ -476,11 +476,11 @@ export class FreestyleProvider implements VMProvider {
   async revokeSSHIdentity(identityHandle: string): Promise<void> {
     if (!identityHandle) return;
     await withVmSpan(
-      "mosaic.vm.provider.revoke_ssh_identity",
+      "coterm.vm.provider.revoke_ssh_identity",
       {
-        "mosaic.vm.provider": "freestyle",
-        "mosaic.vm.operation": "revoke_ssh_identity",
-        "mosaic.timeout_ms": DEFAULT_TIMEOUT_MS,
+        "coterm.vm.provider": "freestyle",
+        "coterm.vm.operation": "revoke_ssh_identity",
+        "coterm.timeout_ms": DEFAULT_TIMEOUT_MS,
       },
       async (span) => {
         try {
@@ -501,9 +501,9 @@ function shouldFallbackAttachToSSH(err: unknown): boolean {
     messages.push(errorMessage(err.cause));
   }
   return messages.some((message) =>
-    message.includes("requires a mosaicd RPC endpoint")
-    || message.includes("Freestyle mosaicd websocket health check returned")
-    || message.includes("Freestyle mosaicd websocket health check failed")
+    message.includes("requires a cotermd RPC endpoint")
+    || message.includes("Freestyle cotermd websocket health check returned")
+    || message.includes("Freestyle cotermd websocket health check failed")
   );
 }
 
@@ -515,10 +515,10 @@ async function ensureFreestyleWebSocketHealthy(domain: string): Promise<void> {
   const response = await fetch(`https://${domain}/healthz`, {
     signal: AbortSignal.timeout(10_000),
   }).catch((err: unknown) => {
-    throw new Error(`Freestyle mosaicd websocket health check failed: ${errorMessage(err)}`);
+    throw new Error(`Freestyle cotermd websocket health check failed: ${errorMessage(err)}`);
   });
   if (response.status !== 200) {
-    throw new Error(`Freestyle mosaicd websocket health check returned ${response.status}`);
+    throw new Error(`Freestyle cotermd websocket health check returned ${response.status}`);
   }
 }
 
@@ -529,17 +529,17 @@ async function readFreestyleWebSocketService(vm: FreestyleVmRef): Promise<{
   const result = await execFreestyleOrThrow(
     vm,
     [
-      "cat /etc/systemd/system/mosaicd-ws.service 2>/dev/null || true",
-      "cat /lib/systemd/system/mosaicd-ws.service 2>/dev/null || true",
-      "ps auxww | grep mosaicd-remote | grep -v grep || true",
+      "cat /etc/systemd/system/cotermd-ws.service 2>/dev/null || true",
+      "cat /lib/systemd/system/cotermd-ws.service 2>/dev/null || true",
+      "ps auxww | grep cotermd-remote | grep -v grep || true",
     ].join("; "),
   );
   const stdout = result.stdout ?? "";
   const ptyLeasePath =
     shellArgValue(stdout, "--auth-lease-file")
-    ?? (stdout.includes(MOSAICD_WS_LEGACY_PTY_LEASE_PATH)
-      ? MOSAICD_WS_LEGACY_PTY_LEASE_PATH
-      : MOSAICD_WS_PTY_LEASE_PATH);
+    ?? (stdout.includes(COTERMD_WS_LEGACY_PTY_LEASE_PATH)
+      ? COTERMD_WS_LEGACY_PTY_LEASE_PATH
+      : COTERMD_WS_PTY_LEASE_PATH);
   const rpcLeasePath = shellArgValue(stdout, "--rpc-auth-lease-file");
   return { ptyLeasePath, rpcLeasePath };
 }
@@ -551,8 +551,8 @@ async function readReusableRpcLease(
   const result = await vm.exec({
     command: [
       `test -s ${shellQuote(rpcLeasePath)}`,
-      `test -s ${shellQuote(MOSAICD_WS_RPC_CLIENT_PATH)}`,
-      `cat ${shellQuote(MOSAICD_WS_RPC_CLIENT_PATH)}`,
+      `test -s ${shellQuote(COTERMD_WS_RPC_CLIENT_PATH)}`,
+      `cat ${shellQuote(COTERMD_WS_RPC_CLIENT_PATH)}`,
     ].join(" && "),
     timeoutMs: 30_000,
   }).catch(() => null);
@@ -562,7 +562,7 @@ async function readReusableRpcLease(
     const parsed = JSON.parse(raw) as unknown;
     if (!isReusableRpcLease(parsed)) return null;
     const nowUnix = Math.floor(Date.now() / 1000);
-    if (parsed.expiresAtUnix <= nowUnix + MOSAICD_WS_RPC_RENEW_BEFORE_SECONDS) return null;
+    if (parsed.expiresAtUnix <= nowUnix + COTERMD_WS_RPC_RENEW_BEFORE_SECONDS) return null;
     return parsed;
   } catch {
     return null;

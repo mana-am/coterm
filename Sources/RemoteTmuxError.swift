@@ -2,7 +2,7 @@ import Foundation
 
 /// Errors raised while talking to a remote tmux server over SSH.
 enum RemoteTmuxError: Error, Sendable, Equatable {
-    /// The `ssh` (or remote) command exited non-zero for a reason mosaic does
+    /// The `ssh` (or remote) command exited non-zero for a reason coterm does
     /// not treat as benign. Carries the exit code and captured stderr.
     case commandFailed(exitCode: Int32, stderr: String)
 
@@ -64,7 +64,7 @@ extension RemoteTmuxError {
         case let .unsupportedTmux(detected):
             let format = String(
                 localized: "remoteTmux.error.unsupportedVersion",
-                defaultValue: "remote session server is too old (found %@; mosaic needs version %@ or newer)"
+                defaultValue: "remote session server is too old (found %@; coterm needs version %@ or newer)"
             )
             return String(
                 format: format,

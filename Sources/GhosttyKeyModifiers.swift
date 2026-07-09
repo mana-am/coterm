@@ -3,7 +3,7 @@ import GhosttyKit
 
 /// Translates NSEvent modifier flags into the libghostty mods bitfield for
 /// key events (`ghostty_surface_key`, `ghostty_surface_key_translation_mods`).
-nonisolated func mosaicGhosttyModsFromFlags(modifierFlagsRawValue rawValue: UInt) -> ghostty_input_mods_e {
+nonisolated func cotermGhosttyModsFromFlags(modifierFlagsRawValue rawValue: UInt) -> ghostty_input_mods_e {
     let flags = NSEvent.ModifierFlags(rawValue: rawValue)
     var mods = GHOSTTY_MODS_NONE.rawValue
     if flags.contains(.shift) { mods |= GHOSTTY_MODS_SHIFT.rawValue }
@@ -14,7 +14,7 @@ nonisolated func mosaicGhosttyModsFromFlags(modifierFlagsRawValue rawValue: UInt
     // Sided input (mirrors Ghostty.app's ghosttyMods). libghostty applies
     // `macos-option-as-alt = left|right` and the key encoder's per-side
     // Alt-prefix rules from these bits; without them every modifier reads
-    // as the left key (https://github.com/emergent-inc/mosaic/issues/5993).
+    // as the left key (https://github.com/emergent-inc/coterm/issues/5993).
     if rawValue & UInt(NX_DEVICERSHIFTKEYMASK) != 0 { mods |= GHOSTTY_MODS_SHIFT_RIGHT.rawValue }
     if rawValue & UInt(NX_DEVICERCTLKEYMASK) != 0 { mods |= GHOSTTY_MODS_CTRL_RIGHT.rawValue }
     if rawValue & UInt(NX_DEVICERALTKEYMASK) != 0 { mods |= GHOSTTY_MODS_ALT_RIGHT.rawValue }
@@ -29,9 +29,9 @@ nonisolated func mosaicGhosttyModsFromFlags(modifierFlagsRawValue rawValue: UInt
 /// affect the mouse") but compares incoming mods against that stored value,
 /// so sending side bits would make every event with a held right-side
 /// modifier look like a modifier change and re-dirty the screen. Key events
-/// must keep the side bits (`mosaicGhosttyModsFromFlags`); mouse paths send
+/// must keep the side bits (`cotermGhosttyModsFromFlags`); mouse paths send
 /// the normalized binding bits libghostty stores.
-nonisolated func mosaicGhosttyMouseModsFromFlags(modifierFlagsRawValue rawValue: UInt) -> ghostty_input_mods_e {
+nonisolated func cotermGhosttyMouseModsFromFlags(modifierFlagsRawValue rawValue: UInt) -> ghostty_input_mods_e {
     let flags = NSEvent.ModifierFlags(rawValue: rawValue)
     var mods = GHOSTTY_MODS_NONE.rawValue
     if flags.contains(.shift) { mods |= GHOSTTY_MODS_SHIFT.rawValue }
@@ -45,7 +45,7 @@ nonisolated func mosaicGhosttyMouseModsFromFlags(modifierFlagsRawValue rawValue:
 /// participate in character translation after settings such as
 /// `macos-option-as-alt` are applied) back onto an event's modifier flags,
 /// preserving flags libghostty does not model (function, numeric pad, ...).
-nonisolated func mosaicTranslationModifierFlags(
+nonisolated func cotermTranslationModifierFlags(
     original eventFlags: NSEvent.ModifierFlags,
     ghosttyTranslationMods: ghostty_input_mods_e
 ) -> NSEvent.ModifierFlags {

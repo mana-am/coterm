@@ -17,7 +17,7 @@ import sys
 import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
 DRAG_EVENTS = [
@@ -50,7 +50,7 @@ NON_DRAG_EVENTS = [
 ]
 
 
-def wait_for_overlay_probe_ready(client: mosaic, timeout_s: float = 8.0) -> None:
+def wait_for_overlay_probe_ready(client: coterm, timeout_s: float = 8.0) -> None:
     start = time.time()
     last_error = None
     while time.time() - start < timeout_s:
@@ -62,69 +62,69 @@ def wait_for_overlay_probe_ready(client: mosaic, timeout_s: float = 8.0) -> None
         except Exception as e:
             last_error = e
             time.sleep(0.1)
-    raise mosaicError(f"overlay_hit_gate probe unavailable: {last_error}")
+    raise cotermError(f"overlay_hit_gate probe unavailable: {last_error}")
 
 
-def assert_gate(client: mosaic, event_type: str, expected: bool, reason: str) -> None:
+def assert_gate(client: coterm, event_type: str, expected: bool, reason: str) -> None:
     got = client.overlay_hit_gate(event_type)
     if got != expected:
-        raise mosaicError(
+        raise cotermError(
             f"overlay_hit_gate({event_type}) expected {expected} got {got} ({reason})"
         )
 
 
-def assert_drop_gate(client: mosaic, source: str, expected: bool, reason: str) -> None:
+def assert_drop_gate(client: coterm, source: str, expected: bool, reason: str) -> None:
     got = client.overlay_drop_gate(source)
     if got != expected:
-        raise mosaicError(
+        raise cotermError(
             f"overlay_drop_gate({source}) expected {expected} got {got} ({reason})"
         )
 
 
-def assert_portal_gate(client: mosaic, event_type: str, expected: bool, reason: str) -> None:
+def assert_portal_gate(client: coterm, event_type: str, expected: bool, reason: str) -> None:
     got = client.portal_hit_gate(event_type)
     if got != expected:
-        raise mosaicError(
+        raise cotermError(
             f"portal_hit_gate({event_type}) expected {expected} got {got} ({reason})"
         )
 
 
-def assert_sidebar_gate(client: mosaic, state: str, expected: bool, reason: str) -> None:
+def assert_sidebar_gate(client: coterm, state: str, expected: bool, reason: str) -> None:
     got = client.sidebar_overlay_gate(state)
     if got != expected:
-        raise mosaicError(
+        raise cotermError(
             f"sidebar_overlay_gate({state}) expected {expected} got {got} ({reason})"
         )
 
 
 def assert_hit_chain_routes_to_pane(
-    client: mosaic,
+    client: coterm,
     x: float = 0.75,
     y: float = 0.50,
     reason: str = "",
 ) -> None:
     chain = client.drag_hit_chain(x, y)
     if chain == "none":
-        raise mosaicError(
+        raise cotermError(
             f"drag_hit_chain({x},{y}) returned none ({reason})"
         )
     # This probe is intended to catch root-level overlay capture regressions.
     # Depending on current AppKit event context, drag hit-testing can resolve
     # through either pane-local SwiftUI wrappers or portal-hosted terminal views.
     if "FileDropOverlayView" in chain:
-        raise mosaicError(
+        raise cotermError(
             f"drag_hit_chain({x},{y}) unexpectedly captured by FileDropOverlayView ({reason}); chain={chain}"
         )
 
 
 def main() -> int:
-    socket_path = mosaic.default_socket_path()
+    socket_path = coterm.default_socket_path()
     if not os.path.exists(socket_path):
         print(f"SKIP: Socket not found at {socket_path}")
-        print("Tip: start mosaic first (or set MOSAIC_TAG / MOSAIC_SOCKET_PATH).")
+        print("Tip: start coterm first (or set COTERM_TAG / COTERM_SOCKET_PATH).")
         return 0
 
-    with mosaic(socket_path) as client:
+    with coterm(socket_path) as client:
         ws_id = None
         try:
             client.activate_app()
@@ -233,6 +233,6 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except mosaicError as e:
+    except cotermError as e:
         print(f"FAIL: {e}")
         raise SystemExit(1)

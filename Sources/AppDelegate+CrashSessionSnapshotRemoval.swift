@@ -10,7 +10,7 @@ extension AppDelegate {
         case .loaded(let snapshot):
             Self.clearCrashOnlyPrimarySnapshotRemovalMarker()
             guard let prunedSnapshot = SessionPersistencePolicy
-                .pruningMosaicCrashDiagnosticWindows(from: snapshot)
+                .pruningCotermCrashDiagnosticWindows(from: snapshot)
                 .snapshot else {
                 return
             }
@@ -25,7 +25,7 @@ extension AppDelegate {
     }
 
     private nonisolated static var crashOnlyPrimarySnapshotRemovalDefaultsKey: String {
-        "mosaic.session.crashOnlyPrimarySnapshotRemoval.v1"
+        "coterm.session.crashOnlyPrimarySnapshotRemoval.v1"
     }
 
     nonisolated static func markCrashOnlyPrimarySnapshotRemoval(

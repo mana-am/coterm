@@ -230,7 +230,7 @@ enum TerminalNotificationPolicyEngine {
 
     static func evaluate(
         request: TerminalNotificationPolicyRequest,
-        hooks: [MosaicResolvedNotificationHook]
+        hooks: [CotermResolvedNotificationHook]
     ) async -> Result<TerminalNotificationPolicyEnvelope, TerminalNotificationPolicyFailure> {
         let initialEnvelope = TerminalNotificationPolicyEnvelope(
             notification: TerminalNotificationPolicyPayload(
@@ -254,7 +254,7 @@ enum TerminalNotificationPolicyEngine {
 
     static func evaluate(
         envelope initialEnvelope: TerminalNotificationPolicyEnvelope,
-        hooks: [MosaicResolvedNotificationHook]
+        hooks: [CotermResolvedNotificationHook]
     ) async -> Result<TerminalNotificationPolicyEnvelope, TerminalNotificationPolicyFailure> {
         guard !hooks.isEmpty else {
             return .success(initialEnvelope)
@@ -279,7 +279,7 @@ enum TerminalNotificationPolicyEngine {
     }
 
     private static func run(
-        hook: MosaicResolvedNotificationHook,
+        hook: CotermResolvedNotificationHook,
         envelope: TerminalNotificationPolicyEnvelope
     ) async -> Result<TerminalNotificationPolicyEnvelope, TerminalNotificationPolicyFailure> {
         let inputData: Data
@@ -300,7 +300,7 @@ enum TerminalNotificationPolicyEngine {
     }
 
     fileprivate static func failure(
-        hook: MosaicResolvedNotificationHook,
+        hook: CotermResolvedNotificationHook,
         message: String
     ) -> TerminalNotificationPolicyFailure {
         TerminalNotificationPolicyFailure(
@@ -314,11 +314,11 @@ enum TerminalNotificationPolicyEngine {
 @MainActor
 enum NotificationPolicyHookAuthorizer {
     static func authorize(
-        _ hooks: [MosaicResolvedNotificationHook],
+        _ hooks: [CotermResolvedNotificationHook],
         globalConfigPath: String?,
         presentingWindow: NSWindow? = nil
-    ) async -> [MosaicResolvedNotificationHook] {
-        var authorizedHooks: [MosaicResolvedNotificationHook] = []
+    ) async -> [CotermResolvedNotificationHook] {
+        var authorizedHooks: [CotermResolvedNotificationHook] = []
         let resolvedPresentingWindow = presentingWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
 
         for hook in hooks {
@@ -326,7 +326,7 @@ enum NotificationPolicyHookAuthorizer {
                 authorizedHooks.append(hook)
                 continue
             }
-            guard !MosaicActionTrust.shared.isTrusted(descriptor) else {
+            guard !CotermActionTrust.shared.isTrusted(descriptor) else {
                 authorizedHooks.append(hook)
                 continue
             }
@@ -349,13 +349,13 @@ enum NotificationPolicyHookAuthorizer {
     }
 
     private static func authorizeHook(
-        _ hook: MosaicResolvedNotificationHook,
-        descriptor: MosaicActionTrustDescriptor,
+        _ hook: CotermResolvedNotificationHook,
+        descriptor: CotermActionTrustDescriptor,
         globalConfigPath: String,
         presentingWindow: NSWindow?
     ) async -> Bool {
         await withCheckedContinuation { continuation in
-            MosaicConfigExecutor.authorizeProjectAutomationIfNeeded(
+            CotermConfigExecutor.authorizeProjectAutomationIfNeeded(
                 descriptor: descriptor,
                 confirm: false,
                 configSourcePath: hook.sourcePath,
@@ -417,16 +417,16 @@ private final class NotificationHookPipeBuffer: @unchecked Sendable {
 }
 
 private final class NotificationHookProcessRun: @unchecked Sendable {
-    private let hook: MosaicResolvedNotificationHook
+    private let hook: CotermResolvedNotificationHook
     private let envelope: TerminalNotificationPolicyEnvelope
     private let inputData: Data
     private let maxOutputBytes: Int
     private let queue = DispatchQueue(
-        label: "com.mosaicterm.notification-hook.process.\(UUID().uuidString)",
+        label: "com.coterm.notification-hook.process.\(UUID().uuidString)",
         qos: .utility
     )
     private let stdinWriteQueue = DispatchQueue(
-        label: "com.mosaicterm.notification-hook.stdin.\(UUID().uuidString)",
+        label: "com.coterm.notification-hook.stdin.\(UUID().uuidString)",
         qos: .utility
     )
     private let outputBuffer = NotificationHookPipeBuffer()
@@ -445,7 +445,7 @@ private final class NotificationHookProcessRun: @unchecked Sendable {
     private var pendingFailure: TerminalNotificationPolicyFailure?
 
     init(
-        hook: MosaicResolvedNotificationHook,
+        hook: CotermResolvedNotificationHook,
         envelope: TerminalNotificationPolicyEnvelope,
         inputData: Data,
         maxOutputBytes: Int
@@ -552,12 +552,12 @@ private final class NotificationHookProcessRun: @unchecked Sendable {
 
     private func environmentStrings() -> [String] {
         var env = ProcessInfo.processInfo.environment
-        env["MOSAIC_NOTIFICATION_TITLE"] = envelope.notification.title
-        env["MOSAIC_NOTIFICATION_SUBTITLE"] = envelope.notification.subtitle
-        env["MOSAIC_NOTIFICATION_BODY"] = envelope.notification.body
-        env["MOSAIC_NOTIFICATION_WORKSPACE_ID"] = envelope.notification.workspaceId
-        env["MOSAIC_NOTIFICATION_SURFACE_ID"] = envelope.notification.surfaceId ?? ""
-        env["MOSAIC_NOTIFICATION_POLICY_JSON"] = String(data: inputData, encoding: .utf8) ?? ""
+        env["COTERM_NOTIFICATION_TITLE"] = envelope.notification.title
+        env["COTERM_NOTIFICATION_SUBTITLE"] = envelope.notification.subtitle
+        env["COTERM_NOTIFICATION_BODY"] = envelope.notification.body
+        env["COTERM_NOTIFICATION_WORKSPACE_ID"] = envelope.notification.workspaceId
+        env["COTERM_NOTIFICATION_SURFACE_ID"] = envelope.notification.surfaceId ?? ""
+        env["COTERM_NOTIFICATION_POLICY_JSON"] = String(data: inputData, encoding: .utf8) ?? ""
         return env.map { "\($0.key)=\($0.value)" }
     }
 

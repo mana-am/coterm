@@ -1,5 +1,5 @@
 import Foundation
-import MosaicSettings
+import CotermSettings
 
 struct SurfaceNewWorkspaceMoveResult {
     let sourceWindowId: UUID

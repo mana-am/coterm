@@ -1,5 +1,5 @@
 import AppKit
-import MosaicFoundation
+import CotermFoundation
 
 /// Pure AppKit header bar with folder icon, path label, and hidden files toggle.
 final class FileExplorerHeaderView: NSView {

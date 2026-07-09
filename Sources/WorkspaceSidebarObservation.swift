@@ -1,7 +1,7 @@
 import Combine
-import MosaicCore
+import CotermCore
 import Foundation
-import MosaicSidebar
+import CotermSidebar
 import SwiftUI
 
 private struct SidebarPanelObservationState: Equatable {

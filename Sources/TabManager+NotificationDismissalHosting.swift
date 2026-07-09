@@ -1,8 +1,8 @@
-import MosaicNotifications
-import MosaicSettings
+import CotermNotifications
+import CotermSettings
 import Foundation
 
-/// The window-side host for the MosaicNotifications dismissal model: snapshot
+/// The window-side host for the CotermNotifications dismissal model: snapshot
 /// reads of selection/panel/unread state and the synchronous indicator
 /// mutations the legacy `dismissNotification` flow performed inline.
 /// Lookups mirror the legacy optional-chained `tabs.first(where:)` reads,

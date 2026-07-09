@@ -25,7 +25,7 @@ export function GET(request: Request) {
         id,
         displayName: null,
         workspaceType: workspace?.workspaceType ?? null,
-        mosaicPlan: workspace?.mosaicPlan ?? null,
+        cotermPlan: workspace?.cotermPlan ?? null,
         useType: workspace?.useType ?? null,
         billingStatus: workspace?.billingStatus ?? null,
       };

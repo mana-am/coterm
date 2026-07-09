@@ -19,35 +19,35 @@ from base64 import b64encode
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
-REMOTE_HTTP_PORT = int(os.environ.get("MOSAIC_SSH_TEST_REMOTE_HTTP_PORT", "43173"))
-REMOTE_WS_PORT = int(os.environ.get("MOSAIC_SSH_TEST_REMOTE_WS_PORT", "43174"))
-DOCKER_SSH_HOST = os.environ.get("MOSAIC_SSH_TEST_DOCKER_HOST", "127.0.0.1")
-DOCKER_PUBLISH_ADDR = os.environ.get("MOSAIC_SSH_TEST_DOCKER_BIND_ADDR", "127.0.0.1")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
+REMOTE_HTTP_PORT = int(os.environ.get("COTERM_SSH_TEST_REMOTE_HTTP_PORT", "43173"))
+REMOTE_WS_PORT = int(os.environ.get("COTERM_SSH_TEST_REMOTE_WS_PORT", "43174"))
+DOCKER_SSH_HOST = os.environ.get("COTERM_SSH_TEST_DOCKER_HOST", "127.0.0.1")
+DOCKER_PUBLISH_ADDR = os.environ.get("COTERM_SSH_TEST_DOCKER_BIND_ADDR", "127.0.0.1")
 
 
 def _must(cond: bool, msg: str) -> None:
     if not cond:
-        raise mosaicError(msg)
+        raise cotermError(msg)
 
 
 def _find_cli_binary() -> str:
-    env_cli = os.environ.get("MOSAICTERM_CLI")
+    env_cli = os.environ.get("COTERM_CLI")
     if env_cli and os.path.isfile(env_cli) and os.access(env_cli, os.X_OK):
         return env_cli
 
-    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/mosaic-tests-v2/Build/Products/Debug/mosaic")
+    fixed = os.path.expanduser("~/Library/Developer/Xcode/DerivedData/coterm-tests-v2/Build/Products/Debug/coterm")
     if os.path.isfile(fixed) and os.access(fixed, os.X_OK):
         return fixed
 
-    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/mosaic"), recursive=True)
-    candidates += glob.glob("/tmp/mosaic-*/Build/Products/Debug/mosaic")
+    candidates = glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/coterm"), recursive=True)
+    candidates += glob.glob("/tmp/coterm-*/Build/Products/Debug/coterm")
     candidates = [p for p in candidates if os.path.isfile(p) and os.access(p, os.X_OK)]
     if not candidates:
-        raise mosaicError("Could not locate mosaic CLI binary; set MOSAICTERM_CLI")
+        raise cotermError("Could not locate coterm CLI binary; set COTERM_CLI")
     candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
     return candidates[0]
 
@@ -56,20 +56,20 @@ def _run(cmd: list[str], *, env: dict[str, str] | None = None, check: bool = Tru
     proc = subprocess.run(cmd, capture_output=True, text=True, env=env, check=False)
     if check and proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"Command failed ({' '.join(cmd)}): {merged}")
+        raise cotermError(f"Command failed ({' '.join(cmd)}): {merged}")
     return proc
 
 
 def _run_cli_json(cli: str, args: list[str]) -> dict:
     env = dict(os.environ)
-    env.pop("MOSAIC_WORKSPACE_ID", None)
-    env.pop("MOSAIC_SURFACE_ID", None)
-    env.pop("MOSAIC_TAB_ID", None)
+    env.pop("COTERM_WORKSPACE_ID", None)
+    env.pop("COTERM_SURFACE_ID", None)
+    env.pop("COTERM_TAB_ID", None)
     proc = _run([cli, "--socket", SOCKET_PATH, "--json", *args], env=env)
     try:
         return json.loads(proc.stdout or "{}")
     except Exception as exc:  # noqa: BLE001
-        raise mosaicError(f"Invalid JSON output for {' '.join(args)}: {proc.stdout!r} ({exc})")
+        raise cotermError(f"Invalid JSON output for {' '.join(args)}: {proc.stdout!r} ({exc})")
 
 
 def _docker_available() -> bool:
@@ -81,7 +81,7 @@ def _docker_available() -> bool:
 
 def _curl_via_socks(proxy_port: int, target_url: str) -> str:
     if shutil.which("curl") is None:
-        raise mosaicError("curl is required for SOCKS proxy verification")
+        raise cotermError("curl is required for SOCKS proxy verification")
     proc = _run(
         [
             "curl",
@@ -97,7 +97,7 @@ def _curl_via_socks(proxy_port: int, target_url: str) -> str:
     )
     if proc.returncode != 0:
         merged = f"{proc.stdout}\n{proc.stderr}".strip()
-        raise mosaicError(f"curl via SOCKS proxy failed: {merged}")
+        raise cotermError(f"curl via SOCKS proxy failed: {merged}")
     return proc.stdout
 
 
@@ -113,7 +113,7 @@ def _recv_exact(sock: socket.socket, n: int) -> bytes:
     while len(out) < n:
         chunk = sock.recv(n - len(out))
         if not chunk:
-            raise mosaicError("unexpected EOF while reading socket")
+            raise cotermError("unexpected EOF while reading socket")
         out.extend(chunk)
     return bytes(out)
 
@@ -123,19 +123,19 @@ def _recv_until(sock: socket.socket, marker: bytes, limit: int = 16384) -> bytes
     while marker not in out:
         chunk = sock.recv(1024)
         if not chunk:
-            raise mosaicError("unexpected EOF while reading response headers")
+            raise cotermError("unexpected EOF while reading response headers")
         out.extend(chunk)
         if len(out) > limit:
-            raise mosaicError("response headers too large")
+            raise cotermError("response headers too large")
     return bytes(out)
 
 
 def _read_socks5_connect_reply(sock: socket.socket) -> None:
     head = _recv_exact(sock, 4)
     if len(head) != 4 or head[0] != 0x05:
-        raise mosaicError(f"invalid SOCKS5 reply: {head!r}")
+        raise cotermError(f"invalid SOCKS5 reply: {head!r}")
     if head[1] != 0x00:
-        raise mosaicError(f"SOCKS5 connect failed with status=0x{head[1]:02x}")
+        raise cotermError(f"SOCKS5 connect failed with status=0x{head[1]:02x}")
 
     reply_atyp = head[3]
     if reply_atyp == 0x01:
@@ -146,7 +146,7 @@ def _read_socks5_connect_reply(sock: socket.socket) -> None:
     elif reply_atyp == 0x04:
         _ = _recv_exact(sock, 16)
     else:
-        raise mosaicError(f"invalid SOCKS5 atyp in reply: 0x{reply_atyp:02x}")
+        raise cotermError(f"invalid SOCKS5 atyp in reply: 0x{reply_atyp:02x}")
     _ = _recv_exact(sock, 2)
 
 
@@ -159,7 +159,7 @@ def _read_http_response_from_connected_socket(sock: socket.socket) -> str:
 
     status_line = header_text.split("\r\n", 1)[0]
     if "200" not in status_line:
-        raise mosaicError(f"HTTP over SOCKS tunnel failed: {status_line!r}")
+        raise cotermError(f"HTTP over SOCKS tunnel failed: {status_line!r}")
 
     content_length: int | None = None
     for line in header_text.split("\r\n")[1:]:
@@ -197,7 +197,7 @@ def _socks5_connect(proxy_host: str, proxy_port: int, target_host: str, target_p
     greeting = _recv_exact(sock, 2)
     if greeting != b"\x05\x00":
         sock.close()
-        raise mosaicError(f"SOCKS5 greeting failed: {greeting!r}")
+        raise cotermError(f"SOCKS5 greeting failed: {greeting!r}")
 
     try:
         host_bytes = socket.inet_aton(target_host)
@@ -207,7 +207,7 @@ def _socks5_connect(proxy_host: str, proxy_port: int, target_host: str, target_p
         host_encoded = target_host.encode("utf-8")
         if len(host_encoded) > 255:
             sock.close()
-            raise mosaicError("target host too long for SOCKS5 domain form")
+            raise cotermError("target host too long for SOCKS5 domain form")
         atyp = b"\x03"
         addr = bytes([len(host_encoded)]) + host_encoded
 
@@ -233,7 +233,7 @@ def _socks5_http_get_pipelined(proxy_host: str, proxy_port: int, target_host: st
         except OSError:
             host_encoded = target_host.encode("utf-8")
             if len(host_encoded) > 255:
-                raise mosaicError("target host too long for SOCKS5 domain form")
+                raise cotermError("target host too long for SOCKS5 domain form")
             atyp = b"\x03"
             addr = bytes([len(host_encoded)]) + host_encoded
 
@@ -250,7 +250,7 @@ def _socks5_http_get_pipelined(proxy_host: str, proxy_port: int, target_host: st
 
         greeting_reply = _recv_exact(sock, 2)
         if greeting_reply != b"\x05\x00":
-            raise mosaicError(f"SOCKS5 greeting failed: {greeting_reply!r}")
+            raise cotermError(f"SOCKS5 greeting failed: {greeting_reply!r}")
         _read_socks5_connect_reply(sock)
         return _read_http_response_from_connected_socket(sock)
     finally:
@@ -275,7 +275,7 @@ def _http_connect_tunnel(proxy_host: str, proxy_port: int, target_host: str, tar
     status_line = header_text.split("\r\n", 1)[0]
     if "200" not in status_line:
         sock.close()
-        raise mosaicError(f"HTTP CONNECT tunnel failed: {status_line!r}")
+        raise cotermError(f"HTTP CONNECT tunnel failed: {status_line!r}")
     return sock
 
 
@@ -309,11 +309,11 @@ def _read_server_text_frame(sock: socket.socket) -> str:
         payload = bytes(b ^ mask[i % 4] for i, b in enumerate(payload))
 
     if opcode != 0x1:
-        raise mosaicError(f"Expected websocket text frame opcode=0x1, got opcode=0x{opcode:x}")
+        raise cotermError(f"Expected websocket text frame opcode=0x1, got opcode=0x{opcode:x}")
     try:
         return payload.decode("utf-8")
     except Exception as exc:  # noqa: BLE001
-        raise mosaicError(f"WebSocket response payload is not valid UTF-8: {exc}")
+        raise cotermError(f"WebSocket response payload is not valid UTF-8: {exc}")
 
 
 def _websocket_echo_on_connected_socket(sock: socket.socket, ws_host: str, ws_port: int, message: str, path_label: str) -> str:
@@ -332,7 +332,7 @@ def _websocket_echo_on_connected_socket(sock: socket.socket, ws_host: str, ws_po
     header_text = header_blob.decode("utf-8", errors="replace")
     status_line = header_text.split("\r\n", 1)[0]
     if "101" not in status_line:
-        raise mosaicError(f"WebSocket handshake failed over {path_label}: {status_line!r}")
+        raise cotermError(f"WebSocket handshake failed over {path_label}: {status_line!r}")
 
     expected_accept = b64encode(
         hashlib.sha1((ws_key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").encode("utf-8")).digest()
@@ -343,7 +343,7 @@ def _websocket_echo_on_connected_socket(sock: socket.socket, ws_host: str, ws_po
         if ":" in line
     }
     if lowered_headers.get("sec-websocket-accept", "") != expected_accept:
-        raise mosaicError(f"WebSocket handshake over {path_label} returned invalid Sec-WebSocket-Accept")
+        raise cotermError(f"WebSocket handshake over {path_label} returned invalid Sec-WebSocket-Accept")
 
     sock.sendall(_encode_client_text_frame(message))
     return _read_server_text_frame(sock)
@@ -397,10 +397,10 @@ def _start_container(image_tag: str, container_name: str, pubkey: str, host_ssh_
             return
         time.sleep(0.5)
     merged = f"{proc.stdout}\n{proc.stderr}".strip()
-    raise mosaicError(f"Failed to start ssh test container on fixed port {host_ssh_port}: {merged}")
+    raise cotermError(f"Failed to start ssh test container on fixed port {host_ssh_port}: {merged}")
 
 
-def _wait_remote_connected(client: mosaic, workspace_id: str, timeout: float) -> dict:
+def _wait_remote_connected(client: coterm, workspace_id: str, timeout: float) -> dict:
     deadline = time.time() + timeout
     last_status = {}
     while time.time() < deadline:
@@ -418,10 +418,10 @@ def _wait_remote_connected(client: mosaic, workspace_id: str, timeout: float) ->
         if str(remote.get("state") or "") == "connected" and proxy_port is not None:
             return last_status
         time.sleep(0.5)
-    raise mosaicError(f"Remote did not reach connected+proxy-ready state: {last_status}")
+    raise cotermError(f"Remote did not reach connected+proxy-ready state: {last_status}")
 
 
-def _wait_remote_degraded(client: mosaic, workspace_id: str, timeout: float) -> dict:
+def _wait_remote_degraded(client: coterm, workspace_id: str, timeout: float) -> dict:
     deadline = time.time() + timeout
     last_status = {}
     while time.time() < deadline:
@@ -431,7 +431,7 @@ def _wait_remote_degraded(client: mosaic, workspace_id: str, timeout: float) -> 
         if state in {"error", "connecting", "disconnected"}:
             return last_status
         time.sleep(0.5)
-    raise mosaicError(f"Remote did not enter reconnecting/degraded state: {last_status}")
+    raise cotermError(f"Remote did not enter reconnecting/degraded state: {last_status}")
 
 
 def main() -> int:
@@ -444,9 +444,9 @@ def main() -> int:
     fixture_dir = repo_root / "tests" / "fixtures" / "ssh-remote"
     _must(fixture_dir.is_dir(), f"Missing docker fixture directory: {fixture_dir}")
 
-    temp_dir = Path(tempfile.mkdtemp(prefix="mosaic-ssh-reconnect-"))
-    image_tag = f"mosaic-ssh-test:{secrets.token_hex(4)}"
-    container_name = f"mosaic-ssh-reconnect-{secrets.token_hex(4)}"
+    temp_dir = Path(tempfile.mkdtemp(prefix="coterm-ssh-reconnect-"))
+    image_tag = f"coterm-ssh-test:{secrets.token_hex(4)}"
+    container_name = f"coterm-ssh-reconnect-{secrets.token_hex(4)}"
     host_ssh_port = _find_free_loopback_port()
     workspace_id = ""
     container_running = False
@@ -461,7 +461,7 @@ def main() -> int:
         _start_container(image_tag, container_name, pubkey, host_ssh_port)
         container_running = True
 
-        with mosaic(SOCKET_PATH) as client:
+        with coterm(SOCKET_PATH) as client:
             payload = _run_cli_json(
                 cli,
                 [
@@ -487,7 +487,7 @@ def main() -> int:
                     if str(row.get("ref") or "") == workspace_ref:
                         workspace_id = str(row.get("id") or "")
                         break
-            _must(bool(workspace_id), f"mosaic ssh output missing workspace_id: {payload}")
+            _must(bool(workspace_id), f"coterm ssh output missing workspace_id: {payload}")
 
             first_status = _wait_remote_connected(client, workspace_id, timeout=45.0)
             first_daemon = ((first_status.get("remote") or {}).get("daemon") or {})
@@ -510,24 +510,24 @@ def main() -> int:
                 except Exception:
                     time.sleep(0.5)
                     continue
-                if "mosaic-ssh-forward-ok" in first_body:
+                if "coterm-ssh-forward-ok" in first_body:
                     break
                 time.sleep(0.3)
-            _must("mosaic-ssh-forward-ok" in first_body, f"Forwarded HTTP endpoint failed before reconnect: {first_body[:120]!r}")
+            _must("coterm-ssh-forward-ok" in first_body, f"Forwarded HTTP endpoint failed before reconnect: {first_body[:120]!r}")
             first_pipelined_body = _socks5_http_get_pipelined("127.0.0.1", int(first_proxy_port), "127.0.0.1", REMOTE_HTTP_PORT)
             _must(
-                "mosaic-ssh-forward-ok" in first_pipelined_body,
+                "coterm-ssh-forward-ok" in first_pipelined_body,
                 f"SOCKS pipelined greeting/connect+payload failed before reconnect: {first_pipelined_body[:120]!r}",
             )
 
-            first_ws_socks_message = "mosaic-reconnect-before-over-socks"
+            first_ws_socks_message = "coterm-reconnect-before-over-socks"
             echoed_before_socks = _websocket_echo_via_socks(int(first_proxy_port), "127.0.0.1", REMOTE_WS_PORT, first_ws_socks_message)
             _must(
                 echoed_before_socks == first_ws_socks_message,
                 f"WebSocket echo over SOCKS proxy failed before reconnect: {echoed_before_socks!r} != {first_ws_socks_message!r}",
             )
 
-            first_ws_connect_message = "mosaic-reconnect-before-over-connect"
+            first_ws_connect_message = "coterm-reconnect-before-over-connect"
             echoed_before_connect = _websocket_echo_via_connect(int(first_proxy_port), "127.0.0.1", REMOTE_WS_PORT, first_ws_connect_message)
             _must(
                 echoed_before_connect == first_ws_connect_message,
@@ -562,24 +562,24 @@ def main() -> int:
                 except Exception:
                     time.sleep(0.5)
                     continue
-                if "mosaic-ssh-forward-ok" in second_body:
+                if "coterm-ssh-forward-ok" in second_body:
                     break
                 time.sleep(0.3)
-            _must("mosaic-ssh-forward-ok" in second_body, f"Forwarded HTTP endpoint failed after reconnect: {second_body[:120]!r}")
+            _must("coterm-ssh-forward-ok" in second_body, f"Forwarded HTTP endpoint failed after reconnect: {second_body[:120]!r}")
             second_pipelined_body = _socks5_http_get_pipelined("127.0.0.1", int(second_proxy_port), "127.0.0.1", REMOTE_HTTP_PORT)
             _must(
-                "mosaic-ssh-forward-ok" in second_pipelined_body,
+                "coterm-ssh-forward-ok" in second_pipelined_body,
                 f"SOCKS pipelined greeting/connect+payload failed after reconnect: {second_pipelined_body[:120]!r}",
             )
 
-            second_ws_socks_message = "mosaic-reconnect-after-over-socks"
+            second_ws_socks_message = "coterm-reconnect-after-over-socks"
             echoed_after_socks = _websocket_echo_via_socks(int(second_proxy_port), "127.0.0.1", REMOTE_WS_PORT, second_ws_socks_message)
             _must(
                 echoed_after_socks == second_ws_socks_message,
                 f"WebSocket echo over SOCKS proxy failed after reconnect: {echoed_after_socks!r} != {second_ws_socks_message!r}",
             )
 
-            second_ws_connect_message = "mosaic-reconnect-after-over-connect"
+            second_ws_connect_message = "coterm-reconnect-after-over-connect"
             echoed_after_connect = _websocket_echo_via_connect(int(second_proxy_port), "127.0.0.1", REMOTE_WS_PORT, second_ws_connect_message)
             _must(
                 echoed_after_connect == second_ws_connect_message,
@@ -598,7 +598,7 @@ def main() -> int:
     finally:
         if workspace_id:
             try:
-                with mosaic(SOCKET_PATH) as cleanup_client:
+                with coterm(SOCKET_PATH) as cleanup_client:
                     cleanup_client.close_workspace(workspace_id)
             except Exception:
                 pass

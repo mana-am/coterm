@@ -27,12 +27,12 @@ def get_repo_root():
     if result.returncode == 0:
         return Path(result.stdout.strip())
 
-    # Fall back to finding mosaic directory
+    # Fall back to finding coterm directory
     cwd = Path.cwd()
-    if cwd.name == "mosaic" or (cwd / "Sources").exists():
+    if cwd.name == "coterm" or (cwd / "Sources").exists():
         return cwd
-    if (cwd.parent / "mosaic").exists():
-        return cwd.parent / "mosaic"
+    if (cwd.parent / "coterm").exists():
+        return cwd.parent / "coterm"
 
     # Last resort: use current directory
     return cwd

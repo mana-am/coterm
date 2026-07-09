@@ -1,10 +1,10 @@
 import Foundation
 
 enum AppBundleIconPersistencePolicy {
-    private static let stableReleaseBundleIdentifier = "mosaic.com.emergent.app"
-    private static let stableReleaseAppBundleName = "Mosaic.app"
-    static let disablePersistenceArgument = "--mosaic-disable-bundle-icon-persistence"
-    static let disablePersistenceDefaultsKey = "mosaicDisableBundleIconPersistence"
+    private static let stableReleaseBundleIdentifier = "coterm.com.emergent.app"
+    private static let stableReleaseAppBundleName = "Coterm.app"
+    static let disablePersistenceArgument = "--coterm-disable-bundle-icon-persistence"
+    static let disablePersistenceDefaultsKey = "cotermDisableBundleIconPersistence"
 
     static func updateDisableDefault(defaults: UserDefaults, launchArguments: [String]) {
         defaults.set(

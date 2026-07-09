@@ -1,7 +1,7 @@
 import AppKit
-import MosaicCommandPalette
-import MosaicSidebar
-import MosaicSwiftRender
+import CotermCommandPalette
+import CotermSidebar
+import CotermSwiftRender
 
 extension ContentView {
     static func commandPaletteShortcutAction(forCommandID commandId: String) -> KeyboardShortcutSettings.Action? {

@@ -32,12 +32,12 @@ export class CollaborationSessionObject extends DurableObject<CollaborationSessi
   private metadata: SessionMetadata | null = null;
   private state = new CollaborationRelaySessionState();
 
-  async create(sessionCode: string): Promise<SessionMetadataCreateResult> {
+  async create(sessionCode: string, shareSecret: string): Promise<SessionMetadataCreateResult> {
     // Uniqueness is scoped to this Durable Object: every candidate code maps to
     // one object via idFromName(sessionCode), and DO input gates serialize calls
     // here before storage is read or written.
     if (this.metadata !== null) return { metadata: this.metadata, created: false };
-    const result = await createSessionMetadataIfAbsent(this.ctx.storage, sessionCode);
+    const result = await createSessionMetadataIfAbsent(this.ctx.storage, sessionCode, shareSecret);
     this.metadata = result.metadata;
     if (this.state.peerCount === 0) await this.scheduleIdleCleanup();
     return result;
@@ -149,7 +149,7 @@ export class CollaborationSessionObject extends DurableObject<CollaborationSessi
     const stub = namespace.get(namespace.idFromName(SESSION_INDEX_OBJECT_NAME));
     try {
       await stub.fetch(new Request(
-        `https://mosaic-collaboration-index.local/sessions/${encodeURIComponent(sessionCode)}`,
+        `https://coterm-collaboration-index.local/sessions/${encodeURIComponent(sessionCode)}`,
         { method: "DELETE" }
       ));
     } catch (error) {

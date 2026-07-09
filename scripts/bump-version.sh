@@ -8,7 +8,7 @@ set -euo pipefail
 #   ./scripts/bump-version.sh patch     # Bump patch (0.15.0 -> 0.15.1)
 #   ./scripts/bump-version.sh major     # Bump major (0.15.0 -> 1.0.0)
 
-PROJECT_FILE="mosaic.xcodeproj/project.pbxproj"
+PROJECT_FILE="coterm.xcodeproj/project.pbxproj"
 
 if [[ ! -f "$PROJECT_FILE" ]]; then
   echo "Error: $PROJECT_FILE not found. Run from repo root." >&2
@@ -24,7 +24,7 @@ echo "Current: MARKETING_VERSION=$CURRENT_MARKETING, CURRENT_PROJECT_VERSION=$CU
 
 # Keep Sparkle build numbers monotonic with the latest published stable appcast.
 # If local build numbers have fallen behind due merges/rebases, auto-correct upward.
-LATEST_APPCAST_URL="${MOSAIC_STABLE_APPCAST_URL:-https://updates.mosaic.inc/stable/appcast.xml}"
+LATEST_APPCAST_URL="${COTERM_STABLE_APPCAST_URL:-https://updates.coterm.cc/stable/appcast.xml}"
 LATEST_RELEASE_BUILD="$(
   curl -fsSL --max-time 8 "$LATEST_APPCAST_URL" 2>/dev/null \
     | sed -n 's#.*<sparkle:version>\([0-9][0-9]*\)</sparkle:version>.*#\1#p' \

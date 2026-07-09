@@ -1,5 +1,5 @@
 import { registerOTel } from "@vercel/otel";
 
 export function register() {
-  registerOTel({ serviceName: process.env.OTEL_SERVICE_NAME ?? "mosaic-web" });
+  registerOTel({ serviceName: process.env.OTEL_SERVICE_NAME ?? "coterm-web" });
 }

@@ -29,59 +29,59 @@ _PURE_HIDDEN_CR_ZSHRC = r"""
 setopt prompt_percent promptsubst nopromptcr nopromptsp
 prompt_newline=$'\n%{\r%}'
 
-typeset -g MOSAIC_TOP='%F{4}%~%f'
-typeset -g MOSAIC_LAST_PROMPT=''
-typeset -gi MOSAIC_ASYNC_DONE=0
-typeset -g MOSAIC_ASYNC_FD=''
+typeset -g COTERM_TOP='%F{4}%~%f'
+typeset -g COTERM_LAST_PROMPT=''
+typeset -gi COTERM_ASYNC_DONE=0
+typeset -g COTERM_ASYNC_FD=''
 
-mosaic_render_prompt() {
+coterm_render_prompt() {
   local cleaned_ps1=$PROMPT
   if [[ $PROMPT = *$prompt_newline* ]]; then
     cleaned_ps1=${PROMPT##*${prompt_newline}}
   fi
 
-  PROMPT="${MOSAIC_TOP}${prompt_newline}${cleaned_ps1:-%F{5}❯%f }"
+  PROMPT="${COTERM_TOP}${prompt_newline}${cleaned_ps1:-%F{5}❯%f }"
 
   local expanded_prompt="${(S%%)PROMPT}"
   if [[ ${1:-} == precmd ]]; then
     print
-  elif [[ $MOSAIC_LAST_PROMPT != $expanded_prompt ]]; then
+  elif [[ $COTERM_LAST_PROMPT != $expanded_prompt ]]; then
     zle && zle .reset-prompt
   fi
-  typeset -g MOSAIC_LAST_PROMPT=$expanded_prompt
+  typeset -g COTERM_LAST_PROMPT=$expanded_prompt
 }
 
-mosaic_async_ready() {
+coterm_async_ready() {
   emulate -L zsh
-  local fd="${1:-$MOSAIC_ASYNC_FD}"
+  local fd="${1:-$COTERM_ASYNC_FD}"
   if [[ -n $fd ]]; then
     zle -F "$fd"
     exec {fd}<&-
   fi
-  MOSAIC_ASYNC_FD=''
+  COTERM_ASYNC_FD=''
 
-  (( MOSAIC_ASYNC_DONE )) && return
-  MOSAIC_ASYNC_DONE=1
-  MOSAIC_TOP='%F{4}%~%f %F{242}main%f%F{218}*%f'
-  mosaic_render_prompt async
+  (( COTERM_ASYNC_DONE )) && return
+  COTERM_ASYNC_DONE=1
+  COTERM_TOP='%F{4}%~%f %F{242}main%f%F{218}*%f'
+  coterm_render_prompt async
 }
 
 precmd() {
-  MOSAIC_ASYNC_DONE=0
-  mosaic_render_prompt precmd
+  COTERM_ASYNC_DONE=0
+  coterm_render_prompt precmd
 }
 
-mosaic_line_init() {
-  if (( !MOSAIC_ASYNC_DONE )) && [[ -z $MOSAIC_ASYNC_FD ]]; then
-    exec {MOSAIC_ASYNC_FD}< <(
+coterm_line_init() {
+  if (( !COTERM_ASYNC_DONE )) && [[ -z $COTERM_ASYNC_FD ]]; then
+    exec {COTERM_ASYNC_FD}< <(
       sleep 0.05
       printf 'ready\n'
     )
-    zle -F "$MOSAIC_ASYNC_FD" mosaic_async_ready
+    zle -F "$COTERM_ASYNC_FD" coterm_async_ready
   fi
 }
 
-zle -N zle-line-init mosaic_line_init
+zle -N zle-line-init coterm_line_init
 PROMPT='%F{5}❯%f '
 """.lstrip()
 
@@ -153,7 +153,7 @@ def main() -> int:
         print("SKIP: zsh not installed")
         return 0
 
-    base = Path(tempfile.mkdtemp(prefix="mosaic_ghostty_pure_hidden_cr_"))
+    base = Path(tempfile.mkdtemp(prefix="coterm_ghostty_pure_hidden_cr_"))
     try:
         home = base / "home"
         home.mkdir(parents=True, exist_ok=True)

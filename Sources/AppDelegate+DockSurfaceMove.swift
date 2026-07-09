@@ -1,6 +1,6 @@
 import AppKit
 import Bonsplit
-import MosaicTerminal
+import Coterminal
 
 /// Cross-container live-panel moves involving the Dock.
 ///

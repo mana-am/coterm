@@ -10,7 +10,7 @@ private struct SnapshotPayload: Encodable {
 
 private struct Payload: Encodable {
     let sources: [String]
-    let mosaic: SnapshotPayload
+    let coterm: SnapshotPayload
     let synced: SnapshotPayload
     let loadPaths: [String]
 }
@@ -28,12 +28,12 @@ private struct ConfigSourceProbe {
         if CommandLine.arguments.count >= 3 {
             bundleIdentifier = CommandLine.arguments[2]
         } else {
-            bundleIdentifier = "mosaic.com.emergent.app"
+            bundleIdentifier = "coterm.com.emergent.app"
         }
         let previewDirectoryURL = homeDirectoryURL
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Caches", isDirectory: true)
-            .appendingPathComponent("mosaic-config-probe", isDirectory: true)
+            .appendingPathComponent("coterm-config-probe", isDirectory: true)
         let appSupportDirectoryURL = homeDirectoryURL
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Application Support", isDirectory: true)
@@ -45,9 +45,9 @@ private struct ConfigSourceProbe {
 
         let payload = Payload(
             sources: ConfigSource.allCases.map(\.rawValue),
-            mosaic: encodedSnapshot(for: .mosaic, environment: environment),
+            coterm: encodedSnapshot(for: .coterm, environment: environment),
             synced: encodedSnapshot(for: .synced, environment: environment),
-            loadPaths: MosaicGhosttyConfigPathResolver().loadConfigURLs(
+            loadPaths: CotermGhosttyConfigPathResolver().loadConfigURLs(
                 currentBundleIdentifier: bundleIdentifier,
                 appSupportDirectory: appSupportDirectoryURL
             )

@@ -1,5 +1,5 @@
-import MosaicCore
-import MosaicRemoteSession
+import CotermCore
+import CotermRemoteSession
 import Foundation
 
 // The app-side conformer of the session coordinator's publish seam. Owns

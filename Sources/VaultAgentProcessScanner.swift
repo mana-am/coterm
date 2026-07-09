@@ -1,5 +1,5 @@
 import Foundation
-import MosaicAgentLaunch
+import CotermAgentLaunch
 import SQLite3
 
 extension AgentLaunchCommandSnapshot {
@@ -30,11 +30,11 @@ extension AgentLaunchCommandSnapshot {
 
 extension RestorableAgentSessionIndex {
     static func processDetectedSnapshots(
-        registry: MosaicVaultAgentRegistry,
+        registry: CotermVaultAgentRegistry,
         fileManager: FileManager
     ) -> [PanelKey: ProcessDetectedSnapshotEntry] {
         let capturedAt = Date().timeIntervalSince1970
-        let processSnapshot = MosaicTopProcessSnapshot.capture(includeProcessDetails: true)
+        let processSnapshot = CotermTopProcessSnapshot.capture(includeProcessDetails: true)
         return processDetectedSnapshots(
             registry: registry,
             fileManager: fileManager,
@@ -44,9 +44,9 @@ extension RestorableAgentSessionIndex {
     }
 
     static func processDetectedSnapshots(
-        registry: MosaicVaultAgentRegistry,
+        registry: CotermVaultAgentRegistry,
         fileManager: FileManager,
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         capturedAt: TimeInterval
     ) -> [PanelKey: ProcessDetectedSnapshotEntry] {
         return processDetectedSnapshots(
@@ -54,18 +54,18 @@ extension RestorableAgentSessionIndex {
             fileManager: fileManager,
             processSnapshot: processSnapshot,
             capturedAt: capturedAt,
-            processArgumentsProvider: { MosaicTopProcessSnapshot.processArgumentsAndEnvironment(for: $0) }
+            processArgumentsProvider: { CotermTopProcessSnapshot.processArgumentsAndEnvironment(for: $0) }
         )
     }
 
     static func processDetectedSnapshots(
-        registry: MosaicVaultAgentRegistry,
+        registry: CotermVaultAgentRegistry,
         fileManager: FileManager,
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         capturedAt: TimeInterval,
-        processArgumentsProvider: (Int) -> MosaicTopProcessArguments?
+        processArgumentsProvider: (Int) -> CotermTopProcessArguments?
     ) -> [PanelKey: ProcessDetectedSnapshotEntry] {
-        let scopedProcessIDsByPanelKey = processSnapshot.mosaicScopedProcessIDsByPanelKey()
+        let scopedProcessIDsByPanelKey = processSnapshot.cotermScopedProcessIDsByPanelKey()
         var resolved = processDetectedOpenCodeSnapshots(
             processSnapshot: processSnapshot,
             capturedAt: capturedAt,
@@ -74,9 +74,9 @@ extension RestorableAgentSessionIndex {
         )
 
         guard !registry.registrations.isEmpty else { return resolved }
-        var registriesByWorkingDirectory: [String: MosaicVaultAgentRegistry] = [:]
+        var registriesByWorkingDirectory: [String: CotermVaultAgentRegistry] = [:]
 
-        func registryForWorkingDirectory(_ workingDirectory: String?) -> MosaicVaultAgentRegistry {
+        func registryForWorkingDirectory(_ workingDirectory: String?) -> CotermVaultAgentRegistry {
             guard let workingDirectory else { return registry }
             let key = (workingDirectory as NSString).standardizingPath
             if let cached = registriesByWorkingDirectory[key] {
@@ -90,9 +90,9 @@ extension RestorableAgentSessionIndex {
             return resolved
         }
 
-        for process in processSnapshot.mosaicScopedProcesses() {
-            guard let workspaceId = process.mosaicWorkspaceID,
-                  let panelId = process.mosaicSurfaceID,
+        for process in processSnapshot.cotermScopedProcesses() {
+            guard let workspaceId = process.cotermWorkspaceID,
+                  let panelId = process.cotermSurfaceID,
                   let processArguments = processArgumentsProvider(process.pid) else {
                 continue
             }
@@ -102,7 +102,7 @@ extension RestorableAgentSessionIndex {
                 arguments: processArguments.arguments,
                 environment: processArguments.environment
             )
-            let cwd = normalized(observed.environment["MOSAIC_AGENT_LAUNCH_CWD"] ?? observed.environment["PWD"])
+            let cwd = normalized(observed.environment["COTERM_AGENT_LAUNCH_CWD"] ?? observed.environment["PWD"])
             let processRegistry = registryForWorkingDirectory(cwd)
             guard let registration = processRegistry.registrations.first(where: { $0.detect.matches(observed) }),
                   let sessionIDResolution = registration.sessionIdSource.sessionIDResolution(
@@ -221,7 +221,7 @@ extension RestorableAgentSessionIndex {
     }
 
     private static func processDetectedOpenCodeSnapshots(
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         capturedAt: TimeInterval,
         fileManager: FileManager,
         scopedProcessIDsByPanelKey: [PanelKey: Set<Int>]
@@ -240,10 +240,10 @@ extension RestorableAgentSessionIndex {
         ] = []
         var panelKeysByWorkingDirectory: [String: Set<PanelKey>] = [:]
 
-        for process in processSnapshot.mosaicScopedProcesses() {
-            guard let workspaceId = process.mosaicWorkspaceID,
-                  let panelId = process.mosaicSurfaceID,
-                  let processArguments = MosaicTopProcessSnapshot.processArgumentsAndEnvironment(for: process.pid) else {
+        for process in processSnapshot.cotermScopedProcesses() {
+            guard let workspaceId = process.cotermWorkspaceID,
+                  let panelId = process.cotermSurfaceID,
+                  let processArguments = CotermTopProcessSnapshot.processArgumentsAndEnvironment(for: process.pid) else {
                 continue
             }
             let observed = VaultObservedAgentProcess(
@@ -382,7 +382,7 @@ extension RestorableAgentSessionIndex {
 
     private static func openCodeWorkingDirectory(observed: VaultObservedAgentProcess) -> String? {
         let fallbackWorkingDirectory = normalized(
-            observed.environment["MOSAIC_AGENT_LAUNCH_CWD"] ?? observed.environment["PWD"]
+            observed.environment["COTERM_AGENT_LAUNCH_CWD"] ?? observed.environment["PWD"]
         )
         return openCodeProjectWorkingDirectory(
             observed: observed,
@@ -517,7 +517,7 @@ extension RestorableAgentSessionIndex {
     ) -> String? {
         let snapshot: OpenCodeDatabaseSnapshot.Snapshot
         do {
-            guard let madeSnapshot = try OpenCodeDatabaseSnapshot.make(prefix: "mosaic-opencode-process") else {
+            guard let madeSnapshot = try OpenCodeDatabaseSnapshot.make(prefix: "coterm-opencode-process") else {
                 return nil
             }
             snapshot = madeSnapshot
@@ -583,7 +583,7 @@ extension SurfaceResumeBindingIndex {
     ) -> [PanelKey: (binding: SurfaceResumeBindingSnapshot, updatedAt: TimeInterval)] {
         _ = fileManager
         let capturedAt = Date().timeIntervalSince1970
-        let processSnapshot = MosaicTopProcessSnapshot.capture(includeProcessDetails: true)
+        let processSnapshot = CotermTopProcessSnapshot.capture(includeProcessDetails: true)
         return processDetectedTmuxBindings(
             fileManager: fileManager,
             processSnapshot: processSnapshot,
@@ -593,17 +593,17 @@ extension SurfaceResumeBindingIndex {
 
     static func processDetectedTmuxBindings(
         fileManager: FileManager,
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         capturedAt: TimeInterval
     ) -> [PanelKey: (binding: SurfaceResumeBindingSnapshot, updatedAt: TimeInterval)] {
         _ = fileManager
         var resolved: [PanelKey: (binding: SurfaceResumeBindingSnapshot, updatedAt: TimeInterval)] = [:]
 
-        for process in processSnapshot.mosaicScopedProcesses() {
-            guard let workspaceId = process.mosaicWorkspaceID,
-                  let panelId = process.mosaicSurfaceID,
+        for process in processSnapshot.cotermScopedProcesses() {
+            guard let workspaceId = process.cotermWorkspaceID,
+                  let panelId = process.cotermSurfaceID,
                   process.isTerminalForegroundProcessGroup,
-                  let processArguments = MosaicTopProcessSnapshot.processArgumentsAndEnvironment(for: process.pid) else {
+                  let processArguments = CotermTopProcessSnapshot.processArgumentsAndEnvironment(for: process.pid) else {
                 continue
             }
             guard let binding = TmuxResumeParser.binding(
@@ -817,7 +817,7 @@ private struct VaultObservedAgentProcess: Sendable {
     }
 }
 
-private extension MosaicVaultAgentDetectRule {
+private extension CotermVaultAgentDetectRule {
     func matches(_ process: VaultObservedAgentProcess) -> Bool {
         var expectedNames = processNames
         if let processName {
@@ -865,10 +865,10 @@ private struct VaultAgentSessionIDResolution {
     let source: RestorableAgentSessionIndex.ProcessDetectedSessionIDSource
 }
 
-private extension MosaicVaultAgentSessionIDSource {
+private extension CotermVaultAgentSessionIDSource {
     func sessionIDResolution(
         from process: VaultObservedAgentProcess,
-        registration: MosaicVaultAgentRegistration,
+        registration: CotermVaultAgentRegistration,
         fileManager: FileManager
     ) -> VaultAgentSessionIDResolution? {
         switch self {
@@ -902,12 +902,12 @@ private extension MosaicVaultAgentSessionIDSource {
     }
 }
 
-private extension MosaicTopProcessSnapshot {
-    func mosaicScopedProcessIDsByPanelKey() -> [RestorableAgentSessionIndex.PanelKey: Set<Int>] {
+private extension CotermTopProcessSnapshot {
+    func cotermScopedProcessIDsByPanelKey() -> [RestorableAgentSessionIndex.PanelKey: Set<Int>] {
         var processIDsByPanelKey: [RestorableAgentSessionIndex.PanelKey: Set<Int>] = [:]
-        for process in mosaicScopedProcesses() {
-            guard let workspaceId = process.mosaicWorkspaceID,
-                  let panelId = process.mosaicSurfaceID else {
+        for process in cotermScopedProcesses() {
+            guard let workspaceId = process.cotermWorkspaceID,
+                  let panelId = process.cotermSurfaceID else {
                 continue
             }
             let key = RestorableAgentSessionIndex.PanelKey(workspaceId: workspaceId, panelId: panelId)
@@ -1035,7 +1035,7 @@ enum PiSessionLocator {
 
     fileprivate static func latestSessionPath(
         for process: VaultObservedAgentProcess,
-        registration: MosaicVaultAgentRegistration,
+        registration: CotermVaultAgentRegistration,
         fileManager: FileManager
     ) -> String? {
         newestJSONLFile(in: candidateSessionDirectory(for: process, registration: registration), fileManager: fileManager)?.path
@@ -1044,7 +1044,7 @@ enum PiSessionLocator {
     fileprivate static func resolvedSessionPath(
         _ session: String,
         for process: VaultObservedAgentProcess,
-        registration: MosaicVaultAgentRegistration,
+        registration: CotermVaultAgentRegistration,
         fileManager: FileManager
     ) -> String? {
         let trimmed = session.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1086,7 +1086,7 @@ enum PiSessionLocator {
 
     private static func candidateSessionDirectory(
         for process: VaultObservedAgentProcess,
-        registration: MosaicVaultAgentRegistration
+        registration: CotermVaultAgentRegistration
     ) -> String {
         let sessionRoot = process.arguments.value(afterOption: "--session-dir")
             ?? process.environment["PI_CODING_AGENT_SESSION_DIR"]
@@ -1095,7 +1095,7 @@ enum PiSessionLocator {
             ?? registration.sessionDirectory
             ?? defaultSessionsRoot()
         let expandedRoot = (sessionRoot as NSString).expandingTildeInPath
-        if let cwd = process.environment["MOSAIC_AGENT_LAUNCH_CWD"] ?? process.environment["PWD"],
+        if let cwd = process.environment["COTERM_AGENT_LAUNCH_CWD"] ?? process.environment["PWD"],
            let projectDirectory = projectDirectoryName(for: cwd) {
             return (expandedRoot as NSString).appendingPathComponent(projectDirectory)
         }
@@ -1104,7 +1104,7 @@ enum PiSessionLocator {
 
     private static func ompAgentSessionsRoot(
         for process: VaultObservedAgentProcess,
-        registration: MosaicVaultAgentRegistration
+        registration: CotermVaultAgentRegistration
     ) -> String? {
         guard registration.id == "omp" else { return nil }
         if let agentRoot = nonEmptyEnvironmentValue("PI_CODING_AGENT_DIR", in: process.environment) {
@@ -1127,10 +1127,10 @@ enum PiSessionLocator {
         return (agentRoot as NSString).appendingPathComponent("sessions")
     }
 
-    private static func configuredSessionDirectory(for registration: MosaicVaultAgentRegistration) -> String? {
+    private static func configuredSessionDirectory(for registration: CotermVaultAgentRegistration) -> String? {
         guard let sessionDirectory = registration.sessionDirectory else { return nil }
         if registration.id == "omp",
-           sessionDirectory == MosaicVaultAgentRegistration.builtInOmp.sessionDirectory {
+           sessionDirectory == CotermVaultAgentRegistration.builtInOmp.sessionDirectory {
             return nil
         }
         return sessionDirectory

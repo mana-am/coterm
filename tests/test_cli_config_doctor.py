@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Behavior checks for the no-socket `mosaic config doctor` command."""
+"""Behavior checks for the no-socket `coterm config doctor` command."""
 
 from __future__ import annotations
 
@@ -12,21 +12,21 @@ from pathlib import Path
 from typing import Any
 
 
-def resolve_mosaic_cli() -> str:
-    explicit = os.environ.get("MOSAIC_CLI_BIN") or os.environ.get("MOSAIC_CLI")
+def resolve_coterm_cli() -> str:
+    explicit = os.environ.get("COTERM_CLI_BIN") or os.environ.get("COTERM_CLI")
     if explicit and os.path.isfile(explicit) and os.access(explicit, os.X_OK):
         return explicit
 
     candidates = [
         path
-        for path in glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/mosaic"))
+        for path in glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/coterm"))
         if os.path.isfile(path) and os.access(path, os.X_OK)
     ]
     if candidates:
         candidates.sort(key=os.path.getmtime, reverse=True)
         return candidates[0]
 
-    raise RuntimeError("Unable to find mosaic CLI binary. Set MOSAIC_CLI_BIN.")
+    raise RuntimeError("Unable to find coterm CLI binary. Set COTERM_CLI_BIN.")
 
 
 def run_cli(
@@ -37,13 +37,13 @@ def run_cli(
 ) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     env["HOME"] = str(home)
-    env["MOSAIC_CLI_SENTRY_DISABLED"] = "1"
-    env["MOSAIC_SOCKET_PATH"] = str(home / "missing.sock")
-    env.pop("MOSAIC_SOCKET", None)
-    env.pop("MOSAIC_SOCKET_PASSWORD", None)
-    env.pop("MOSAIC_WORKSPACE_ID", None)
-    env.pop("MOSAIC_SURFACE_ID", None)
-    env.pop("MOSAIC_TAB_ID", None)
+    env["COTERM_CLI_SENTRY_DISABLED"] = "1"
+    env["COTERM_SOCKET_PATH"] = str(home / "missing.sock")
+    env.pop("COTERM_SOCKET", None)
+    env.pop("COTERM_SOCKET_PASSWORD", None)
+    env.pop("COTERM_WORKSPACE_ID", None)
+    env.pop("COTERM_SURFACE_ID", None)
+    env.pop("COTERM_TAB_ID", None)
     return subprocess.run(
         [cli_path, *args],
         text=True,
@@ -85,20 +85,20 @@ def first_finding(
 
 
 def main() -> int:
-    cli_path = resolve_mosaic_cli()
+    cli_path = resolve_coterm_cli()
     failures: list[str] = []
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-doctor-") as temp:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-doctor-") as temp:
         home = Path(temp)
         workspace = home / "workspace" / "child"
         workspace.mkdir(parents=True)
-        (home / "mosaic.json").write_text('{"homeLevel": true,,}\n', encoding="utf-8")
-        config_path = home / ".config" / "mosaic" / "mosaic.json"
+        (home / "coterm.json").write_text('{"homeLevel": true,,}\n', encoding="utf-8")
+        config_path = home / ".config" / "coterm" / "coterm.json"
         config_path.parent.mkdir(parents=True)
         config_path.write_text(
             """
             {
-              // JSONC comments and trailing commas are valid in mosaic.json.
+              // JSONC comments and trailing commas are valid in coterm.json.
               "schemaVersion": 1,
               "app": {
                 "appearance": "system",
@@ -144,10 +144,10 @@ def main() -> int:
                     if primary is None or primary.get("status") != "ok":
                         failures.append(f"default scan primary finding was not ok: {default_result.stdout}")
                     if any(
-                        isinstance(finding, dict) and finding.get("path") == str(home / "mosaic.json")
+                        isinstance(finding, dict) and finding.get("path") == str(home / "coterm.json")
                         for finding in findings
                     ):
-                        failures.append(f"default scan included home-level mosaic.json: {default_result.stdout}")
+                        failures.append(f"default scan included home-level coterm.json: {default_result.stdout}")
 
         config_path.write_text('{"agent": true,,}\n', encoding="utf-8")
         bad_result = run_cli(cli_path, ["--json", "config", "doctor", "--path", str(config_path)], home)
@@ -159,7 +159,7 @@ def main() -> int:
                 finding = first_finding(payload, "invalid JSON", bad_result.stdout, failures)
                 if finding is not None and (payload.get("ok") is not False or finding.get("status") != "error"):
                     failures.append(f"invalid JSON did not report an error: {bad_result.stdout}")
-            if "mosaic config doctor found 1 error(s)" not in bad_result.stderr:
+            if "coterm config doctor found 1 error(s)" not in bad_result.stderr:
                 failures.append(f"invalid JSON stderr was unexpected: {bad_result.stderr}")
 
         directory_path = home / "config-directory"
@@ -188,7 +188,7 @@ def main() -> int:
             print(f"FAIL: {failure}")
         return 1
 
-    print("PASS: mosaic config doctor validates JSONC and reports syntax errors")
+    print("PASS: coterm config doctor validates JSONC and reports syntax errors")
     return 0
 
 

@@ -2,18 +2,21 @@ import { providerFromEnv } from "@coterm/collab-auth";
 import { CollaborationSessionObject } from "./session";
 import { CollaborationSessionIndexObject } from "./session-index";
 import { CollaborationInboxObject } from "./inbox";
+import { PreviewSessionObject } from "./preview-session";
 import { collaborationFetch } from "./handler";
 
 export {
   CollaborationSessionIndexObject,
   CollaborationSessionObject,
   CollaborationInboxObject,
+  PreviewSessionObject,
 };
 
 export interface Env {
   COLLABORATION_SESSIONS: DurableObjectNamespace<CollaborationSessionObject>;
   COLLABORATION_SESSION_INDEX: DurableObjectNamespace<CollaborationSessionIndexObject>;
   COLLABORATION_INBOX: DurableObjectNamespace<CollaborationInboxObject>;
+  PREVIEW_SESSIONS: DurableObjectNamespace<PreviewSessionObject>;
   COLLABORATION_ADMIN_TOKEN?: string;
   COLLAB_AUTH_MODE?: string;
   COLLAB_AUTH_SECRET?: string;

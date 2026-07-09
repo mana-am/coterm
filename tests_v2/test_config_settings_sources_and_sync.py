@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Regression test: unified config settings resolves the right files and renders
-the synced preview with mosaic overrides on top of Ghostty base values.
+the synced preview with coterm overrides on top of Ghostty base values.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ def write_text(path: Path, contents: str) -> None:
 def run_probe(
     executable: Path,
     home_directory: Path,
-    bundle_identifier: str = "mosaic.com.emergent.app",
+    bundle_identifier: str = "coterm.com.emergent.app",
 ) -> dict:
     result = subprocess.run(
         [str(executable), str(home_directory), bundle_identifier],
@@ -63,15 +63,15 @@ def expect(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
-def test_uses_mosaic_config_ghostty_and_removes_standalone_tab(executable: Path) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-settings-") as tmp:
+def test_uses_coterm_config_ghostty_and_removes_standalone_tab(executable: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-settings-") as tmp:
         home = Path(tmp)
-        mosaic_legacy_config = home / "Library" / "Application Support" / "mosaic.com.emergent.app" / "config"
-        mosaic_config = (
+        coterm_legacy_config = home / "Library" / "Application Support" / "coterm.com.emergent.app" / "config"
+        coterm_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app"
+            / "coterm.com.emergent.app"
             / "config.ghostty"
         )
         ghostty_config = home / ".config" / "ghostty" / "config"
@@ -80,16 +80,16 @@ def test_uses_mosaic_config_ghostty_and_removes_standalone_tab(executable: Path)
             ghostty_config,
             "theme = Solarized Light\nbackground = #111111\nfont-size = 13\n",
         )
-        write_text(mosaic_legacy_config, "background = #000000\n")
+        write_text(coterm_legacy_config, "background = #000000\n")
         write_text(
-            mosaic_config,
+            coterm_config,
             "background = #222222\ncopy-on-select = clipboard\n",
         )
 
         payload = run_probe(executable, home)
 
-        expect(payload["sources"] == ["mosaic", "synced"], f"unexpected config sources: {payload}")
-        expect(payload["mosaic"]["path"] == str(mosaic_config), f"unexpected mosaic path: {payload}")
+        expect(payload["sources"] == ["coterm", "synced"], f"unexpected config sources: {payload}")
+        expect(payload["coterm"]["path"] == str(coterm_config), f"unexpected coterm path: {payload}")
 
         synced_path = Path(payload["synced"]["path"])
         expect(synced_path.exists(), f"synced preview path should exist: {payload}")
@@ -100,14 +100,14 @@ def test_uses_mosaic_config_ghostty_and_removes_standalone_tab(executable: Path)
             f"synced preview should keep Ghostty-only keys with provenance: {synced_contents}",
         )
         expect(
-            "background = #222222  # from: ~/Library/Application Support/mosaic.com.emergent.app/config.ghostty:1"
+            "background = #222222  # from: ~/Library/Application Support/coterm.com.emergent.app/config.ghostty:1"
             in synced_contents,
-            f"synced preview should use mosaic override for duplicate keys: {synced_contents}",
+            f"synced preview should use coterm override for duplicate keys: {synced_contents}",
         )
         expect(
-            "copy-on-select = clipboard  # from: ~/Library/Application Support/mosaic.com.emergent.app/config.ghostty:2"
+            "copy-on-select = clipboard  # from: ~/Library/Application Support/coterm.com.emergent.app/config.ghostty:2"
             in synced_contents,
-            f"synced preview should include mosaic-only keys: {synced_contents}",
+            f"synced preview should include coterm-only keys: {synced_contents}",
         )
         expect(
             "background = #111111" not in synced_contents,
@@ -115,36 +115,36 @@ def test_uses_mosaic_config_ghostty_and_removes_standalone_tab(executable: Path)
         )
 
 
-def test_uses_legacy_mosaic_config_when_config_ghostty_is_empty(executable: Path) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-settings-") as tmp:
+def test_uses_legacy_coterm_config_when_config_ghostty_is_empty(executable: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-settings-") as tmp:
         home = Path(tmp)
-        mosaic_legacy_config = home / "Library" / "Application Support" / "mosaic.com.emergent.app" / "config"
-        mosaic_config = (
+        coterm_legacy_config = home / "Library" / "Application Support" / "coterm.com.emergent.app" / "config"
+        coterm_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app"
+            / "coterm.com.emergent.app"
             / "config.ghostty"
         )
 
-        write_text(mosaic_legacy_config, "background = #000000\n")
-        write_text(mosaic_config, "")
+        write_text(coterm_legacy_config, "background = #000000\n")
+        write_text(coterm_config, "")
 
         payload = run_probe(executable, home)
 
-        expect(payload["mosaic"]["path"] == str(mosaic_legacy_config), f"unexpected mosaic path: {payload}")
-        expect(payload["loadPaths"] == [str(mosaic_legacy_config)], f"unexpected load paths: {payload}")
-        expect("background = #000000" in payload["mosaic"]["contents"], f"wrong mosaic contents: {payload}")
+        expect(payload["coterm"]["path"] == str(coterm_legacy_config), f"unexpected coterm path: {payload}")
+        expect(payload["loadPaths"] == [str(coterm_legacy_config)], f"unexpected load paths: {payload}")
+        expect("background = #000000" in payload["coterm"]["contents"], f"wrong coterm contents: {payload}")
 
 
 def test_falls_back_to_app_support_ghostty_when_dotconfig_missing(executable: Path) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-settings-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-settings-") as tmp:
         home = Path(tmp)
-        mosaic_config = (
+        coterm_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app"
+            / "coterm.com.emergent.app"
             / "config.ghostty"
         )
         ghostty_app_support = (
@@ -156,15 +156,15 @@ def test_falls_back_to_app_support_ghostty_when_dotconfig_missing(executable: Pa
         )
 
         write_text(ghostty_app_support, "font-size = 14\nselection-background = #333333\n")
-        write_text(mosaic_config, "font-size = 17\n")
+        write_text(coterm_config, "font-size = 17\n")
 
         payload = run_probe(executable, home)
 
         synced_contents = str(payload["synced"]["contents"])
         expect(
-            "font-size = 17  # from: ~/Library/Application Support/mosaic.com.emergent.app/config.ghostty:1"
+            "font-size = 17  # from: ~/Library/Application Support/coterm.com.emergent.app/config.ghostty:1"
             in synced_contents,
-            f"mosaic override should win over Ghostty base font-size: {synced_contents}",
+            f"coterm override should win over Ghostty base font-size: {synced_contents}",
         )
         expect(
             "selection-background = #333333  # from: ~/Library/Application Support/com.mitchellh.ghostty/config:2"
@@ -174,52 +174,52 @@ def test_falls_back_to_app_support_ghostty_when_dotconfig_missing(executable: Pa
 
 
 def test_debug_bundle_edits_variant_config_and_loads_variant_when_present(executable: Path) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-settings-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-settings-") as tmp:
         home = Path(tmp)
         release_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app"
+            / "coterm.com.emergent.app"
             / "config.ghostty"
         )
         nightly_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app.debug.nightly.123"
+            / "coterm.com.emergent.app.debug.nightly.123"
             / "config.ghostty"
         )
 
         write_text(release_config, "font-size = 13\n")
         write_text(nightly_config, "font-size = 15\n")
 
-        payload = run_probe(executable, home, "mosaic.com.emergent.app.debug.nightly.123")
+        payload = run_probe(executable, home, "coterm.com.emergent.app.debug.nightly.123")
 
-        expect(payload["mosaic"]["path"] == str(nightly_config), f"unexpected nightly path: {payload}")
-        expect("font-size = 15" in payload["mosaic"]["contents"], f"wrong nightly contents: {payload}")
+        expect(payload["coterm"]["path"] == str(nightly_config), f"unexpected nightly path: {payload}")
+        expect("font-size = 15" in payload["coterm"]["contents"], f"wrong nightly contents: {payload}")
         expect(payload["loadPaths"] == [str(nightly_config)], f"unexpected nightly load paths: {payload}")
 
 
 def test_debug_bundle_uses_release_fallback_when_variant_missing(
     executable: Path,
 ) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-settings-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-settings-") as tmp:
         home = Path(tmp)
         release_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app"
+            / "coterm.com.emergent.app"
             / "config.ghostty"
         )
 
         write_text(release_config, "font-size = 13\n")
 
-        payload = run_probe(executable, home, "mosaic.com.emergent.app.debug.nightly.123")
+        payload = run_probe(executable, home, "coterm.com.emergent.app.debug.nightly.123")
 
-        expect(payload["mosaic"]["path"] == str(release_config), f"unexpected fallback edit path: {payload}")
-        expect("font-size = 13" in payload["mosaic"]["contents"], f"wrong fallback contents: {payload}")
+        expect(payload["coterm"]["path"] == str(release_config), f"unexpected fallback edit path: {payload}")
+        expect("font-size = 13" in payload["coterm"]["contents"], f"wrong fallback contents: {payload}")
         expect(payload["loadPaths"] == [str(release_config)], f"unexpected fallback load paths: {payload}")
         expect("font-size = 13" in payload["synced"]["contents"], f"synced preview should show fallback: {payload}")
 
@@ -227,72 +227,72 @@ def test_debug_bundle_uses_release_fallback_when_variant_missing(
 def test_debug_bundle_targets_variant_config_when_no_current_or_fallback_config(
     executable: Path,
 ) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-settings-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-settings-") as tmp:
         home = Path(tmp)
         variant_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app.debug.nightly.123"
+            / "coterm.com.emergent.app.debug.nightly.123"
             / "config.ghostty"
         )
 
-        payload = run_probe(executable, home, "mosaic.com.emergent.app.debug.nightly.123")
+        payload = run_probe(executable, home, "coterm.com.emergent.app.debug.nightly.123")
 
-        expect(payload["mosaic"]["path"] == str(variant_config), f"unexpected empty edit path: {payload}")
-        expect(payload["mosaic"]["contents"] == "", f"empty variant target should have no contents: {payload}")
+        expect(payload["coterm"]["path"] == str(variant_config), f"unexpected empty edit path: {payload}")
+        expect(payload["coterm"]["contents"] == "", f"empty variant target should have no contents: {payload}")
         expect(payload["loadPaths"] == [], f"unexpected empty load paths: {payload}")
 
 
 def test_nightly_app_edits_nightly_config_and_falls_back_to_release_when_missing(
     executable: Path,
 ) -> None:
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-settings-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-settings-") as tmp:
         home = Path(tmp)
         release_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app"
+            / "coterm.com.emergent.app"
             / "config.ghostty"
         )
         nightly_config = (
             home
             / "Library"
             / "Application Support"
-            / "mosaic.com.emergent.app.nightly"
+            / "coterm.com.emergent.app.nightly"
             / "config.ghostty"
         )
 
         write_text(release_config, "font-size = 13\n")
 
-        payload = run_probe(executable, home, "mosaic.com.emergent.app.nightly")
+        payload = run_probe(executable, home, "coterm.com.emergent.app.nightly")
 
-        expect(payload["mosaic"]["path"] == str(release_config), f"unexpected nightly fallback path: {payload}")
+        expect(payload["coterm"]["path"] == str(release_config), f"unexpected nightly fallback path: {payload}")
         expect(payload["loadPaths"] == [str(release_config)], f"unexpected nightly fallback paths: {payload}")
 
         write_text(nightly_config, "font-size = 16\n")
 
-        payload = run_probe(executable, home, "mosaic.com.emergent.app.nightly")
+        payload = run_probe(executable, home, "coterm.com.emergent.app.nightly")
 
-        expect(payload["mosaic"]["path"] == str(nightly_config), f"unexpected nightly edit path: {payload}")
+        expect(payload["coterm"]["path"] == str(nightly_config), f"unexpected nightly edit path: {payload}")
         expect(payload["loadPaths"] == [str(nightly_config)], f"unexpected nightly load paths: {payload}")
 
 
 def main() -> int:
     repo_root = get_repo_root()
-    with tempfile.TemporaryDirectory(prefix="mosaic-config-source-probe-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="coterm-config-source-probe-") as tmp:
         executable = Path(tmp) / "config_source_probe"
         compile_probe(repo_root, executable)
-        test_uses_mosaic_config_ghostty_and_removes_standalone_tab(executable)
-        test_uses_legacy_mosaic_config_when_config_ghostty_is_empty(executable)
+        test_uses_coterm_config_ghostty_and_removes_standalone_tab(executable)
+        test_uses_legacy_coterm_config_when_config_ghostty_is_empty(executable)
         test_falls_back_to_app_support_ghostty_when_dotconfig_missing(executable)
         test_debug_bundle_edits_variant_config_and_loads_variant_when_present(executable)
         test_debug_bundle_uses_release_fallback_when_variant_missing(executable)
         test_debug_bundle_targets_variant_config_when_no_current_or_fallback_config(executable)
         test_nightly_app_edits_nightly_config_and_falls_back_to_release_when_missing(executable)
 
-    print("PASS: config settings resolves active mosaic Ghostty paths and synced preview precedence correctly")
+    print("PASS: config settings resolves active coterm Ghostty paths and synced preview precedence correctly")
     return 0
 
 

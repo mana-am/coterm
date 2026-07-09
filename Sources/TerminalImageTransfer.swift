@@ -1,7 +1,7 @@
 import Foundation
-import MosaicTerminal
+import Coterminal
 import AppKit
-import MosaicRemoteSession
+import CotermRemoteSession
 import UniformTypeIdentifiers
 
 enum TerminalImageTransferMode {
@@ -446,7 +446,7 @@ enum TerminalImageTransferPlanner {
                 .map(escapeForShell)
                 .joined(separator: " ")
             guard !content.isEmpty else {
-                onFailure(NSError(domain: "mosaic.remote.drop", code: 5))
+                onFailure(NSError(domain: "coterm.remote.drop", code: 5))
                 return
             }
             insertText(content)

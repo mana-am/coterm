@@ -15,10 +15,10 @@ import os
 import sys
 import time
 
-# Add the directory containing mosaic.py to the path
+# Add the directory containing coterm.py to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic, mosaicError  # noqa: E402
+from coterm import coterm, cotermError  # noqa: E402
 
 
 def _parse_sidebar_state(text: str) -> dict[str, str]:
@@ -35,7 +35,7 @@ def _parse_sidebar_state(text: str) -> dict[str, str]:
 
 
 def _wait_for_state_field(
-    client: mosaic,
+    client: coterm,
     key: str,
     expected: str,
     timeout: float = 8.0,
@@ -51,14 +51,14 @@ def _wait_for_state_field(
 
 
 def main() -> int:
-    tag = os.environ.get("MOSAIC_TAG") or ""
+    tag = os.environ.get("COTERM_TAG") or ""
     if not tag:
-        print("Tip: set MOSAIC_TAG=<tag> when running this test to avoid socket conflicts.")
+        print("Tip: set COTERM_TAG=<tag> when running this test to avoid socket conflicts.")
 
-    pr_url = "https://github.com/emergent-inc/mosaic/pull/337"
+    pr_url = "https://github.com/emergent-inc/coterm/pull/337"
 
     try:
-        with mosaic() as client:
+        with coterm() as client:
             new_tab_id = client.new_tab()
             client.select_tab(new_tab_id)
             time.sleep(0.6)
@@ -117,7 +117,7 @@ def main() -> int:
 
         print("Sidebar metadata test passed.")
         return 0
-    except (mosaicError, AssertionError) as e:
+    except (cotermError, AssertionError) as e:
         print(f"Sidebar metadata test failed: {e}")
         return 1
 

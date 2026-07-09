@@ -1,0 +1,7 @@
+<svg width="180" height="44" viewBox="0 0 180 44" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">Coterm</title>
+  <rect x="1.5" y="5.5" width="38" height="33" rx="9.5" fill="#1C2021" stroke="#EDEFE3" stroke-opacity="0.22" stroke-width="3"/>
+  <path d="M12 17.5L18.8 22L12 26.5" stroke="#5CECA2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M23.5 27H31.5" stroke="#EDEFE3" stroke-width="4" stroke-linecap="round"/>
+  <text x="52" y="30" fill="#EDEFE3" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-size="27" font-weight="700">Coterm</text>
+</svg>

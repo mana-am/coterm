@@ -1,4 +1,4 @@
-import MosaicSwiftRender
+import CotermSwiftRender
 import Foundation
 
 extension Workspace {

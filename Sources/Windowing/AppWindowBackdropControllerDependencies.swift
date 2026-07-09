@@ -1,6 +1,6 @@
 import AppKit
-import MosaicAppKitSupportUI
-import MosaicWorkspaces
+import CotermAppKitSupportUI
+import CotermWorkspaces
 
 @MainActor
 final class AppWindowBackdropControllerDependencies: WindowBackdropControllerDependencies {

@@ -20,10 +20,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
 def _wait_for(pred, timeout_s: float, step_s: float = 0.05) -> None:
@@ -32,10 +32,10 @@ def _wait_for(pred, timeout_s: float, step_s: float = 0.05) -> None:
         if pred():
             return
         time.sleep(step_s)
-    raise mosaicError("Timed out waiting for condition")
+    raise cotermError("Timed out waiting for condition")
 
 
-def _wait_for_surface_focus(c: mosaic, panel_id: str, timeout_s: float = 5.0) -> None:
+def _wait_for_surface_focus(c: coterm, panel_id: str, timeout_s: float = 5.0) -> None:
     panel_lower = panel_id.lower()
     start = time.time()
     while time.time() - start < timeout_s:
@@ -61,10 +61,10 @@ def _wait_for_surface_focus(c: mosaic, panel_id: str, timeout_s: float = 5.0) ->
 
         time.sleep(0.05)
 
-    raise mosaicError(f"Timed out waiting for surface focus: {panel_id}")
+    raise cotermError(f"Timed out waiting for surface focus: {panel_id}")
 
 
-def _wait_for_render_context(c: mosaic, panel_id: str, timeout_s: float = 5.0) -> dict:
+def _wait_for_render_context(c: coterm, panel_id: str, timeout_s: float = 5.0) -> dict:
     """Wait until terminal view is attached for interactive checks."""
     start = time.time()
     last = {}
@@ -77,13 +77,13 @@ def _wait_for_render_context(c: mosaic, panel_id: str, timeout_s: float = 5.0) -
         if bool(last.get("inWindow")):
             return last
         time.sleep(0.1)
-    raise mosaicError(f"Expected inWindow render context, got: {last}")
+    raise cotermError(f"Expected inWindow render context, got: {last}")
 
 
 def main() -> int:
-    token = f"MOSAIC_INIT_{int(time.time() * 1000)}"
-    tmp = f"/tmp/mosaic_init_{token}.txt"
-    with mosaic(SOCKET_PATH) as c:
+    token = f"COTERM_INIT_{int(time.time() * 1000)}"
+    tmp = f"/tmp/coterm_init_{token}.txt"
+    with coterm(SOCKET_PATH) as c:
         c.activate_app()
         time.sleep(0.2)
 
@@ -93,7 +93,7 @@ def main() -> int:
 
         surfaces = c.list_surfaces()
         if not surfaces:
-            raise mosaicError("Expected at least 1 surface after new_workspace")
+            raise cotermError("Expected at least 1 surface after new_workspace")
         panel_id = next((sid for _i, sid, focused in surfaces if focused), surfaces[0][1])
 
         # Ensure the first terminal is focused without requiring any manual interaction.

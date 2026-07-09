@@ -1,6 +1,6 @@
-import MosaicAuthCore
-import MosaicMobileCore
-import MosaicAuthRuntime
+import CotermAuthCore
+import CotermMobileCore
+import CotermAuthRuntime
 import Foundation
 import Observation
 
@@ -10,7 +10,7 @@ import Observation
 /// Tailscale reachability for the view. The displayed code never expires and
 /// is never regenerated on a timer; Refresh Code re-mints on demand.
 ///
-/// Reads auth state from the app's shared ``MosaicAuthRuntime/AuthCoordinator``
+/// Reads auth state from the app's shared ``CotermAuthRuntime/AuthCoordinator``
 /// (via `AppDelegate`); the browser sign-in is fire-and-forget and completion
 /// is observed by the view through the coordinator's `@Observable` state.
 @MainActor
@@ -38,7 +38,7 @@ final class MobilePairingModel {
 
     /// A minted ticket ready for display.
     struct Ready: Equatable {
-        /// The `mosaic-ios://attach?...` URL encoded into the QR code.
+        /// The `coterm-ios://attach?...` URL encoded into the QR code.
         let attachURL: String
         /// The Mac's display name, shown above the code.
         let macName: String

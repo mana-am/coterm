@@ -11,7 +11,7 @@ describe("docs search utilities", () => {
       "/docs/getting-started",
     );
     expect(
-      normalizePagefindUrl("https://mosaic.inc/docs/api/index.html#surface"),
+      normalizePagefindUrl("https://coterm.cc/docs/api/index.html#surface"),
     ).toBe("/docs/api#surface");
     expect(normalizePagefindUrl("/docs/configuration/index.html")).toBe(
       "/docs/configuration",
@@ -21,8 +21,8 @@ describe("docs search utilities", () => {
   test("prefers section-level Pagefind matches", () => {
     const result = normalizeDocsSearchResult({
       url: "/docs/configuration/",
-      excerpt: "Configure <mark>mosaic</mark>.",
-      plain_excerpt: "Configure mosaic.",
+      excerpt: "Configure <mark>coterm</mark>.",
+      plain_excerpt: "Configure coterm.",
       meta: {
         title: "Configuration",
         section: "Docs",
@@ -31,15 +31,15 @@ describe("docs search utilities", () => {
         {
           title: "Configuration",
           url: "/docs/configuration/#title",
-          excerpt: "Configure <mark>mosaic</mark>.",
-          plain_excerpt: "Configure mosaic.",
+          excerpt: "Configure <mark>coterm</mark>.",
+          plain_excerpt: "Configure coterm.",
           weighted_locations: [{ balanced_score: 100 }],
         },
         {
           title: "Keyboard shortcuts",
           url: "/docs/configuration/#keyboard-shortcuts",
-          excerpt: "Set <mark>shortcuts</mark> in mosaic.json.",
-          plain_excerpt: "Set shortcuts in mosaic.json.",
+          excerpt: "Set <mark>shortcuts</mark> in coterm.json.",
+          plain_excerpt: "Set shortcuts in Coterm.json.",
           weighted_locations: [{ balanced_score: 1000 }],
         },
       ],
@@ -49,8 +49,8 @@ describe("docs search utilities", () => {
       href: "/docs/configuration#keyboard-shortcuts",
       title: "Keyboard shortcuts",
       section: "Docs",
-      excerptHtml: "Set <mark>shortcuts</mark> in mosaic.json.",
-      plainExcerpt: "Set shortcuts in mosaic.json.",
+      excerptHtml: "Set <mark>shortcuts</mark> in coterm.json.",
+      plainExcerpt: "Set shortcuts in Coterm.json.",
     });
   });
 

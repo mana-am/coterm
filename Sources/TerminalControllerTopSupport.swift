@@ -38,7 +38,7 @@ extension TerminalController {
     }
 
     nonisolated func v2TopMemoryDiagnosticPayload(
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         annotatedWindows: [[String: Any]],
         topGroupLimit: Int = 12
     ) -> [String: Any] {
@@ -51,7 +51,7 @@ extension TerminalController {
 
     nonisolated func v2AnnotateTopWindows(
         _ windows: inout [[String: Any]],
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         browserPIDOccurrences: [Int: Int],
         includeProcesses: Bool
     ) -> Set<Int> {
@@ -90,7 +90,7 @@ extension TerminalController {
 
     nonisolated func v2AnnotateTopWorkspace(
         _ workspace: inout [String: Any],
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         browserPIDOccurrences: [Int: Int],
         includeProcesses: Bool
     ) -> Set<Int> {
@@ -135,7 +135,7 @@ extension TerminalController {
 
     nonisolated func v2AnnotateTopPane(
         _ pane: inout [String: Any],
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         browserPIDOccurrences: [Int: Int],
         includeProcesses: Bool
     ) -> Set<Int> {
@@ -164,7 +164,7 @@ extension TerminalController {
 
     nonisolated func v2AnnotateTopSurface(
         _ surface: inout [String: Any],
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         browserPIDOccurrences: [Int: Int],
         includeProcesses: Bool
     ) -> Set<Int> {
@@ -172,12 +172,12 @@ extension TerminalController {
         var surfacePIDs: Set<Int> = []
 
         if let surfaceID = v2TopUUID(surface["id"]) {
-            let mosaicPIDs = processSnapshot.pids(forMosaicSurfaceID: surfaceID)
-            surface["mosaic_process_pids"] = mosaicPIDs.sorted()
-            rootPIDs.formUnion(mosaicPIDs)
-            surfacePIDs.formUnion(processSnapshot.expandedPIDs(rootPIDs: mosaicPIDs))
+            let cotermPIDs = processSnapshot.pids(forCotermSurfaceID: surfaceID)
+            surface["coterm_process_pids"] = cotermPIDs.sorted()
+            rootPIDs.formUnion(cotermPIDs)
+            surfacePIDs.formUnion(processSnapshot.expandedPIDs(rootPIDs: cotermPIDs))
         } else {
-            surface["mosaic_process_pids"] = []
+            surface["coterm_process_pids"] = []
         }
 
         if let ttyName = surface["tty"] as? String {
@@ -215,7 +215,7 @@ extension TerminalController {
 
     nonisolated func v2AnnotateTopWebView(
         _ webview: inout [String: Any],
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         browserPIDOccurrences: [Int: Int],
         includeProcesses: Bool
     ) -> Set<Int> {
@@ -244,7 +244,7 @@ extension TerminalController {
 
     nonisolated func v2AnnotateTopTag(
         _ tag: inout [String: Any],
-        processSnapshot: MosaicTopProcessSnapshot,
+        processSnapshot: CotermTopProcessSnapshot,
         includeProcesses: Bool
     ) -> Set<Int> {
         guard let pid = v2TopInt(tag["pid"]) else {
@@ -303,8 +303,8 @@ extension TerminalController {
         return nil
     }
 
-    private nonisolated func v2TopMemoryAttributionByPID(in windows: [[String: Any]]) -> [Int: MosaicTopProcessAttribution] {
-        var result: [Int: MosaicTopProcessAttribution] = [:]
+    private nonisolated func v2TopMemoryAttributionByPID(in windows: [[String: Any]]) -> [Int: CotermTopProcessAttribution] {
+        var result: [Int: CotermTopProcessAttribution] = [:]
         var ambiguousSpecificityByPID: [Int: Int] = [:]
         var commonOwnerSourceSpecificityByPID: [Int: Int] = [:]
         for window in windows {
@@ -315,7 +315,7 @@ extension TerminalController {
 
                 let tags = workspace["tags"] as? [[String: Any]] ?? []
                 for tag in tags {
-                    let attribution = MosaicTopProcessAttribution(
+                    let attribution = CotermTopProcessAttribution(
                         workspaceID: workspaceID,
                         workspaceRef: workspaceRef,
                         paneID: nil,
@@ -340,7 +340,7 @@ extension TerminalController {
                     let paneRef = v2TopString(pane["ref"])
                     let surfaces = pane["surfaces"] as? [[String: Any]] ?? []
                     for surface in surfaces {
-                        let attribution = MosaicTopProcessAttribution(
+                        let attribution = CotermTopProcessAttribution(
                             workspaceID: workspaceID,
                             workspaceRef: workspaceRef,
                             paneID: paneID,
@@ -376,9 +376,9 @@ extension TerminalController {
     }
 
     private nonisolated func assignTopMemoryAttribution(
-        _ attribution: MosaicTopProcessAttribution,
+        _ attribution: CotermTopProcessAttribution,
         from node: [String: Any],
-        to result: inout [Int: MosaicTopProcessAttribution],
+        to result: inout [Int: CotermTopProcessAttribution],
         ambiguousSpecificityByPID: inout [Int: Int],
         commonOwnerSourceSpecificityByPID: inout [Int: Int]
     ) {
@@ -418,9 +418,9 @@ extension TerminalController {
     }
 
     private nonisolated func v2TopMemoryAttributionCommonOwner(
-        _ lhs: MosaicTopProcessAttribution,
-        _ rhs: MosaicTopProcessAttribution
-    ) -> MosaicTopProcessAttribution? {
+        _ lhs: CotermTopProcessAttribution,
+        _ rhs: CotermTopProcessAttribution
+    ) -> CotermTopProcessAttribution? {
         guard let workspaceID = lhs.workspaceID, workspaceID == rhs.workspaceID else {
             return nil
         }
@@ -428,7 +428,7 @@ extension TerminalController {
         if let paneID = lhs.paneID, paneID == rhs.paneID {
             let paneRef = lhs.paneRef ?? rhs.paneRef
             if let surfaceID = lhs.surfaceID, surfaceID == rhs.surfaceID {
-                return MosaicTopProcessAttribution(
+                return CotermTopProcessAttribution(
                     workspaceID: workspaceID,
                     workspaceRef: workspaceRef,
                     paneID: paneID,
@@ -439,7 +439,7 @@ extension TerminalController {
                     reason: "shared-surface-process-tree"
                 )
             }
-            return MosaicTopProcessAttribution(
+            return CotermTopProcessAttribution(
                 workspaceID: workspaceID,
                 workspaceRef: workspaceRef,
                 paneID: paneID,
@@ -450,7 +450,7 @@ extension TerminalController {
                 reason: "shared-pane-process-tree"
             )
         }
-        return MosaicTopProcessAttribution(
+        return CotermTopProcessAttribution(
             workspaceID: workspaceID,
             workspaceRef: workspaceRef,
             paneID: nil,
@@ -462,7 +462,7 @@ extension TerminalController {
         )
     }
 
-    private nonisolated func v2TopMemoryAttributionSpecificity(_ attribution: MosaicTopProcessAttribution) -> Int {
+    private nonisolated func v2TopMemoryAttributionSpecificity(_ attribution: CotermTopProcessAttribution) -> Int {
         if attribution.surfaceID != nil {
             return 3
         }

@@ -2,17 +2,17 @@
 # Clean up tagged dev-build artifacts created by scripts/reload.sh.
 #
 # Each `./scripts/reload.sh --tag <tag>` produces:
-#   ~/Library/Developer/Xcode/DerivedData/mosaic-<tag>/      (multi-GB)
-#   /tmp/mosaic-<tag>/                                       (build scratch)
-#   /tmp/mosaic-debug-<tag>.sock                             (control socket)
-#   /tmp/mosaic-debug-<tag>.log                              (debug log)
-#   /tmp/mosaic-reload-<tag>.log                             (build log)
-#   ~/Library/Application Support/mosaic/mosaicd-dev-<tag>.sock (mosaicd socket)
+#   ~/Library/Developer/Xcode/DerivedData/coterm-<tag>/      (multi-GB)
+#   /tmp/coterm-<tag>/                                       (build scratch)
+#   /tmp/coterm-debug-<tag>.sock                             (control socket)
+#   /tmp/coterm-debug-<tag>.log                              (debug log)
+#   /tmp/coterm-reload-<tag>.log                             (build log)
+#   ~/Library/Application Support/coterm/cotermd-dev-<tag>.sock (cotermd socket)
 #
 # This script removes those artifacts for tags that are safe to clean.
 # Safety rules (always on):
-#   - Skip any tag whose `Mosaic DEV <tag>` app is currently running.
-#   - Skip the tag pointed at by /tmp/mosaic-last-cli-path (most recent reload).
+#   - Skip any tag whose `Coterm DEV <tag>` app is currently running.
+#   - Skip the tag pointed at by /tmp/coterm-last-cli-path (most recent reload).
 # A worktree merely existing on the same name is not treated as a
 # protection. Use --keep TAG when you want to preserve a build whose
 # worktree you still have around, or --older-than DAYS to skip anything
@@ -34,8 +34,8 @@
 set -euo pipefail
 
 DERIVED_DATA_ROOT="$HOME/Library/Developer/Xcode/DerivedData"
-APP_SUPPORT_DIR="$HOME/Library/Application Support/mosaic"
-LAST_CLI_PATH_FILE="/tmp/mosaic-last-cli-path"
+APP_SUPPORT_DIR="$HOME/Library/Application Support/coterm"
+LAST_CLI_PATH_FILE="/tmp/coterm-last-cli-path"
 
 apply=0
 older_than_days=0
@@ -64,30 +64,30 @@ done
 
 # ---- discovery --------------------------------------------------------------
 
-# Tags come from DerivedData dirs named mosaic-<tag>. Authoritative because
+# Tags come from DerivedData dirs named coterm-<tag>. Authoritative because
 # reload.sh always creates one there.
 discover_tags() {
     [[ -d "$DERIVED_DATA_ROOT" ]] || return 0
     local d name
-    for d in "$DERIVED_DATA_ROOT"/mosaic-*/; do
+    for d in "$DERIVED_DATA_ROOT"/coterm-*/; do
         # The glob leaves the literal pattern if no matches exist on macOS.
         [[ -d "$d" ]] || continue
         name="${d%/}"
         name="${name##*/}"
-        printf '%s\n' "${name#mosaic-}"
+        printf '%s\n' "${name#coterm-}"
     done
 }
 
 artifact_paths_for_tag() {
     local tag="$1"
     printf '%s\n' \
-        "$DERIVED_DATA_ROOT/mosaic-${tag}" \
-        "/tmp/mosaic-${tag}" \
-        "/tmp/mosaic-${tag}.tar" \
-        "/tmp/mosaic-debug-${tag}.sock" \
-        "/tmp/mosaic-debug-${tag}.log" \
-        "/tmp/mosaic-reload-${tag}.log" \
-        "$APP_SUPPORT_DIR/mosaicd-dev-${tag}.sock"
+        "$DERIVED_DATA_ROOT/coterm-${tag}" \
+        "/tmp/coterm-${tag}" \
+        "/tmp/coterm-${tag}.tar" \
+        "/tmp/coterm-debug-${tag}.sock" \
+        "/tmp/coterm-debug-${tag}.log" \
+        "/tmp/coterm-reload-${tag}.log" \
+        "$APP_SUPPORT_DIR/cotermd-dev-${tag}.sock"
 }
 
 bytes_in_path() {
@@ -122,24 +122,24 @@ derived_data_mtime_days() {
 # ---- safety probes ----------------------------------------------------------
 
 # Active tag (most recent reload) per the CLI symlink target. Match
-# `/mosaic-<tag>/` anywhere in the path so we cover paths under DerivedData,
+# `/coterm-<tag>/` anywhere in the path so we cover paths under DerivedData,
 # /tmp, or other locations reload.sh may emit.
 active_tag=""
 if [[ -r "$LAST_CLI_PATH_FILE" ]]; then
     last_path="$(cat "$LAST_CLI_PATH_FILE" 2>/dev/null || true)"
-    if [[ "$last_path" =~ /mosaic-([A-Za-z0-9._-]+)/ ]]; then
+    if [[ "$last_path" =~ /coterm-([A-Za-z0-9._-]+)/ ]]; then
         active_tag="${BASH_REMATCH[1]}"
     fi
 fi
 
-# Running Mosaic DEV processes by tag (the app name embeds the tag).
+# Running Coterm DEV processes by tag (the app name embeds the tag).
 running_tags=()
 while IFS= read -r line; do
-    # Match "Mosaic DEV <tag>" (with or without .app suffix).
-    if [[ "$line" =~ Mosaic\ DEV\ ([A-Za-z0-9._-]+) ]]; then
+    # Match "Coterm DEV <tag>" (with or without .app suffix).
+    if [[ "$line" =~ Coterm\ DEV\ ([A-Za-z0-9._-]+) ]]; then
         running_tags+=("${BASH_REMATCH[1]}")
     fi
-done < <(pgrep -fl "Mosaic DEV " 2>/dev/null || true)
+done < <(pgrep -fl "Coterm DEV " 2>/dev/null || true)
 
 # ---- planning ---------------------------------------------------------------
 
@@ -169,7 +169,7 @@ while IFS= read -r tag; do
         reasons+=("--keep")
     fi
     if (( older_than_days > 0 )); then
-        age="$(derived_data_mtime_days "$DERIVED_DATA_ROOT/mosaic-${tag}")"
+        age="$(derived_data_mtime_days "$DERIVED_DATA_ROOT/coterm-${tag}")"
         # age == -1 means the DerivedData dir is gone (e.g., manually
         # deleted while orphan sockets/logs remain). Treat as "no age
         # signal, age filter does not apply" so the residue still gets

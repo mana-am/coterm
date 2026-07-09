@@ -11,10 +11,10 @@ Phases:
 3) Second clean quit -> relaunch: the re-saved snapshot still resumes all six.
 4) SIGKILL the app after the autosave window -> relaunch: the autosaved
    snapshot still resumes all six.
-5) Clean quit, then corrupt the primary session snapshot -> relaunch: mosaic
+5) Clean quit, then corrupt the primary session snapshot -> relaunch: coterm
    must recover the session from the -previous backup snapshot instead of
    silently starting fresh, and the backup file must survive the relaunch so
-   `mosaic restore-session` keeps working.
+   `coterm restore-session` keeps working.
 """
 
 from __future__ import annotations
@@ -30,20 +30,20 @@ import tempfile
 import time
 from pathlib import Path
 
-from mosaic import mosaic
+from coterm import coterm
 
 # (launcher, session id, marker tokens). A session counts as resumed when one
 # scrollback line contains every token: the fake-agent prefix proves the fake
 # binary ran (the typed resume command alone does not contain it), and the
 # session token proves which session it was. Claude tokens stay order-agnostic
-# because the mosaic claude wrapper inserts its own arguments around --resume.
+# because the coterm claude wrapper inserts its own arguments around --resume.
 SESSION_SPECS = [
-    ("claude", "claude-stress-0", ("MOSAIC_FAKE_CLAUDE_RESUME:", "--resume claude-stress-0")),
-    ("claude", "claude-stress-1", ("MOSAIC_FAKE_CLAUDE_RESUME:", "--resume claude-stress-1")),
-    ("codex", "codex-stress-0", ("MOSAIC_FAKE_CODEX_RESUME:", "resume codex-stress-0")),
-    ("codex", "codex-stress-1", ("MOSAIC_FAKE_CODEX_RESUME:", "resume codex-stress-1")),
-    ("opencode", "opencode-stress-0", ("MOSAIC_FAKE_OPENCODE_RESUME:", "--session opencode-stress-0")),
-    ("opencode", "opencode-stress-1", ("MOSAIC_FAKE_OPENCODE_RESUME:", "--session opencode-stress-1")),
+    ("claude", "claude-stress-0", ("COTERM_FAKE_CLAUDE_RESUME:", "--resume claude-stress-0")),
+    ("claude", "claude-stress-1", ("COTERM_FAKE_CLAUDE_RESUME:", "--resume claude-stress-1")),
+    ("codex", "codex-stress-0", ("COTERM_FAKE_CODEX_RESUME:", "resume codex-stress-0")),
+    ("codex", "codex-stress-1", ("COTERM_FAKE_CODEX_RESUME:", "resume codex-stress-1")),
+    ("opencode", "opencode-stress-0", ("COTERM_FAKE_OPENCODE_RESUME:", "--session opencode-stress-0")),
+    ("opencode", "opencode-stress-1", ("COTERM_FAKE_OPENCODE_RESUME:", "--session opencode-stress-1")),
 ]
 
 
@@ -65,7 +65,7 @@ def _bundle_id(app_path: Path) -> str:
 
 def _snapshot_path(bundle_id: str, suffix: str = "") -> Path:
     safe_bundle = re.sub(r"[^A-Za-z0-9._-]", "_", bundle_id)
-    return Path.home() / "Library/Application Support/mosaic" / f"session-{safe_bundle}{suffix}.json"
+    return Path.home() / "Library/Application Support/coterm" / f"session-{safe_bundle}{suffix}.json"
 
 
 def _socket_reachable(socket_path: Path) -> bool:
@@ -103,13 +103,13 @@ def _wait_for_socket_closed(socket_path: Path, timeout: float = 20.0) -> None:
 
 
 def _app_pids(app_path: Path) -> list[int]:
-    exe = app_path / "Contents" / "MacOS" / "Mosaic DEV"
+    exe = app_path / "Contents" / "MacOS" / "Coterm DEV"
     result = subprocess.run(["pgrep", "-f", str(exe)], capture_output=True, text=True)
     return [int(line) for line in result.stdout.split() if line.strip().isdigit()]
 
 
 def _kill_existing(app_path: Path) -> None:
-    exe = app_path / "Contents" / "MacOS" / "Mosaic DEV"
+    exe = app_path / "Contents" / "MacOS" / "Coterm DEV"
     subprocess.run(["pkill", "-f", str(exe)], capture_output=True, text=True)
     time.sleep(1.0)
 
@@ -122,8 +122,8 @@ def _launch(app_path: Path, socket_path: Path, env_overrides: dict[str, str] | N
 
     command = ["open", "-na", str(app_path)]
     full_env = dict(env_overrides or {})
-    full_env["MOSAIC_SOCKET_PATH"] = str(socket_path)
-    full_env["MOSAIC_ALLOW_SOCKET_OVERRIDE"] = "1"
+    full_env["COTERM_SOCKET_PATH"] = str(socket_path)
+    full_env["COTERM_ALLOW_SOCKET_OVERRIDE"] = "1"
     for key, value in full_env.items():
         command.extend(["--env", f"{key}={value}"])
     subprocess.run(command, check=True)
@@ -163,15 +163,15 @@ def _force_kill(app_path: Path, socket_path: Path) -> None:
     time.sleep(0.8)
 
 
-def _connect(socket_path: Path) -> mosaic:
-    client = mosaic(socket_path=str(socket_path))
+def _connect(socket_path: Path) -> coterm:
+    client = coterm(socket_path=str(socket_path))
     client.connect()
     if not client.ping():
         raise RuntimeError("ping failed")
     return client
 
 
-def _read_scrollback(client: mosaic) -> str:
+def _read_scrollback(client: coterm) -> str:
     return client._send_command("read_screen --scrollback")
 
 
@@ -240,7 +240,7 @@ def _hook_session_entry(
     return entry
 
 
-def _collect_all_scrollbacks(client: mosaic) -> str:
+def _collect_all_scrollbacks(client: coterm) -> str:
     chunks: list[str] = []
     workspaces = client.list_workspaces()
     for index in range(len(workspaces)):
@@ -258,7 +258,7 @@ def _collect_all_scrollbacks(client: mosaic) -> str:
 
 
 def _assert_all_sessions_resumed(
-    client: mosaic,
+    client: coterm,
     phase: str,
     failures: list[str],
     timeout: float = 30.0,
@@ -283,39 +283,39 @@ def _assert_all_sessions_resumed(
 
 
 def main() -> int:
-    app_path_str = os.environ.get("MOSAIC_APP_PATH", "").strip()
+    app_path_str = os.environ.get("COTERM_APP_PATH", "").strip()
     if not app_path_str:
-        print("SKIP: set MOSAIC_APP_PATH to a built Mosaic DEV .app path")
+        print("SKIP: set COTERM_APP_PATH to a built Coterm DEV .app path")
         return 0
     app_path = Path(app_path_str)
     if not app_path.exists():
-        print(f"SKIP: MOSAIC_APP_PATH does not exist: {app_path}")
+        print(f"SKIP: COTERM_APP_PATH does not exist: {app_path}")
         return 0
 
     bundle_id = _bundle_id(app_path)
-    socket_path = Path(f"/tmp/mosaic-restore-stress-{bundle_id.replace('.', '-')}.sock")
+    socket_path = Path(f"/tmp/coterm-restore-stress-{bundle_id.replace('.', '-')}.sock")
     snapshot = _snapshot_path(bundle_id)
     previous_snapshot = _snapshot_path(bundle_id, suffix="-previous")
 
     failures: list[str] = []
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-restore-stress-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-restore-stress-") as td:
         fake_bin_dir = Path(td) / "bin"
         hook_state_dir = Path(td) / "hook-state"
         hook_state_files = {
             launcher: hook_state_dir / f"{launcher}-hook-sessions.json"
             for launcher in {launcher for (launcher, _, _) in SESSION_SPECS}
         }
-        _write_fake_agent(fake_bin_dir, "claude", "MOSAIC_FAKE_CLAUDE_RESUME")
-        _write_fake_agent(fake_bin_dir, "codex", "MOSAIC_FAKE_CODEX_RESUME")
-        _write_fake_agent(fake_bin_dir, "opencode", "MOSAIC_FAKE_OPENCODE_RESUME")
+        _write_fake_agent(fake_bin_dir, "claude", "COTERM_FAKE_CLAUDE_RESUME")
+        _write_fake_agent(fake_bin_dir, "codex", "COTERM_FAKE_CODEX_RESUME")
+        _write_fake_agent(fake_bin_dir, "opencode", "COTERM_FAKE_OPENCODE_RESUME")
         launch_path = f"{fake_bin_dir}:{os.environ.get('PATH', '')}"
         app_env = {
             "PATH": launch_path,
-            "MOSAIC_AGENT_HOOK_STATE_DIR": str(hook_state_dir),
-            # Claude resume routes through the mosaic claude wrapper, which
+            "COTERM_AGENT_HOOK_STATE_DIR": str(hook_state_dir),
+            # Claude resume routes through the coterm claude wrapper, which
             # resolves the real binary; point it at the fake one instead.
-            "MOSAIC_CUSTOM_CLAUDE_PATH": str(fake_bin_dir / "claude"),
+            "COTERM_CUSTOM_CLAUDE_PATH": str(fake_bin_dir / "claude"),
         }
 
         def remove_hook_state() -> None:
@@ -420,14 +420,14 @@ def main() -> int:
                         "restore-session recovery is impossible after a corrupt primary snapshot"
                     )
                 else:
-                    # The manual `mosaic restore-session` recovery entrypoint must
+                    # The manual `coterm restore-session` recovery entrypoint must
                     # also still work from the preserved backup. It reopens the
                     # backed-up workspaces in a new window (with the same
                     # workspace ids as the startup fallback restore, since both
                     # read the same backup), so assert on the window count.
-                    cli_path = app_path / "Contents" / "Resources" / "bin" / "mosaic"
+                    cli_path = app_path / "Contents" / "Resources" / "bin" / "coterm"
                     restore_env = dict(os.environ)
-                    restore_env["MOSAIC_SOCKET_PATH"] = str(socket_path)
+                    restore_env["COTERM_SOCKET_PATH"] = str(socket_path)
 
                     def window_count() -> int:
                         result = subprocess.run(

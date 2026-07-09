@@ -1,22 +1,22 @@
 import AppKit
-import MosaicAppKitSupportUI
-import MosaicAuthRuntime
-import MosaicBrowser
-import MosaicCommandPalette
-import MosaicPanes
-import MosaicControlSocket
-import MosaicWindowing
-import MosaicNotifications
-import MosaicTerminalCore
-import MosaicTerminal
-import MosaicSettings
-import MosaicSettingsUI
-import MosaicUpdater
-import MosaicWorkspaces
-import MosaicUpdaterUI
+import CotermAppKitSupportUI
+import CotermAuthRuntime
+import CotermBrowser
+import CotermCommandPalette
+import CotermPanes
+import CotermControlSocket
+import CotermWindowing
+import CotermNotifications
+import CoterminalCore
+import Coterminal
+import CotermSettings
+import CotermSettingsUI
+import CotermUpdater
+import CotermWorkspaces
+import CotermUpdaterUI
 import SwiftUI
 import Bonsplit
-import MosaicAgentLaunch
+import CotermAgentLaunch
 import CoreServices
 import UserNotifications
 import Sentry
@@ -24,12 +24,12 @@ import WebKit
 import Combine
 import ObjectiveC.runtime
 import Darwin
-import MosaicCollaboration
-import MosaicFoundation
-import MosaicSidebar
+import CotermCollaboration
+import CotermFoundation
+import CotermSidebar
 
-private enum MosaicThemeNotifications {
-    static let reloadConfig = Notification.Name("com.mosaicterm.themes.reload-config")
+private enum CotermThemeNotifications {
+    static let reloadConfig = Notification.Name("com.coterm.themes.reload-config")
 }
 
 private struct WorkspaceGroupNewWorkspaceTarget {
@@ -41,7 +41,7 @@ private struct WorkspaceGroupNewWorkspaceTarget {
 /// Short-lived helper that watches for the next workspace to appear in a
 /// TabManager and joins it to a target group. Used by group `+` context-menu
 /// actions whose underlying executor creates the workspace asynchronously
-/// (cloudVM in particular launches `mosaic vm new` and returns immediately).
+/// (cloudVM in particular launches `coterm vm new` and returns immediately).
 /// Subscribes to `tabManager.tabsPublisher` (the legacy Combine bridge fed by
 /// every `tabs` mutation, regardless of whether a NotificationCenter event
 /// fired) so VM workspaces, dropped attaches, or any other slow async path
@@ -156,21 +156,21 @@ final class ConfiguredGroupActionAsyncWorkspaceObserver {
 }
 
 #if DEBUG
-enum MosaicTypingTiming {
+enum CotermTypingTiming {
     static let isEnabled: Bool = {
         let environment = ProcessInfo.processInfo.environment
-        if environment["MOSAIC_TYPING_TIMING_LOGS"] == "1" || environment["MOSAIC_KEY_LATENCY_PROBE"] == "1" {
+        if environment["COTERM_TYPING_TIMING_LOGS"] == "1" || environment["COTERM_KEY_LATENCY_PROBE"] == "1" {
             return true
         }
         let defaults = UserDefaults.standard
-        return defaults.bool(forKey: "mosaicTypingTimingLogs") || defaults.bool(forKey: "mosaicKeyLatencyProbe")
+        return defaults.bool(forKey: "cotermTypingTimingLogs") || defaults.bool(forKey: "cotermKeyLatencyProbe")
     }()
     static let isVerboseProbeEnabled: Bool = {
         let environment = ProcessInfo.processInfo.environment
-        if environment["MOSAIC_KEY_LATENCY_PROBE"] == "1" {
+        if environment["COTERM_KEY_LATENCY_PROBE"] == "1" {
             return true
         }
-        return UserDefaults.standard.bool(forKey: "mosaicKeyLatencyProbe")
+        return UserDefaults.standard.bool(forKey: "cotermKeyLatencyProbe")
     }()
     private static let delayLogThresholdMs: Double = 6.0
     private static let durationLogThresholdMs: Double = 1.0
@@ -187,12 +187,12 @@ enum MosaicTypingTiming {
         guard event.timestamp > 0 else { return }
         let delayMs = max(0, (ProcessInfo.processInfo.systemUptime - event.timestamp) * 1000.0)
         guard shouldLog(delayMs: delayMs, elapsedMs: nil) else { return }
-        mosaicDebugLog("typing.delay path=\(path) delayMs=\(format(delayMs)) \(eventFields(event))")
+        cotermDebugLog("typing.delay path=\(path) delayMs=\(format(delayMs)) \(eventFields(event))")
     }
 
     @inline(__always)
     static func logDuration(path: String, startedAt: TimeInterval?, event: NSEvent? = nil, extra: String? = nil) {
-        MosaicMainThreadTurnProfiler.endMeasure(path, startedAt: startedAt)
+        CotermMainThreadTurnProfiler.endMeasure(path, startedAt: startedAt)
         guard let startedAt else { return }
         let elapsedMs = max(0, (ProcessInfo.processInfo.systemUptime - startedAt) * 1000.0)
         let delayMs: Double? = {
@@ -210,7 +210,7 @@ enum MosaicTypingTiming {
         if let extra, !extra.isEmpty {
             line += " \(extra)"
         }
-        mosaicDebugLog(line)
+        cotermDebugLog(line)
     }
 
     @inline(__always)
@@ -244,7 +244,7 @@ enum MosaicTypingTiming {
         if let extra, !extra.isEmpty {
             line += " \(extra)"
         }
-        mosaicDebugLog(line)
+        cotermDebugLog(line)
     }
 
     @inline(__always)
@@ -272,8 +272,8 @@ enum MosaicTypingTiming {
     }
 }
 
-final class MosaicMainRunLoopStallMonitor {
-    static let shared = MosaicMainRunLoopStallMonitor()
+final class CotermMainRunLoopStallMonitor {
+    static let shared = CotermMainRunLoopStallMonitor()
 
     private let thresholdMs: Double = 8.0
     private var observer: CFRunLoopObserver?
@@ -284,7 +284,7 @@ final class MosaicMainRunLoopStallMonitor {
     private init() {}
 
     func installIfNeeded() {
-        guard MosaicTypingTiming.isEnabled else { return }
+        guard CotermTypingTiming.isEnabled else { return }
         guard !installed else { return }
 
         var context = CFRunLoopObserverContext(
@@ -302,7 +302,7 @@ final class MosaicMainRunLoopStallMonitor {
             CFIndex.max,
             { _, activity, info in
                 guard let info else { return }
-                let monitor = Unmanaged<MosaicMainRunLoopStallMonitor>.fromOpaque(info).takeUnretainedValue()
+                let monitor = Unmanaged<CotermMainRunLoopStallMonitor>.fromOpaque(info).takeUnretainedValue()
                 monitor.handle(activity: activity)
             },
             &context
@@ -332,7 +332,7 @@ final class MosaicMainRunLoopStallMonitor {
         let currentEvent = NSApp.currentEvent.map {
             "eventType=\($0.type.rawValue) keyCode=\($0.keyCode) mods=\($0.modifierFlags.rawValue)"
         } ?? "event=nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "runloop.stall gapMs=\(String(format: "%.2f", elapsedMs)) prev=\(label(for: lastActivity)) " +
             "next=\(label(for: activity)) mode=\(mode) firstResponder=\(firstResponder) \(currentEvent)"
         )
@@ -358,8 +358,8 @@ final class MosaicMainRunLoopStallMonitor {
     }
 }
 
-final class MosaicMainThreadTurnProfiler {
-    static let shared = MosaicMainThreadTurnProfiler()
+final class CotermMainThreadTurnProfiler {
+    static let shared = CotermMainThreadTurnProfiler()
 
     private struct BucketStats {
         var count: Int = 0
@@ -378,13 +378,13 @@ final class MosaicMainThreadTurnProfiler {
 
     @inline(__always)
     static func endMeasure(_ bucket: String, startedAt: TimeInterval?) {
-        guard let startedAt, MosaicTypingTiming.isEnabled, Thread.isMainThread else { return }
+        guard let startedAt, CotermTypingTiming.isEnabled, Thread.isMainThread else { return }
         let elapsedMs = max(0, (ProcessInfo.processInfo.systemUptime - startedAt) * 1000.0)
         shared.record(bucket: bucket, elapsedMs: elapsedMs, count: 1)
     }
 
     func installIfNeeded() {
-        guard MosaicTypingTiming.isEnabled else { return }
+        guard CotermTypingTiming.isEnabled else { return }
         guard !installed else { return }
 
         var context = CFRunLoopObserverContext(
@@ -402,7 +402,7 @@ final class MosaicMainThreadTurnProfiler {
             CFIndex.max,
             { _, activity, info in
                 guard let info else { return }
-                let profiler = Unmanaged<MosaicMainThreadTurnProfiler>.fromOpaque(info).takeUnretainedValue()
+                let profiler = Unmanaged<CotermMainThreadTurnProfiler>.fromOpaque(info).takeUnretainedValue()
                 profiler.handle(activity: activity)
             },
             &context
@@ -472,7 +472,7 @@ final class MosaicMainThreadTurnProfiler {
             }
             .joined(separator: " ")
 
-        mosaicDebugLog(
+        cotermDebugLog(
             "main.turn.work turnMs=\(String(format: "%.2f", turnMs)) trackedMs=\(String(format: "%.2f", trackedMs)) totalCount=\(totalCount) " +
             "next=\(label(for: nextActivity)) mode=\(mode) firstResponder=\(firstResponder) \(eventSummary) " +
             "\(bucketSummary)"
@@ -501,25 +501,25 @@ final class MosaicMainThreadTurnProfiler {
 #endif
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate, NSMenuItemValidation, NSMenuDelegate, MosaicConfigStoreReloadEnvironment {
+final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate, NSMenuItemValidation, NSMenuDelegate, CotermConfigStoreReloadEnvironment {
     nonisolated(unsafe) static var shared: AppDelegate?
-    /// Stateless control-socket syscall layer (MosaicControlSocket); composition-root owned.
+    /// Stateless control-socket syscall layer (CotermControlSocket); composition-root owned.
     nonisolated let socketTransport = SocketTransport()
-    /// Owns the About Titlebar Debug subsystem (MosaicAppKitSupportUI); composition-root
+    /// Owns the About Titlebar Debug subsystem (CotermAppKitSupportUI); composition-root
     /// owned and created lazily so the window-decoration seam can point back at `self`.
     lazy var debugWindowsCoordinator = DebugWindowsCoordinator(decorator: self)
     /// About Titlebar Debug options store, applied by the About/Acknowledgments windows.
     var aboutTitlebarDebugStore: AboutTitlebarDebugStore { debugWindowsCoordinator.aboutTitlebarStore }
     /// Coordinates remote tmux (`ssh … tmux -CC`) mirroring; composition-root owned.
     let remoteTmuxController = RemoteTmuxController()
-    private static let reloadConfigurationMenuItemIdentifier = NSUserInterfaceItemIdentifier("com.mosaic.reloadConfiguration")
+    private static let reloadConfigurationMenuItemIdentifier = NSUserInterfaceItemIdentifier("com.coterm.reloadConfiguration")
 
     private static let cachedIsRunningUnderXCTest = detectRunningUnderXCTest(ProcessInfo.processInfo.environment)
     private var isRunningUnderXCTestCached: Bool {
         Self.cachedIsRunningUnderXCTest
     }
-    private var mosaicThemePreviewReloadGeneration = 0
-    private var mosaicThemePreviewReloadWorkItem: DispatchWorkItem?
+    private var cotermThemePreviewReloadGeneration = 0
+    private var cotermThemePreviewReloadWorkItem: DispatchWorkItem?
 
     private static func detectRunningUnderXCTest(_ env: [String: String]) -> Bool {
         if env["XCTestConfigurationFilePath"] != nil { return true }
@@ -528,7 +528,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if env["XCInjectBundle"] != nil { return true }
         if env["XCInjectBundleInto"] != nil { return true }
         if env["DYLD_INSERT_LIBRARIES"]?.contains("libXCTest") == true { return true }
-        if env.keys.contains(where: { $0.hasPrefix("MOSAIC_UI_TEST_") }) { return true }
+        if env.keys.contains(where: { $0.hasPrefix("COTERM_UI_TEST_") }) { return true }
         return false
     }
 
@@ -547,7 +547,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let sidebarSelectionState: SidebarSelectionState
         var fileExplorerState: FileExplorerState?
         let keyboardFocusCoordinator: MainWindowFocusController
-        var mosaicConfigStore: MosaicConfigStore?
+        var cotermConfigStore: CotermConfigStore?
         var closeObserver: WindowCloseObserver?
         weak var window: NSWindow?
 
@@ -557,7 +557,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             sidebarState: SidebarState,
             sidebarSelectionState: SidebarSelectionState,
             fileExplorerState: FileExplorerState?,
-            mosaicConfigStore: MosaicConfigStore?,
+            cotermConfigStore: CotermConfigStore?,
             window: NSWindow?
         ) {
             self.windowId = windowId
@@ -565,7 +565,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             self.sidebarState = sidebarState
             self.sidebarSelectionState = sidebarSelectionState
             self.fileExplorerState = fileExplorerState
-            self.mosaicConfigStore = mosaicConfigStore
+            self.cotermConfigStore = cotermConfigStore
             self.window = window
             self.keyboardFocusCoordinator = MainWindowFocusController(
                 windowId: windowId,
@@ -579,9 +579,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     @MainActor
     private final class NewWorkspaceContextMenuActionBox: NSObject {
         let windowId: UUID
-        let action: MosaicResolvedConfigAction
+        let action: CotermResolvedConfigAction
 
-        init(windowId: UUID, action: MosaicResolvedConfigAction) {
+        init(windowId: UUID, action: CotermResolvedConfigAction) {
             self.windowId = windowId
             self.action = action
         }
@@ -595,7 +595,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         private func logWindowEvent(_ event: String, notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
             let id = window.identifier?.rawValue ?? "<nil>"
-            mosaicDebugLog(
+            cotermDebugLog(
                 "mainWindow.delegate.\(event) window=\(id) visible=\(window.isVisible ? 1 : 0) mini=\(window.isMiniaturized ? 1 : 0) key=\(window.isKeyWindow ? 1 : 0) main=\(window.isMainWindow ? 1 : 0)"
             )
         }
@@ -640,8 +640,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
 
         func windowWillUseStandardFrame(_ window: NSWindow, defaultFrame newFrame: NSRect) -> NSRect {
-            guard window is MosaicMainWindow else { return newFrame }
-            return MosaicMainWindow.standardFrame(forDefaultFrame: newFrame)
+            guard window is CotermMainWindow else { return newFrame }
+            return CotermMainWindow.standardFrame(forDefaultFrame: newFrame)
         }
     }
 
@@ -651,9 +651,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let window: NSWindow?
     }
 
-    /// Lifted to ``MosaicWindowing/SessionDisplayGeometry``; aliased so existing
+    /// Lifted to ``CotermWindowing/SessionDisplayGeometry``; aliased so existing
     /// `AppDelegate.SessionDisplayGeometry` references stay source-identical.
-    typealias SessionDisplayGeometry = MosaicWindowing.SessionDisplayGeometry
+    typealias SessionDisplayGeometry = CotermWindowing.SessionDisplayGeometry
 
     struct PersistedWindowGeometry: Codable, Sendable {
         let version: Int
@@ -662,19 +662,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     nonisolated static let persistedWindowGeometrySchemaVersion = 2
-    private nonisolated static let persistedWindowGeometryDefaultsKey = "mosaic.session.lastWindowGeometry.v2"
+    private nonisolated static let persistedWindowGeometryDefaultsKey = "coterm.session.lastWindowGeometry.v2"
 #if DEBUG
     nonisolated static var debugPersistedWindowGeometryDefaultsKey: String { persistedWindowGeometryDefaultsKey }
 #endif
     private nonisolated static let legacyPersistedWindowGeometryDefaultsKeys = [
-        "mosaic.session.lastWindowGeometry.v1"
+        "coterm.session.lastWindowGeometry.v1"
     ]
 
     weak var tabManager: TabManager?
     weak var notificationStore: TerminalNotificationStore?
     weak var sidebarState: SidebarState?
 
-    /// Notification jump/open navigation, extracted into `MosaicNotifications`.
+    /// Notification jump/open navigation, extracted into `CotermNotifications`.
     /// `AppDelegate` is the composition root: it conforms to every seam (see
     /// `AppDelegate+NotificationNavSeams.swift`) and injects itself. Built lazily
     /// because the seams read late-bound state (`notificationStore`,
@@ -715,7 +715,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
 
     /// OS notification delivery/response coordination, extracted into
-    /// `MosaicNotifications`. The app target injects the concrete
+    /// `CotermNotifications`. The app target injects the concrete
     /// `UNUserNotificationCenter`, terminal identifiers from
     /// `TerminalNotificationStore`, localized action titles, and the weak-owner
     /// Feed/app activation seam.
@@ -812,7 +812,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     /// Combine subscriptions that publish workspace.updated to mobile clients.
     private var mobileWorkspaceListObservers: [ObjectIdentifier: MobileWorkspaceListObserver] = [:]
     private let agentChatTranscriptService = AgentChatTranscriptService()
-    /// The app's settings dependency container, handed over by `mosaicApp` via
+    /// The app's settings dependency container, handed over by `cotermApp` via
     /// `configure(...)` before any main window is created. AppKit builds the
     /// main window's `NSHostingView` itself, so it injects this into the
     /// `ContentView` environment so `@LiveSetting` can resolve the stores it
@@ -830,12 +830,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private var menuBarVisibilityObserver: NSObjectProtocol?
     private var mobileHostSettingsObserver: NSObjectProtocol?
     private var reloadConfigurationMenuItemRefreshScheduled = false
-    /// Orchestrates per-window mosaic config-store reloads + window-title refresh.
+    /// Orchestrates per-window coterm config-store reloads + window-title refresh.
     /// Holds `self` weakly through the environment seam to avoid a retain cycle.
-    private lazy var configStoreReloadCoordinator: MosaicConfigStoreReloadCoordinator = {
-        MosaicConfigStoreReloadCoordinator(environment: self) { source, storeCount in
+    private lazy var configStoreReloadCoordinator: CotermConfigStoreReloadCoordinator = {
+        CotermConfigStoreReloadCoordinator(environment: self) { source, storeCount in
 #if DEBUG
-            mosaicDebugLog("mosaicConfig.reload source=\(source) stores=\(storeCount)")
+            cotermDebugLog("cotermConfig.reload source=\(source) stores=\(storeCount)")
 #endif
         }
     }()
@@ -857,12 +857,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private var ghosttyGotoSplitDownShortcut: StoredShortcut?
     private var browserAddressBarFocusedPanelId: UUID?
     /// Owns the browser omnibar selection-repeat state machine, extracted into
-    /// `MosaicBrowser`. The app delegate is the composition root: it injects
+    /// `CotermBrowser`. The app delegate is the composition root: it injects
     /// the `NotificationCenter` selection-move sink and the debug-trace sink.
     private lazy var browserOmnibarSelectionRepeat: BrowserOmnibarSelectionRepeatCoordinator = {
         let debugLog: BrowserOmnibarSelectionRepeatCoordinator.DebugLog?
 #if DEBUG
-        debugLog = { line in mosaicDebugLog(line) }
+        debugLog = { line in cotermDebugLog(line) }
 #else
         debugLog = nil
 #endif
@@ -915,7 +915,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private static let didInstallWindowKeyEquivalentSwizzle: Void = {
         let targetClass: AnyClass = NSWindow.self
         let originalSelector = #selector(NSWindow.performKeyEquivalent(with:))
-        let swizzledSelector = #selector(NSWindow.mosaic_performKeyEquivalent(with:))
+        let swizzledSelector = #selector(NSWindow.coterm_performKeyEquivalent(with:))
         guard let originalMethod = class_getInstanceMethod(targetClass, originalSelector),
               let swizzledMethod = class_getInstanceMethod(targetClass, swizzledSelector) else {
             return
@@ -925,7 +925,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private static let didInstallWindowFirstResponderSwizzle: Void = {
         let targetClass: AnyClass = NSWindow.self
         let originalSelector = #selector(NSWindow.makeFirstResponder(_:))
-        let swizzledSelector = #selector(NSWindow.mosaic_makeFirstResponder(_:))
+        let swizzledSelector = #selector(NSWindow.coterm_makeFirstResponder(_:))
         guard let originalMethod = class_getInstanceMethod(targetClass, originalSelector),
               let swizzledMethod = class_getInstanceMethod(targetClass, swizzledSelector) else {
             return
@@ -935,7 +935,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private static let didInstallWindowSendEventSwizzle: Void = {
         let targetClass: AnyClass = NSWindow.self
         let originalSelector = #selector(NSWindow.sendEvent(_:))
-        let swizzledSelector = #selector(NSWindow.mosaic_sendEvent(_:))
+        let swizzledSelector = #selector(NSWindow.coterm_sendEvent(_:))
         guard let originalMethod = class_getInstanceMethod(targetClass, originalSelector),
               let swizzledMethod = class_getInstanceMethod(targetClass, swizzledSelector) else {
             return
@@ -945,7 +945,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private static let didInstallApplicationSendEventSwizzle: Void = {
         let targetClass: AnyClass = NSApplication.self
         let originalSelector = #selector(NSApplication.sendEvent(_:))
-        let swizzledSelector = #selector(NSApplication.mosaic_applicationSendEvent(_:))
+        let swizzledSelector = #selector(NSApplication.coterm_applicationSendEvent(_:))
         guard let originalMethod = class_getInstanceMethod(targetClass, originalSelector),
               let swizzledMethod = class_getInstanceMethod(targetClass, swizzledSelector) else {
             return
@@ -955,7 +955,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private static let didInstallApplicationSendActionSwizzle: Void = {
         let targetClass: AnyClass = NSApplication.self
         let originalSelector = #selector(NSApplication.sendAction(_:to:from:))
-        let swizzledSelector = #selector(NSApplication.mosaic_sendAction(_:to:from:))
+        let swizzledSelector = #selector(NSApplication.coterm_sendAction(_:to:from:))
         guard let originalMethod = class_getInstanceMethod(targetClass, originalSelector),
               let swizzledMethod = class_getInstanceMethod(targetClass, swizzledSelector) else {
             return
@@ -965,7 +965,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private static let didInstallApplicationAccessibilitySwizzle: Void = {
         let targetClass: AnyClass = NSApplication.self
         let originalSelector = #selector(NSApplication.accessibilityAttributeValue(_:))
-        let swizzledSelector = #selector(NSApplication.mosaic_accessibilityAttributeValue(_:))
+        let swizzledSelector = #selector(NSApplication.coterm_accessibilityAttributeValue(_:))
         guard let originalMethod = class_getInstanceMethod(targetClass, originalSelector),
               let swizzledMethod = class_getInstanceMethod(targetClass, swizzledSelector) else {
             return
@@ -973,7 +973,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         method_exchangeImplementations(originalMethod, swizzledMethod)
     }()
 
-    /// Live `mosaic diff` viewer subprocesses, keyed by pid, retained until they exit.
+    /// Live `coterm diff` viewer subprocesses, keyed by pid, retained until they exit.
     /// Declared outside `#if DEBUG` because process retention is production behavior.
     private var diffViewerProcesses: [Int32: Process] = [:]
     /// In-flight agent-aware diff launches, keyed so repeated shortcuts do not fan out large baseline parses.
@@ -1013,7 +1013,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
     var debugCloseMainWindowConfirmationHandler: ((NSWindow) -> Bool)?
     /// Test seam: when set, ``openDiffViewerForFocusedWorkspace(for:)`` invokes this
-    /// instead of spawning the bundled `mosaic diff` CLI, so shortcut-dispatch tests can
+    /// instead of spawning the bundled `coterm diff` CLI, so shortcut-dispatch tests can
     /// assert routing without launching a subprocess.
     var debugOpenDiffViewerHandler: (() -> Void)?
     var debugCreateMainWindowSourceIsNativeFullScreenOverride: Bool?
@@ -1022,8 +1022,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func childExitKeyboardProbePath() -> String? {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_CHILD_EXIT_KEYBOARD_SETUP"] == "1",
-              let path = env["MOSAIC_UI_TEST_CHILD_EXIT_KEYBOARD_PATH"],
+        guard env["COTERM_UI_TEST_CHILD_EXIT_KEYBOARD_SETUP"] == "1",
+              let path = env["COTERM_UI_TEST_CHILD_EXIT_KEYBOARD_PATH"],
               !path.isEmpty else {
             return nil
         }
@@ -1073,28 +1073,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private var sessionAutosaveDeferredRetryPending = false
     private var processDetectedSessionSaveGeneration: UInt64 = 0
     private let sessionPersistenceQueue = DispatchQueue(
-        label: "mosaic.com.emergent.app.sessionPersistence",
+        label: "coterm.com.emergent.app.sessionPersistence",
         qos: .utility
     )
-    /// Session snapshot persistence (MosaicSession); composition-root owned.
+    /// Session snapshot persistence (CotermSession); composition-root owned.
     /// `nonisolated` because the autosave write block runs on `sessionPersistenceQueue`.
     nonisolated let sessionSnapshotStore: any SessionSnapshotStoring<AppSessionSnapshot> = SessionSnapshotRepository(
         schemaVersion: SessionSnapshotSchema.currentVersion,
         bundleIdentifier: Bundle.main.bundleIdentifier
     )
-    /// Accessibility window-hierarchy cache (MosaicWindowing); composition-root
+    /// Accessibility window-hierarchy cache (CotermWindowing); composition-root
     /// owned. The `NSApplication` AX swizzle forwards to it behind
     /// ``AccessibilityWindowCaching``.
     /// `nonisolated(unsafe)`: the existential is non-Sendable, but it is only
     /// touched from the main-actor AX swizzle path (callers hold it on main),
     /// matching the other non-Sendable composition-root members (`shared`).
     nonisolated(unsafe) let accessibilityWindowCache: any AccessibilityWindowCaching = AccessibilityWindowCache()
-    /// First-responder bypass guard (MosaicBrowserPanel); composition-root owned.
+    /// First-responder bypass guard (CotermBrowserPanel); composition-root owned.
     /// The `NSWindow.makeFirstResponder` swizzle reads `isActive` and
     /// `BrowserPanel` wraps responder-churning devtools work in `withBypass(_:)`.
     nonisolated let browserFirstResponderBypass = BrowserFirstResponderBypass()
     private nonisolated static let launchServicesRegistrationQueue = DispatchQueue(
-        label: "mosaic.com.emergent.app.launchServicesRegistration",
+        label: "coterm.com.emergent.app.launchServicesRegistration",
         qos: .utility
     )
     private nonisolated static func enqueueLaunchServicesRegistrationWork(_ work: @escaping @Sendable () -> Void) {
@@ -1202,7 +1202,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         #if DEBUG
         AuthDebugLog().log("auth.openURLs.received count=\(urls.count) summaries=\(urls.map(Self.authURLDebugSummary).joined(separator: "|"))")
         #endif
-        if handleMosaicExternalURLs(from: urls) {
+        if handleCotermExternalURLs(from: urls) {
             #if DEBUG
             AuthDebugLog().log("auth.openURLs.handledByExternalRoutes count=\(urls.count)")
             #endif
@@ -1210,7 +1210,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
 
         // Before the auth graph is configured, fall back to a default router
-        // (built-in mosaic schemes) so dropped callbacks are still detected.
+        // (built-in coterm schemes) so dropped callbacks are still detected.
         let callbackRouter = auth?.callbackRouter ?? AuthCallbackRouter(
             extraAllowedScheme: AuthEnvironment.callbackScheme
         )
@@ -1341,7 +1341,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         DistributedNotificationCenter.default().addObserver(
             self,
             selector: #selector(handleThemesReloadNotification(_:)),
-            name: MosaicThemeNotifications.reloadConfig,
+            name: CotermThemeNotifications.reloadConfig,
             object: nil,
             suspensionBehavior: .deliverImmediately
         )
@@ -1375,8 +1375,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
 #if DEBUG
         writeUITestDiagnosticsIfNeeded(stage: "didFinishLaunching")
-        MosaicMainRunLoopStallMonitor.shared.installIfNeeded()
-        MosaicMainThreadTurnProfiler.shared.installIfNeeded()
+        CotermMainRunLoopStallMonitor.shared.installIfNeeded()
+        CotermMainThreadTurnProfiler.shared.installIfNeeded()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             self?.writeUITestDiagnosticsIfNeeded(stage: "after1s")
         }
@@ -1411,7 +1411,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 // so those fields cannot be scrubbed. Disabling transactions
                 // removes that un-scrubbable egress path while keeping crash,
                 // error, and app-hang reporting (which are independent of the
-                // trace sample rate). mosaic does not consume these performance
+                // trace sample rate). coterm does not consume these performance
                 // traces today.
                 options.tracesSampleRate = 0.0
                 // Keep app-hang tracking enabled, but avoid reporting short main-thread stalls
@@ -1439,7 +1439,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             StartupBreadcrumbLog.append("appDelegate.didFinish.posthog.complete")
         }
 
-        let forceDuplicateLaunchObserver = env["MOSAIC_UI_TEST_ENABLE_DUPLICATE_LAUNCH_OBSERVER"] == "1"
+        let forceDuplicateLaunchObserver = env["COTERM_UI_TEST_ENABLE_DUPLICATE_LAUNCH_OBSERVER"] == "1"
 
         // UI tests frequently time out waiting for the main window if we do heavyweight
         // LaunchServices registration / single-instance enforcement synchronously at startup.
@@ -1497,12 +1497,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         StartupBreadcrumbLog.append("appDelegate.didFinish.complete")
 #if DEBUG
         UpdateTestSupport(model: updateController.model, log: updateLog).applyIfNeeded()
-        if env["MOSAIC_UI_TEST_MODE"] == "1" {
-            let trigger = env["MOSAIC_UI_TEST_TRIGGER_UPDATE_CHECK"] ?? "<nil>"
-            let feed = env["MOSAIC_UI_TEST_FEED_URL"] ?? "<nil>"
+        if env["COTERM_UI_TEST_MODE"] == "1" {
+            let trigger = env["COTERM_UI_TEST_TRIGGER_UPDATE_CHECK"] ?? "<nil>"
+            let feed = env["COTERM_UI_TEST_FEED_URL"] ?? "<nil>"
             updateLog.append("ui test env: trigger=\(trigger) feed=\(feed)")
         }
-        if env["MOSAIC_UI_TEST_TRIGGER_UPDATE_CHECK"] == "1" {
+        if env["COTERM_UI_TEST_TRIGGER_UPDATE_CHECK"] == "1" {
             updateLog.append("ui test trigger update check detected")
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
                 guard let self else { return }
@@ -1518,19 +1518,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // In UI tests, `WindowGroup` occasionally fails to materialize a window quickly on the VM.
         // If there are no windows shortly after launch, force-create one so XCUITest can proceed.
         if isRunningUnderXCTest {
-            if let rawVariant = env["MOSAIC_UI_TEST_BROWSER_IMPORT_HINT_VARIANT"] {
+            if let rawVariant = env["COTERM_UI_TEST_BROWSER_IMPORT_HINT_VARIANT"] {
                 UserDefaults.standard.set(
                     BrowserImportHintSettings.variant(for: rawVariant).rawValue,
                     forKey: BrowserImportHintSettings.variantKey
                 )
             }
-            if let rawShow = env["MOSAIC_UI_TEST_BROWSER_IMPORT_HINT_SHOW"] {
+            if let rawShow = env["COTERM_UI_TEST_BROWSER_IMPORT_HINT_SHOW"] {
                 UserDefaults.standard.set(
                     rawShow == "1",
                     forKey: BrowserImportHintSettings.showOnBlankTabsKey
                 )
             }
-            if let rawDismissed = env["MOSAIC_UI_TEST_BROWSER_IMPORT_HINT_DISMISSED"] {
+            if let rawDismissed = env["COTERM_UI_TEST_BROWSER_IMPORT_HINT_DISMISSED"] {
                 UserDefaults.standard.set(
                     rawDismissed == "1",
                     forKey: BrowserImportHintSettings.dismissedKey
@@ -1550,13 +1550,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 }
                 self.writeUITestDiagnosticsIfNeeded(stage: "afterForceWindow")
             }
-            if env["MOSAIC_UI_TEST_BROWSER_IMPORT_HINT_OPEN_BLANK_BROWSER"] == "1" {
+            if env["COTERM_UI_TEST_BROWSER_IMPORT_HINT_OPEN_BLANK_BROWSER"] == "1" {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { [weak self] in
                     guard let self else { return }
                     _ = self.openBrowserAndFocusAddressBar(insertAtEnd: true)
                 }
             }
-            if env["MOSAIC_UI_TEST_BROWSER_IMPORT_HINT_OPEN_SETTINGS"] == "1" {
+            if env["COTERM_UI_TEST_BROWSER_IMPORT_HINT_OPEN_SETTINGS"] == "1" {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) { [weak self] in
                     self?.openPreferencesWindow(
                         debugSource: "uiTest.browserImportHint",
@@ -1564,7 +1564,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     )
                 }
             }
-            if env["MOSAIC_UI_TEST_BROWSER_IMPORT_AUTO_OPEN"] == "1" {
+            if env["COTERM_UI_TEST_BROWSER_IMPORT_AUTO_OPEN"] == "1" {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                     BrowserDataImportCoordinator.shared.presentImportDialog()
                 }
@@ -1587,7 +1587,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #if DEBUG
     private func writeUITestDiagnosticsIfNeeded(stage: String) {
         let env = ProcessInfo.processInfo.environment
-        guard let path = env["MOSAIC_UI_TEST_DIAGNOSTICS_PATH"], !path.isEmpty else { return }
+        guard let path = env["COTERM_UI_TEST_DIAGNOSTICS_PATH"], !path.isEmpty else { return }
 
         var payload = loadUITestDiagnostics(at: path)
         let isRunningUnderXCTest = isRunningUnderXCTest(env)
@@ -1595,8 +1595,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let windows = NSApp.windows
         let ids = windows.map { $0.identifier?.rawValue ?? "" }.joined(separator: ",")
         let vis = windows.map { $0.isVisible ? "1" : "0" }.joined(separator: ",")
-        let screenIDs = windows.map { $0.screen?.mosaicDisplayID.map(String.init) ?? "" }.joined(separator: ",")
-        let targetDisplayID = env["MOSAIC_UI_TEST_TARGET_DISPLAY_ID"] ?? ""
+        let screenIDs = windows.map { $0.screen?.cotermDisplayID.map(String.init) ?? "" }.joined(separator: ",")
+        let targetDisplayID = env["COTERM_UI_TEST_TARGET_DISPLAY_ID"] ?? ""
 
         payload["stage"] = stage
         payload["pid"] = String(ProcessInfo.processInfo.processIdentifier)
@@ -1608,8 +1608,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         payload["windowScreenDisplayIDs"] = screenIDs
         payload["uiTestTargetDisplayID"] = targetDisplayID
         if let rawDisplayID = UInt32(targetDisplayID) {
-            let screenPresent = NSScreen.screens.contains(where: { $0.mosaicDisplayID == rawDisplayID })
-            let movedWindow = windows.contains(where: { $0.screen?.mosaicDisplayID == rawDisplayID })
+            let screenPresent = NSScreen.screens.contains(where: { $0.cotermDisplayID == rawDisplayID })
+            let movedWindow = windows.contains(where: { $0.screen?.cotermDisplayID == rawDisplayID })
             payload["targetDisplayPresent"] = screenPresent ? "1" : "0"
             payload["targetDisplayMoveSucceeded"] = movedWindow ? "1" : "0"
         }
@@ -1633,10 +1633,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         _ payload: inout [String: String],
         environment env: [String: String]
     ) {
-        guard env["MOSAIC_UI_TEST_SOCKET_SANITY"] == "1" else { return }
+        guard env["COTERM_UI_TEST_SOCKET_SANITY"] == "1" else { return }
 
         guard let config = socketListenerConfigurationIfEnabled() else {
-            payload["socketExpectedPath"] = env["MOSAIC_SOCKET_PATH"] ?? ""
+            payload["socketExpectedPath"] = env["COTERM_SOCKET_PATH"] ?? ""
             payload["socketMode"] = "off"
             payload["socketReady"] = "0"
             payload["socketPingResponse"] = ""
@@ -1676,7 +1676,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         _ payload: inout [String: String],
         environment env: [String: String]
     ) {
-        guard env["MOSAIC_UI_TEST_PORTAL_STATS"] == "1" else { return }
+        guard env["COTERM_UI_TEST_PORTAL_STATS"] == "1" else { return }
 
         let stats = TerminalWindowPortalRegistry.debugPortalStats()
         payload["portal_count"] = Self.uiTestStringValue(stats["portal_count"])
@@ -1712,7 +1712,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         _ payload: inout [String: String],
         environment env: [String: String]
     ) {
-        guard env["MOSAIC_UI_TEST_DISPLAY_RENDER_STATS"] == "1" else { return }
+        guard env["COTERM_UI_TEST_DISPLAY_RENDER_STATS"] == "1" else { return }
 
         guard let renderState = currentUITestRenderDiagnostics() else {
             payload["renderStatsAvailable"] = "0"
@@ -1774,12 +1774,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func moveUITestWindowToTargetDisplayIfNeeded(attempt: Int = 0) {
         let env = ProcessInfo.processInfo.environment
-        guard let rawDisplayID = env["MOSAIC_UI_TEST_TARGET_DISPLAY_ID"],
+        guard let rawDisplayID = env["COTERM_UI_TEST_TARGET_DISPLAY_ID"],
               let targetDisplayID = UInt32(rawDisplayID) else {
             return
         }
 
-        guard let screen = NSScreen.screens.first(where: { $0.mosaicDisplayID == targetDisplayID }) else {
+        guard let screen = NSScreen.screens.first(where: { $0.cotermDisplayID == targetDisplayID }) else {
             if attempt < 20 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
                     self?.moveUITestWindowToTargetDisplayIfNeeded(attempt: attempt + 1)
@@ -1812,7 +1812,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         window.setFrame(frame, display: true, animate: false)
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
-        if window.screen?.mosaicDisplayID != targetDisplayID, attempt < 20 {
+        if window.screen?.cotermDisplayID != targetDisplayID, attempt < 20 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
                 self?.moveUITestWindowToTargetDisplayIfNeeded(attempt: attempt + 1)
             }
@@ -2043,7 +2043,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         closeAllWebInspectorsBeforeAppTeardown()
         stopSessionAutosaveTimer()
         CloudVMActionLauncher.shared.terminateAll()
-        MosaicSSHURLProcessLauncher.shared.terminateAll()
+        CotermSSHURLProcessLauncher.shared.terminateAll()
         MobileHostService.shared.stop()
         TerminalController.shared.stop()
         GhosttyApp.terminalPasteboard.cleanupAllOwnedTemporaryImageFiles()
@@ -2125,12 +2125,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         setupPortalStatsUITestDiagnosticsIfNeeded()
 
         let env = ProcessInfo.processInfo.environment
-        if isRunningUnderXCTest(env) || env["MOSAIC_UI_TEST_MODE"] == "1" {
+        if isRunningUnderXCTest(env) || env["COTERM_UI_TEST_MODE"] == "1" {
             scheduleUITestSocketSanityCheckIfNeeded()
         }
         // Best-effort one-time migration: a value previously stored in the
-        // legacy ~/.config/mosaic/dev-window-display file moves into the shared
-        // mosaic.json (app.devWindowDisplay) so an existing dev-display default
+        // legacy ~/.config/coterm/dev-window-display file moves into the shared
+        // coterm.json (app.devWindowDisplay) so an existing dev-display default
         // keeps working. No-op when already set or the legacy file is absent.
         Task { await DevWindowDisplayDefault.migrateLegacyFileIfNeeded(runtime: settingsRuntime) }
 #endif
@@ -2167,7 +2167,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 surfaceId: nil,
                 title: String(
                     localized: "crashBreadcrumb.title",
-                    defaultValue: "mosaic crashed during your last session"
+                    defaultValue: "coterm crashed during your last session"
                 ),
                 subtitle: String(
                     localized: "crashBreadcrumb.subtitle",
@@ -2188,51 +2188,51 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard !didSetupTerminalCmdClickUITest else { return }
 
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_SETUP"] == "1" else {
-            mosaicDebugLog("cmdclick.ui.setup skip reason=env_missing tag=\(env["MOSAIC_TAG"] ?? "nil")")
+        guard env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_SETUP"] == "1" else {
+            cotermDebugLog("cmdclick.ui.setup skip reason=env_missing tag=\(env["COTERM_TAG"] ?? "nil")")
             return
         }
-        guard let manifestPath = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_PATH"]?
+        guard let manifestPath = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_PATH"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
               !manifestPath.isEmpty else {
-            mosaicDebugLog("cmdclick.ui.setup skip reason=missing_manifest_path")
+            cotermDebugLog("cmdclick.ui.setup skip reason=missing_manifest_path")
             return
         }
         didSetupTerminalCmdClickUITest = true
-        guard let fixtureDirectory = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_FIXTURE_DIR"]?
+        guard let fixtureDirectory = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_FIXTURE_DIR"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
               !fixtureDirectory.isEmpty else {
-            mosaicDebugLog("cmdclick.ui.setup error reason=missing_fixture_dir manifest=\(manifestPath)")
+            cotermDebugLog("cmdclick.ui.setup error reason=missing_fixture_dir manifest=\(manifestPath)")
             writeTerminalCmdClickUITestData(at: manifestPath, updates: [
                 "setupError": "Missing fixture directory"
             ])
             return
         }
-        let commandPath = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_COMMAND_PATH"]?
+        let commandPath = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_COMMAND_PATH"]?
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let screenshotDirectory = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_SCREENSHOT_DIR"]?
+        let screenshotDirectory = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_SCREENSHOT_DIR"]?
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let displayMode = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_DISPLAY_MODE"]?
+        let displayMode = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_DISPLAY_MODE"]?
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let lineFormat = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_LINE_FORMAT"]?
+        let lineFormat = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_LINE_FORMAT"]?
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let linePrefix = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_LINE_PREFIX"] ?? ""
-        let displaySuffix = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_DISPLAY_SUFFIX"] ?? ""
-        let displayAsAbsolutePath = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_DISPLAY_AS_ABSOLUTE_PATH"] == "1"
-        if let rawOpenSupportedFiles = env["MOSAIC_UI_TEST_OPEN_SUPPORTED_FILES_IN_MOSAIC"]?
+        let linePrefix = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_LINE_PREFIX"] ?? ""
+        let displaySuffix = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_DISPLAY_SUFFIX"] ?? ""
+        let displayAsAbsolutePath = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_DISPLAY_AS_ABSOLUTE_PATH"] == "1"
+        if let rawOpenSupportedFiles = env["COTERM_UI_TEST_OPEN_SUPPORTED_FILES_IN_COTERM"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !rawOpenSupportedFiles.isEmpty {
             FileRouteSettingsStore(defaults: .standard).setSupportedFileRouteEnabled(rawOpenSupportedFiles == "1")
         }
-        if let rawOpenMarkdown = env["MOSAIC_UI_TEST_OPEN_MARKDOWN_IN_MOSAIC_VIEWER"]?
+        if let rawOpenMarkdown = env["COTERM_UI_TEST_OPEN_MARKDOWN_IN_COTERM_VIEWER"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !rawOpenMarkdown.isEmpty {
             FileRouteSettingsStore(defaults: .standard).setMarkdownRouteEnabled(rawOpenMarkdown == "1")
         }
-        let extraFileNamesJSON = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_EXTRA_FILE_NAMES_JSON"]?
+        let extraFileNamesJSON = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_EXTRA_FILE_NAMES_JSON"]?
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
-        let fileName = env["MOSAIC_UI_TEST_TERMINAL_CMD_CLICK_FILE_NAME"]?
+        let fileName = env["COTERM_UI_TEST_TERMINAL_CMD_CLICK_FILE_NAME"]?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let resolvedFileName = (fileName?.isEmpty == false) ? fileName! : "Cmd Click Fixture.txt"
         let fixtureDirectoryURL = URL(fileURLWithPath: fixtureDirectory, isDirectory: true)
@@ -2260,7 +2260,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         default:
             resolvedLineFormat = "grid"
         }
-        mosaicDebugLog(
+        cotermDebugLog(
             "cmdclick.ui.setup start manifest=\(manifestPath) fixture=\(fixtureDirectory) " +
                 "command=\(commandPath ?? "nil") display=\(resolvedDisplayMode) " +
                 "lineFormat=\(resolvedLineFormat) " +
@@ -2587,7 +2587,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 try data.write(to: fileURL, options: .atomic)
                 return fileURL.path
             } catch {
-                mosaicDebugLog("cmdclick.ui.snapshot failed label=\(label) error=\(error.localizedDescription)")
+                cotermDebugLog("cmdclick.ui.snapshot failed label=\(label) error=\(error.localizedDescription)")
                 return nil
             }
         }
@@ -2692,7 +2692,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     break
                 }
 
-                let capturePath = ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_CAPTURE_OPEN_URL_PATH"]
+                let capturePath = ProcessInfo.processInfo.environment["COTERM_UI_TEST_CAPTURE_OPEN_URL_PATH"]
                 let beforeURLCount = capturePath.flatMap { try? String(contentsOfFile: $0, encoding: .utf8) }?
                     .split(separator: "\n").count ?? 0
                 let result = terminalPanel.hostedView.debugSimulateStationaryCommandClick(at: hitPoint)
@@ -2955,7 +2955,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             Task { @MainActor in evaluate() }
         }
         terminalCmdClickUITestPoller = poller
-        mosaicDebugLog("cmdclick.ui.setup poller_started manifest=\(manifestPath)")
+        cotermDebugLog("cmdclick.ui.setup poller_started manifest=\(manifestPath)")
         poller.resume()
     }
 
@@ -2970,7 +2970,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             payload[key] = value
         }
         guard let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]) else {
-            mosaicDebugLog("cmdclick.ui.write skip reason=json path=\(path)")
+            cotermDebugLog("cmdclick.ui.write skip reason=json path=\(path)")
             return
         }
         do {
@@ -2980,13 +2980,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             )
             try data.write(to: url, options: .atomic)
         } catch {
-            mosaicDebugLog("cmdclick.ui.write error path=\(path) error=\(error.localizedDescription)")
+            cotermDebugLog("cmdclick.ui.write error path=\(path) error=\(error.localizedDescription)")
         }
     }
 
     private func scheduleUITestSocketSanityCheckIfNeeded() {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_SOCKET_SANITY"] == "1" else { return }
+        guard env["COTERM_UI_TEST_SOCKET_SANITY"] == "1" else { return }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
             guard let self else { return }
@@ -3016,7 +3016,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func setupDisplayResolutionUITestDiagnosticsIfNeeded() {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_DISPLAY_RENDER_STATS"] == "1" else { return }
+        guard env["COTERM_UI_TEST_DISPLAY_RENDER_STATS"] == "1" else { return }
         guard !didSetupDisplayResolutionUITestDiagnostics else { return }
         didSetupDisplayResolutionUITestDiagnostics = true
 
@@ -3043,7 +3043,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func setupPortalStatsUITestDiagnosticsIfNeeded() {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_PORTAL_STATS"] == "1" else { return }
+        guard env["COTERM_UI_TEST_PORTAL_STATS"] == "1" else { return }
         guard !didSetupPortalStatsUITestDiagnostics else { return }
         didSetupPortalStatsUITestDiagnostics = true
 
@@ -3061,7 +3061,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private func setupFeedSidebarUITestIfNeeded() {
         let env = ProcessInfo.processInfo.environment
         guard !didSetupFeedSidebarUITest else { return }
-        guard let path = env["MOSAIC_UI_TEST_FEED_SIDEBAR_RESULT_PATH"], !path.isEmpty else { return }
+        guard let path = env["COTERM_UI_TEST_FEED_SIDEBAR_RESULT_PATH"], !path.isEmpty else { return }
         didSetupFeedSidebarUITest = true
 
         setupFeedSidebarUITestReveal(resultPath: path)
@@ -3111,7 +3111,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private func startFeedSidebarUITestPushIfNeeded(resultPath: String) {
         let env = ProcessInfo.processInfo.environment
         guard !didStartFeedSidebarUITestPush else { return }
-        guard let requestId = env["MOSAIC_UI_TEST_FEED_SIDEBAR_REQUEST_ID"]?
+        guard let requestId = env["COTERM_UI_TEST_FEED_SIDEBAR_REQUEST_ID"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
             !requestId.isEmpty else {
             return
@@ -3248,7 +3248,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         switch sessionSnapshotStore.loadOutcome(fileURL: primaryURL) {
         case .loaded(let snapshot):
             if let prunedSnapshot = SessionPersistencePolicy
-                .pruningMosaicCrashDiagnosticWindows(from: snapshot)
+                .pruningCotermCrashDiagnosticWindows(from: snapshot)
                 .snapshot {
                 return prunedSnapshot
             }
@@ -3265,7 +3265,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func loadManualRestoreSessionSnapshotPruningCrashDiagnostics() -> AppSessionSnapshot? {
         sessionSnapshotStore.loadReopenSessionSnapshot(fileURL: nil).flatMap {
-            SessionPersistencePolicy.pruningMosaicCrashDiagnosticWindows(from: $0).snapshot
+            SessionPersistencePolicy.pruningCotermCrashDiagnosticWindows(from: $0).snapshot
         }
     }
 
@@ -3331,14 +3331,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private func currentDisplayGeometries() -> (available: [SessionDisplayGeometry], fallback: SessionDisplayGeometry?) {
         let available = NSScreen.screens.map { screen in
             SessionDisplayGeometry(
-                displayID: screen.mosaicDisplayID,
+                displayID: screen.cotermDisplayID,
                 frame: screen.frame,
                 visibleFrame: screen.visibleFrame
             )
         }
         let fallback = (NSScreen.main ?? NSScreen.screens.first).map { screen in
             SessionDisplayGeometry(
-                displayID: screen.mosaicDisplayID,
+                displayID: screen.cotermDisplayID,
                 frame: screen.frame,
                 visibleFrame: screen.visibleFrame
             )
@@ -3369,7 +3369,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if let primaryWindowSnapshot {
             isApplyingSessionRestore = true
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "session.restore.start windows=\(startupSnapshot?.windows.count ?? 0) " +
                     "primaryFrame={\(debugSessionRectDescription(primaryWindowSnapshot.frame))} " +
                     "primaryDisplay={\(debugSessionDisplayDescription(primaryWindowSnapshot.display))}"
@@ -3390,7 +3390,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             .prefix(max(0, SessionPersistencePolicy.maxWindowsPerSnapshot - 1)))
 #if DEBUG
         for (index, windowSnapshot) in additionalWindows.enumerated() {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "session.restore.enqueueAdditional idx=\(index + 1) " +
                     "frame={\(debugSessionRectDescription(windowSnapshot.frame))} " +
                     "display={\(debugSessionDisplayDescription(windowSnapshot.display))}"
@@ -3440,7 +3440,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         _ snapshot: AppSessionSnapshot,
         shouldActivate: Bool = true
     ) -> Bool {
-        guard let snapshot = SessionPersistencePolicy.pruningMosaicCrashDiagnosticWindows(from: snapshot).snapshot else {
+        guard let snapshot = SessionPersistencePolicy.pruningCotermCrashDiagnosticWindows(from: snapshot).snapshot else {
             return false
         }
         let snapshotWindows = Array(
@@ -3482,7 +3482,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         window: NSWindow?
     ) {
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "session.restore.apply window=\(context.windowId.uuidString.prefix(8)) " +
                 "liveWin=\(window?.windowNumber ?? -1) " +
                 "snapshotFrame={\(debugSessionRectDescription(snapshot.frame))} " +
@@ -3504,7 +3504,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if let restoredFrame = resolvedWindowFrame(from: snapshot), let window {
             window.setFrame(restoredFrame, display: true)
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "session.restore.frameApplied window=\(context.windowId.uuidString.prefix(8)) " +
                     "applied={\(debugNSRectDescription(window.frame))}"
             )
@@ -3854,7 +3854,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard let screen else { return nil }
 
         return SessionDisplaySnapshot(
-            displayID: screen.mosaicDisplayID,
+            displayID: screen.cotermDisplayID,
             frame: SessionRectSnapshot(screen.frame),
             visibleFrame: SessionRectSnapshot(screen.visibleFrame)
         )
@@ -4068,7 +4068,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             includeScrollback: includeScrollback
         ) {
 #if DEBUG
-            mosaicDebugLog("session.save.skipped reason=session_restore_in_progress includeScrollback=0")
+            cotermDebugLog("session.save.skipped reason=session_restore_in_progress includeScrollback=0")
 #endif
             return false
         }
@@ -4080,9 +4080,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             TextBoxInputTextView.flushPendingSessionDraftAttachmentCopies()
         }
 #if DEBUG
-        let timingStart = MosaicTypingTiming.start()
+        let timingStart = CotermTypingTiming.start()
         defer {
-            MosaicTypingTiming.logDuration(
+            CotermTypingTiming.logDuration(
                 path: "session.saveSnapshot",
                 startedAt: timingStart,
                 extra: "includeScrollback=\(includeScrollback ? 1 : 0) removeWhenEmpty=\(removeWhenEmpty ? 1 : 0) sync=\(writeSynchronously ? 1 : 0)"
@@ -4235,7 +4235,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard !sessionAutosaveTickInFlight else { return }
         if let remainingQuietPeriod = remainingSessionAutosaveTypingQuietPeriod() {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "session.save.skipped reason=typing_recent includeScrollback=0 source=\(source) " +
                 "retryMs=\(Int((remainingQuietPeriod * 1000).rounded()))"
             )
@@ -4251,14 +4251,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func finishSessionAutosaveTick(source: String, generation: UInt64) async {
 #if DEBUG
-        let timingStart = MosaicTypingTiming.start()
+        let timingStart = CotermTypingTiming.start()
         let phaseStart = ProcessInfo.processInfo.systemUptime
         var fingerprintMs: Double = 0
         var saveMs: Double = 0
         defer {
             sessionAutosaveTickInFlight = false
             let totalMs = (ProcessInfo.processInfo.systemUptime - phaseStart) * 1000.0
-            MosaicTypingTiming.logBreakdown(
+            CotermTypingTiming.logBreakdown(
                 path: "session.autosaveTick.phase",
                 totalMs: totalMs,
                 thresholdMs: 2.0,
@@ -4268,7 +4268,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 ],
                 extra: "source=\(source)"
             )
-            MosaicTypingTiming.logDuration(
+            CotermTypingTiming.logDuration(
                 path: "session.autosaveTick",
                 startedAt: timingStart,
                 extra: "source=\(source)"
@@ -4286,7 +4286,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard !isTerminatingApp,
               isCurrentProcessDetectedSessionSaveGeneration(generation) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "session.save.skipped reason=stale_process_detected_scan includeScrollback=0 source=\(source)"
             )
 #endif
@@ -4309,7 +4309,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             now: now
         ) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "session.save.skipped reason=unchanged_autosave_fingerprint includeScrollback=0 source=\(source)"
             )
 #endif
@@ -4523,7 +4523,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 continue
             }
 
-            let pruned = SessionPersistencePolicy.pruningMosaicCrashDiagnosticWindows(
+            let pruned = SessionPersistencePolicy.pruningCotermCrashDiagnosticWindows(
                 from: AppSessionSnapshot(
                     version: SessionSnapshotSchema.currentVersion,
                     createdAt: createdAt,
@@ -4578,14 +4578,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         _ snapshot: AppSessionSnapshot,
         includeScrollback: Bool
     ) {
-        mosaicDebugLog(
+        cotermDebugLog(
             "session.save includeScrollback=\(includeScrollback ? 1 : 0) " +
                 "windows=\(snapshot.windows.count)"
         )
         for (index, windowSnapshot) in snapshot.windows.enumerated() {
             let workspaceCount = windowSnapshot.tabManager.workspaces.count
             let selectedWorkspace = windowSnapshot.tabManager.selectedWorkspaceIndex.map(String.init) ?? "nil"
-            mosaicDebugLog(
+            cotermDebugLog(
                 "session.save.window idx=\(index) " +
                     "frame={\(debugSessionRectDescription(windowSnapshot.frame))} " +
                     "display={\(debugSessionDisplayDescription(windowSnapshot.display))} " +
@@ -4648,7 +4648,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         sidebarState: SidebarState,
         sidebarSelectionState: SidebarSelectionState,
         fileExplorerState: FileExplorerState? = nil,
-        mosaicConfigStore: MosaicConfigStore? = nil
+        cotermConfigStore: CotermConfigStore? = nil
     ) {
         let key = ObjectIdentifier(window)
         forgetRecoverableMainWindowRoute(windowId: windowId)
@@ -4668,8 +4668,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 tabManager: tabManager,
                 fileExplorerState: resolvedFileExplorerState
             )
-            if let mosaicConfigStore {
-                existing.mosaicConfigStore = mosaicConfigStore
+            if let cotermConfigStore {
+                existing.cotermConfigStore = cotermConfigStore
             }
             existing.closeObserver = WindowCloseObserver(window: window) { [weak self] in self?.unregisterMainWindow($0) }
         } else if let existing = mainWindowContexts.values.first(where: { $0.windowId == windowId }) {
@@ -4677,7 +4677,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                existingWindow !== window,
                existingWindow.isVisible || existingWindow.isMiniaturized {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "mainWindow.register.duplicateIgnored windowId=\(String(windowId.uuidString.prefix(8))) " +
                         "existing={\(debugWindowToken(existingWindow))} duplicate={\(debugWindowToken(window))}"
                 )
@@ -4705,8 +4705,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 tabManager: tabManager,
                 fileExplorerState: resolvedFileExplorerState
             )
-            if let mosaicConfigStore {
-                existing.mosaicConfigStore = mosaicConfigStore
+            if let cotermConfigStore {
+                existing.cotermConfigStore = cotermConfigStore
             }
             reindexMainWindowContextIfNeeded(existing, for: window)
             existing.closeObserver = WindowCloseObserver(window: window) { [weak self] in self?.unregisterMainWindow($0) }
@@ -4719,7 +4719,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 sidebarState: sidebarState,
                 sidebarSelectionState: sidebarSelectionState,
                 fileExplorerState: fileExplorerState,
-                mosaicConfigStore: mosaicConfigStore,
+                cotermConfigStore: cotermConfigStore,
                 window: window
             )
             mainWindowContexts[key] = context
@@ -4728,7 +4728,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         commandPaletteWindowStore.registerWindow(windowId)
 
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "mainWindow.register windowId=\(String(windowId.uuidString.prefix(8))) window={\(debugWindowToken(window))} manager=\(debugManagerToken(tabManager)) priorActiveMgr=\(priorManagerToken) \(debugShortcutRouteSnapshot())"
         )
 #endif
@@ -4755,7 +4755,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func registerMainWindowContextForTesting(
         windowId: UUID = UUID(),
         tabManager: TabManager,
-        mosaicConfigStore: MosaicConfigStore? = nil,
+        cotermConfigStore: CotermConfigStore? = nil,
         fileExplorerState: FileExplorerState? = nil
     ) -> UUID {
         tabManager.windowId = windowId
@@ -4765,7 +4765,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             sidebarState: SidebarState(),
             sidebarSelectionState: SidebarSelectionState(),
             fileExplorerState: fileExplorerState,
-            mosaicConfigStore: mosaicConfigStore,
+            cotermConfigStore: cotermConfigStore,
             window: nil
         )
         ensureMobileWorkspaceListObserver(for: tabManager)
@@ -4779,9 +4779,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
 #endif
 
-    /// Lifted to ``MosaicWindowing/MainWindowSummary``; aliased so existing
+    /// Lifted to ``CotermWindowing/MainWindowSummary``; aliased so existing
     /// `AppDelegate.MainWindowSummary` references stay source-identical.
-    typealias MainWindowSummary = MosaicWindowing.MainWindowSummary
+    typealias MainWindowSummary = CotermWindowing.MainWindowSummary
 
     struct WindowMoveTarget: Identifiable {
         let windowId: UUID
@@ -4961,7 +4961,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let ms = (ProcessInfo.processInfo.systemUptime - start) * 1000
             return String(format: "%.2f", ms)
         }
-        mosaicDebugLog(
+        cotermDebugLog(
             "surface.move.begin panel=\(panelId.uuidString.prefix(5)) targetWs=\(targetWorkspaceId.uuidString.prefix(5)) " +
             "targetPane=\(targetPane?.id.uuidString.prefix(5) ?? "auto") targetIndex=\(targetIndex.map(String.init) ?? "nil") " +
             "split=\(splitLabel) focus=\(focus ? 1 : 0) focusWindow=\(focusWindow ? 1 : 0)"
@@ -4969,30 +4969,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #endif
         guard let source = locateSurface(surfaceId: panelId) else {
 #if DEBUG
-            mosaicDebugLog("surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=sourcePanelNotFound elapsedMs=\(elapsedMs(since: moveStart))")
+            cotermDebugLog("surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=sourcePanelNotFound elapsedMs=\(elapsedMs(since: moveStart))")
 #endif
             return false
         }
         guard let sourceWorkspace = source.tabManager.tabs.first(where: { $0.id == source.workspaceId }) else {
 #if DEBUG
-            mosaicDebugLog("surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=sourceWorkspaceMissing elapsedMs=\(elapsedMs(since: moveStart))")
+            cotermDebugLog("surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=sourceWorkspaceMissing elapsedMs=\(elapsedMs(since: moveStart))")
 #endif
             return false
         }
         guard let destinationManager = tabManagerFor(tabId: targetWorkspaceId) else {
 #if DEBUG
-            mosaicDebugLog("surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=destinationManagerMissing elapsedMs=\(elapsedMs(since: moveStart))")
+            cotermDebugLog("surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=destinationManagerMissing elapsedMs=\(elapsedMs(since: moveStart))")
 #endif
             return false
         }
         guard let destinationWorkspace = destinationManager.tabs.first(where: { $0.id == targetWorkspaceId }) else {
 #if DEBUG
-            mosaicDebugLog("surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=destinationWorkspaceMissing elapsedMs=\(elapsedMs(since: moveStart))")
+            cotermDebugLog("surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=destinationWorkspaceMissing elapsedMs=\(elapsedMs(since: moveStart))")
 #endif
             return false
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "surface.move.route panel=\(panelId.uuidString.prefix(5)) sourceWs=\(sourceWorkspace.id.uuidString.prefix(5)) " +
             "sourceWin=\(source.windowId.uuidString.prefix(5)) destinationWs=\(destinationWorkspace.id.uuidString.prefix(5)) " +
             "sameWorkspace=\(destinationWorkspace.id == sourceWorkspace.id ? 1 : 0)"
@@ -5006,7 +5006,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         guard let resolvedTargetPane else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=targetPaneMissing " +
                 "destinationWs=\(destinationWorkspace.id.uuidString.prefix(5)) elapsedMs=\(elapsedMs(since: moveStart))"
             )
@@ -5024,7 +5024,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                         insertFirst: splitTarget.insertFirst
                       ) != nil else {
 #if DEBUG
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=sameWorkspaceSplitFailed " +
                         "targetPane=\(resolvedTargetPane.id.uuidString.prefix(5)) split=\(splitLabel) " +
                         "elapsedMs=\(elapsedMs(since: moveStart))"
@@ -5036,7 +5036,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     source.tabManager.focusTab(sourceWorkspace.id, surfaceId: panelId, suppressFlash: true)
                 }
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "surface.move.end panel=\(panelId.uuidString.prefix(5)) path=sameWorkspaceSplit moved=1 " +
                     "targetPane=\(resolvedTargetPane.id.uuidString.prefix(5)) elapsedMs=\(elapsedMs(since: moveStart))"
                 )
@@ -5051,7 +5051,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 focus: focus
             )
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "surface.move.end panel=\(panelId.uuidString.prefix(5)) path=sameWorkspaceMove moved=\(moved ? 1 : 0) " +
                 "targetPane=\(resolvedTargetPane.id.uuidString.prefix(5)) targetIndex=\(targetIndex.map(String.init) ?? "nil") " +
                 "elapsedMs=\(elapsedMs(since: moveStart))"
@@ -5068,7 +5068,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         guard let detached = sourceWorkspace.detachSurface(panelId: panelId) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=detachFailed " +
                 "elapsedMs=\(elapsedMs(since: moveStart))"
             )
@@ -5093,7 +5093,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 focus: focus
             )
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=attachFailed " +
                 "detachMs=\(detachMs) elapsedMs=\(elapsedMs(since: moveStart))"
             )
@@ -5126,7 +5126,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     )
                 }
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "surface.move.fail panel=\(panelId.uuidString.prefix(5)) reason=postAttachSplitFailed " +
                     "detachMs=\(detachMs) attachMs=\(attachMs) elapsedMs=\(elapsedMs(since: moveStart))"
                 )
@@ -5169,7 +5169,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
 #if DEBUG
         let focusMs = elapsedMs(since: focusStart)
-        mosaicDebugLog(
+        cotermDebugLog(
             "surface.move.end panel=\(panelId.uuidString.prefix(5)) path=crossWorkspace moved=1 " +
             "sourceWs=\(sourceWorkspace.id.uuidString.prefix(5)) destinationWs=\(destinationWorkspace.id.uuidString.prefix(5)) " +
             "targetPane=\(resolvedTargetPane.id.uuidString.prefix(5)) targetIndex=\(targetIndex.map(String.init) ?? "nil") " +
@@ -5197,7 +5197,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let ms = (ProcessInfo.processInfo.systemUptime - start) * 1000
             return String(format: "%.2f", ms)
         }
-        mosaicDebugLog(
+        cotermDebugLog(
             "surface.moveBonsplit.begin tab=\(tabId.uuidString.prefix(5)) targetWs=\(targetWorkspaceId.uuidString.prefix(5)) " +
             "targetPane=\(targetPane?.id.uuidString.prefix(5) ?? "auto") targetIndex=\(targetIndex.map(String.init) ?? "nil")"
         )
@@ -5219,7 +5219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 )
             }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "surface.moveBonsplit.fail tab=\(tabId.uuidString.prefix(5)) reason=tabNotFound " +
                 "targetWs=\(targetWorkspaceId.uuidString.prefix(5)) elapsedMs=\(elapsedMs(since: moveStart))"
             )
@@ -5227,7 +5227,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return false
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "surface.moveBonsplit.located tab=\(tabId.uuidString.prefix(5)) panel=\(located.panelId.uuidString.prefix(5)) " +
             "sourceWs=\(located.workspaceId.uuidString.prefix(5)) sourceWin=\(located.windowId.uuidString.prefix(5))"
         )
@@ -5242,7 +5242,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             focusWindow: focusWindow
         )
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "surface.moveBonsplit.end tab=\(tabId.uuidString.prefix(5)) panel=\(located.panelId.uuidString.prefix(5)) " +
             "moved=\(moved ? 1 : 0) elapsedMs=\(elapsedMs(since: moveStart))"
         )
@@ -5299,7 +5299,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
         NotificationCenter.default.post(name: Notification.Name(kind.notificationName), object: targetWindow)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "shortcut.palette.request source=\(source) " +
             "target={\(debugWindowToken(targetWindow))} " +
             "pendingMarked=\(markPending ? 1 : 0)"
@@ -5367,9 +5367,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         for outcome in pruned {
             switch outcome {
             case .missingTimestamp(let windowId):
-                mosaicDebugLog("shortcut.palette.pendingPrune windowId=\(windowId.uuidString.prefix(8)) reason=missingTimestamp")
+                cotermDebugLog("shortcut.palette.pendingPrune windowId=\(windowId.uuidString.prefix(8)) reason=missingTimestamp")
             case .stale(let windowId, let age):
-                mosaicDebugLog(
+                cotermDebugLog(
                     "shortcut.palette.pendingPrune windowId=\(windowId.uuidString.prefix(8)) " +
                     "reason=stale ageMs=\(Int(age * 1000))"
                 )
@@ -5432,7 +5432,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if let window = suppressionWindow {
             endCommandPaletteEscapeSuppression(for: window)
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.escape suppressionClear target={\(debugWindowToken(window))} " +
                 "keyUpConsumed=\(didConsume ? 1 : 0)"
             )
@@ -5441,7 +5441,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
         commandPaletteWindowStore.clearAllEscapeSuppression()
 #if DEBUG
-        mosaicDebugLog("shortcut.escape suppressionClear target={nil} clearedAll=1 keyUpConsumed=\(didConsume ? 1 : 0)")
+        cotermDebugLog("shortcut.escape suppressionClear target={nil} clearedAll=1 keyUpConsumed=\(didConsume ? 1 : 0)")
 #endif
         return didConsume
     }
@@ -5458,7 +5458,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         postCommandPaletteVisibilityDidChangeIfNeeded(wasVisible: update.wasVisible, visible: visible, window: window, windowId: windowId)
 #if DEBUG
         if update.retainedPending {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "palette.visibility.retainPending " +
                 "window={\(debugWindowToken(window))} visible=0 wasVisible=0 pending=1"
             )
@@ -5542,7 +5542,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard let responder else { return nil }
         if let editor = responder as? NSTextView,
            editor.isFieldEditor {
-            return mosaicFieldEditorOwnerView(editor) ?? editor
+            return cotermFieldEditorOwnerView(editor) ?? editor
         }
         return responder as? NSView
     }
@@ -5551,7 +5551,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         _ responder: NSResponder,
         in window: NSWindow
     ) -> Bool {
-        if let ghosttyView = mosaicOwningGhosttyView(for: responder) {
+        if let ghosttyView = cotermOwningGhosttyView(for: responder) {
             if ghosttyView.window !== window {
                 return false
             }
@@ -5652,7 +5652,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             }
         }()
         let mode = normalizedFlags.contains(.command) ? "command" : "plain"
-        mosaicDebugLog(
+        cotermDebugLog(
             "focus.keyRepair attempt window=\(ObjectIdentifier(window)) " +
             "workspace=\(String(workspace.id.uuidString.prefix(5))) " +
             "panel=\(String(panelId.uuidString.prefix(5))) " +
@@ -5667,7 +5667,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
 #if DEBUG
         let after = window.firstResponder.map { String(describing: type(of: $0)) } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "focus.keyRepair result window=\(ObjectIdentifier(window)) " +
             "panel=\(String(panelId.uuidString.prefix(5))) " +
             "isSurfaceResponder=\(terminalPanel.hostedView.isSurfaceViewFirstResponder() ? 1 : 0) " +
@@ -5795,7 +5795,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             refreshedCount += 1
         }
 #if DEBUG
-        mosaicDebugLog("reload.config.surfaceRefresh source=\(source) count=\(refreshedCount)")
+        cotermDebugLog("reload.config.surfaceRefresh source=\(source) count=\(refreshedCount)")
 #endif
     }
 
@@ -5824,7 +5824,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard let window = windowForMainWindowId(windowId) else { return false }
         let didFocus = mainWindowVisibilityController.focus(window, reason: .focusMainWindow)
         if didFocus {
-            publishMosaicWindowLifecycle(name: "window.focused", windowId: windowId, origin: "focus_request")
+            publishCotermWindowLifecycle(name: "window.focused", windowId: windowId, origin: "focus_request")
         }
         return didFocus
     }
@@ -5995,7 +5995,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     func mainWindowId(from window: NSWindow) -> UUID? {
         guard let raw = window.identifier?.rawValue else { return nil }
-        let prefix = "mosaic.main."
+        let prefix = "coterm.main."
         guard raw.hasPrefix(prefix) else { return nil }
         let suffix = String(raw.dropFirst(prefix.count))
         return UUID(uuidString: suffix)
@@ -6115,8 +6115,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return context.windowId
         }
         guard let rawIdentifier = window.identifier?.rawValue,
-              rawIdentifier.hasPrefix("mosaic.main.") else { return nil }
-        let idPart = String(rawIdentifier.dropFirst("mosaic.main.".count))
+              rawIdentifier.hasPrefix("coterm.main.") else { return nil }
+        let idPart = String(rawIdentifier.dropFirst("coterm.main.".count))
         return UUID(uuidString: idPart)
     }
 
@@ -6215,7 +6215,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     /// Opens the diff viewer for the focused workspace of `tabManager` by spawning the
-    /// bundled `mosaic diff` CLI. This is the single shared diff-open path: both the
+    /// bundled `coterm diff` CLI. This is the single shared diff-open path: both the
     /// command-palette entries and the Open Diff Viewer keyboard shortcut funnel through
     /// here so neither duplicates diff-open logic. Returns `false` (caller beeps) when
     /// there is no focused workspace or the bundled CLI is missing.
@@ -6241,7 +6241,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
 #endif
         guard let workspace = tabManager?.selectedWorkspace,
-              let cliURL = Bundle.main.resourceURL?.appendingPathComponent("bin/mosaic"),
+              let cliURL = Bundle.main.resourceURL?.appendingPathComponent("bin/coterm"),
               FileManager.default.isExecutableFile(atPath: cliURL.path) else {
             return false
         }
@@ -6340,13 +6340,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
         process.arguments = arguments
         var environment = ProcessInfo.processInfo.environment
-        environment["MOSAIC_SOCKET_PATH"] = socketPath
-        environment["MOSAIC_BUNDLED_CLI_PATH"] = cliURL.path
-        environment["MOSAIC_WORKSPACE_ID"] = workspaceId.uuidString
+        environment["COTERM_SOCKET_PATH"] = socketPath
+        environment["COTERM_BUNDLED_CLI_PATH"] = cliURL.path
+        environment["COTERM_WORKSPACE_ID"] = workspaceId.uuidString
         if let surfaceId {
-            environment["MOSAIC_SURFACE_ID"] = surfaceId.uuidString
+            environment["COTERM_SURFACE_ID"] = surfaceId.uuidString
         }
-        environment.removeValue(forKey: "MOSAIC_SOCKET")
+        environment.removeValue(forKey: "COTERM_SOCKET")
         process.environment = environment
         process.standardInput = FileHandle.nullDevice
 
@@ -6366,7 +6366,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #if DEBUG
                 // Log only non-sensitive metadata: the child's stdout/stderr can echo
                 // repo paths and file contents, so report a byte count, not the text.
-                mosaicDebugLog("openDiffViewer exited status=\(terminationStatus) outputBytes=\(output.utf8.count)")
+                cotermDebugLog("openDiffViewer exited status=\(terminationStatus) outputBytes=\(output.utf8.count)")
 #endif
                 NSSound.beep()
             }
@@ -6380,13 +6380,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 diffViewerProcesses.removeValue(forKey: processIdentifier)
             }
 #if DEBUG
-            mosaicDebugLog("openDiffViewer pid=\(process.processIdentifier)")
+            cotermDebugLog("openDiffViewer pid=\(process.processIdentifier)")
 #endif
             return true
         } catch {
             outputCollector.cancel()
 #if DEBUG
-            mosaicDebugLog("openDiffViewer failed errorType=\(type(of: error))")
+            cotermDebugLog("openDiffViewer failed errorType=\(type(of: error))")
 #endif
             return false
         }
@@ -6504,7 +6504,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             resolvedShortcutEventWindow(event),
         ]
         .compactMap { $0 }
-        .first { mosaicWindowShouldOwnCloseShortcut($0) }
+        .first { cotermWindowShouldOwnCloseShortcut($0) }
     }
 
     /// Re-sync app-level active window pointers from the currently focused main terminal window.
@@ -6531,7 +6531,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
 #if DEBUG
         let beforeManagerToken = debugManagerToken(tabManager)
-        mosaicDebugLog(
+        cotermDebugLog(
             "shortcut.sync.pre source=\(source) preferred={\(debugWindowToken(preferredWindow))} chosen={\(debugContextToken(context))} \(debugShortcutRouteSnapshot())"
         )
 #endif
@@ -6542,7 +6542,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             && sidebarSelectionState === context.sidebarSelectionState
         if alreadyActive {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.sync.post source=\(source) beforeMgr=\(beforeManagerToken) afterMgr=\(debugManagerToken(tabManager)) chosen={\(debugContextToken(context))} nochange=1 \(debugShortcutRouteSnapshot())"
             )
 #endif
@@ -6558,7 +6558,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             TerminalController.shared.setActiveTabManager(context.tabManager)
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "shortcut.sync.post source=\(source) beforeMgr=\(beforeManagerToken) afterMgr=\(debugManagerToken(tabManager)) chosen={\(debugContextToken(context))} \(debugShortcutRouteSnapshot())"
         )
 #endif
@@ -6616,7 +6616,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private func focusedTerminalShortcutContext(preferredWindow: NSWindow? = nil) -> FocusedTerminalShortcutContext? {
         let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
         let responder = shortcutRoutingFirstResponder(preferredWindow: targetWindow)
-        guard let ghosttyView = mosaicOwningGhosttyView(for: responder),
+        guard let ghosttyView = cotermOwningGhosttyView(for: responder),
               let workspaceId = ghosttyView.tabId,
               let panelId = ghosttyView.terminalSurface?.id,
               let manager = resolveShortcutTabManager(for: workspaceId, preferredWindow: targetWindow) else {
@@ -6667,13 +6667,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private func activateMainWindowContextForShortcutEvent(_ event: NSEvent) {
         let preferredWindow = mainWindowForShortcutEvent(event)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "shortcut.activate.pre event=\(NSWindow.keyDescription(event)) preferred={\(debugWindowToken(preferredWindow))} \(debugShortcutRouteSnapshot(event: event))"
         )
 #endif
         _ = synchronizeActiveMainWindowContext(preferredWindow: preferredWindow)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "shortcut.activate.post event=\(NSWindow.keyDescription(event)) preferred={\(debugWindowToken(preferredWindow))} \(debugShortcutRouteSnapshot(event: event))"
         )
 #endif
@@ -6917,7 +6917,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard let responder = window.firstResponder else { return sidebarIntentActive }
         if isRightSidebarFocusResponder(responder, in: window) { return true }
         if terminalKeyboardFocusRequest(for: responder) != nil { return false }
-        guard let ghosttyView = mosaicOwningGhosttyView(for: responder),
+        guard let ghosttyView = cotermOwningGhosttyView(for: responder),
               let panelId = ghosttyView.terminalSurface?.id else { return false }
         return GhosttyApp.terminalSurfaceRegistry.isRightSidebarDockSurface(id: panelId)
     }
@@ -6947,7 +6947,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     fileprivate func terminalKeyboardFocusRequest(for responder: NSResponder?) -> TerminalKeyboardFocusRequest? {
-        guard let ghosttyView = mosaicOwningGhosttyView(for: responder),
+        guard let ghosttyView = cotermOwningGhosttyView(for: responder),
               let workspaceId = ghosttyView.tabId,
               let panelId = ghosttyView.terminalSurface?.id else {
             return nil
@@ -7309,7 +7309,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard !didBootstrapInitialMainWindow else { return windowId }
 
         didBootstrapInitialMainWindow = true
-        if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_SHOW_SETTINGS"] == "1" {
+        if ProcessInfo.processInfo.environment["COTERM_UI_TEST_SHOW_SETTINGS"] == "1" {
             openPreferencesWindow(debugSource: "uiTestShowSettings.\(debugSource)")
         }
         return windowId
@@ -7372,7 +7372,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     ) -> Bool {
         guard BrowserAvailabilitySettings.isEnabled() else {
 #if DEBUG
-            mosaicDebugLog("newBrowserWorkspace.blocked_browser_disabled source=\(debugSource)")
+            cotermDebugLog("newBrowserWorkspace.blocked_browser_disabled source=\(debugSource)")
 #endif
             NSSound.beep()
             return false
@@ -7553,8 +7553,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         replacingInitialWorkspace initialWorkspace: Workspace? = nil,
         workspaceGroupTarget: WorkspaceGroupNewWorkspaceTarget? = nil
     ) -> Bool {
-        guard let mosaicConfigStore = context.mosaicConfigStore,
-              let action = mosaicConfigStore.resolvedNewWorkspaceAction() else {
+        guard let cotermConfigStore = context.cotermConfigStore,
+              let action = cotermConfigStore.resolvedNewWorkspaceAction() else {
             return false
         }
         guard let window = resolvedWindow(for: context) else {
@@ -7562,7 +7562,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return false
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "newWorkspace.configCommand source=\(debugSource) " +
             "action=\(action.id) windowId=\(String(context.windowId.uuidString.prefix(8)))"
         )
@@ -7620,7 +7620,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 workspaceId: completion.succeeded ? completion.workspaceId : nil
             )
         }
-        return executeConfiguredMosaicAction(
+        return executeConfiguredCotermAction(
             action,
             context: context,
             preferredWindow: window,
@@ -7638,7 +7638,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return nil
         }
         let anchorCwd = tabManager.tabs.first(where: { $0.id == group.anchorWorkspaceId })?.currentDirectory
-        let configured = context.mosaicConfigStore?.resolveWorkspaceGroupConfig(forCwd: anchorCwd)?.newWorkspacePlacement
+        let configured = context.cotermConfigStore?.resolveWorkspaceGroupConfig(forCwd: anchorCwd)?.newWorkspacePlacement
         return WorkspaceGroupNewWorkspaceTarget(
             groupId: groupId,
             referenceWorkspaceId: selectedWorkspaceId,
@@ -7671,11 +7671,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             ?? mainWindowContext(forShortcutEvent: event, debugSource: debugSource)
             ?? preferredMainWindowContextForWorkspaceCreation(event: event, debugSource: debugSource)
         guard let context,
-              let mosaicConfigStore = context.mosaicConfigStore else {
+              let cotermConfigStore = context.cotermConfigStore else {
             return false
         }
 
-        let configuredItems = mosaicConfigStore.newWorkspaceContextMenuItems
+        let configuredItems = cotermConfigStore.newWorkspaceContextMenuItems
         guard !configuredItems.isEmpty else { return false }
 
         let menu = NSMenu()
@@ -7699,7 +7699,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 item.toolTip = menuAction.tooltip
                 item.image = menuAction.icon?.contextMenuImage(
                     configSourcePath: menuAction.iconSourcePath,
-                    globalConfigPath: mosaicConfigStore.globalConfigPath
+                    globalConfigPath: cotermConfigStore.globalConfigPath
                 )
                 menu.addItem(item)
             }
@@ -7721,7 +7721,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             NSSound.beep()
             return
         }
-        guard executeConfiguredMosaicAction(box.action, context: context, preferredWindow: window) else {
+        guard executeConfiguredCotermAction(box.action, context: context, preferredWindow: window) else {
             NSSound.beep()
             return
         }
@@ -7923,7 +7923,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             from: urls.filter { $0.isFileURL },
             excludingDescendantsOf: [Bundle.main.bundleURL]
         ).filter {
-            !SessionPersistencePolicy.isMosaicCrashStoragePath($0)
+            !SessionPersistencePolicy.isCotermCrashStoragePath($0)
         }
     }
 
@@ -7933,7 +7933,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         for url in urls where url.isFileURL && !externalOpenURLIsDirectory(url) {
             let standardized = url.standardizedFileURL.resolvingSymlinksInPath()
             guard !externalOpenURLIsDescendantOfCurrentBundle(standardized) else { continue }
-            guard !SessionPersistencePolicy.isMosaicCrashStorageURL(standardized) else { continue }
+            guard !SessionPersistencePolicy.isCotermCrashStorageURL(standardized) else { continue }
             let path = standardized.path(percentEncoded: false)
             guard seen.insert(path).inserted else { continue }
             fileURLs.append(url.standardizedFileURL)
@@ -8023,7 +8023,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard let terminalPanel else { return false }
 
 #if DEBUG
-        mosaicDebugLog("textURL.paste source=\(debugSource) workspace=\(workspace.id.uuidString.prefix(8)) surface=\(terminalPanel.id.uuidString.prefix(8)) chars=\(text.count)")
+        cotermDebugLog("textURL.paste source=\(debugSource) workspace=\(workspace.id.uuidString.prefix(8)) surface=\(terminalPanel.id.uuidString.prefix(8)) chars=\(text.count)")
 #endif
         if shouldBringToFront {
             workspace.focusPanel(terminalPanel.id)
@@ -8067,7 +8067,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
 
 #if DEBUG
-        mosaicDebugLog("file.externalOpen source=\(debugSource) path=\(filePath)")
+        cotermDebugLog("file.externalOpen source=\(debugSource) path=\(filePath)")
 #endif
         return !workspace.openFileSurfaces(
             inPane: paneId,
@@ -8344,8 +8344,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if shortcutEventHasAddressableWindow(event) {
             if let eventWindow = resolvedShortcutEventWindow(event),
-               mosaicWindowShouldOwnCloseShortcut(eventWindow) {
-                // Auxiliary mosaic windows do not own a terminal tab manager. Let them fall back
+               cotermWindowShouldOwnCloseShortcut(eventWindow) {
+                // Auxiliary coterm windows do not own a terminal tab manager. Let them fall back
                 // to the active main terminal window so app shortcuts like Close Tab still route.
             } else {
 #if DEBUG
@@ -8492,7 +8492,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             ?? SessionPersistencePolicy.defaultSidebarWidth
 #if DEBUG
         let shouldStartWithHiddenSidebarForTerminalViewportUITest =
-            ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_TERMINAL_VIEWPORT_HIDE_SIDEBAR"] == "1"
+            ProcessInfo.processInfo.environment["COTERM_UI_TEST_TERMINAL_VIEWPORT_HIDE_SIDEBAR"] == "1"
 #else
         let shouldStartWithHiddenSidebarForTerminalViewportUITest = false
 #endif
@@ -8521,13 +8521,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         tabManager.syncWorkspaceTabBarLeadingInset(initialTabBarLeadingInset)
         let notificationStore = TerminalNotificationStore.shared
 
-        let mosaicConfigStore = MosaicConfigStore()
-        mosaicConfigStore.wireDirectoryTracking(tabManager: tabManager)
-        mosaicConfigStore.loadAll()
+        let cotermConfigStore = CotermConfigStore()
+        cotermConfigStore.wireDirectoryTracking(tabManager: tabManager)
+        cotermConfigStore.loadAll()
 
         let fileExplorerState = FileExplorerState()
 #if DEBUG
-        if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_BONSPLIT_SHOW_RIGHT_SIDEBAR"] == "1" {
+        if ProcessInfo.processInfo.environment["COTERM_UI_TEST_BONSPLIT_SHOW_RIGHT_SIDEBAR"] == "1" {
             fileExplorerState.mode = .files
             fileExplorerState.isVisible = true
         }
@@ -8540,7 +8540,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             .environmentObject(sidebarState)
             .environmentObject(sidebarSelectionState)
             .environmentObject(fileExplorerState)
-            .environmentObject(mosaicConfigStore)
+            .environmentObject(cotermConfigStore)
             // AppKit hosts this ContentView in its own NSHostingView, which does
             // not inherit the App scene's SwiftUI environment. Inject the
             // settings runtime so `@LiveSetting` can resolve the stores it
@@ -8548,7 +8548,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             // optional, so a nil runtime just leaves reads at their seeded
             // catalog default.
             .environment(\.settingsRuntime, settingsRuntime)
-            .mosaicFontMagnificationEnvironment()
+            .cotermFontMagnificationEnvironment()
 
         // Use the current key window's size for new windows so Cmd+Shift+N
         // creates a window matching the previous one's dimensions.
@@ -8581,16 +8581,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         } else if let explicitInitialFrame = restoredFrame ?? persistedGeometryFrame {
             initialRect = NSWindow.contentRect(forFrameRect: explicitInitialFrame, styleMask: styleMask)
         } else {
-            initialRect = MosaicMainWindow.defaultContentRect(styleMask: styleMask)
+            initialRect = CotermMainWindow.defaultContentRect(styleMask: styleMask)
         }
 
-        let window = MosaicMainWindow(
+        let window = CotermMainWindow(
             contentRect: initialRect,
             styleMask: styleMask,
             backing: .buffered,
             defer: false
         )
-        let minimumWindowSize = MosaicMainWindow.minimumContentSize
+        let minimumWindowSize = CotermMainWindow.minimumContentSize
         window.minSize = minimumWindowSize
         window.contentMinSize = minimumWindowSize
         window.animationBehavior = .none
@@ -8603,10 +8603,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         window.title = ""
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
-        // mosaic persists and restores main windows itself. Disable AppKit window
+        // coterm persists and restores main windows itself. Disable AppKit window
         // restoration so the OS cannot resurrect stale duplicate main windows.
         window.isRestorable = false
-        configureMosaicMainWindowDragBehavior(window)
+        configureCotermMainWindowDragBehavior(window)
         let explicitInitialFrame = restoredFrame ?? persistedGeometryFrame
         if let explicitInitialFrame {
             window.setFrame(explicitInitialFrame, display: false)
@@ -8682,9 +8682,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             sidebarState: sidebarState,
             sidebarSelectionState: sidebarSelectionState,
             fileExplorerState: fileExplorerState,
-            mosaicConfigStore: mosaicConfigStore
+            cotermConfigStore: cotermConfigStore
         )
-        publishMosaicWindowLifecycle(name: "window.created", windowId: windowId, origin: "create")
+        publishCotermWindowLifecycle(name: "window.created", windowId: windowId, origin: "create")
         installFileDropOverlay(on: window, tabManager: tabManager)
         if !shouldActivate || TerminalController.shouldSuppressSocketCommandActivation() {
             window.orderFront(nil)
@@ -8719,14 +8719,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if let explicitInitialFrame {
             window.setFrame(explicitInitialFrame, display: true)
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "mainWindow.initialFrameApplied source=\(restoredFrame == nil ? "persistedGeometry" : "sessionSnapshot") window=\(windowId.uuidString.prefix(8)) " +
                     "applied={\(debugNSRectDescription(window.frame))}"
             )
 #endif
         }
 #if DEBUG
-        // Honor the shared dev-only default display (set via `mosaic window
+        // Honor the shared dev-only default display (set via `coterm window
         // default-display` or the Debug menu) so every dev build, any tag and
         // any launch path, opens on the chosen monitor. Focus-safe and a no-op
         // when unset. See DevWindowDisplayDefault.
@@ -8758,7 +8758,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     func sendWelcomeCommandWhenReady(to workspace: Workspace, markShownOnSend: Bool = false) {
-        sendTextWhenReady("mosaic welcome\n", to: workspace, beforeSend: {
+        sendTextWhenReady("coterm welcome\n", to: workspace, beforeSend: {
             if markShownOnSend {
                 UserDefaults.standard.set(true, forKey: AccountCatalogSection().welcomeShown.userDefaultsKey)
             }
@@ -8775,12 +8775,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         updateController.attemptUpdate()
     }
 
-    func isMosaicCLIInstalledInPATH() -> Bool {
-        MosaicCLIPathInstaller().isInstalled()
+    func isCotermCLIInstalledInPATH() -> Bool {
+        CotermCLIPathInstaller().isInstalled()
     }
 
-    @objc func installMosaicCLIInPath(_ sender: Any?) {
-        let installer = MosaicCLIPathInstaller()
+    @objc func installCotermCLIInPath(_ sender: Any?) {
+        let installer = CotermCLIPathInstaller()
         do {
             let outcome = try installer.install()
             var informativeText = String(localized: "cli.install.symlinkCreated", defaultValue: "Created symlink:\n\n\(outcome.destinationURL.path) -> \(outcome.sourceURL.path)")
@@ -8801,8 +8801,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
     }
 
-    @objc func uninstallMosaicCLIInPath(_ sender: Any?) {
-        let installer = MosaicCLIPathInstaller()
+    @objc func uninstallCotermCLIInPath(_ sender: Any?) {
+        let installer = CotermCLIPathInstaller()
         do {
             let outcome = try installer.uninstall()
             let prefix = outcome.removedExistingEntry
@@ -9041,19 +9041,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
     ) {
 #if DEBUG
-        mosaicDebugLog("settings.open.present path=swiftuiWindow")
+        cotermDebugLog("settings.open.present path=swiftuiWindow")
 #endif
         showFallbackSettingsWindow(navigationTarget)
         activateApplication()
 #if DEBUG
-        mosaicDebugLog("settings.open.present activate=1")
+        cotermDebugLog("settings.open.present activate=1")
 #endif
     }
 
     @MainActor
     func openPreferencesWindow(debugSource: String, navigationTarget: SettingsNavigationTarget? = nil) {
 #if DEBUG
-        mosaicDebugLog("settings.open.request source=\(debugSource)")
+        cotermDebugLog("settings.open.request source=\(debugSource)")
 #endif
         Self.presentPreferencesWindow(navigationTarget: navigationTarget)
     }
@@ -9101,7 +9101,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     /// Brings the main terminal window forward after a browser sign-in returns
-    /// to the app. Both browser-return routes (the "Return to mosaic" deep link
+    /// to the app. Both browser-return routes (the "Return to coterm" deep link
     /// and the localhost loopback auto-redirect) call this so the main window is
     /// raised above the Account settings window instead of leaving only the
     /// Account pane in front.
@@ -9331,7 +9331,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
               let returnPanelId = notification.userInfo?[ReactGrabPastebackNotificationKey.returnPanelId] as? UUID,
               let content = notification.userInfo?[ReactGrabPastebackNotificationKey.content] as? String else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "reactGrab.pasteback h3.didCopy.drop " +
                 "reason=missingNotificationFields " +
                 "workspace=\(Self.debugShortId(notification.userInfo?[ReactGrabPastebackNotificationKey.workspaceId] as? UUID)) " +
@@ -9346,7 +9346,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard let manager = tabManagerFor(tabId: workspaceId),
               let workspace = manager.tabs.first(where: { $0.id == workspaceId }) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "reactGrab.pasteback h3.didCopy.drop " +
                 "reason=missingWorkspace workspace=\(Self.debugShortId(workspaceId)) " +
                 "browser=\(Self.debugShortId(browserPanelId)) return=\(Self.debugShortId(returnPanelId))"
@@ -9357,7 +9357,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         guard workspace.terminalPanel(for: returnPanelId) != nil else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "reactGrab.pasteback h3.didCopy.drop " +
                 "reason=missingReturnTerminal workspace=\(Self.debugShortId(workspaceId)) " +
                 "browser=\(Self.debugShortId(browserPanelId)) return=\(Self.debugShortId(returnPanelId)) " +
@@ -9368,7 +9368,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
 
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "reactGrab.pasteback h3.didCopy " +
             "workspace=\(Self.debugShortId(workspaceId)) " +
             "browser=\(Self.debugShortId(browserPanelId)) " +
@@ -9378,7 +9378,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #endif
         manager.focusTab(workspaceId, surfaceId: returnPanelId, suppressFlash: true)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "reactGrab.pasteback h1.focusRequested " +
             "workspace=\(Self.debugShortId(workspaceId)) " +
             "return=\(Self.debugShortId(returnPanelId)) " +
@@ -9413,7 +9413,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             preferredPanelId: preferredPanelId
         )
         if isReactGrabPasteback {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "reactGrab.pasteback h2.send.start " +
                 "workspace=\(Self.debugShortId(tab.id)) " +
                 "preferred=\(Self.debugShortId(preferredPanelId)) " +
@@ -9443,7 +9443,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
            terminalPanel.surface.surface != nil {
 #if DEBUG
             if isReactGrabPasteback {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h2.send.immediate " +
                     "workspace=\(Self.debugShortId(tab.id)) " +
                     "target=\(Self.debugShortId(terminalPanel.id)) len=\(text.count)"
@@ -9454,7 +9454,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let didSend = terminalPanel.sendText(text)
 #if DEBUG
             if isReactGrabPasteback, didSend {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h2.send.sent " +
                     "workspace=\(Self.debugShortId(tab.id)) " +
                     "target=\(Self.debugShortId(terminalPanel.id)) mode=immediate len=\(text.count)"
@@ -9494,7 +9494,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             )
 #if DEBUG
             if isReactGrabPasteback {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h2.finishIfReady " +
                     "workspace=\(Self.debugShortId(tab.id)) " +
                     "preferred=\(Self.debugShortId(preferredPanelId)) " +
@@ -9513,7 +9513,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let didSend = terminalPanel.sendText(text)
 #if DEBUG
             if isReactGrabPasteback, didSend {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h2.send.sent " +
                     "workspace=\(Self.debugShortId(tab.id)) " +
                     "target=\(Self.debugShortId(terminalPanel.id)) mode=delayed len=\(text.count)"
@@ -9530,7 +9530,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             .sink { _ in
 #if DEBUG
                 if isReactGrabPasteback {
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "reactGrab.pasteback h2.panelsChanged " +
                         "workspace=\(Self.debugShortId(tab.id)) " +
                         "focused=\(Self.debugShortId(tab.focusedPanelId))"
@@ -9551,7 +9551,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     return
                 }
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h1.focusEvent " +
                     "workspace=\(Self.debugShortId(candidateTabId)) " +
                     "surface=\(Self.debugShortId(candidateSurfaceId)) " +
@@ -9571,7 +9571,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     return
                 }
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h1.firstResponderEvent " +
                     "workspace=\(Self.debugShortId(candidateTabId)) " +
                     "surface=\(Self.debugShortId(candidateSurfaceId)) " +
@@ -9591,7 +9591,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let surfaceId = note.userInfo?["surfaceId"] as? UUID
 #if DEBUG
             if isReactGrabPasteback {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "reactGrab.pasteback h2.surfaceReadyEvent " +
                     "workspace=\(Self.debugShortId(workspaceId)) " +
                     "surface=\(Self.debugShortId(surfaceId)) " +
@@ -9612,7 +9612,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 resolved = true
 #if DEBUG
                 if isReactGrabPasteback {
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "reactGrab.pasteback h2.send.timeout " +
                         "workspace=\(Self.debugShortId(tab.id)) " +
                         "preferred=\(Self.debugShortId(preferredPanelId)) " +
@@ -9741,7 +9741,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             var slowWorkspaceCount = 0
             var worstWorkspaceMs: Double = 0
 
-            mosaicDebugLog(
+            cotermDebugLog(
                 "stress.setup.start workspaces=\(self.debugStressWorkspaceCount) panes=\(self.debugStressPaneCount) " +
                 "tabsPerPane=\(self.debugStressTabsPerPane) lagProbe=1"
             )
@@ -9772,7 +9772,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
                 if workspaceMs >= 35 || ((index + 1) % 5 == 0) {
                     let pending = self.pendingDebugTerminalSurfaceCount(in: created)
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "stress.setup.workspace idx=\(index + 1)/\(self.debugStressWorkspaceCount) " +
                         "ms=\(String(format: "%.2f", workspaceMs)) failures=\(layoutFailures) pending=\(pending)"
                     )
@@ -9798,7 +9798,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 tabManager.selectedTabId = originalSelectedWorkspaceId
             }
 
-            mosaicDebugLog(
+            cotermDebugLog(
                 "stress.setup.done createMs=\(String(format: "%.2f", creationElapsedMs)) " +
                 "loadMs=\(String(format: "%.2f", loadStats.elapsedMs)) loadedPanels=\(loadStats.loadedPanels) " +
                 "loadFailures=\(loadStats.failedPanels) totalMs=\(String(format: "%.2f", totalElapsedMs)) " +
@@ -9992,7 +9992,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 }
             }
 
-            mosaicDebugLog(
+            cotermDebugLog(
                 "stress.setup.queue workspace=\(workspaceIndex + 1)/\(workspaces.count) " +
                 "mounted=\(mountedWorkspaceCount)/\(workspaces.count) queued=\(queuedTargets.count)"
             )
@@ -10004,7 +10004,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let failedPanels = waitResult.pendingTargets.count
         let loadedPanels = max(0, queuedTargets.count - failedPanels)
         for target in waitResult.pendingTargets {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "stress.setup.surfaceTimeout workspace=\(target.workspace.id.uuidString.prefix(5)) " +
                 "panel=\(target.panelId.uuidString.prefix(5)) pane=\(target.paneId.id.uuidString.prefix(5))"
             )
@@ -10075,7 +10075,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             }
         )
 
-        mosaicDebugLog("stress.setup.mount mounted=\(mountedWorkspaceCount)/\(workspaces.count)")
+        cotermDebugLog("stress.setup.mount mounted=\(mountedWorkspaceCount)/\(workspaces.count)")
         return mountedWorkspaceCount
     }
 
@@ -10124,7 +10124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
             eventCount += 1
             if nextPending.count != pendingTargets.count || startedThisPass > 0 || eventCount == 1 {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "stress.setup.await event=\(eventCount) pending=\(nextPending.count) " +
                     "started=\(startedThisPass)"
                 )
@@ -10245,7 +10245,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard elapsedMs >= thresholdMs else { return }
 
         let snapshot = debugStressLagSnapshot()
-        mosaicDebugLog(
+        cotermDebugLog(
             "stress.inputLag path=appMonitor ms=\(String(format: "%.2f", elapsedMs)) " +
             "threshold=\(String(format: "%.2f", thresholdMs)) handled=\(handledByShortcut ? 1 : 0) " +
             "plain=\(isPlainTyping ? 1 : 0) repeat=\(event.isARepeat ? 1 : 0) keyCode=\(event.keyCode) " +
@@ -10265,7 +10265,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard !didSetupJumpUnreadUITest else { return }
         didSetupJumpUnreadUITest = true
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" else { return }
+        guard env["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" else { return }
         guard let notificationStore else { return }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
@@ -10335,7 +10335,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     func armJumpUnreadFocusRecord(tabId: UUID, surfaceId: UUID) {
         let env = ProcessInfo.processInfo.environment
-        guard let path = env["MOSAIC_UI_TEST_JUMP_UNREAD_PATH"], !path.isEmpty else { return }
+        guard let path = env["COTERM_UI_TEST_JUMP_UNREAD_PATH"], !path.isEmpty else { return }
         jumpUnreadFocusExpectation = (tabId: tabId, surfaceId: surfaceId)
         installJumpUnreadFocusObserverIfNeeded()
     }
@@ -10367,7 +10367,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func writeJumpUnreadTestData(_ updates: [String: String]) {
         let env = ProcessInfo.processInfo.environment
-        guard let path = env["MOSAIC_UI_TEST_JUMP_UNREAD_PATH"], !path.isEmpty else { return }
+        guard let path = env["COTERM_UI_TEST_JUMP_UNREAD_PATH"], !path.isEmpty else { return }
         var payload = loadJumpUnreadTestData(at: path)
         for (key, value) in updates {
             payload[key] = value
@@ -10388,15 +10388,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard !didSetupGotoSplitUITest else { return }
         didSetupGotoSplitUITest = true
         let env = ProcessInfo.processInfo.environment
-        if env["MOSAIC_UI_TEST_GOTO_SPLIT_RECORD_ONLY"] == "1" {
+        if env["COTERM_UI_TEST_GOTO_SPLIT_RECORD_ONLY"] == "1" {
             installGotoSplitUITestFocusObserversIfNeeded()
             startGotoSplitRecordOnlyRecorder()
             return
         }
-        guard env["MOSAIC_UI_TEST_GOTO_SPLIT_SETUP"] == "1" else { return }
+        guard env["COTERM_UI_TEST_GOTO_SPLIT_SETUP"] == "1" else { return }
         guard tabManager != nil else { return }
 
-        let useGhosttyConfig = env["MOSAIC_UI_TEST_GOTO_SPLIT_USE_GHOSTTY_CONFIG"] == "1"
+        let useGhosttyConfig = env["COTERM_UI_TEST_GOTO_SPLIT_USE_GHOSTTY_CONFIG"] == "1"
 
         if useGhosttyConfig {
             // Keep the test hermetic: ensure the app does not accidentally pass using a persisted
@@ -10434,7 +10434,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         func hasMainTerminalWindow() -> Bool {
             NSApp.windows.contains { window in
                 guard let raw = window.identifier?.rawValue else { return false }
-                return raw == "mosaic.main" || raw.hasPrefix("mosaic.main.")
+                return raw == "coterm.main" || raw.hasPrefix("coterm.main.")
             }
         }
 
@@ -10457,7 +10457,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 return
             }
 
-            let requestedBrowserURL = env["MOSAIC_UI_TEST_GOTO_SPLIT_BROWSER_URL"]?
+            let requestedBrowserURL = env["COTERM_UI_TEST_GOTO_SPLIT_BROWSER_URL"]?
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             let url = requestedBrowserURL.flatMap { rawURL in
                 guard !rawURL.isEmpty else { return nil }
@@ -10490,16 +10490,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard !didSetupBonsplitTabDragUITest else { return }
         didSetupBonsplitTabDragUITest = true
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_BONSPLIT_TAB_DRAG_SETUP"] == "1" else { return }
+        guard env["COTERM_UI_TEST_BONSPLIT_TAB_DRAG_SETUP"] == "1" else { return }
         guard tabManager != nil else { return }
-        let startWithHiddenSidebar = env["MOSAIC_UI_TEST_BONSPLIT_START_WITH_HIDDEN_SIDEBAR"] == "1"
-        let showRightSidebar = env["MOSAIC_UI_TEST_BONSPLIT_SHOW_RIGHT_SIDEBAR"] == "1"
+        let startWithHiddenSidebar = env["COTERM_UI_TEST_BONSPLIT_START_WITH_HIDDEN_SIDEBAR"] == "1"
+        let showRightSidebar = env["COTERM_UI_TEST_BONSPLIT_SHOW_RIGHT_SIDEBAR"] == "1"
 
         let deadline = Date().addingTimeInterval(20.0)
         func mainWindowContextForUITest() -> (window: NSWindow, context: MainWindowContext)? {
             for window in NSApp.windows {
                 guard let raw = window.identifier?.rawValue else { continue }
-                guard raw == "mosaic.main" || raw.hasPrefix("mosaic.main.") else { continue }
+                guard raw == "coterm.main" || raw.hasPrefix("coterm.main.") else { continue }
                 guard let context = self.contextForMainTerminalWindow(window),
                       context.fileExplorerState != nil else {
                     continue
@@ -10524,7 +10524,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let screenFrame = mainWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame
             if let screenFrame {
                 let targetSize: NSSize
-                if let rawSize = env["MOSAIC_UI_TEST_BONSPLIT_WINDOW_SIZE"] {
+                if let rawSize = env["COTERM_UI_TEST_BONSPLIT_WINDOW_SIZE"] {
                     let parts = rawSize
                         .split(separator: "x", maxSplits: 1)
                         .compactMap { Double(String($0).trimmingCharacters(in: .whitespacesAndNewlines)) }
@@ -10568,11 +10568,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             }
 
             workspace.setPanelCustomTitle(panelId: betaPanelId, title: betaTitle)
-            if let rawActionButtonCount = env["MOSAIC_UI_TEST_BONSPLIT_ACTION_BUTTON_COUNT"],
+            if let rawActionButtonCount = env["COTERM_UI_TEST_BONSPLIT_ACTION_BUTTON_COUNT"],
                let requestedActionButtonCount = Int(rawActionButtonCount),
                requestedActionButtonCount > 0 {
-                guard let mosaicConfigStore = context.mosaicConfigStore else {
-                    self.writeBonsplitTabDragUITestData(["setupError": "Missing mosaic config store"])
+                guard let cotermConfigStore = context.cotermConfigStore else {
+                    self.writeBonsplitTabDragUITestData(["setupError": "Missing coterm config store"])
                     return
                 }
                 let actionButtonCount = min(requestedActionButtonCount, 32)
@@ -10584,8 +10584,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                         ),
                         Int64(index)
                     )
-                    return MosaicSurfaceTabBarButton.actionReference(
-                        "mosaic-ui-test-action-\(index)",
+                    return CotermSurfaceTabBarButton.actionReference(
+                        "coterm-ui-test-action-\(index)",
                         title: actionTitle,
                         icon: .symbol("circle.fill"),
                         tooltip: actionTitle
@@ -10594,7 +10594,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 workspace.applySurfaceTabBarButtons(
                     buttons,
                     sourcePath: nil,
-                    globalConfigPath: mosaicConfigStore.globalConfigPath,
+                    globalConfigPath: cotermConfigStore.globalConfigPath,
                     terminalCommandSourcePaths: [:],
                     workspaceCommands: [:]
                 )
@@ -10650,8 +10650,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func bonsplitTabDragUITestDataPath() -> String? {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_BONSPLIT_TAB_DRAG_SETUP"] == "1",
-              let path = env["MOSAIC_UI_TEST_BONSPLIT_TAB_DRAG_PATH"],
+        guard env["COTERM_UI_TEST_BONSPLIT_TAB_DRAG_SETUP"] == "1",
+              let path = env["COTERM_UI_TEST_BONSPLIT_TAB_DRAG_PATH"],
               !path.isEmpty else {
             return nil
         }
@@ -10730,13 +10730,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
     private func isGotoSplitUITestRecordingEnabled() -> Bool {
         let env = ProcessInfo.processInfo.environment
-        return env["MOSAIC_UI_TEST_GOTO_SPLIT_SETUP"] == "1" || env["MOSAIC_UI_TEST_GOTO_SPLIT_RECORD_ONLY"] == "1"
+        return env["COTERM_UI_TEST_GOTO_SPLIT_SETUP"] == "1" || env["COTERM_UI_TEST_GOTO_SPLIT_RECORD_ONLY"] == "1"
     }
 
     private func gotoSplitUITestDataPath() -> String? {
         guard isGotoSplitUITestRecordingEnabled() else { return nil }
         let env = ProcessInfo.processInfo.environment
-        guard let path = env["MOSAIC_UI_TEST_GOTO_SPLIT_PATH"], !path.isEmpty else { return nil }
+        guard let path = env["COTERM_UI_TEST_GOTO_SPLIT_PATH"], !path.isEmpty else { return nil }
         return path
     }
 
@@ -10787,9 +10787,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         let currentResponder = (NSApp.keyWindow ?? NSApp.mainWindow)?.firstResponder
         updates["firstResponderTerminalPanelId"] =
-            mosaicOwningGhosttyView(for: currentResponder)?.terminalSurface?.id.uuidString ?? ""
+            cotermOwningGhosttyView(for: currentResponder)?.terminalSurface?.id.uuidString ?? ""
 
-        updates.merge(mosaicFindResponderSnapshot()) { _, new in new }
+        updates.merge(cotermFindResponderSnapshot()) { _, new in new }
         return updates
     }
 
@@ -10849,7 +10849,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 "ghosttyGotoSplitDownShortcut": ghosttyGotoSplitDownShortcut?.displayString ?? "",
                 "webViewFocused": "true"
             ])
-            if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_GOTO_SPLIT_INPUT_SETUP"] == "1" {
+            if ProcessInfo.processInfo.environment["COTERM_UI_TEST_GOTO_SPLIT_INPUT_SETUP"] == "1" {
                 setupFocusedInputForGotoSplitUITest(panel: panel)
             }
         }
@@ -11081,11 +11081,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
               secondaryCenterY: -1,
               activeId: active && typeof active.id === "string" ? active.id : "",
               activeTag: active && active.tagName ? active.tagName.toLowerCase() : "",
-              trackerInstalled: window.__mosaicAddressBarFocusTrackerInstalled === true,
+              trackerInstalled: window.__cotermAddressBarFocusTrackerInstalled === true,
               trackedStateId:
-                window.__mosaicAddressBarFocusState &&
-                typeof window.__mosaicAddressBarFocusState.id === "string"
-                  ? window.__mosaicAddressBarFocusState.id
+                window.__cotermAddressBarFocusState &&
+                typeof window.__cotermAddressBarFocusState.id === "string"
+                  ? window.__cotermAddressBarFocusState.id
                   : "",
               readyState: String(document.readyState || "")
             };
@@ -11119,10 +11119,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
               return input;
             };
 
-            let container = document.getElementById("mosaic-ui-test-focus-container");
+            let container = document.getElementById("coterm-ui-test-focus-container");
             if (!container || !container.tagName || container.tagName.toLowerCase() !== "div") {
               container = document.createElement("div");
-              container.id = "mosaic-ui-test-focus-container";
+              container.id = "coterm-ui-test-focus-container";
               document.body.appendChild(container);
             }
             container.style.position = "fixed";
@@ -11138,8 +11138,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             container.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)";
             container.style.zIndex = "2147483647";
 
-            const input = ensureInput("mosaic-ui-test-focus-input", "mosaic-ui-focus-primary");
-            const secondaryInput = ensureInput("mosaic-ui-test-focus-input-secondary", "mosaic-ui-focus-secondary");
+            const input = ensureInput("coterm-ui-test-focus-input", "coterm-ui-focus-primary");
+            const secondaryInput = ensureInput("coterm-ui-test-focus-input-secondary", "coterm-ui-focus-secondary");
             if (input.parentElement !== container) {
               container.appendChild(input);
             }
@@ -11153,19 +11153,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
               input.setSelectionRange(end, end);
             }
 
-            let trackedFocusId = input.getAttribute("data-mosaic-addressbar-focus-id");
+            let trackedFocusId = input.getAttribute("data-coterm-addressbar-focus-id");
             if (!trackedFocusId) {
-              trackedFocusId = "mosaic-ui-test-focus-input-tracked";
-              input.setAttribute("data-mosaic-addressbar-focus-id", trackedFocusId);
+              trackedFocusId = "coterm-ui-test-focus-input-tracked";
+              input.setAttribute("data-coterm-addressbar-focus-id", trackedFocusId);
             }
             const selectionStart = typeof input.selectionStart === "number" ? input.selectionStart : null;
             const selectionEnd = typeof input.selectionEnd === "number" ? input.selectionEnd : null;
             if (
-              !window.__mosaicAddressBarFocusState ||
-              typeof window.__mosaicAddressBarFocusState.id !== "string" ||
-              window.__mosaicAddressBarFocusState.id !== trackedFocusId
+              !window.__cotermAddressBarFocusState ||
+              typeof window.__cotermAddressBarFocusState.id !== "string" ||
+              window.__cotermAddressBarFocusState.id !== trackedFocusId
             ) {
-              window.__mosaicAddressBarFocusState = { id: trackedFocusId, selectionStart, selectionEnd };
+              window.__cotermAddressBarFocusState = { id: trackedFocusId, selectionStart, selectionEnd };
             }
 
             const secondaryRect = secondaryInput.getBoundingClientRect();
@@ -11188,17 +11188,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
               secondaryCenterY,
               activeId: active && typeof active.id === "string" ? active.id : "",
               activeTag: active && active.tagName ? active.tagName.toLowerCase() : "",
-              trackerInstalled: window.__mosaicAddressBarFocusTrackerInstalled === true,
+              trackerInstalled: window.__cotermAddressBarFocusTrackerInstalled === true,
               trackedStateId:
-                window.__mosaicAddressBarFocusState &&
-                typeof window.__mosaicAddressBarFocusState.id === "string"
-                  ? window.__mosaicAddressBarFocusState.id
+                window.__cotermAddressBarFocusState &&
+                typeof window.__cotermAddressBarFocusState.id === "string"
+                  ? window.__cotermAddressBarFocusState.id
                   : "",
               readyState: String(document.readyState || "")
             };
           };
           const ready = () =>
-            window.__mosaicAddressBarFocusTrackerInstalled === true &&
+            window.__cotermAddressBarFocusTrackerInstalled === true &&
             String(document.readyState || "") === "complete";
 
           if (ready()) {
@@ -11375,7 +11375,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                   type: "",
                   editable: "false",
                   trackedFocusStateId: "",
-                  focusTrackerInstalled: window.__mosaicAddressBarFocusTrackerInstalled === true ? "true" : "false"
+                  focusTrackerInstalled: window.__cotermAddressBarFocusTrackerInstalled === true ? "true" : "false"
                 };
               }
               const tag = (active.tagName || "").toLowerCase();
@@ -11390,12 +11390,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 type,
                 editable: editable ? "true" : "false",
                 trackedFocusStateId:
-                  window.__mosaicAddressBarFocusState &&
-                  typeof window.__mosaicAddressBarFocusState.id === "string"
-                    ? window.__mosaicAddressBarFocusState.id
+                  window.__cotermAddressBarFocusState &&
+                  typeof window.__cotermAddressBarFocusState.id === "string"
+                    ? window.__cotermAddressBarFocusState.id
                     : "",
                 focusTrackerInstalled:
-                  window.__mosaicAddressBarFocusTrackerInstalled === true ? "true" : "false"
+                  window.__cotermAddressBarFocusTrackerInstalled === true ? "true" : "false"
               };
             } catch (_) {
               return {
@@ -11477,7 +11477,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func gotoSplitUITestExpectedInputId() -> String? {
         let env = ProcessInfo.processInfo.environment
-        guard let path = env["MOSAIC_UI_TEST_GOTO_SPLIT_PATH"], !path.isEmpty else { return nil }
+        guard let path = env["COTERM_UI_TEST_GOTO_SPLIT_PATH"], !path.isEmpty else { return nil }
         return loadGotoSplitTestData(at: path)["webInputFocusElementId"]
     }
 
@@ -11668,8 +11668,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         didSetupMultiWindowNotificationsUITest = true
 
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_MULTI_WINDOW_NOTIF_SETUP"] == "1" else { return }
-        guard let path = env["MOSAIC_UI_TEST_MULTI_WINDOW_NOTIF_PATH"], !path.isEmpty else { return }
+        guard env["COTERM_UI_TEST_MULTI_WINDOW_NOTIF_SETUP"] == "1" else { return }
+        guard let path = env["COTERM_UI_TEST_MULTI_WINDOW_NOTIF_PATH"], !path.isEmpty else { return }
 
         try? FileManager.default.removeItem(atPath: path)
 
@@ -11883,7 +11883,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         surfaceId: UUID
     ) {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_NOTIFY_SOURCE_TERMINAL_READY"] == "1" else { return }
+        guard env["COTERM_UI_TEST_NOTIFY_SOURCE_TERMINAL_READY"] == "1" else { return }
 
         writeMultiWindowNotificationTestData([
             "sourceTerminalReady": "pending",
@@ -12016,18 +12016,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         socketPath: String
     ) {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_WINDOW_ROUTE_CLI"] == "1" else { return }
+        guard env["COTERM_UI_TEST_WINDOW_ROUTE_CLI"] == "1" else { return }
         let currentStatus = loadMultiWindowNotificationTestData(at: path)["windowRouteStatus"] ?? ""
         guard currentStatus.isEmpty else { return }
 
-        let title = env["MOSAIC_UI_TEST_WINDOW_ROUTE_CLI_TITLE"] ?? "window-route-\(UUID().uuidString.prefix(8))"
+        let title = env["COTERM_UI_TEST_WINDOW_ROUTE_CLI_TITLE"] ?? "window-route-\(UUID().uuidString.prefix(8))"
         writeMultiWindowNotificationTestData([
             "windowRouteTitle": title,
             "windowRouteStatus": "pending",
             "windowRouteFailure": "",
         ], at: path)
 
-        guard let cliURL = Bundle.main.resourceURL?.appendingPathComponent("bin/mosaic"),
+        guard let cliURL = Bundle.main.resourceURL?.appendingPathComponent("bin/coterm"),
               FileManager.default.isExecutableFile(atPath: cliURL.path) else {
             writeMultiWindowNotificationTestData([
                 "windowRouteStatus": "0",
@@ -12037,7 +12037,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
 
         let processEnv = env.merging([
-            "MOSAICTERM_CLI_RESPONSE_TIMEOUT_SEC": "6",
+            "COTERM_CLI_RESPONSE_TIMEOUT_SEC": "6",
         ]) { _, new in new }
 
         let health = TerminalController.shared.socketListenerHealth(expectedSocketPath: socketPath)
@@ -12110,11 +12110,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         window2Id: UUID? = nil
     ) {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_SOCKET_SANITY"] == "1" else { return }
+        guard env["COTERM_UI_TEST_SOCKET_SANITY"] == "1" else { return }
 
         guard let config = socketListenerConfigurationIfEnabled() else {
             writeMultiWindowNotificationTestData([
-                "socketExpectedPath": env["MOSAIC_SOCKET_PATH"] ?? "",
+                "socketExpectedPath": env["COTERM_SOCKET_PATH"] ?? "",
                 "socketMode": "off",
                 "socketReady": "0",
                 "socketPingResponse": "",
@@ -12232,7 +12232,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         sidebarSelection: SidebarSelection
     ) {
         let env = ProcessInfo.processInfo.environment
-        guard let path = env["MOSAIC_UI_TEST_MULTI_WINDOW_NOTIF_PATH"], !path.isEmpty else { return }
+        guard let path = env["COTERM_UI_TEST_MULTI_WINDOW_NOTIF_PATH"], !path.isEmpty else { return }
         let sidebarSelectionString: String = {
             switch sidebarSelection {
             case .tabs: return "tabs"
@@ -12254,7 +12254,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         titlebarAccessoryController.attach(to: window)
     }
 
-    // Satisfies MosaicAppKitSupportUI's WindowDecorating seam (see extension below).
+    // Satisfies CotermAppKitSupportUI's WindowDecorating seam (see extension below).
     func applyWindowDecorations(to window: NSWindow) {
         windowDecorationsController.apply(to: window)
     }
@@ -12285,7 +12285,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     ) -> TerminalNotification? {
         guard let notificationStore else { return nil }
 #if DEBUG
-        if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+        if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
             writeJumpUnreadTestData([
                 "jumpUnreadInvoked": "1",
                 "jumpUnreadNotificationCount": String(notificationStore.notifications.count),
@@ -12304,7 +12304,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     /// Forwards to `notificationNavigation` (the extracted
     /// `NotificationNavigationCoordinator` and its `FocusedNotificationMarker`).
     /// The state machine and its workspace/store predicates now live in
-    /// `MosaicNotifications`, reached through the `FocusedNotificationResolving`
+    /// `CotermNotifications`, reached through the `FocusedNotificationResolving`
     /// seam (see `AppDelegate+NotificationNavSeams.swift`). `preferredWindow` is
     /// passed through as the opaque resolver token.
     @discardableResult
@@ -12342,13 +12342,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
 #if DEBUG
     static func setWindowFirstResponderGuardTesting(currentEvent: NSEvent?, hitView: NSView?) {
-        mosaicFirstResponderGuardCurrentEventOverride = currentEvent
-        mosaicFirstResponderGuardHitViewOverride = hitView
+        cotermFirstResponderGuardCurrentEventOverride = currentEvent
+        cotermFirstResponderGuardHitViewOverride = hitView
     }
 
     static func clearWindowFirstResponderGuardTesting() {
-        mosaicFirstResponderGuardCurrentEventOverride = nil
-        mosaicFirstResponderGuardHitViewOverride = nil
+        cotermFirstResponderGuardCurrentEventOverride = nil
+        cotermFirstResponderGuardHitViewOverride = nil
     }
 #endif
 
@@ -12382,13 +12382,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 let preludeStart = ProcessInfo.processInfo.systemUptime
                 var preludeMs: Double = 0
                 var shortcutMs: Double = 0
-                MosaicTypingTiming.logEventDelay(path: "appMonitor", event: event)
+                CotermTypingTiming.logEventDelay(path: "appMonitor", event: event)
                 let shortcutMonitorTraceEnabled =
-                    ProcessInfo.processInfo.environment["MOSAIC_SHORTCUT_MONITOR_TRACE"] == "1"
-                    || UserDefaults.standard.bool(forKey: "mosaicShortcutMonitorTrace")
+                    ProcessInfo.processInfo.environment["COTERM_SHORTCUT_MONITOR_TRACE"] == "1"
+                    || UserDefaults.standard.bool(forKey: "cotermShortcutMonitorTrace")
                 if shortcutMonitorTraceEnabled {
                     let frType = shortcutRoutingKeyWindow?.firstResponder.map { String(describing: type(of: $0)) } ?? "nil"
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "monitor.keyDown: \(NSWindow.keyDescription(event)) fr=\(frType) addrBarId=\(self.browserAddressBarFocusedPanelId?.uuidString.prefix(8) ?? "nil") \(self.debugShortcutRouteSnapshot(event: event))"
                     )
                 }
@@ -12396,10 +12396,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     self.logDeveloperToolsShortcutSnapshot(phase: "monitor.pre.\(probeKind)", event: event)
                 }
                 preludeMs = (ProcessInfo.processInfo.systemUptime - preludeStart) * 1000.0
-                let shortcutTimingStart = MosaicTypingTiming.start()
+                let shortcutTimingStart = CotermTypingTiming.start()
 #endif
                 let shortcutStart = ProcessInfo.processInfo.systemUptime
-                let handledByShortcut = mosaicCloseFocusedTerminalFindForEscape(event: event, appDelegate: self) || self.handleCustomShortcut(event: event)
+                let handledByShortcut = cotermCloseFocusedTerminalFindForEscape(event: event, appDelegate: self) || self.handleCustomShortcut(event: event)
                 if handledByShortcut {
                     PostHogAnalytics.shared.capture(
                         .keyboardShortcutPerformed,
@@ -12414,7 +12414,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 }
 #if DEBUG
                 shortcutMs = (ProcessInfo.processInfo.systemUptime - shortcutStart) * 1000.0
-                MosaicTypingTiming.logDuration(
+                CotermTypingTiming.logDuration(
                     path: "appMonitor.handleCustomShortcut",
                     startedAt: shortcutTimingStart,
                     event: event,
@@ -12427,7 +12427,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     elapsedMs: shortcutElapsedMs
                 )
                 let totalMs = (ProcessInfo.processInfo.systemUptime - phaseTotalStart) * 1000.0
-                MosaicTypingTiming.logBreakdown(
+                CotermTypingTiming.logBreakdown(
                     path: "appMonitor.phase",
                     totalMs: totalMs,
                     event: event,
@@ -12441,7 +12441,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #endif
                 if handledByShortcut {
 #if DEBUG
-                    mosaicDebugLog("  → consumed by handleCustomShortcut")
+                    cotermDebugLog("  → consumed by handleCustomShortcut")
 #endif
                     return nil // Consume the event
                 }
@@ -12484,7 +12484,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         KeyboardShortcutSettings.Action.allCases.filter { action in
             // System-wide hotkeys are dispatched via Carbon RegisterEventHotKey
             // and never routed through AppKit's local key handler. If a managed
-            // mosaic.json entry somehow stores one as a chord, arming the prefix
+            // coterm.json entry somehow stores one as a chord, arming the prefix
             // here would swallow the first stroke and leave the second one
             // orphaned, breaking that keystroke for the focused terminal/browser
             // input.
@@ -12614,7 +12614,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         preferredColorScheme: GhosttyConfig.ColorSchemePreference? = nil
     ) {
 #if DEBUG
-        mosaicDebugLog("reload.config.request source=\(source) soft=\(soft)")
+        cotermDebugLog("reload.config.request source=\(source) soft=\(soft)")
 #endif
         GhosttyApp.shared.reloadConfiguration(
             soft: soft,
@@ -12624,12 +12624,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
     }
 
-    func reloadMosaicConfigStores(source: String) {
+    func reloadCotermConfigStores(source: String) {
         configStoreReloadCoordinator.reload(source: source)
     }
 
-    var reloadableConfigStores: [any MosaicConfigStoreReloading] {
-        mainWindowContexts.values.compactMap { $0.mosaicConfigStore }
+    var reloadableConfigStores: [any CotermConfigStoreReloading] {
+        mainWindowContexts.values.compactMap { $0.cotermConfigStore }
     }
 
     func refreshWindowTitlesAfterConfigReload() {
@@ -12750,7 +12750,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // A recorder being armed must suppress every app-level shortcut so the
         // keystroke reaches it to be rebound. The legacy in-app recorder signals
         // this via `KeyboardShortcutRecorderActivity`; the live Settings UI uses
-        // the `MosaicSettingsUI` package recorder, which publishes its own armed
+        // the `CotermSettingsUI` package recorder, which publishes its own armed
         // flag (it cannot reach the app-target activity type). Honor both — or
         // the numbered ⌃/⌘1–9 handler below silently eats keystrokes mid-record
         // and the recorder never captures (issue #5189).
@@ -12840,7 +12840,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if browserFocusModePanelForShortcutEvent(event) != nil {
 #if DEBUG
-            mosaicDebugLog("browser.focusMode.shortcutMonitor.bypass \(debugShortcutRouteSnapshot(event: event))")
+            cotermDebugLog("browser.focusMode.shortcutMonitor.bypass \(debugShortcutRouteSnapshot(event: event))")
 #endif
             return false
         }
@@ -12878,7 +12878,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
 #if DEBUG
         if event.keyCode == 36 || event.keyCode == 76 {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.return.raw " +
                 "interactive=\(commandPaletteInteractiveInTargetWindow ? 1 : 0) " +
                 "effective=\(commandPaletteEffectiveInTargetWindow ? 1 : 0) " +
@@ -12904,7 +12904,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 return activePaletteWindow
             }()
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.escape route target={\(debugWindowToken(commandPaletteTargetWindow))} " +
                 "active={\(debugWindowToken(activePaletteWindow))} " +
                 "visibleTarget=\(commandPaletteVisibleInTargetWindow ? 1 : 0) " +
@@ -12918,7 +12918,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                !commandPaletteVisibleInTargetWindow,
                !commandPalettePendingOpenInTargetWindow,
                (commandPaletteOverlayVisibleInTargetWindow || commandPaletteResponderActiveInTargetWindow) {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "shortcut.escape stateMismatch target={\(debugWindowToken(commandPaletteTargetWindow))} " +
                     "overlayTarget=\(commandPaletteOverlayVisibleInTargetWindow ? 1 : 0) " +
                     "responderTarget=\(commandPaletteResponderActiveInTargetWindow ? 1 : 0)"
@@ -12929,7 +12929,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                isCommandPaletteEffectivelyVisible(in: paletteWindow) {
                 if commandPaletteMarkedTextInput(in: paletteWindow) != nil {
 #if DEBUG
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "shortcut.escape imeMarkedTextBypass consumed=0 target={\(debugWindowToken(paletteWindow))}"
                     )
 #endif
@@ -12939,7 +12939,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 beginCommandPaletteEscapeSuppression(for: paletteWindow)
                 NotificationCenter.default.post(name: .commandPaletteDismissRequested, object: paletteWindow)
 #if DEBUG
-                mosaicDebugLog("shortcut.escape paletteDismiss consumed=1 target={\(debugWindowToken(paletteWindow))}")
+                cotermDebugLog("shortcut.escape paletteDismiss consumed=1 target={\(debugWindowToken(paletteWindow))}")
 #endif
                 return true
             }
@@ -12948,7 +12948,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 ?? shortcutRoutingActiveWindow
             if shouldConsumeSuppressedEscape(event: event, window: suppressionWindow) {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "shortcut.escape suppressionConsume consumed=1 target={\(debugWindowToken(suppressionWindow))} " +
                     "repeat=\(event.isARepeat ? 1 : 0)"
                 )
@@ -12958,7 +12958,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             if let requestAge = recentCommandPaletteRequestAge(for: suppressionWindow) {
                 beginCommandPaletteEscapeSuppression(for: suppressionWindow)
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "shortcut.escape requestGraceConsume consumed=1 target={\(debugWindowToken(suppressionWindow))} " +
                     "ageMs=\(Int(requestAge * 1000)) repeat=\(event.isARepeat ? 1 : 0)"
                 )
@@ -12966,7 +12966,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 return true
             }
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.escape paletteDismiss consumed=0 target={\(debugWindowToken(commandPaletteTargetWindow))} " +
                 "active={\(debugWindowToken(activePaletteWindow))}"
             )
@@ -13018,7 +13018,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             )
 #if DEBUG
             if event.keyCode == 36 || event.keyCode == 76 {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "shortcut.palette.return target={\(debugWindowToken(paletteWindow))} " +
                     "mode=\(paletteSnapshot.mode) " +
                     "inline=\(paletteUsesInlineReturnHandling ? 1 : 0) " +
@@ -13045,11 +13045,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // (e.g., split that doesn't properly blur the address bar). If the first responder
         // is a terminal surface, the address bar can't be focused.
         if browserAddressBarFocusedPanelId != nil,
-           mosaicOwningGhosttyView(for: shortcutRoutingKeyWindow?.firstResponder) != nil {
+           cotermOwningGhosttyView(for: shortcutRoutingKeyWindow?.firstResponder) != nil {
 #if DEBUG
             let stalePanelToken = browserAddressBarFocusedPanelId.map { String($0.uuidString.prefix(5)) } ?? "nil"
             let firstResponderType = shortcutRoutingKeyWindow?.firstResponder.map { String(describing: type(of: $0)) } ?? "nil"
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.staleClear panel=\(stalePanelToken) " +
                 "reason=terminal_first_responder fr=\(firstResponderType)"
             )
@@ -13121,7 +13121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // input method. Cmd-based shortcuts (Cmd+T, Cmd+Shift+L, etc.) should still
         // work during composition since Cmd is never part of IME input sequences.
         if !normalizedFlags.contains(.command),
-           let ghosttyView = mosaicOwningGhosttyView(for: shortcutRoutingKeyWindow?.firstResponder),
+           let ghosttyView = cotermOwningGhosttyView(for: shortcutRoutingKeyWindow?.firstResponder),
            ghosttyView.hasMarkedText() {
             return false
         }
@@ -13173,7 +13173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let didSynchronizeShortcutContext = synchronizeShortcutRoutingContext(event: event)
         if hasEventWindowContext && !didSynchronizeShortcutContext {
 #if DEBUG
-            mosaicDebugLog("handleCustomShortcut: unresolved event window context; bypassing app shortcut handling")
+            cotermDebugLog("handleCustomShortcut: unresolved event window context; bypassing app shortcut handling")
 #endif
             return false
         }
@@ -13183,10 +13183,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         ) {
             return true
         }
-        if mosaicCloseFocusedTerminalFindForEscape(event: event, appDelegate: self) { return true }
+        if cotermCloseFocusedTerminalFindForEscape(event: event, appDelegate: self) { return true }
         if matchConfiguredShortcut(event: event, action: .find) {
             let shortcutWindow = resolvedShortcutEventWindow(event)
-            mosaicRememberFindSelectionBeforePanelFocusMove(tabManager: tabManager, window: shortcutWindow ?? shortcutRoutingKeyWindow); return performFindShortcutInActiveMainWindow(preferredWindow: shortcutWindow)
+            cotermRememberFindSelectionBeforePanelFocusMove(tabManager: tabManager, window: shortcutWindow ?? shortcutRoutingKeyWindow); return performFindShortcutInActiveMainWindow(preferredWindow: shortcutWindow)
         }
 
         // Keep keyboard routing deterministic after split close/reparent transitions:
@@ -13196,12 +13196,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let selected = tabManager?.selectedTabId?.uuidString.prefix(5) ?? "nil"
             let focused = tabManager?.selectedWorkspace?.focusedPanelId?.uuidString.prefix(5) ?? "nil"
             let frType = shortcutRoutingKeyWindow?.firstResponder.map { String(describing: type(of: $0)) } ?? "nil"
-            mosaicDebugLog("shortcut.ctrlD stage=preReconcile selected=\(selected) focused=\(focused) fr=\(frType)")
+            cotermDebugLog("shortcut.ctrlD stage=preReconcile selected=\(selected) focused=\(focused) fr=\(frType)")
 #endif
             tabManager?.reconcileFocusedPanelFromFirstResponderForKeyboard()
             #if DEBUG
             let frAfterType = shortcutRoutingKeyWindow?.firstResponder.map { String(describing: type(of: $0)) } ?? "nil"
-            mosaicDebugLog("shortcut.ctrlD stage=postReconcile fr=\(frAfterType)")
+            cotermDebugLog("shortcut.ctrlD stage=postReconcile fr=\(frAfterType)")
             writeChildExitKeyboardProbe([:], increments: ["probeAppShortcutCtrlDPassedCount": 1])
             #endif
             // Ctrl+D belongs to the focused terminal surface; never treat it as an app shortcut.
@@ -13254,14 +13254,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             }
         }
 
-        let configuredMosaicShortcutContext = preferredMainWindowContextForShortcutRouting(event: event)
-        let configuredMosaicShortcutActions = configuredMosaicShortcutActions(for: configuredMosaicShortcutContext)
+        let configuredCotermShortcutContext = preferredMainWindowContextForShortcutRouting(event: event)
+        let configuredCotermShortcutActions = configuredCotermShortcutActions(for: configuredCotermShortcutContext)
 
         if activeConfiguredShortcutChordPrefixForCurrentEvent == nil,
            armConfiguredShortcutChordIfNeeded(
                event: event,
                actions: [],
-               shortcuts: configuredMosaicShortcutActions.compactMap(\.shortcut)
+               shortcuts: configuredCotermShortcutActions.compactMap(\.shortcut)
            ) {
             return true
         }
@@ -13323,10 +13323,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return true
         }
 
-        if handleConfiguredMosaicShortcut(
+        if handleConfiguredCotermShortcut(
             event: event,
-            actions: configuredMosaicShortcutActions,
-            context: configuredMosaicShortcutContext
+            actions: configuredCotermShortcutActions,
+            context: configuredCotermShortcutContext
         ) {
             return true
         }
@@ -13339,7 +13339,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if matchConfiguredShortcut(event: event, action: .newTab) {
 #if DEBUG
-            mosaicDebugLog("shortcut.action name=newWorkspace \(debugShortcutRouteSnapshot(event: event))")
+            cotermDebugLog("shortcut.action name=newWorkspace \(debugShortcutRouteSnapshot(event: event))")
 #endif
             performNewWorkspaceAction(event: event, debugSource: "shortcut.cmdN")
             return true
@@ -13347,7 +13347,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if matchConfiguredShortcut(event: event, action: .newBrowserWorkspace) {
 #if DEBUG
-            mosaicDebugLog("shortcut.action name=newBrowserWorkspace \(debugShortcutRouteSnapshot(event: event))")
+            cotermDebugLog("shortcut.action name=newBrowserWorkspace \(debugShortcutRouteSnapshot(event: event))")
 #endif
             performNewBrowserWorkspaceAction(event: event, debugSource: "shortcut.optCmdN")
             return true
@@ -13433,7 +13433,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // Check Jump to Unread shortcut
         if matchConfiguredShortcut(event: event, action: .jumpToUnread) {
 #if DEBUG
-            if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+            if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
                 writeJumpUnreadTestData(["jumpUnreadShortcutHandled": "1"])
             }
 #endif
@@ -13475,7 +13475,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if matchConfiguredShortcut(event: event, action: .toggleTerminalCopyMode) {
             let handled = tabManager?.toggleFocusedTerminalCopyMode() ?? false
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.action name=toggleTerminalCopyMode handled=\(handled ? 1 : 0) " +
                 "\(debugShortcutRouteSnapshot(event: event))"
             )
@@ -13501,7 +13501,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let routedManager = preferredMainWindowContextForShortcutRouting(event: event)?.tabManager ?? tabManager
             let handled = routedManager?.sendCtrlFToFocusedTerminal() ?? false
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.action name=sendCtrlFToTerminal handled=\(handled ? 1 : 0) " +
                 "\(debugShortcutRouteSnapshot(event: event))"
             )
@@ -13514,7 +13514,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let routedManager = preferredMainWindowContextForShortcutRouting(event: event)?.tabManager ?? tabManager
             let handled = routedManager?.clearFocusedTerminalKeepingScrollback() ?? false
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.action name=clearScreenKeepScrollback handled=\(handled ? 1 : 0) " +
                 "\(debugShortcutRouteSnapshot(event: event))"
             )
@@ -13527,7 +13527,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if matchConfiguredShortcut(event: event, action: .nextSidebarTab) {
 #if DEBUG
             let selected = tabManager?.selectedTabId.map { String($0.uuidString.prefix(5)) } ?? "nil"
-            mosaicDebugLog(
+            cotermDebugLog(
                 "ws.shortcut dir=next repeat=\(event.isARepeat ? 1 : 0) keyCode=\(event.keyCode) selected=\(selected)"
             )
 #endif
@@ -13538,7 +13538,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if matchConfiguredShortcut(event: event, action: .prevSidebarTab) {
 #if DEBUG
             let selected = tabManager?.selectedTabId.map { String($0.uuidString.prefix(5)) } ?? "nil"
-            mosaicDebugLog(
+            cotermDebugLog(
                 "ws.shortcut dir=prev repeat=\(event.isARepeat ? 1 : 0) keyCode=\(event.keyCode) selected=\(selected)"
             )
 #endif
@@ -13583,7 +13583,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if matchConfiguredShortcut(event: event, action: .editWorkspaceDescription) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "shortcut.editWorkspaceDescription matched target={\(debugWindowToken(commandPaletteTargetWindow ?? event.window ?? shortcutRoutingActiveWindow))} " +
                 "\(debugShortcutRouteSnapshot(event: event))"
             )
@@ -13595,7 +13595,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if matchConfiguredShortcut(event: event, action: .closeOtherTabsInPane) {
             if let targetWindow = event.window ?? shortcutRoutingActiveWindow,
-               targetWindow.identifier?.rawValue == "mosaic.settings" {
+               targetWindow.identifier?.rawValue == "coterm.settings" {
                 targetWindow.performClose(nil)
             } else {
                 let targetWindow = event.window ?? shortcutRoutingActiveWindow
@@ -13617,8 +13617,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             // AppKit routes the event through the global shortcut handler first.
             if let targetWindow = auxiliaryWindowForFocusedCloseShortcut(event: event) {
 #if DEBUG
-                let route = targetWindow.identifier?.rawValue == "mosaic.browser-popup" ? "browserPopup" : "auxWindow"
-                mosaicDebugLog("shortcut.closeTab route=\(route)")
+                let route = targetWindow.identifier?.rawValue == "coterm.browser-popup" ? "browserPopup" : "auxWindow"
+                cotermDebugLog("shortcut.closeTab route=\(route)")
 #endif
                 targetWindow.performClose(nil)
                 return true
@@ -13627,7 +13627,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 if let routedManager {
 #if DEBUG
                     let selectedWorkspace = routedManager.selectedWorkspace
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "shortcut.closeTab route=workspaceModel workspace=\(selectedWorkspace?.id.uuidString.prefix(5) ?? "nil") " +
                         "panel=\(selectedWorkspace?.focusedPanelId?.uuidString.prefix(5) ?? "nil") " +
                         "selected=\(routedManager.selectedTabId?.uuidString.prefix(5) ?? "nil")"
@@ -13636,7 +13636,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     routedManager.closeCurrentPanelWithConfirmation()
                 } else {
 #if DEBUG
-                    mosaicDebugLog("shortcut.closeTab route=noManager")
+                    cotermDebugLog("shortcut.closeTab route=noManager")
 #endif
                     return false
                 }
@@ -13672,7 +13672,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             if let manager = tabManagerForNumberedShortcut(event: event),
                let targetIndex = WorkspaceShortcutMapper.workspaceIndex(forDigit: digit, workspaceCount: manager.tabs.count) {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "shortcut.action name=workspaceDigit digit=\(digit) targetIndex=\(targetIndex) manager=\(debugManagerToken(manager)) \(debugShortcutRouteSnapshot(event: event))"
                 )
 #endif
@@ -13701,7 +13701,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             arrowKeyCode: 123
         ) || (ghosttyGotoSplitLeftShortcut.map { matchDirectionalShortcut(event: event, shortcut: $0, arrowGlyph: "←", arrowKeyCode: 123) } ?? false) {
             let routedTabs = preferredMainWindowContextForShortcutRouting(event: event)?.tabManager ?? tabManager
-            mosaicRememberFindSelectionBeforePanelFocusMove(tabManager: routedTabs, window: shortcutRoutingKeyWindow)
+            cotermRememberFindSelectionBeforePanelFocusMove(tabManager: routedTabs, window: shortcutRoutingKeyWindow)
             routedTabs?.movePaneFocus(direction: .left)
 #if DEBUG
             recordGotoSplitMoveIfNeeded(direction: .left)
@@ -13715,7 +13715,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             arrowKeyCode: 124
         ) || (ghosttyGotoSplitRightShortcut.map { matchDirectionalShortcut(event: event, shortcut: $0, arrowGlyph: "→", arrowKeyCode: 124) } ?? false) {
             let routedTabs = preferredMainWindowContextForShortcutRouting(event: event)?.tabManager ?? tabManager
-            mosaicRememberFindSelectionBeforePanelFocusMove(tabManager: routedTabs, window: shortcutRoutingKeyWindow)
+            cotermRememberFindSelectionBeforePanelFocusMove(tabManager: routedTabs, window: shortcutRoutingKeyWindow)
             routedTabs?.movePaneFocus(direction: .right)
 #if DEBUG
             recordGotoSplitMoveIfNeeded(direction: .right)
@@ -13729,7 +13729,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             arrowKeyCode: 126
         ) || (ghosttyGotoSplitUpShortcut.map { matchDirectionalShortcut(event: event, shortcut: $0, arrowGlyph: "↑", arrowKeyCode: 126) } ?? false) {
             let routedTabs = preferredMainWindowContextForShortcutRouting(event: event)?.tabManager ?? tabManager
-            mosaicRememberFindSelectionBeforePanelFocusMove(tabManager: routedTabs, window: shortcutRoutingKeyWindow)
+            cotermRememberFindSelectionBeforePanelFocusMove(tabManager: routedTabs, window: shortcutRoutingKeyWindow)
             routedTabs?.movePaneFocus(direction: .up)
 #if DEBUG
             recordGotoSplitMoveIfNeeded(direction: .up)
@@ -13743,7 +13743,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             arrowKeyCode: 125
         ) || (ghosttyGotoSplitDownShortcut.map { matchDirectionalShortcut(event: event, shortcut: $0, arrowGlyph: "↓", arrowKeyCode: 125) } ?? false) {
             let routedTabs = preferredMainWindowContextForShortcutRouting(event: event)?.tabManager ?? tabManager
-            mosaicRememberFindSelectionBeforePanelFocusMove(tabManager: routedTabs, window: shortcutRoutingKeyWindow)
+            cotermRememberFindSelectionBeforePanelFocusMove(tabManager: routedTabs, window: shortcutRoutingKeyWindow)
             routedTabs?.movePaneFocus(direction: .down)
 #if DEBUG
             recordGotoSplitMoveIfNeeded(direction: .down)
@@ -13777,7 +13777,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // Configured split actions.
         if matchConfiguredShortcut(event: event, action: .splitRight) {
 #if DEBUG
-            mosaicDebugLog("shortcut.action name=splitRight \(debugShortcutRouteSnapshot(event: event))")
+            cotermDebugLog("shortcut.action name=splitRight \(debugShortcutRouteSnapshot(event: event))")
 #endif
             // When the Dock owns keyboard focus, split the focused Dock pane
             // instead of the main area (checked before the transient-focus
@@ -13797,7 +13797,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if matchConfiguredShortcut(event: event, action: .splitDown) {
 #if DEBUG
-            mosaicDebugLog("shortcut.action name=splitDown \(debugShortcutRouteSnapshot(event: event))")
+            cotermDebugLog("shortcut.action name=splitDown \(debugShortcutRouteSnapshot(event: event))")
 #endif
             if routeSplitToFocusedDock(kind: .terminal, direction: .down, preferredWindow: event.window) {
                 return true
@@ -13814,7 +13814,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if matchConfiguredShortcut(event: event, action: .splitBrowserRight) {
 #if DEBUG
-            mosaicDebugLog("shortcut.action name=splitBrowserRight \(debugShortcutRouteSnapshot(event: event))")
+            cotermDebugLog("shortcut.action name=splitBrowserRight \(debugShortcutRouteSnapshot(event: event))")
 #endif
             if routeSplitToFocusedDock(kind: .browser, direction: .right, preferredWindow: event.window) {
                 return true
@@ -13825,7 +13825,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if matchConfiguredShortcut(event: event, action: .splitBrowserDown) {
 #if DEBUG
-            mosaicDebugLog("shortcut.action name=splitBrowserDown \(debugShortcutRouteSnapshot(event: event))")
+            cotermDebugLog("shortcut.action name=splitBrowserDown \(debugShortcutRouteSnapshot(event: event))")
 #endif
             if routeSplitToFocusedDock(kind: .browser, direction: .down, preferredWindow: event.window) {
                 return true
@@ -14085,7 +14085,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #if DEBUG
         let directionLabel = direction.map { String(describing: $0) } ?? "splitGeometry"
         let firstResponderType = shortcutRoutingKeyWindow?.firstResponder.map { String(describing: type(of: $0)) } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.shortcut suppressed dir=\(directionLabel) reason=transient_focus_state " +
             "fr=\(firstResponderType) hidden=\(hostedHiddenInHierarchy ? 1 : 0) " +
             "attached=\(hostedAttachedToWindow ? 1 : 0) " +
@@ -14127,7 +14127,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if let handled {
             line += " handled=\(handled ? 1 : 0)"
         }
-        mosaicDebugLog(line)
+        cotermDebugLog(line)
     }
 
     private func browserFocusStateSnapshot() -> String {
@@ -14158,7 +14158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
               let workspace = tabManager.selectedWorkspace,
               let panel = workspace.browserPanel(for: panelId) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.route panel=\(panelId.uuidString.prefix(5)) " +
                 "result=miss \(browserFocusStateSnapshot())"
             )
@@ -14166,7 +14166,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return false
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.focus.addressBar.route panel=\(panel.id.uuidString.prefix(5)) " +
             "workspace=\(workspace.id.uuidString.prefix(5)) result=hit \(browserFocusStateSnapshot())"
         )
@@ -14174,7 +14174,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         workspace.focusPanel(panel.id)
 #if DEBUG
         let focusedAfter = workspace.focusedPanelId.map { String($0.uuidString.prefix(5)) } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.focus.addressBar.route panel=\(panel.id.uuidString.prefix(5)) " +
             "workspace=\(workspace.id.uuidString.prefix(5)) focusedAfter=\(focusedAfter)"
         )
@@ -14187,7 +14187,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func openBrowserAndFocusAddressBar(url: URL? = nil, insertAtEnd: Bool = false) -> UUID? {
         guard BrowserAvailabilitySettings.isEnabled() else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.openAndFocus result=blocked_browser_disabled " +
                 "insertAtEnd=\(insertAtEnd ? 1 : 0) url=\(redactedDebugURL(url))"
             )
@@ -14204,7 +14204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             insertAtEnd: insertAtEnd
         ) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.openAndFocus result=open_failed insertAtEnd=\(insertAtEnd ? 1 : 0) " +
                 "url=\(redactedDebugURL(url)) \(browserFocusStateSnapshot())"
             )
@@ -14212,14 +14212,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return nil
         }
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.focus.openAndFocus result=open_ok panel=\(panelId.uuidString.prefix(5)) " +
             "insertAtEnd=\(insertAtEnd ? 1 : 0) url=\(redactedDebugURL(url))"
         )
 #endif
 #if DEBUG
         let didFocus = focusBrowserAddressBar(panelId: panelId)
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.focus.openAndFocus result=focus_request panel=\(panelId.uuidString.prefix(5)) " +
             "focused=\(didFocus ? 1 : 0) \(browserFocusStateSnapshot())"
         )
@@ -14234,7 +14234,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // Defensive gate: the extensions browser is part of the experimental
         // Extensions feature. Its entry points are hidden while disabled, but
         // guard here too so no other path can open it.
-        guard MosaicExtensionSidebarSelection.isEnabled else { return nil }
+        guard CotermExtensionSidebarSelection.isEnabled else { return nil }
         let preferredWindow = anchorView?.window ?? shortcutRoutingActiveWindow
         let targetTabManager = synchronizeActiveMainWindowContext(preferredWindow: preferredWindow)
         guard let workspace = targetTabManager?.selectedWorkspace,
@@ -14252,7 +14252,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func focusBrowserAddressBar(in panel: BrowserPanel) {
 #if DEBUG
         let requestId = panel.requestAddressBarFocus(selectionIntent: .selectAll)
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.focus.addressBar.request panel=\(panel.id.uuidString.prefix(5)) " +
             "request=\(requestId.uuidString.prefix(8)) \(browserFocusStateSnapshot())"
         )
@@ -14261,14 +14261,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #endif
         browserAddressBarFocusedPanelId = panel.id
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.focus.addressBar.sticky panel=\(panel.id.uuidString.prefix(5)) " +
             "request=\(requestId.uuidString.prefix(8)) \(browserFocusStateSnapshot())"
         )
 #endif
         NotificationCenter.default.post(name: .browserFocusAddressBar, object: panel.id)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.focus.addressBar.notify panel=\(panel.id.uuidString.prefix(5)) " +
             "request=\(requestId.uuidString.prefix(8))"
         )
@@ -14289,7 +14289,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         browserAddressBarFocusedPanelId = nil
         stopBrowserOmnibarSelectionRepeat()
 #if DEBUG
-        mosaicDebugLog("addressBar CLEAR panelId=\(panelId.uuidString.prefix(8)) reason=\(reason)")
+        cotermDebugLog("addressBar CLEAR panelId=\(panelId.uuidString.prefix(8)) reason=\(reason)")
 #endif
     }
 
@@ -14304,7 +14304,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #if DEBUG
             let candidatePanelId = responderPanelId ?? browserAddressBarFocusedPanelId
             guard let candidatePanelId else { return nil }
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.shortcutContext panel=\(candidatePanelId.uuidString.prefix(5)) " +
                 "accepted=0 reason=no_context event=\(NSWindow.keyDescription(event))"
             )
@@ -14317,7 +14317,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         guard let workspace = context.tabManager.selectedWorkspace else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.shortcutContext panel=\(panelId.uuidString.prefix(5)) " +
                 "accepted=0 reason=no_workspace event=\(NSWindow.keyDescription(event))"
             )
@@ -14327,7 +14327,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         guard let panel = workspace.browserPanel(for: panelId) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.shortcutContext panel=\(panelId.uuidString.prefix(5)) " +
                 "accepted=0 reason=panel_not_in_workspace workspace=\(workspace.id.uuidString.prefix(5)) " +
                 "event=\(NSWindow.keyDescription(event))"
@@ -14338,7 +14338,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if let responderPanelId {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.shortcutContext panel=\(responderPanelId.uuidString.prefix(5)) " +
                 "accepted=1 reason=omnibar_responder workspace=\(workspace.id.uuidString.prefix(5)) " +
                 "event=\(NSWindow.keyDescription(event))"
@@ -14349,7 +14349,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if intentPanelId == panelId, browserAddressBarFocusedPanelId == nil {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.shortcutContext panel=\(panelId.uuidString.prefix(5)) " +
                 "accepted=1 reason=addressbar_intent workspace=\(workspace.id.uuidString.prefix(5)) " +
                 "event=\(NSWindow.keyDescription(event))"
@@ -14370,7 +14370,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
         if shouldPreserveBrowserAddressBarTrackingDuringWebViewFocus(trackingContext) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.shortcutContext panel=\(panelId.uuidString.prefix(5)) " +
                 "accepted=1 reason=tracked_omnibar_field workspace=\(workspace.id.uuidString.prefix(5)) " +
                 "event=\(NSWindow.keyDescription(event))"
@@ -14386,7 +14386,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             liveOmnibarFieldExists: liveOmnibarFieldExists
         ) {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "browser.focus.addressBar.shortcutContext panel=\(panelId.uuidString.prefix(5)) " +
                 "accepted=1 reason=transient_omnibar_focus workspace=\(workspace.id.uuidString.prefix(5)) " +
                 "event=\(NSWindow.keyDescription(event))"
@@ -14397,7 +14397,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
 #if DEBUG
         let focusedPanel = workspace.focusedPanelId.map { String($0.uuidString.prefix(5)) } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "browser.focus.addressBar.shortcutContext panel=\(panelId.uuidString.prefix(5)) " +
             "accepted=0 reason=responder_not_omnibar responder=\(shortcutResponder.map { String(describing: type(of: $0)) } ?? "nil") " +
             "pending=\(panel.pendingAddressBarFocusRequestId != nil ? 1 : 0) focusedPanel=\(focusedPanel) " +
@@ -14431,7 +14431,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if browserOmnibarPanelId(for: responder) == panel.id {
             return true
         }
-        if mosaicOwningGhosttyView(for: responder) != nil {
+        if cotermOwningGhosttyView(for: responder) != nil {
             return false
         }
         if responder is NSTextView || responder is NSTextField {
@@ -14566,7 +14566,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     private func isLikelyWebInspectorResponder(_ responder: NSResponder?) -> Bool {
-        mosaicIsLikelyWebInspectorResponder(responder)
+        cotermIsLikelyWebInspectorResponder(responder)
     }
 #if DEBUG
     private func developerToolsShortcutProbeKind(event: NSEvent) -> String? {
@@ -14609,7 +14609,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             if let didHandle {
                 line += " handled=\(didHandle ? 1 : 0)"
             }
-            mosaicDebugLog(line)
+            cotermDebugLog(line)
             return
         }
         var line =
@@ -14618,7 +14618,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if let didHandle {
             line += " handled=\(didHandle ? 1 : 0)"
         }
-        mosaicDebugLog(line)
+        cotermDebugLog(line)
     }
 #endif
 
@@ -14638,7 +14638,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let afterResponder = keyWindow.firstResponder
         let afterType = afterResponder.map { String(describing: type(of: $0)) } ?? "nil"
         let afterPtr = afterResponder.map { String(describing: Unmanaged.passUnretained($0).toOpaque()) } ?? "nil"
-        mosaicDebugLog(
+        cotermDebugLog(
             "split.shortcut inspector.preflight dir=\(directionLabel) panel=\(browser.id.uuidString.prefix(5)) " +
             "before=\(beforeType)@\(beforePtr) after=\(afterType)@\(afterPtr) " +
             "moveWeb=\(movedToWebView ? 1 : 0) moveNil=\(movedToNil ? 1 : 0) \(browser.debugDeveloperToolsStateSummary())"
@@ -14678,9 +14678,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if let browser = tabManager?.focusedBrowserPanel {
             let webWindow = browser.webView.window?.windowNumber ?? -1
             let webSuperview = browser.webView.superview.map { String(describing: Unmanaged.passUnretained($0).toOpaque()) } ?? "nil"
-            mosaicDebugLog("split.shortcut dir=\(directionLabel) pre panel=\(browser.id.uuidString.prefix(5)) \(browser.debugDeveloperToolsStateSummary()) webWin=\(webWindow) webSuper=\(webSuperview) \(splitContext)")
+            cotermDebugLog("split.shortcut dir=\(directionLabel) pre panel=\(browser.id.uuidString.prefix(5)) \(browser.debugDeveloperToolsStateSummary()) webWin=\(webWindow) webSuper=\(webSuperview) \(splitContext)")
         } else {
-            mosaicDebugLog("split.shortcut dir=\(directionLabel) pre panel=nil \(splitContext)")
+            cotermDebugLog("split.shortcut dir=\(directionLabel) pre panel=nil \(splitContext)")
         }
         #endif
 
@@ -14730,9 +14730,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             if let browser = self?.tabManager?.focusedBrowserPanel {
                 let webWindow = browser.webView.window?.windowNumber ?? -1
                 let webSuperview = browser.webView.superview.map { String(describing: Unmanaged.passUnretained($0).toOpaque()) } ?? "nil"
-                mosaicDebugLog("split.shortcut dir=\(directionLabel) post panel=\(browser.id.uuidString.prefix(5)) \(browser.debugDeveloperToolsStateSummary()) webWin=\(webWindow) webSuper=\(webSuperview) \(splitContext)")
+                cotermDebugLog("split.shortcut dir=\(directionLabel) post panel=\(browser.id.uuidString.prefix(5)) \(browser.debugDeveloperToolsStateSummary()) webWin=\(webWindow) webSuper=\(webSuperview) \(splitContext)")
             } else {
-                mosaicDebugLog("split.shortcut dir=\(directionLabel) post panel=nil \(splitContext)")
+                cotermDebugLog("split.shortcut dir=\(directionLabel) post panel=nil \(splitContext)")
             }
         }
         recordGotoSplitSplitIfNeeded(direction: direction)
@@ -14775,7 +14775,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func handleBrowserSurfaceKeyEquivalentBeforeMainMenu(_ event: NSEvent) -> Bool {
         if matchConfiguredShortcut(event: event, action: .find) {
             let shortcutWindow = resolvedShortcutEventWindow(event)
-            mosaicRememberFindSelectionBeforePanelFocusMove(tabManager: tabManager, window: shortcutWindow ?? shortcutRoutingKeyWindow); return performFindShortcutInActiveMainWindow(preferredWindow: shortcutWindow)
+            cotermRememberFindSelectionBeforePanelFocusMove(tabManager: tabManager, window: shortcutWindow ?? shortcutRoutingKeyWindow); return performFindShortcutInActiveMainWindow(preferredWindow: shortcutWindow)
         }
         if matchConfiguredShortcut(event: event, action: .findInDirectory) {
             return focusFileSearchInActiveMainWindow(preferredWindow: resolvedShortcutEventWindow(event))
@@ -14871,7 +14871,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func requestEditWorkspaceDescriptionViaCommandPalette(preferredWindow: NSWindow? = nil) -> Bool {
         let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "shortcut.editWorkspaceDescription request target={\(debugWindowToken(targetWindow))} " +
             "fr=\(targetWindow?.firstResponder.map { String(describing: type(of: $0)) } ?? "nil")"
         )
@@ -15004,7 +15004,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         if matchConfiguredShortcut(event: event, action: .closeTab) {
 #if DEBUG
-            mosaicDebugLog("popup.panel.closeShortcut close")
+            cotermDebugLog("popup.panel.closeShortcut close")
 #endif
             popupWindow.performClose(nil)
             return true
@@ -15012,7 +15012,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if activeConfiguredShortcutChordPrefixForCurrentEvent == nil,
            armConfiguredShortcutChordIfNeeded(event: event, actions: [.closeTab]) {
 #if DEBUG
-            mosaicDebugLog("popup.panel.closeShortcut armChord")
+            cotermDebugLog("popup.panel.closeShortcut armChord")
 #endif
             return true
         }
@@ -15172,15 +15172,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return false
     }
 
-    func configuredMosaicShortcutActions(
+    func configuredCotermShortcutActions(
         for context: MainWindowContext?
-    ) -> [MosaicResolvedConfigAction] {
-        context?.mosaicConfigStore?.shortcutActions() ?? []
+    ) -> [CotermResolvedConfigAction] {
+        context?.cotermConfigStore?.shortcutActions() ?? []
     }
 
-    private func handleConfiguredMosaicShortcut(
+    private func handleConfiguredCotermShortcut(
         event: NSEvent,
-        actions: [MosaicResolvedConfigAction],
+        actions: [CotermResolvedConfigAction],
         context: MainWindowContext?
     ) -> Bool {
         for action in actions {
@@ -15188,7 +15188,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                   matchConfiguredShortcut(event: event, shortcut: shortcut) else {
                 continue
             }
-            return executeConfiguredMosaicActionShortcut(
+            return executeConfiguredCotermActionShortcut(
                 action,
                 event: event,
                 context: context
@@ -15197,13 +15197,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return false
     }
 
-    private func executeConfiguredMosaicActionShortcut(
-        _ action: MosaicResolvedConfigAction,
+    private func executeConfiguredCotermActionShortcut(
+        _ action: CotermResolvedConfigAction,
         event: NSEvent,
         context: MainWindowContext?
     ) -> Bool {
         guard let context else { return false }
-        return executeConfiguredMosaicAction(
+        return executeConfiguredCotermAction(
             action,
             context: context,
             preferredWindow: event.window ?? shortcutRoutingActiveWindow
@@ -15215,7 +15215,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     /// builtIns, joins the newly-created workspace to the given group.
     @discardableResult
     func runWorkspaceGroupConfiguredAction(
-        _ action: MosaicResolvedConfigAction,
+        _ action: CotermResolvedConfigAction,
         tabManager: TabManager,
         groupId: UUID
     ) -> Bool {
@@ -15227,7 +15227,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             let cwd = anchorId.flatMap { id in
                 tabManager.tabs.first(where: { $0.id == id })?.currentDirectory
             }
-            let configured = context.mosaicConfigStore?.resolveWorkspaceGroupConfig(forCwd: cwd)?.newWorkspacePlacement
+            let configured = context.cotermConfigStore?.resolveWorkspaceGroupConfig(forCwd: cwd)?.newWorkspacePlacement
             return configured
                 ?? UserDefaultsSettingsClient(defaults: .standard).value(for: SettingCatalog().workspaceGroups.newWorkspacePlacement)
         }()
@@ -15279,7 +15279,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 newlyCreatedId = id
                 break
             }
-            // cloudVM launches a `mosaic vm new` process and returns before the
+            // cloudVM launches a `coterm vm new` process and returns before the
             // workspace appears in tabs[]. The synchronous diff above misses
             // it, so watch the tab list while the process is running. Process
             // completion also reports the created workspace UUID as an exact
@@ -15313,14 +15313,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 workspaceId: completion.succeeded ? completion.workspaceId : nil
             )
         }
-        let didRun = executeConfiguredMosaicAction(
+        let didRun = executeConfiguredCotermAction(
             action,
             context: context,
             preferredWindow: resolvedWindow(for: context),
             onExecuted: onExecuted,
             onCloudVMCompletion: onCloudVMCompletion
         )
-        // executeConfiguredMosaicAction returns false when the action couldn't
+        // executeConfiguredCotermAction returns false when the action couldn't
         // start at all (unresolved action ref, missing target terminal, etc.).
         // In that case onExecuted will never fire, so restore the prior
         // selection here. The trust-prompt-cancelled window (action returns
@@ -15336,8 +15336,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return didRun
     }
 
-    private func executeConfiguredMosaicAction(
-        _ action: MosaicResolvedConfigAction,
+    private func executeConfiguredCotermAction(
+        _ action: CotermResolvedConfigAction,
         context: MainWindowContext,
         preferredWindow: NSWindow? = nil,
         onExecuted: (() -> Void)? = nil,
@@ -15347,15 +15347,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             PostHogAnalytics.shared.trackAction(
                 actionID: action.id,
                 surface: "configured_action",
-                entrypoint: "mosaic_config",
-                source: "AppDelegate.executeConfiguredMosaicAction"
+                entrypoint: "coterm_config",
+                source: "AppDelegate.executeConfiguredCotermAction"
             )
             PostHogAnalytics.shared.capture(
                 .buttonClicked,
                 properties: [
                     "action_id": action.id,
                     "surface": "configured_action",
-                    "entrypoint": "mosaic_config",
+                    "entrypoint": "coterm_config",
                 ]
             )
             onExecuted?()
@@ -15371,7 +15371,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 let didStart = performCloudVMAction(
                     tabManager: context.tabManager,
                     preferredWindow: resolvedWindow(for: context) ?? preferredWindow,
-                    debugSource: "configured.mosaic.cloudvm",
+                    debugSource: "configured.coterm.cloudvm",
                     onCompletion: onCloudVMCompletion
                 )
                 if didStart { trackedOnExecuted() }
@@ -15417,19 +15417,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 return didSplit
             }
         case .command, .agent, .workspaceCommand:
-            guard let mosaicConfigStore = context.mosaicConfigStore else {
+            guard let cotermConfigStore = context.cotermConfigStore else {
                 return false
             }
             let rawCwd = context.tabManager.selectedWorkspace?.currentDirectory
             let baseCwd = (rawCwd?.isEmpty == false) ? rawCwd!
                 : FileManager.default.homeDirectoryForCurrentUser.path
-            return MosaicConfigExecutor.execute(
+            return CotermConfigExecutor.execute(
                 action: action,
-                commands: mosaicConfigStore.loadedCommands,
-                commandSourcePaths: mosaicConfigStore.commandSourcePaths,
+                commands: cotermConfigStore.loadedCommands,
+                commandSourcePaths: cotermConfigStore.commandSourcePaths,
                 tabManager: context.tabManager,
                 baseCwd: baseCwd,
-                globalConfigPath: mosaicConfigStore.globalConfigPath,
+                globalConfigPath: cotermConfigStore.globalConfigPath,
                 presentingWindow: preferredWindow,
                 onExecuted: trackedOnExecuted
             )
@@ -15460,7 +15460,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return matchShortcut(event: event, shortcut: shortcut)
     }
 
-    func shouldSuppressStaleMosaicMenuShortcut(event: NSEvent) -> Bool {
+    func shouldSuppressStaleCotermMenuShortcut(event: NSEvent) -> Bool {
         guard event.type == .keyDown else { return false }
         // While a Settings recorder is armed, every keystroke must reach it to be
         // captured — including a remapped-away default like the old ⌘1 the user is
@@ -15809,7 +15809,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return
         }
         let embeddedCLIURL = Bundle.main.bundleURL
-            .appendingPathComponent("Contents/Resources/bin/mosaic", isDirectory: false)
+            .appendingPathComponent("Contents/Resources/bin/coterm", isDirectory: false)
             .standardizedFileURL
             .resolvingSymlinksInPath()
         let currentPid = ProcessInfo.processInfo.processIdentifier
@@ -15878,12 +15878,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let center = NotificationCenter.default
         windowKeyObservers.append(center.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) { [weak self] note in
             MainActor.assumeIsolated {
-                self?.handleMosaicWindowBecameKey(note)
+                self?.handleCotermWindowBecameKey(note)
             }
         })
         windowKeyObservers.append(center.addObserver(forName: NSWindow.didResignKeyNotification, object: nil, queue: .main) { [weak self] note in
             MainActor.assumeIsolated {
-                self?.handleMosaicWindowResignedKey(note)
+                self?.handleCotermWindowResignedKey(note)
             }
         })
     }
@@ -15904,7 +15904,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             self.browserAddressBarFocusedPanelId = panelId
             self.stopBrowserOmnibarSelectionRepeat()
 #if DEBUG
-            mosaicDebugLog("addressBar FOCUS panelId=\(panelId.uuidString.prefix(8))")
+            cotermDebugLog("addressBar FOCUS panelId=\(panelId.uuidString.prefix(8))")
 #endif
         }
 
@@ -15920,7 +15920,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 self.browserAddressBarFocusedPanelId = nil
                 self.stopBrowserOmnibarSelectionRepeat()
 #if DEBUG
-                mosaicDebugLog("addressBar BLUR panelId=\(panelId.uuidString.prefix(8))")
+                cotermDebugLog("addressBar BLUR panelId=\(panelId.uuidString.prefix(8))")
 #endif
             }
         }
@@ -15938,7 +15938,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     @MainActor
     private func handleBrowserWebViewFirstResponderNotification(_ notification: Notification) {
-        guard let webView = notification.object as? MosaicWebView,
+        guard let webView = notification.object as? CotermWebView,
               let panel = browserPanelOwning(webView) else { return }
         let pointerInitiatedKey = BrowserFirstResponderNotificationUserInfoKey.pointerInitiated
         let pointerInitiated = notification.userInfo?[pointerInitiatedKey] as? Bool ?? false
@@ -15956,7 +15956,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             browserAddressBarFocusedPanelId = nil
             stopBrowserOmnibarSelectionRepeat()
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "addressBar CLEAR panelId=\(trackedPanelId.uuidString.prefix(8)) " +
                 "reason=stale_other_panel_webViewFirstResponder"
             )
@@ -15970,7 +15970,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             in: webView.window
         ) else {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "addressBar CLEAR panelId=\(panel.id.uuidString.prefix(8)) " +
                 "reason=skip_preserve_omnibar_handoff pointer=\(pointerInitiated ? 1 : 0)"
             )
@@ -15982,7 +15982,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             browserAddressBarFocusedPanelId = nil
             stopBrowserOmnibarSelectionRepeat()
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "addressBar CLEAR panelId=\(panel.id.uuidString.prefix(8)) " +
                 "reason=webViewFirstResponder"
             )
@@ -15994,11 +15994,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return workspaceContainingPanel(panelId: panelId)?.workspace.browserPanel(for: panelId)
     }
 
-    func browserFindBarIsVisible(for webView: MosaicWebView) -> Bool {
+    func browserFindBarIsVisible(for webView: CotermWebView) -> Bool {
         browserPanelOwning(webView)?.searchState != nil
     }
 
-    func isBrowserFocusModeActive(for webView: MosaicWebView) -> Bool {
+    func isBrowserFocusModeActive(for webView: CotermWebView) -> Bool {
         browserPanelOwning(webView)?.isBrowserFocusModeActive == true
     }
 
@@ -16014,7 +16014,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // context-menu / web-view-focus entrypoints can focus a WKWebView without
         // updating focusedPanelId. Then confirm that web view actually holds focus,
         // so the bypass stops once focus moves to the sidebar/terminal (where the
-        // page can't run the double-Escape exit anyway and mosaic shortcuts must work).
+        // page can't run the double-Escape exit anyway and coterm shortcuts must work).
         guard let panel = shortcutEventBrowserPanel(event),
               panel.isBrowserFocusModeActive,
               isWebViewFocused(panel) else {
@@ -16025,13 +16025,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     func handleBrowserFocusModeKeyEvent(
         _ event: NSEvent,
-        webView: MosaicWebView,
+        webView: CotermWebView,
         source: String
     ) -> BrowserFocusModeKeyDecision {
         browserPanelOwning(webView)?.handleBrowserFocusModeKeyEvent(event, reason: source) ?? .inactive
     }
 
-    func browserFocusModeContextMenuState(for webView: MosaicWebView) -> (isActive: Bool, canToggle: Bool) {
+    func browserFocusModeContextMenuState(for webView: CotermWebView) -> (isActive: Bool, canToggle: Bool) {
         guard let panel = browserPanelOwning(webView) else {
             return (isActive: false, canToggle: false)
         }
@@ -16039,7 +16039,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     @discardableResult
-    func toggleBrowserFocusModeFromContextMenu(for webView: MosaicWebView) -> Bool {
+    func toggleBrowserFocusModeFromContextMenu(for webView: CotermWebView) -> Bool {
         guard let panel = browserPanelOwning(webView) else { return false }
         return panel.toggleBrowserFocusMode(reason: "contextMenu", focusWebView: true)
     }
@@ -16047,7 +16047,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private func shouldLetFocusedBrowserOwnFindShortcut(_ event: NSEvent) -> Bool {
         let shortcutWindow = resolvedShortcutEventWindow(event) ?? shortcutRoutingActiveWindow
         let shortcutResponder = shortcutWindow?.firstResponder
-        let owningWebView = tabManager?.focusedBrowserPanel?.webView as? MosaicWebView
+        let owningWebView = tabManager?.focusedBrowserPanel?.webView as? CotermWebView
         guard let owningWebView else { return false }
         return shouldRouteBrowserFindCommandEquivalentThroughWebContentFirst(
             event,
@@ -16056,7 +16056,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
     }
 
-    private func browserPanelOwning(_ webView: MosaicWebView) -> BrowserPanel? {
+    private func browserPanelOwning(_ webView: CotermWebView) -> BrowserPanel? {
         var candidateManagers: [TabManager] = []
         var seenManagers = Set<ObjectIdentifier>()
 
@@ -16084,7 +16084,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return nil
     }
 
-    private func browserPanelOwning(_ webView: MosaicWebView, in manager: TabManager) -> BrowserPanel? {
+    private func browserPanelOwning(_ webView: CotermWebView, in manager: TabManager) -> BrowserPanel? {
         for workspace in manager.tabs {
             if let panel = workspace.panels.values
                 .compactMap({ $0 as? BrowserPanel })
@@ -16118,7 +16118,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #endif
         activateMainWindowContext(context)
 #if DEBUG
-        mosaicDebugLog(
+        cotermDebugLog(
             "mainWindow.active window={\(debugWindowToken(window))} context={\(debugContextToken(context))} beforeMgr=\(beforeManagerToken) afterMgr=\(debugManagerToken(tabManager)) \(debugShortcutRouteSnapshot())"
         )
 #endif
@@ -16159,7 +16159,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         mainWindowVisibilityController.discardClosedWindow(window)
 
         guard let removed = unregisterMainWindowContext(for: window) else { return }
-        publishMosaicWindowLifecycle(name: "window.closed", windowId: removed.windowId, origin: "appkit_close")
+        publishCotermWindowLifecycle(name: "window.closed", windowId: removed.windowId, origin: "appkit_close")
         commandPaletteWindowStore.removeWindow(removed.windowId)
 
         // Avoid stale notifications that can no longer be opened once the owning window is gone.
@@ -16204,7 +16204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             includeScrollback: includeScrollback,
             restorableAgentIndex: restorableAgentIndex
         )
-        let pruned = SessionPersistencePolicy.pruningMosaicCrashDiagnosticWindows(
+        let pruned = SessionPersistencePolicy.pruningCotermCrashDiagnosticWindows(
             from: AppSessionSnapshot(
                 version: SessionSnapshotSchema.currentVersion,
                 createdAt: Date().timeIntervalSince1970,
@@ -16263,7 +16263,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return true
         }
         guard let raw = window.identifier?.rawValue else { return false }
-        return raw == "mosaic.main" || raw.hasPrefix("mosaic.main.")
+        return raw == "coterm.main" || raw.hasPrefix("coterm.main.")
     }
 
     private func workspaceForMainActor(tabId: UUID) -> Workspace? {
@@ -16281,7 +16281,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         closeMainWindowContainingTabIdObserverForTesting?(tabId, recordHistory)
 #endif
         guard let context = contextContainingTabId(tabId) else { return }
-        let expectedIdentifier = "mosaic.main.\(context.windowId.uuidString)"
+        let expectedIdentifier = "coterm.main.\(context.windowId.uuidString)"
         let window: NSWindow? = context.window ?? NSApp.windows.first(where: { $0.identifier?.rawValue == expectedIdentifier })
         if !recordHistory {
             closedWindowHistorySuppressedWindowIds.insert(context.windowId)
@@ -16324,7 +16324,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     @discardableResult
     func openNotification(tabId: UUID, surfaceId: UUID?, notificationId: UUID?) -> Bool {
 #if DEBUG
-        let isJumpUnreadUITest = ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1"
+        let isJumpUnreadUITest = ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1"
         if isJumpUnreadUITest {
             writeJumpUnreadTestData([
                 "jumpUnreadOpenCalled": "1",
@@ -16364,7 +16364,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     func openNotificationInContext(_ context: MainWindowContext, tabId: UUID, surfaceId: UUID?, notificationId: UUID?) -> Bool {
-        let expectedIdentifier = "mosaic.main.\(context.windowId.uuidString)"
+        let expectedIdentifier = "coterm.main.\(context.windowId.uuidString)"
         let window: NSWindow? = context.window ?? NSApp.windows.first(where: { $0.identifier?.rawValue == expectedIdentifier })
         guard let window else {
 #if DEBUG
@@ -16388,7 +16388,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 notificationId: notificationId,
                 reason: "focus_failed"
             )
-            if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+            if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
                 writeJumpUnreadTestData(["jumpUnreadOpenResult": "0"])
             }
 #endif
@@ -16416,7 +16416,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             surfaceId: surfaceId,
             sidebarSelection: context.sidebarSelectionState.selection
         )
-        if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+        if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
             writeJumpUnreadTestData(["jumpUnreadOpenInContext": "1", "jumpUnreadOpenResult": "1"])
         }
 #endif
@@ -16427,7 +16427,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // If the owning window context hasn't been registered yet, fall back to the "active" window.
         guard let tabManager else {
 #if DEBUG
-            if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+            if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
                 writeJumpUnreadTestData(["jumpUnreadFallbackFail": "missing_tabManager"])
             }
 #endif
@@ -16435,7 +16435,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
         guard tabManager.tabs.contains(where: { $0.id == tabId }) else {
 #if DEBUG
-            if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+            if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
                 writeJumpUnreadTestData(["jumpUnreadFallbackFail": "tab_not_in_active_manager"])
             }
 #endif
@@ -16443,7 +16443,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
         guard let window = (NSApp.keyWindow ?? NSApp.windows.first(where: { isMainTerminalWindow($0) })) else {
 #if DEBUG
-            if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+            if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
                 writeJumpUnreadTestData(["jumpUnreadFallbackFail": "missing_window"])
             }
 #endif
@@ -16454,7 +16454,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         bringToFront(window)
         guard tabManager.focusTabFromNotification(tabId, surfaceId: surfaceId) else {
 #if DEBUG
-            if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+            if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
                 writeJumpUnreadTestData([
                     "jumpUnreadFallbackFail": "focus_failed",
                     "jumpUnreadOpenResult": "0",
@@ -16476,7 +16476,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             store.markRead(id: notificationId)
         }
 #if DEBUG
-        if ProcessInfo.processInfo.environment["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
+        if ProcessInfo.processInfo.environment["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" {
             writeJumpUnreadTestData(["jumpUnreadOpenInFallback": "1", "jumpUnreadOpenResult": "1"])
         }
 #endif
@@ -16490,7 +16490,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         expectedSurfaceId: UUID?
     ) {
         let env = ProcessInfo.processInfo.environment
-        guard env["MOSAIC_UI_TEST_JUMP_UNREAD_SETUP"] == "1" else { return }
+        guard env["COTERM_UI_TEST_JUMP_UNREAD_SETUP"] == "1" else { return }
         guard let expectedSurfaceId else { return }
 
         // Ensure the expectation is armed even if the view doesn't become first responder.
@@ -16576,7 +16576,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         reason: String
     ) {
         let env = ProcessInfo.processInfo.environment
-        guard let path = env["MOSAIC_UI_TEST_MULTI_WINDOW_NOTIF_PATH"], !path.isEmpty else { return }
+        guard let path = env["COTERM_UI_TEST_MULTI_WINDOW_NOTIF_PATH"], !path.isEmpty else { return }
 
         let contextSummaries: [String] = mainWindowContexts.values.map { ctx in
             let tabIds = ctx.tabManager.tabs.map { $0.id.uuidString }.joined(separator: ",")
@@ -16598,24 +16598,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 }
 
 #if DEBUG
-private var mosaicFirstResponderGuardCurrentEventOverride: NSEvent?
-private var mosaicFirstResponderGuardHitViewOverride: NSView?
+private var cotermFirstResponderGuardCurrentEventOverride: NSEvent?
+private var cotermFirstResponderGuardHitViewOverride: NSView?
 #endif
-private var mosaicFirstResponderGuardCurrentEventContext: NSEvent?
-private var mosaicFirstResponderGuardHitViewContext: NSView?
-private var mosaicFirstResponderGuardContextWindowNumber: Int?
-private var mosaicFieldEditorOwningWebViewAssociationKey: UInt8 = 0
+private var cotermFirstResponderGuardCurrentEventContext: NSEvent?
+private var cotermFirstResponderGuardHitViewContext: NSView?
+private var cotermFirstResponderGuardContextWindowNumber: Int?
+private var cotermFieldEditorOwningWebViewAssociationKey: UInt8 = 0
 
-private final class MosaicFieldEditorOwningWebViewBox: NSObject {
-    weak var webView: MosaicWebView?
+private final class CotermFieldEditorOwningWebViewBox: NSObject {
+    weak var webView: CotermWebView?
 
-    init(webView: MosaicWebView?) {
+    init(webView: CotermWebView?) {
         self.webView = webView
     }
 }
 
 private extension NSApplication {
-    @objc func mosaic_accessibilityAttributeValue(_ attribute: NSAccessibility.Attribute) -> Any? {
+    @objc func coterm_accessibilityAttributeValue(_ attribute: NSAccessibility.Attribute) -> Any? {
         if Thread.isMainThread, let cache = AppDelegate.shared?.accessibilityWindowCache {
             switch cache.resolve(
                 attribute: attribute,
@@ -16628,27 +16628,27 @@ private extension NSApplication {
             }
         }
 
-        return mosaic_accessibilityAttributeValue(attribute)
+        return coterm_accessibilityAttributeValue(attribute)
     }
 
-    @objc func mosaic_applicationSendEvent(_ event: NSEvent) {
+    @objc func coterm_applicationSendEvent(_ event: NSEvent) {
 #if DEBUG
-        let typingTimingStart = event.type == .keyDown ? MosaicTypingTiming.start() : nil
+        let typingTimingStart = event.type == .keyDown ? CotermTypingTiming.start() : nil
         let phaseTotalStart = event.type == .keyDown ? ProcessInfo.processInfo.systemUptime : 0
         if event.type == .keyDown {
-            MosaicTypingTiming.logEventDelay(path: "app.sendEvent", event: event)
+            CotermTypingTiming.logEventDelay(path: "app.sendEvent", event: event)
         }
         defer {
             if event.type == .keyDown {
                 let totalMs = (ProcessInfo.processInfo.systemUptime - phaseTotalStart) * 1000.0
-                MosaicTypingTiming.logBreakdown(
+                CotermTypingTiming.logBreakdown(
                     path: "app.sendEvent.phase",
                     totalMs: totalMs,
                     event: event,
                     thresholdMs: 1.0,
                     parts: [("dispatchMs", totalMs)]
                 )
-                MosaicTypingTiming.logDuration(
+                CotermTypingTiming.logDuration(
                     path: "app.sendEvent",
                     startedAt: typingTimingStart,
                     event: event
@@ -16670,41 +16670,41 @@ private extension NSApplication {
         ) {
             return
         }
-        if AppDelegate.shared?.shouldSuppressStaleMosaicMenuShortcut(event: event) == true {
+        if AppDelegate.shared?.shouldSuppressStaleCotermMenuShortcut(event: event) == true {
             if AppDelegate.shared?.handleFocusedFileExplorerOpenSelectionShortcut(
                 event,
                 preferredWindow: event.window ?? keyWindow ?? mainWindow
             ) == true {
 #if DEBUG
-                mosaicDebugLog("app.sendEvent routed file explorer shortcut before stale mosaic menu shortcut")
+                cotermDebugLog("app.sendEvent routed file explorer shortcut before stale coterm menu shortcut")
 #endif
                 return
             }
             if AppDelegate.shared?.handleConfiguredShortcutKeyEquivalent(event) == true {
 #if DEBUG
-                mosaicDebugLog("app.sendEvent routed configured shortcut before stale mosaic menu shortcut")
+                cotermDebugLog("app.sendEvent routed configured shortcut before stale coterm menu shortcut")
 #endif
                 return
             }
             let responder = event.window?.firstResponder
                 ?? AppDelegate.shared?.shortcutRoutingKeyWindow?.firstResponder
                 ?? mainWindow?.firstResponder
-            if let ghosttyView = mosaicOwningGhosttyView(for: responder) {
+            if let ghosttyView = cotermOwningGhosttyView(for: responder) {
                 ghosttyView.keyDown(with: event)
 #if DEBUG
-                mosaicDebugLog("app.sendEvent suppressed stale mosaic menu shortcut and forwarded to terminal")
+                cotermDebugLog("app.sendEvent suppressed stale coterm menu shortcut and forwarded to terminal")
 #endif
             } else {
 #if DEBUG
-                mosaicDebugLog("app.sendEvent suppressed stale mosaic menu shortcut")
+                cotermDebugLog("app.sendEvent suppressed stale coterm menu shortcut")
 #endif
             }
             return
         }
-        mosaic_applicationSendEvent(event)
+        coterm_applicationSendEvent(event)
     }
 
-    @objc func mosaic_sendAction(_ action: Selector, to target: Any?, from sender: Any?) -> Bool {
+    @objc func coterm_sendAction(_ action: Selector, to target: Any?, from sender: Any?) -> Bool {
         if AppDelegate.shared?.handleDetachedInspectorWindowCloseAction(
             action: action,
             target: target,
@@ -16713,7 +16713,7 @@ private extension NSApplication {
             return true
         }
 
-        return mosaic_sendAction(action, to: target, from: sender)
+        return coterm_sendAction(action, to: target, from: sender)
     }
 }
 
@@ -16745,7 +16745,7 @@ private extension AppDelegate {
                     source: "sendAction.\(NSStringFromSelector(action))"
                 ) {
 #if DEBUG
-                    mosaicDebugLog(
+                    cotermDebugLog(
                         "browser.devtools detachedClose.action panel=\(panel.id.uuidString.prefix(5)) " +
                         "action=\(NSStringFromSelector(action)) window=\(window.windowNumber)"
                     )
@@ -16873,66 +16873,66 @@ private extension AppDelegate {
             return
         }
 
-        let source = GhosttySurfaceConfigurationRefresh.mosaicThemeReloadSource(
+        let source = GhosttySurfaceConfigurationRefresh.cotermThemeReloadSource(
             phase: notification.userInfo?["phase"] as? String
         )
         DispatchQueue.main.async {
-            self.reloadGhosttyConfigurationForMosaicThemeSource(source)
+            self.reloadGhosttyConfigurationForCotermThemeSource(source)
         }
     }
 
-    func reloadGhosttyConfigurationForMosaicThemeSource(_ source: String) {
-        if GhosttySurfaceConfigurationRefresh.shouldDebounceMosaicThemeReload(source: source) {
-            mosaicThemePreviewReloadGeneration += 1
-            let generation = mosaicThemePreviewReloadGeneration
-            mosaicThemePreviewReloadWorkItem?.cancel()
+    func reloadGhosttyConfigurationForCotermThemeSource(_ source: String) {
+        if GhosttySurfaceConfigurationRefresh.shouldDebounceCotermThemeReload(source: source) {
+            cotermThemePreviewReloadGeneration += 1
+            let generation = cotermThemePreviewReloadGeneration
+            cotermThemePreviewReloadWorkItem?.cancel()
 
             let workItem = DispatchWorkItem { [weak self] in
                 guard let self,
-                      self.mosaicThemePreviewReloadGeneration == generation else { return }
-                self.mosaicThemePreviewReloadWorkItem = nil
+                      self.cotermThemePreviewReloadGeneration == generation else { return }
+                self.cotermThemePreviewReloadWorkItem = nil
                 self.reloadConfiguration(source: source)
             }
-            mosaicThemePreviewReloadWorkItem = workItem
+            cotermThemePreviewReloadWorkItem = workItem
             DispatchQueue.main.asyncAfter(
                 deadline: .now() + .milliseconds(
-                    GhosttySurfaceConfigurationRefresh.mosaicThemePreviewReloadDebounceMilliseconds
+                    GhosttySurfaceConfigurationRefresh.cotermThemePreviewReloadDebounceMilliseconds
                 ),
                 execute: workItem
             )
             return
         }
 
-        mosaicThemePreviewReloadGeneration += 1
-        mosaicThemePreviewReloadWorkItem?.cancel()
-        mosaicThemePreviewReloadWorkItem = nil
+        cotermThemePreviewReloadGeneration += 1
+        cotermThemePreviewReloadWorkItem?.cancel()
+        cotermThemePreviewReloadWorkItem = nil
         reloadConfiguration(source: source)
     }
 }
 
 private extension NSWindow {
-    static func mosaicCommandPaletteOwnsFieldEditor(_ textView: NSTextView?, in window: NSWindow) -> Bool {
+    static func cotermCommandPaletteOwnsFieldEditor(_ textView: NSTextView?, in window: NSWindow) -> Bool {
         guard let textView,
               textView.isFieldEditor,
               textView.window === window else {
             return false
         }
 
-        if let ownerView = mosaicFieldEditorOwnerView(textView) {
-            guard let container = mosaicCommandPaletteOverlayAncestor(of: ownerView) else {
+        if let ownerView = cotermFieldEditorOwnerView(textView) {
+            guard let container = cotermCommandPaletteOverlayAncestor(of: ownerView) else {
                 return false
             }
-            return mosaicCommandPaletteOverlayIsPresented(container)
+            return cotermCommandPaletteOverlayIsPresented(container)
         }
 
-        guard let container = mosaicCommandPaletteOverlayContainer(in: window) else {
+        guard let container = cotermCommandPaletteOverlayContainer(in: window) else {
             return false
         }
 
-        return mosaicCommandPaletteOverlayIsPresented(container)
+        return cotermCommandPaletteOverlayIsPresented(container)
     }
 
-    private static func mosaicCommandPaletteOverlayAncestor(of view: NSView) -> NSView? {
+    private static func cotermCommandPaletteOverlayAncestor(of view: NSView) -> NSView? {
         var current: NSView? = view
         while let candidate = current {
             if candidate.identifier == commandPaletteOverlayContainerIdentifier {
@@ -16943,11 +16943,11 @@ private extension NSWindow {
         return nil
     }
 
-    private static func mosaicCommandPaletteOverlayIsPresented(_ container: NSView) -> Bool {
+    private static func cotermCommandPaletteOverlayIsPresented(_ container: NSView) -> Bool {
         !container.isHidden && container.alphaValue > 0.001
     }
 
-    private static func mosaicCommandPaletteOverlayContainer(in window: NSWindow) -> NSView? {
+    private static func cotermCommandPaletteOverlayContainer(in window: NSWindow) -> NSView? {
         guard let searchRoot = window.contentView?.superview ?? window.contentView else {
             return nil
         }
@@ -16961,10 +16961,10 @@ private extension NSWindow {
         return nil
     }
 
-    @objc func mosaic_makeFirstResponder(_ responder: NSResponder?) -> Bool {
+    @objc func coterm_makeFirstResponder(_ responder: NSResponder?) -> Bool {
         if AppDelegate.shared?.browserFirstResponderBypass.isActive == true {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "focus.guard bypassFirstResponder responder=\(String(describing: responder.map { type(of: $0) })) " +
                 "window=\(ObjectIdentifier(self))"
             )
@@ -16972,9 +16972,9 @@ private extension NSWindow {
             return false
         }
 
-        let currentEvent = Self.mosaicCurrentEvent(for: self)
+        let currentEvent = Self.cotermCurrentEvent(for: self)
         let responderWebView = responder.flatMap {
-            Self.mosaicOwningWebView(for: $0, in: self, event: currentEvent)
+            Self.cotermOwningWebView(for: $0, in: self, event: currentEvent)
         }
         var pointerInitiatedWebFocus = false
         var pointerInitiatedTerminalFocus = false
@@ -16984,7 +16984,7 @@ private extension NSWindow {
             responder: responder
         ) == true {
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "focus.guard commandPaletteBlocked responder=\(String(describing: responder.map { type(of: $0) })) " +
                 "window=\(ObjectIdentifier(self))"
             )
@@ -16993,7 +16993,7 @@ private extension NSWindow {
         }
 
         if let request = AppDelegate.shared?.terminalKeyboardFocusRequest(for: responder),
-           Self.mosaicShouldAllowPointerInitiatedTerminalFocus(
+           Self.cotermShouldAllowPointerInitiatedTerminalFocus(
                window: self,
                request: request,
                event: currentEvent
@@ -17005,7 +17005,7 @@ private extension NSWindow {
                 in: self
             )
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "focus.guard allowPointerTerminalFirstResponder " +
                 "window=\(ObjectIdentifier(self)) " +
                 "workspace=\(request.workspaceId.uuidString.prefix(5)) " +
@@ -17038,7 +17038,7 @@ private extension NSWindow {
         if let responder,
            let webView = responderWebView,
            !webView.allowsFirstResponderAcquisitionEffective {
-            let pointerInitiatedFocus = Self.mosaicShouldAllowPointerInitiatedWebViewFocus(
+            let pointerInitiatedFocus = Self.cotermShouldAllowPointerInitiatedWebViewFocus(
                 window: self,
                 webView: webView,
                 event: currentEvent
@@ -17046,7 +17046,7 @@ private extension NSWindow {
             if pointerInitiatedFocus {
                 pointerInitiatedWebFocus = true
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "focus.guard allowPointerFirstResponder responder=\(String(describing: type(of: responder))) " +
                     "window=\(ObjectIdentifier(self)) " +
                     "web=\(ObjectIdentifier(webView)) " +
@@ -17057,7 +17057,7 @@ private extension NSWindow {
 #endif
             } else {
 #if DEBUG
-                mosaicDebugLog(
+                cotermDebugLog(
                     "focus.guard blockedFirstResponder responder=\(String(describing: type(of: responder))) " +
                     "window=\(ObjectIdentifier(self)) " +
                     "web=\(ObjectIdentifier(webView)) " +
@@ -17072,7 +17072,7 @@ private extension NSWindow {
 #if DEBUG
         if let responder,
            let webView = responderWebView {
-            mosaicDebugLog(
+            cotermDebugLog(
                 "focus.guard allowFirstResponder responder=\(String(describing: type(of: responder))) " +
                 "window=\(ObjectIdentifier(self)) " +
                 "web=\(ObjectIdentifier(webView)) " +
@@ -17083,19 +17083,19 @@ private extension NSWindow {
 #endif
         let result: Bool
         if pointerInitiatedWebFocus, let webView = responderWebView {
-            // `NSWindow.makeFirstResponder` may run before `MosaicWebView.mouseDown(with:)`.
+            // `NSWindow.makeFirstResponder` may run before `CotermWebView.mouseDown(with:)`.
             // Preserve pointer intent during this synchronous responder change.
             result = webView.withPointerFocusAllowance {
-                mosaic_makeFirstResponder(responder)
+                coterm_makeFirstResponder(responder)
             }
         } else {
-            result = mosaic_makeFirstResponder(responder)
+            result = coterm_makeFirstResponder(responder)
         }
         if result {
             if let fieldEditor = responder as? NSTextView, fieldEditor.isFieldEditor {
-                Self.mosaicTrackFieldEditor(fieldEditor, owningWebView: responderWebView)
+                Self.cotermTrackFieldEditor(fieldEditor, owningWebView: responderWebView)
             } else if let fieldEditor = self.firstResponder as? NSTextView, fieldEditor.isFieldEditor {
-                Self.mosaicTrackFieldEditor(fieldEditor, owningWebView: responderWebView)
+                Self.cotermTrackFieldEditor(fieldEditor, owningWebView: responderWebView)
             }
             AppDelegate.shared?.syncKeyboardFocusAfterFirstResponderChange(in: self)
         } else if pointerInitiatedTerminalFocus {
@@ -17104,9 +17104,9 @@ private extension NSWindow {
         return result
     }
 
-    @objc func mosaic_sendEvent(_ event: NSEvent) {
+    @objc func coterm_sendEvent(_ event: NSEvent) {
 #if DEBUG
-        let typingTimingStart = event.type == .keyDown ? MosaicTypingTiming.start() : nil
+        let typingTimingStart = event.type == .keyDown ? CotermTypingTiming.start() : nil
         let phaseTotalStart = event.type == .keyDown ? ProcessInfo.processInfo.systemUptime : 0
         var contextSetupMs: Double = 0
         var focusRepairMs: Double = 0
@@ -17115,18 +17115,18 @@ private extension NSWindow {
         let typingTimingExtra: String? = {
             guard event.type == .keyDown else { return nil }
             let responderWebView = self.firstResponder.flatMap {
-                Self.mosaicOwningWebView(for: $0, in: self, event: event)
+                Self.cotermOwningWebView(for: $0, in: self, event: event)
             }
             let firstResponderType = self.firstResponder.map { String(describing: type(of: $0)) } ?? "nil"
             return "browser=\(responderWebView != nil ? 1 : 0) firstResponder=\(firstResponderType)"
         }()
         if event.type == .keyDown {
-            MosaicTypingTiming.logEventDelay(path: "window.sendEvent", event: event)
+            CotermTypingTiming.logEventDelay(path: "window.sendEvent", event: event)
         }
 #endif
         // recordTypingActivity must run in all builds so runSessionAutosaveTick
         // can honor the typing quiet period in release.
-        if event.type == .keyDown, let app = AppDelegate.shared, mosaicCloseFocusedTerminalFindForEscape(event: event, appDelegate: app) { return }
+        if event.type == .keyDown, let app = AppDelegate.shared, cotermCloseFocusedTerminalFindForEscape(event: event, appDelegate: app) { return }
         if event.type == .keyDown { AppDelegate.shared?.recordTypingActivity() }
         if event.type == .leftMouseDown,
            AppDelegate.shared?.handleMinimalModeSidebarChromeMouseDown(window: self, event: event) == true {
@@ -17136,7 +17136,7 @@ private extension NSWindow {
         defer {
             if event.type == .keyDown {
                 let totalMs = (ProcessInfo.processInfo.systemUptime - phaseTotalStart) * 1000.0
-                MosaicTypingTiming.logBreakdown(
+                CotermTypingTiming.logBreakdown(
                     path: "window.sendEvent.phase",
                     totalMs: totalMs,
                     event: event,
@@ -17149,7 +17149,7 @@ private extension NSWindow {
                     ],
                     extra: typingTimingExtra
                 )
-                MosaicTypingTiming.logDuration(
+                CotermTypingTiming.logDuration(
                     path: "window.sendEvent",
                     startedAt: typingTimingStart,
                     event: event,
@@ -17159,12 +17159,12 @@ private extension NSWindow {
         }
         let contextSetupStart = event.type == .keyDown ? ProcessInfo.processInfo.systemUptime : 0
 #endif
-        let previousContextEvent = mosaicFirstResponderGuardCurrentEventContext
-        let previousContextHitView = mosaicFirstResponderGuardHitViewContext
-        let previousContextWindowNumber = mosaicFirstResponderGuardContextWindowNumber
-        mosaicFirstResponderGuardCurrentEventContext = event
-        mosaicFirstResponderGuardHitViewContext = Self.mosaicHitViewForFirstResponderGuard(in: self, event: event)
-        mosaicFirstResponderGuardContextWindowNumber = self.windowNumber
+        let previousContextEvent = cotermFirstResponderGuardCurrentEventContext
+        let previousContextHitView = cotermFirstResponderGuardHitViewContext
+        let previousContextWindowNumber = cotermFirstResponderGuardContextWindowNumber
+        cotermFirstResponderGuardCurrentEventContext = event
+        cotermFirstResponderGuardHitViewContext = Self.cotermHitViewForFirstResponderGuard(in: self, event: event)
+        cotermFirstResponderGuardContextWindowNumber = self.windowNumber
 #if DEBUG
         if event.type == .keyDown {
             contextSetupMs = (ProcessInfo.processInfo.systemUptime - contextSetupStart) * 1000.0
@@ -17184,9 +17184,9 @@ private extension NSWindow {
         let folderGuardStart = event.type == .keyDown ? ProcessInfo.processInfo.systemUptime : 0
 #endif
         defer {
-            mosaicFirstResponderGuardCurrentEventContext = previousContextEvent
-            mosaicFirstResponderGuardHitViewContext = previousContextHitView
-            mosaicFirstResponderGuardContextWindowNumber = previousContextWindowNumber
+            cotermFirstResponderGuardCurrentEventContext = previousContextEvent
+            cotermFirstResponderGuardHitViewContext = previousContextHitView
+            cotermFirstResponderGuardContextWindowNumber = previousContextWindowNumber
         }
 
         let suppressionReason = beginOrContinueWindowMoveSuppressionSequenceForEvent(window: self, event: event)
@@ -17196,12 +17196,12 @@ private extension NSWindow {
             if event.type == .keyDown {
                 folderGuardMs = (ProcessInfo.processInfo.systemUptime - folderGuardStart) * 1000.0
                 let originalDispatchStart = ProcessInfo.processInfo.systemUptime
-                mosaic_sendEvent(event)
+                coterm_sendEvent(event)
                 originalDispatchMs = (ProcessInfo.processInfo.systemUptime - originalDispatchStart) * 1000.0
                 return
             }
 #endif
-            mosaic_sendEvent(event)
+            coterm_sendEvent(event)
             return
         }
 #if DEBUG
@@ -17214,7 +17214,7 @@ private extension NSWindow {
 
 #if DEBUG
         let hitView = WindowInputRoutingContext(event: event).allowsPortalPointerHitTesting
-            ? Self.mosaicHitViewForEventDispatch(in: self, event: event)
+            ? Self.cotermHitViewForEventDispatch(in: self, event: event)
             : nil
 #endif
         defer {
@@ -17227,9 +17227,9 @@ private extension NSWindow {
             #if DEBUG
             let reasonDescription = finishedReason?.rawValue ?? suppressionReason?.rawValue ?? "activeSequence"
             if shouldFinishSuppression {
-                mosaicDebugLog("window.sendEvent.\(reasonDescription) finish nowMovable=\(isMovable)")
+                cotermDebugLog("window.sendEvent.\(reasonDescription) finish nowMovable=\(isMovable)")
             } else {
-                mosaicDebugLog("window.sendEvent.\(reasonDescription) keepSuppressed nowMovable=\(isMovable)")
+                cotermDebugLog("window.sendEvent.\(reasonDescription) keepSuppressed nowMovable=\(isMovable)")
             }
             #endif
         }
@@ -17238,10 +17238,10 @@ private extension NSWindow {
         let hitDesc = hitView.map { String(describing: type(of: $0)) } ?? "nil"
         let depth = windowDragSuppressionDepth(window: self)
         let reasonDescription = suppressionReason?.rawValue ?? "activeSequence"
-        mosaicDebugLog("window.sendEvent.\(reasonDescription) suppress=1 hit=\(hitDesc) movable=\(isMovable) depth=\(depth)")
+        cotermDebugLog("window.sendEvent.\(reasonDescription) suppress=1 hit=\(hitDesc) movable=\(isMovable) depth=\(depth)")
         #endif
 
-        mosaic_sendEvent(event)
+        coterm_sendEvent(event)
 #if DEBUG
         if event.type == .keyDown {
             originalDispatchMs = (ProcessInfo.processInfo.systemUptime - originalDispatchStart) * 1000.0
@@ -17249,29 +17249,29 @@ private extension NSWindow {
 #endif
     }
 
-    @objc func mosaic_performKeyEquivalent(with event: NSEvent) -> Bool {
+    @objc func coterm_performKeyEquivalent(with event: NSEvent) -> Bool {
 #if DEBUG
-        let typingTimingStart = MosaicTypingTiming.start()
+        let typingTimingStart = CotermTypingTiming.start()
         defer {
-            MosaicTypingTiming.logDuration(
+            CotermTypingTiming.logDuration(
                 path: "window.performKeyEquivalent",
                 startedAt: typingTimingStart,
                 event: event
             )
         }
         let frType = self.firstResponder.map { String(describing: type(of: $0)) } ?? "nil"
-        mosaicDebugLog("performKeyEquiv: \(Self.keyDescription(event)) fr=\(frType)")
+        cotermDebugLog("performKeyEquiv: \(Self.keyDescription(event)) fr=\(frType)")
 #endif
 
         // When a terminal owns first responder, bypass SwiftUI's hosting view:
         // after browser focus churn it can claim key equivalents without firing.
         // Non-Command keys go to Ghostty; Command keys go to the main menu.
-        let firstResponderGhosttyView = mosaicOwningGhosttyView(for: self.firstResponder)
+        let firstResponderGhosttyView = cotermOwningGhosttyView(for: self.firstResponder)
         let firstResponderWebView = self.firstResponder.flatMap {
-            Self.mosaicOwningWebView(for: $0, in: self, event: event)
+            Self.cotermOwningWebView(for: $0, in: self, event: event)
         }
         let firstResponderHasMarkedText = browserResponderHasMarkedText(self.firstResponder)
-        let firstResponderIsCommandPaletteFieldEditor = Self.mosaicCommandPaletteOwnsFieldEditor(
+        let firstResponderIsCommandPaletteFieldEditor = Self.cotermCommandPaletteOwnsFieldEditor(
             self.firstResponder as? NSTextView,
             in: self
         )
@@ -17288,14 +17288,14 @@ private extension NSWindow {
         if ShortcutRecorderEventRouter.dispatchActiveRecordingEvent(event, preferredWindow: self) {
             return true
         }
-        let browserWebKitKeyDownReentry = firstResponderWebView != nil && mosaicBrowserWebKitKeyDownDispatchIsActive()
+        let browserWebKitKeyDownReentry = firstResponderWebView != nil && cotermBrowserWebKitKeyDownDispatchIsActive()
         if AppDelegate.shared?.shouldBypassPrintableOptionTextForShortcutRouting(event: event) == true {
             if browserWebKitKeyDownReentry { return false }
             let textInputTarget: NSResponder? = firstResponderGhosttyView
                 ?? firstResponderWebView
                 ?? self.firstResponder
             if let textInputTarget, textInputTarget !== self {
-                if mosaicForceDispatchKeyDownOnce(event, to: textInputTarget, reason: "printable Option text") {
+                if cotermForceDispatchKeyDownOnce(event, to: textInputTarget, reason: "printable Option text") {
                     return true
                 }
                 // Same event already in flight on this stack (WebKit replay /
@@ -17314,32 +17314,32 @@ private extension NSWindow {
             )
             return true
         }
-        if AppDelegate.shared?.shouldSuppressStaleMosaicMenuShortcut(event: event) == true {
+        if AppDelegate.shared?.shouldSuppressStaleCotermMenuShortcut(event: event) == true {
             if AppDelegate.shared?.handleFocusedFileExplorerOpenSelectionShortcut(event, preferredWindow: self) == true {
 #if DEBUG
-                mosaicDebugLog("  → consumed by file explorer shortcut before stale mosaic menu shortcut")
+                cotermDebugLog("  → consumed by file explorer shortcut before stale coterm menu shortcut")
 #endif
                 return true
             }
             if AppDelegate.shared?.handleConfiguredShortcutKeyEquivalent(event) == true {
 #if DEBUG
-                mosaicDebugLog("  → consumed by configured shortcut before stale mosaic menu shortcut")
+                cotermDebugLog("  → consumed by configured shortcut before stale coterm menu shortcut")
 #endif
                 return true
             }
             if let firstResponderGhosttyView,
-               mosaicForceDispatchKeyDownOnce(
+               cotermForceDispatchKeyDownOnce(
                    event,
                    to: firstResponderGhosttyView,
-                   reason: "stale mosaic menu shortcut terminal bypass"
+                   reason: "stale coterm menu shortcut terminal bypass"
                ) {
 #if DEBUG
-                mosaicDebugLog("  → terminal received command equivalent bypassing stale mosaic menu shortcut")
+                cotermDebugLog("  → terminal received command equivalent bypassing stale coterm menu shortcut")
 #endif
                 return true
             }
 #if DEBUG
-            mosaicDebugLog("  → suppressed stale mosaic menu shortcut")
+            cotermDebugLog("  → suppressed stale coterm menu shortcut")
 #endif
             return false
         }
@@ -17365,7 +17365,7 @@ private extension NSWindow {
                     firstResponderHasMarkedText: ghosttyView.hasMarkedText(),
                     flags: event.modifierFlags
                 ) {
-                    if mosaicForceDispatchKeyDownOnce(event, to: ghosttyView, reason: "terminal arrow") {
+                    if cotermForceDispatchKeyDownOnce(event, to: ghosttyView, reason: "terminal arrow") {
                         return true
                     }
                     return false
@@ -17373,7 +17373,7 @@ private extension NSWindow {
 
                 let result = ghosttyView.performKeyEquivalent(with: event)
 #if DEBUG
-                mosaicDebugLog("  → ghostty direct: \(result)")
+                cotermDebugLog("  → ghostty direct: \(result)")
 #endif
                 return result
             }
@@ -17388,9 +17388,9 @@ private extension NSWindow {
                 keyCode: event.keyCode,
                 literalChars: event.characters
             ) {
-                if mosaicForceDispatchKeyDownOnce(event, to: ghosttyView, reason: "terminal font zoom") {
+                if cotermForceDispatchKeyDownOnce(event, to: ghosttyView, reason: "terminal font zoom") {
 #if DEBUG
-                    mosaicDebugLog("zoom.shortcut stage=window.ghosttyKeyDownDirect event=\(Self.keyDescription(event)) handled=1")
+                    cotermDebugLog("zoom.shortcut stage=window.ghosttyKeyDownDirect event=\(Self.keyDescription(event)) handled=1")
 #endif
                     return true
                 }
@@ -17404,7 +17404,7 @@ private extension NSWindow {
             flags: event.modifierFlags
         ) {
             guard let target = self.firstResponder,
-                  mosaicForceDispatchKeyDownOnce(
+                  cotermForceDispatchKeyDownOnce(
                       event,
                       to: target,
                       reason: "browser omnibar marked-text " +
@@ -17423,7 +17423,7 @@ private extension NSWindow {
             flags: event.modifierFlags
         ) {
             guard let target = self.firstResponder,
-                  mosaicForceDispatchKeyDownOnce(event, to: target, reason: "command palette arrow")
+                  cotermForceDispatchKeyDownOnce(event, to: target, reason: "command palette arrow")
             else {
                 return false
             }
@@ -17437,7 +17437,7 @@ private extension NSWindow {
             flags: event.modifierFlags
         ) {
             guard let target = self.firstResponder else { return false }
-            if mosaicForceDispatchKeyDownOnce(
+            if cotermForceDispatchKeyDownOnce(
                 event,
                 to: target,
                 reason: "browser omnibar arrow " +
@@ -17446,7 +17446,7 @@ private extension NSWindow {
                 return true
             }
             // Reentry of the same in-flight event: use normal dispatch.
-            return mosaic_performKeyEquivalent(with: event)
+            return coterm_performKeyEquivalent(with: event)
         }
 
         if shouldDispatchTextBoxInputArrowViaFirstResponderKeyDown(
@@ -17456,7 +17456,7 @@ private extension NSWindow {
             flags: event.modifierFlags
         ) {
             guard let target = self.firstResponder,
-                  mosaicForceDispatchKeyDownOnce(event, to: target, reason: "text-box input arrow")
+                  cotermForceDispatchKeyDownOnce(event, to: target, reason: "text-box input arrow")
             else {
                 return false
             }
@@ -17470,7 +17470,7 @@ private extension NSWindow {
             flags: event.modifierFlags
         ) {
             guard let target = self.firstResponder,
-                  mosaicForceDispatchKeyDownOnce(event, to: target, reason: "text-box input control nav")
+                  cotermForceDispatchKeyDownOnce(event, to: target, reason: "text-box input control nav")
             else {
                 return false
             }
@@ -17480,7 +17480,7 @@ private extension NSWindow {
         // The file-preview editor and any other standalone editable NSTextView
         // would otherwise lose plain/selection/word/line arrows to the original
         // NSWindow.performKeyEquivalent. Route them to the text view's keyDown so
-        // arrow navigation works as in any text editor (emergent-inc/mosaic#5227).
+        // arrow navigation works as in any text editor (emergent-inc/coterm#5227).
         if shouldDispatchEditableTextViewArrowViaFirstResponderKeyDown(
             keyCode: event.keyCode,
             firstResponderIsEditableTextView: firstResponderIsStandaloneEditableTextView,
@@ -17488,7 +17488,7 @@ private extension NSWindow {
             flags: event.modifierFlags
         ) {
             guard let target = self.firstResponder,
-                  mosaicForceDispatchKeyDownOnce(event, to: target, reason: "editable text view arrow")
+                  cotermForceDispatchKeyDownOnce(event, to: target, reason: "editable text view arrow")
             else {
                 return false
             }
@@ -17504,12 +17504,12 @@ private extension NSWindow {
         ) {
             if browserWebKitKeyDownReentry { return false }
             guard let target = self.firstResponder else { return false }
-            if mosaicForceDispatchKeyDownOnce(event, to: target, reason: "browser Return/Enter") {
+            if cotermForceDispatchKeyDownOnce(event, to: target, reason: "browser Return/Enter") {
                 return true
             }
             // Forwarding keyDown can re-enter performKeyEquivalent in WebKit/AppKit internals.
             // On re-entry, fall back to normal dispatch to avoid an infinite loop.
-            return mosaic_performKeyEquivalent(with: event)
+            return coterm_performKeyEquivalent(with: event)
         }
 
         // Browser content can lose plain arrows when performKeyEquivalent claims them before WebKit.
@@ -17527,7 +17527,7 @@ private extension NSWindow {
                 if currentEditorResponder == nil || self.firstResponder !== currentEditorResponder {
                     guard self.makeFirstResponder(focusedOmnibarField) else {
 #if DEBUG
-                        mosaicDebugLog("  → browser arrow omnibar restore rejected")
+                        cotermDebugLog("  → browser arrow omnibar restore rejected")
 #endif
                         return false
                     }
@@ -17541,11 +17541,11 @@ private extension NSWindow {
                     omnibarResponder = focusedOmnibarField
                 } else {
 #if DEBUG
-                    mosaicDebugLog("  → browser arrow omnibar restore did not become first responder")
+                    cotermDebugLog("  → browser arrow omnibar restore did not become first responder")
 #endif
                     return false
                 }
-                if mosaicForceDispatchKeyDownOnce(
+                if cotermForceDispatchKeyDownOnce(
                     event,
                     to: omnibarResponder,
                     reason: browserResponderHasMarkedText(omnibarResponder)
@@ -17555,23 +17555,23 @@ private extension NSWindow {
                     return true
                 }
                 // Reentry of the same in-flight event: use normal dispatch.
-                return mosaic_performKeyEquivalent(with: event)
+                return coterm_performKeyEquivalent(with: event)
             }
 
             // Match the Return/Enter forwarding guard: AppKit/WebKit can re-enter
             // performKeyEquivalent while the synthesized keyDown is in flight.
             guard let target = self.firstResponder else { return false }
-            if mosaicForceDispatchKeyDownOnce(event, to: target, reason: "browser arrow") {
+            if cotermForceDispatchKeyDownOnce(event, to: target, reason: "browser arrow") {
                 return true
             }
-            return mosaic_performKeyEquivalent(with: event)
+            return coterm_performKeyEquivalent(with: event)
         }
 
         if let firstResponderWebView,
            AppDelegate.shared?.isBrowserFocusModeActive(for: firstResponderWebView) == true {
             let handled = firstResponderWebView.performKeyEquivalent(with: event)
 #if DEBUG
-            mosaicDebugLog("  → browser focus mode routed before mosaic/menu fallback handled=\(handled ? 1 : 0)")
+            cotermDebugLog("  → browser focus mode routed before coterm/menu fallback handled=\(handled ? 1 : 0)")
 #endif
             return handled
         }
@@ -17583,13 +17583,13 @@ private extension NSWindow {
            ) {
             let result = firstResponderWebView.performKeyEquivalent(with: event)
 #if DEBUG
-            mosaicDebugLog(
+            cotermDebugLog(
                 "  → browser document editing command preflight " +
                 (result ? "resolved before window menu path" : "left unclaimed; suppressing replay")
             )
 #endif
             // The focused web view has already received this editing shortcut once.
-            // `MosaicWebView.performKeyEquivalent` also runs the main-menu fallback
+            // `CotermWebView.performKeyEquivalent` also runs the main-menu fallback
             // before returning, so falling through here would only replay WebKit.
             return true
         }
@@ -17603,9 +17603,9 @@ private extension NSWindow {
             let result = firstResponderWebView.performKeyEquivalent(with: event)
 #if DEBUG
             if result {
-                mosaicDebugLog("  → browser find command resolved before window menu path")
+                cotermDebugLog("  → browser find command resolved before window menu path")
             } else {
-                mosaicDebugLog("  → browser find command preflight left unclaimed; suppressing replay")
+                cotermDebugLog("  → browser find command preflight left unclaimed; suppressing replay")
             }
 #endif
             // The focused web view has already received this Find-family shortcut once.
@@ -17617,7 +17617,7 @@ private extension NSWindow {
 
         if AppDelegate.shared?.handleBrowserSurfaceKeyEquivalent(event) == true {
 #if DEBUG
-            mosaicDebugLog("  → consumed by handleBrowserSurfaceKeyEquivalent")
+            cotermDebugLog("  → consumed by handleBrowserSurfaceKeyEquivalent")
 #endif
             return true
         }
@@ -17625,7 +17625,7 @@ private extension NSWindow {
         if let firstResponderGhosttyView, shouldRouteCommandEquivalentDirectlyToMainMenu(event) {
             if AppDelegate.shared?.shouldForwardBrowserSurfaceShortcutToTerminal(event) == true {
                 if firstResponderGhosttyView.performKeyEquivalentAfterMenuMiss(with: event) { return true }
-                if mosaicForceDispatchKeyDownOnce(
+                if cotermForceDispatchKeyDownOnce(
                     event,
                     to: firstResponderGhosttyView,
                     reason: "browser surface shortcut to terminal"
@@ -17643,7 +17643,7 @@ private extension NSWindow {
                 keyCode: event.keyCode,
                 literalChars: event.characters
             ) {
-                mosaicDebugLog(
+                cotermDebugLog(
                     "zoom.shortcut stage=window.mainMenuBypass event=\(Self.keyDescription(event)) " +
                     "consumed=\(consumedByMenu ? 1 : 0) fr=GhosttyNSView"
                 )
@@ -17654,22 +17654,22 @@ private extension NSWindow {
                 // through its normal binding path so user key overrides still win.
                 let consumedByGhostty = firstResponderGhosttyView.performKeyEquivalentAfterMenuMiss(with: event)
 #if DEBUG
-                mosaicDebugLog("  → mainMenu miss; ghostty command path: \(consumedByGhostty)")
+                cotermDebugLog("  → mainMenu miss; ghostty command path: \(consumedByGhostty)")
 #endif
                 if consumedByGhostty {
                     return true
                 }
             } else {
 #if DEBUG
-                mosaicDebugLog("  → consumed by mainMenu (bypassed SwiftUI)")
+                cotermDebugLog("  → consumed by mainMenu (bypassed SwiftUI)")
 #endif
                 return true
             }
         }
 
-        let result = mosaic_performKeyEquivalent(with: event)
+        let result = coterm_performKeyEquivalent(with: event)
 #if DEBUG
-        if result { mosaicDebugLog("  → consumed by original performKeyEquivalent") }
+        if result { cotermDebugLog("  → consumed by original performKeyEquivalent") }
 #endif
         return result
     }
@@ -17691,13 +17691,13 @@ private extension NSWindow {
         return parts.joined(separator: "+")
     }
 
-    private static func mosaicOwningWebView(for responder: NSResponder) -> MosaicWebView? {
-        if let webView = responder as? MosaicWebView {
+    private static func cotermOwningWebView(for responder: NSResponder) -> CotermWebView? {
+        if let webView = responder as? CotermWebView {
             return webView
         }
 
         if let view = responder as? NSView,
-           let webView = mosaicOwningWebView(for: view) {
+           let webView = cotermOwningWebView(for: view) {
             return webView
         }
 
@@ -17705,11 +17705,11 @@ private extension NSWindow {
         // a responder chain is tearing down can trap with "unowned reference".
         var current = responder.nextResponder
         while let next = current {
-            if let webView = next as? MosaicWebView {
+            if let webView = next as? CotermWebView {
                 return webView
             }
             if let view = next as? NSView,
-               let webView = mosaicOwningWebView(for: view) {
+               let webView = cotermOwningWebView(for: view) {
                 return webView
             }
             current = next.nextResponder
@@ -17718,11 +17718,11 @@ private extension NSWindow {
         return nil
     }
 
-    private static func mosaicOwningWebView(
+    private static func cotermOwningWebView(
         for responder: NSResponder,
         in window: NSWindow,
         event: NSEvent?
-    ) -> MosaicWebView? {
+    ) -> CotermWebView? {
         if browserOmnibarPanelId(for: responder) != nil {
             return nil
         }
@@ -17734,7 +17734,7 @@ private extension NSWindow {
             return nil
         }
 
-        if let webView = mosaicOwningWebView(for: responder) {
+        if let webView = cotermOwningWebView(for: responder) {
             return webView
         }
 
@@ -17743,26 +17743,26 @@ private extension NSWindow {
         }
 
         if let event,
-           let hitWebView = mosaicPointerHitWebView(in: window, event: event) {
-            mosaicTrackFieldEditor(textView, owningWebView: hitWebView)
+           let hitWebView = cotermPointerHitWebView(in: window, event: event) {
+            cotermTrackFieldEditor(textView, owningWebView: hitWebView)
             return hitWebView
         }
 
-        return mosaicTrackedOwningWebView(for: textView)
+        return cotermTrackedOwningWebView(for: textView)
     }
 
-    private static func mosaicOwningWebView(for view: NSView) -> MosaicWebView? {
-        if let webView = view as? MosaicWebView {
+    private static func cotermOwningWebView(for view: NSView) -> CotermWebView? {
+        if let webView = view as? CotermWebView {
             return webView
         }
 
         var current: NSView? = view.superview
         while let candidate = current {
-            if let webView = candidate as? MosaicWebView {
+            if let webView = candidate as? CotermWebView {
                 return webView
             }
             if String(describing: type(of: candidate)).contains("WindowBrowserSlotView"),
-               let portalWebView = mosaicUniqueBrowserWebView(in: candidate) {
+               let portalWebView = cotermUniqueBrowserWebView(in: candidate) {
                 // Portal-hosted browser chrome (for example the Cmd+F overlay) is a
                 // sibling of the hosted WKWebView inside WindowBrowserSlotView, not a
                 // descendant of it. Allow native text-entry controls in that slot to
@@ -17772,7 +17772,7 @@ private extension NSWindow {
                 if view === portalWebView || view.isDescendant(of: portalWebView) {
                     return portalWebView
                 }
-                if mosaicAllowsPortalSlotTextEntryFocus(view) {
+                if cotermAllowsPortalSlotTextEntryFocus(view) {
                     return nil
                 }
                 return portalWebView
@@ -17783,7 +17783,7 @@ private extension NSWindow {
         return nil
     }
 
-    private static func mosaicAllowsPortalSlotTextEntryFocus(_ view: NSView) -> Bool {
+    private static func cotermAllowsPortalSlotTextEntryFocus(_ view: NSView) -> Bool {
         var current: NSView? = view
         while let candidate = current {
             if let textField = candidate as? NSTextField {
@@ -17797,11 +17797,11 @@ private extension NSWindow {
         return false
     }
 
-    private static func mosaicUniqueBrowserWebView(in root: NSView) -> MosaicWebView? {
+    private static func cotermUniqueBrowserWebView(in root: NSView) -> CotermWebView? {
         var stack: [NSView] = [root]
-        var found: MosaicWebView?
+        var found: CotermWebView?
         while let current = stack.popLast() {
-            if let webView = current as? MosaicWebView {
+            if let webView = current as? CotermWebView {
                 if found == nil {
                     found = webView
                 } else if found !== webView {
@@ -17813,19 +17813,19 @@ private extension NSWindow {
         return found
     }
 
-    private static func mosaicCurrentEvent(for window: NSWindow) -> NSEvent? {
+    private static func cotermCurrentEvent(for window: NSWindow) -> NSEvent? {
 #if DEBUG
-        if let override = mosaicFirstResponderGuardCurrentEventOverride {
+        if let override = cotermFirstResponderGuardCurrentEventOverride {
             return override
         }
 #endif
-        if mosaicFirstResponderGuardContextWindowNumber == window.windowNumber {
-            return mosaicFirstResponderGuardCurrentEventContext
+        if cotermFirstResponderGuardContextWindowNumber == window.windowNumber {
+            return cotermFirstResponderGuardCurrentEventContext
         }
         return NSApp.currentEvent
     }
 
-    private static func mosaicHitViewInThemeFrame(in window: NSWindow, event: NSEvent) -> NSView? {
+    private static func cotermHitViewInThemeFrame(in window: NSWindow, event: NSEvent) -> NSView? {
         guard let contentView = window.contentView,
               let themeFrame = contentView.superview else {
             return nil
@@ -17834,7 +17834,7 @@ private extension NSWindow {
         return themeFrame.hitTest(pointInTheme)
     }
 
-    private static func mosaicHitViewInContentView(in window: NSWindow, event: NSEvent) -> NSView? {
+    private static func cotermHitViewInContentView(in window: NSWindow, event: NSEvent) -> NSView? {
         guard let contentView = window.contentView else {
             return nil
         }
@@ -17842,78 +17842,78 @@ private extension NSWindow {
         return contentView.hitTest(pointInContent)
     }
 
-    private static func mosaicTopHitViewForEvent(in window: NSWindow, event: NSEvent) -> NSView? {
-        if let hitInThemeFrame = mosaicHitViewInThemeFrame(in: window, event: event) {
+    private static func cotermTopHitViewForEvent(in window: NSWindow, event: NSEvent) -> NSView? {
+        if let hitInThemeFrame = cotermHitViewInThemeFrame(in: window, event: event) {
             return hitInThemeFrame
         }
-        return mosaicHitViewInContentView(in: window, event: event)
+        return cotermHitViewInContentView(in: window, event: event)
     }
 
-    private static func mosaicHitViewForEventDispatch(in window: NSWindow, event: NSEvent) -> NSView? {
+    private static func cotermHitViewForEventDispatch(in window: NSWindow, event: NSEvent) -> NSView? {
         if event.windowNumber != 0, event.windowNumber != window.windowNumber {
             return nil
         }
         if let eventWindow = event.window, eventWindow !== window {
             return nil
         }
-        return mosaicTopHitViewForEvent(in: window, event: event)
+        return cotermTopHitViewForEvent(in: window, event: event)
     }
 
-    private static func mosaicHitViewForFirstResponderGuard(in window: NSWindow, event: NSEvent) -> NSView? {
+    private static func cotermHitViewForFirstResponderGuard(in window: NSWindow, event: NSEvent) -> NSView? {
         guard WindowInputRoutingContext(event: event).allowsFirstResponderHitTesting else { return nil }
-        return mosaicHitViewForEventDispatch(in: window, event: event)
+        return cotermHitViewForEventDispatch(in: window, event: event)
     }
 
-    private static func mosaicHitViewForCurrentEvent(in window: NSWindow, event: NSEvent) -> NSView? {
+    private static func cotermHitViewForCurrentEvent(in window: NSWindow, event: NSEvent) -> NSView? {
 #if DEBUG
-        if let override = mosaicFirstResponderGuardHitViewOverride {
+        if let override = cotermFirstResponderGuardHitViewOverride {
             return override
         }
 #endif
-        if mosaicFirstResponderGuardContextWindowNumber == window.windowNumber,
-           let contextHitView = mosaicFirstResponderGuardHitViewContext {
+        if cotermFirstResponderGuardContextWindowNumber == window.windowNumber,
+           let contextHitView = cotermFirstResponderGuardHitViewContext {
             return contextHitView
         }
-        return mosaicTopHitViewForEvent(in: window, event: event)
+        return cotermTopHitViewForEvent(in: window, event: event)
     }
 
-    private static func mosaicTrackFieldEditor(_ fieldEditor: NSTextView, owningWebView webView: MosaicWebView?) {
+    private static func cotermTrackFieldEditor(_ fieldEditor: NSTextView, owningWebView webView: CotermWebView?) {
         if let webView {
             objc_setAssociatedObject(
                 fieldEditor,
-                &mosaicFieldEditorOwningWebViewAssociationKey,
-                MosaicFieldEditorOwningWebViewBox(webView: webView),
+                &cotermFieldEditorOwningWebViewAssociationKey,
+                CotermFieldEditorOwningWebViewBox(webView: webView),
                 .OBJC_ASSOCIATION_RETAIN_NONATOMIC
             )
         } else {
             objc_setAssociatedObject(
                 fieldEditor,
-                &mosaicFieldEditorOwningWebViewAssociationKey,
+                &cotermFieldEditorOwningWebViewAssociationKey,
                 nil,
                 .OBJC_ASSOCIATION_RETAIN_NONATOMIC
             )
         }
     }
 
-    private static func mosaicTrackedOwningWebView(for fieldEditor: NSTextView) -> MosaicWebView? {
+    private static func cotermTrackedOwningWebView(for fieldEditor: NSTextView) -> CotermWebView? {
         guard let box = objc_getAssociatedObject(
             fieldEditor,
-            &mosaicFieldEditorOwningWebViewAssociationKey
-        ) as? MosaicFieldEditorOwningWebViewBox else {
+            &cotermFieldEditorOwningWebViewAssociationKey
+        ) as? CotermFieldEditorOwningWebViewBox else {
             return nil
         }
         guard let webView = box.webView else {
-            mosaicTrackFieldEditor(fieldEditor, owningWebView: nil)
+            cotermTrackFieldEditor(fieldEditor, owningWebView: nil)
             return nil
         }
         return webView
     }
 
-    private static func mosaicEventAllowsFirstResponderHitTesting(_ event: NSEvent) -> Bool {
+    private static func cotermEventAllowsFirstResponderHitTesting(_ event: NSEvent) -> Bool {
         WindowInputRoutingContext(event: event).allowsFirstResponderHitTesting
     }
 
-    private static func mosaicPointerEventTargetsWindow(_ event: NSEvent, _ window: NSWindow) -> Bool {
+    private static func cotermPointerEventTargetsWindow(_ event: NSEvent, _ window: NSWindow) -> Bool {
         if event.windowNumber != 0, event.windowNumber != window.windowNumber {
             return false
         }
@@ -17923,49 +17923,49 @@ private extension NSWindow {
         return true
     }
 
-    private static func mosaicPointerHitWebView(in window: NSWindow, event: NSEvent) -> MosaicWebView? {
-        guard mosaicEventAllowsFirstResponderHitTesting(event) else { return nil }
-        guard mosaicPointerEventTargetsWindow(event, window) else { return nil }
+    private static func cotermPointerHitWebView(in window: NSWindow, event: NSEvent) -> CotermWebView? {
+        guard cotermEventAllowsFirstResponderHitTesting(event) else { return nil }
+        guard cotermPointerEventTargetsWindow(event, window) else { return nil }
         if let portalWebView = BrowserWindowPortalRegistry.webViewAtWindowPoint(
             event.locationInWindow,
             in: window
-        ) as? MosaicWebView {
+        ) as? CotermWebView {
             return portalWebView
         }
-        guard let hitView = mosaicHitViewForCurrentEvent(in: window, event: event) else {
+        guard let hitView = cotermHitViewForCurrentEvent(in: window, event: event) else {
             return nil
         }
-        return mosaicOwningWebView(for: hitView)
+        return cotermOwningWebView(for: hitView)
     }
 
-    private static func mosaicPointerHitGhosttyView(in window: NSWindow, event: NSEvent) -> GhosttyNSView? {
-        guard mosaicEventAllowsFirstResponderHitTesting(event) else { return nil }
-        guard mosaicPointerEventTargetsWindow(event, window) else { return nil }
-        guard let hitView = mosaicHitViewForCurrentEvent(in: window, event: event) else {
+    private static func cotermPointerHitGhosttyView(in window: NSWindow, event: NSEvent) -> GhosttyNSView? {
+        guard cotermEventAllowsFirstResponderHitTesting(event) else { return nil }
+        guard cotermPointerEventTargetsWindow(event, window) else { return nil }
+        guard let hitView = cotermHitViewForCurrentEvent(in: window, event: event) else {
             return nil
         }
-        return mosaicOwningGhosttyView(for: hitView)
+        return cotermOwningGhosttyView(for: hitView)
     }
 
-    private static func mosaicShouldAllowPointerInitiatedTerminalFocus(
+    private static func cotermShouldAllowPointerInitiatedTerminalFocus(
         window: NSWindow,
         request: AppDelegate.TerminalKeyboardFocusRequest,
         event: NSEvent?
     ) -> Bool {
         guard let event,
-              let hitGhosttyView = mosaicPointerHitGhosttyView(in: window, event: event) else {
+              let hitGhosttyView = cotermPointerHitGhosttyView(in: window, event: event) else {
             return false
         }
         return hitGhosttyView === request.ghosttyView
     }
 
-    private static func mosaicShouldAllowPointerInitiatedWebViewFocus(
+    private static func cotermShouldAllowPointerInitiatedWebViewFocus(
         window: NSWindow,
-        webView: MosaicWebView,
+        webView: CotermWebView,
         event: NSEvent?
     ) -> Bool {
         guard let event,
-              let hitWebView = mosaicPointerHitWebView(in: window, event: event) else {
+              let hitWebView = cotermPointerHitWebView(in: window, event: event) else {
             return false
         }
         return hitWebView === webView
@@ -17973,7 +17973,7 @@ private extension NSWindow {
 
 }
 
-// MARK: - MosaicUpdater seams
+// MARK: - CotermUpdater seams
 
 /// Conforms the composition root to updater host actions, retry, and relaunch seams.
 /// `checkForUpdatesInCustomUI()` is satisfied by the main `AppDelegate` declaration.
@@ -18004,16 +18004,16 @@ extension AppDelegate: UpdateActionDelegate, UpdateActionsHost {
 
 extension AppDelegate {
     /// A connected display, surfaced by the `window.displays` control command and
-    /// the `mosaic window display --list` CLI so callers can discover screen names.
-    /// Lifted to ``MosaicWindowing/DisplayInfo``; aliased so existing
+    /// the `coterm window display --list` CLI so callers can discover screen names.
+    /// Lifted to ``CotermWindowing/DisplayInfo``; aliased so existing
     /// `AppDelegate.DisplayInfo` references stay source-identical.
-    typealias DisplayInfo = MosaicWindowing.DisplayInfo
+    typealias DisplayInfo = CotermWindowing.DisplayInfo
 
     /// All currently-connected displays, in `NSScreen.screens` order.
     func availableDisplays() -> [DisplayInfo] {
-        let mainID = NSScreen.main?.mosaicDisplayID
+        let mainID = NSScreen.main?.cotermDisplayID
         return NSScreen.screens.enumerated().map { index, screen in
-            let displayID = screen.mosaicDisplayID
+            let displayID = screen.cotermDisplayID
             return DisplayInfo(
                 name: screen.localizedName,
                 index: index,
@@ -18087,6 +18087,6 @@ extension AppDelegate {
     }
 }
 
-// MARK: - MosaicAppKitSupportUI seam conformance
+// MARK: - CotermAppKitSupportUI seam conformance
 
 extension AppDelegate: WindowDecorating {}

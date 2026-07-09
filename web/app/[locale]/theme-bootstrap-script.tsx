@@ -14,7 +14,7 @@ export function ThemeBootstrapScript({ script }: { script: string }) {
     // which is too late for this first-paint theme bootstrap.
     return (
       <script
-        id="mosaic-theme-bootstrap"
+        id="coterm-theme-bootstrap"
         dangerouslySetInnerHTML={{ __html: script }}
       />
     );

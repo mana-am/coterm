@@ -11,6 +11,11 @@
     "typecheck": "bun run --filter '*' typecheck",
     "test": "bun test",
     "dev:all": "bash scripts/dev-all.sh",
+    "deploy:self-host": "bash scripts/deploy-self-host.sh",
+    "doctor:self-host": "bash scripts/doctor-self-host.sh",
+    "context:self-host": "bun scripts/self-host-context.ts",
+    "configure:client": "bun scripts/configure-client-self-host.ts",
+    "preview:host": "bun scripts/preview-host.ts",
     "smoke:relay": "bun --cwd workers/relay run smoke:relay",
     "smoke:control": "bun scripts/../workers/control-plane/scripts/smoke-control.ts",
     "smoke:e2e": "bun scripts/smoke-e2e.ts"

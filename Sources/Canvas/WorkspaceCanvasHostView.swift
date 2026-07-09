@@ -1,15 +1,15 @@
 import SwiftUI
 import AppKit
 import Bonsplit
-import MosaicAppKitSupportUI
-import MosaicCanvasUI
-import MosaicSettingsUI
+import CotermAppKitSupportUI
+import CotermCanvasUI
+import CotermSettingsUI
 
 /// SwiftUI host for a workspace's canvas layout.
 ///
 /// This is the single legacy-observing boundary: it watches the
 /// `ObservableObject` workspace, projects panels into value snapshots
-/// (`CanvasPaneDescriptor`), and hands them to the `MosaicCanvasUI` package
+/// (`CanvasPaneDescriptor`), and hands them to the `CotermCanvasUI` package
 /// through an `NSViewRepresentable`. The canvas itself never observes
 /// stores, and the package never sees panel types — content crosses the
 /// seam as `CanvasPaneContentMount` witnesses.

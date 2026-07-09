@@ -1,6 +1,6 @@
 import type { Principal } from "./types";
 
-/// Access/refresh token claims minted by the upstream `mosaicv1` flow. We only
+/// Access/refresh token claims minted by the upstream `cotermv1` flow. We only
 /// read a subset; unknown fields are ignored.
 export interface NativeSessionClaims {
   kind?: "access" | "refresh";
@@ -33,7 +33,7 @@ export function normalizeSessionCode(value: string): string | null {
   return null;
 }
 
-/// Map verified/decoded `mosaicv1` claims to a Principal. Returns null when the
+/// Map verified/decoded `cotermv1` claims to a Principal. Returns null when the
 /// claims carry no usable userId.
 export function principalFromClaims(claims: NativeSessionClaims): Principal | null {
   if (typeof claims.userId !== "string" || claims.userId.trim() === "") return null;

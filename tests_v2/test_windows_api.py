@@ -14,13 +14,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from mosaic import mosaic, mosaicError
+from coterm import coterm, cotermError
 
 
-SOCKET_PATH = os.environ.get("MOSAIC_SOCKET_PATH", "/tmp/mosaic-debug.sock")
+SOCKET_PATH = os.environ.get("COTERM_SOCKET_PATH", "/tmp/coterm-debug.sock")
 
 
-def _focused_window_id(c: mosaic) -> str:
+def _focused_window_id(c: coterm) -> str:
     ident = c.identify()
     focused = ident.get("focused") or {}
     if isinstance(focused, dict):
@@ -32,10 +32,10 @@ def _focused_window_id(c: mosaic) -> str:
 
 
 def main() -> int:
-    with mosaic(SOCKET_PATH) as c:
+    with coterm(SOCKET_PATH) as c:
         windows0 = c.list_windows()
         if not windows0:
-            raise mosaicError("Expected at least one window from window.list")
+            raise cotermError("Expected at least one window from window.list")
 
         w1 = _focused_window_id(c)
 
@@ -45,9 +45,9 @@ def main() -> int:
         windows1 = c.list_windows()
         ids1 = {str(w.get("id")) for w in windows1 if w.get("id")}
         if w1 not in ids1:
-            raise mosaicError(f"Expected original window id in window.list (w1={w1}, ids={sorted(ids1)})")
+            raise cotermError(f"Expected original window id in window.list (w1={w1}, ids={sorted(ids1)})")
         if w2 not in ids1:
-            raise mosaicError(f"Expected new window id in window.list (w2={w2}, ids={sorted(ids1)})")
+            raise cotermError(f"Expected new window id in window.list (w2={w2}, ids={sorted(ids1)})")
 
         # Create a workspace in w1, ensure it has at least 2 surfaces, then move it to w2.
         ws = c.new_workspace(window_id=w1)
@@ -60,7 +60,7 @@ def main() -> int:
         before = c.list_surfaces(ws)
         before_ids = [sid for _, sid, _focused in before]
         if len(before_ids) < 2:
-            raise mosaicError(f"Expected >=2 surfaces before move, got {len(before_ids)} ({before_ids})")
+            raise cotermError(f"Expected >=2 surfaces before move, got {len(before_ids)} ({before_ids})")
 
         c.move_workspace_to_window(ws, w2, focus=True)
         time.sleep(0.5)
@@ -73,13 +73,13 @@ def main() -> int:
                 break
             time.sleep(0.2)
         else:
-            raise mosaicError(f"Expected all moved surfaces to be in_window=true (health={health})")
+            raise cotermError(f"Expected all moved surfaces to be in_window=true (health={health})")
 
         # Ensure the moved workspace is now associated with destination window.
         w2_workspaces = c.list_workspaces(window_id=w2)
         w2_ids = {wid for _, wid, _title, _sel in w2_workspaces}
         if ws not in w2_ids:
-            raise mosaicError("Expected moved workspace to be present in destination window")
+            raise cotermError("Expected moved workspace to be present in destination window")
 
         # Focus behavior can lag under VM/SSH app-activation conditions.
         # Ensure the workspace is at least selectable post-move.
@@ -88,18 +88,18 @@ def main() -> int:
         ident2 = c.identify()
         focused2 = ident2.get("focused") or {}
         if not isinstance(focused2, dict) or str(focused2.get("workspace_id")) != ws:
-            raise mosaicError(f"Expected moved workspace to be selectable after move (focused={focused2})")
+            raise cotermError(f"Expected moved workspace to be selectable after move (focused={focused2})")
 
         after = c.list_surfaces(ws)
         after_ids = [sid for _, sid, _focused in after]
         if set(after_ids) != set(before_ids):
-            raise mosaicError(f"Expected surface IDs to remain stable after move (before={before_ids}, after={after_ids})")
+            raise cotermError(f"Expected surface IDs to remain stable after move (before={before_ids}, after={after_ids})")
 
         # Source window should still have workspaces, but not this one.
         w1_workspaces = c.list_workspaces(window_id=w1)
         w1_ids = {wid for _, wid, _title, _sel in w1_workspaces}
         if ws in w1_ids:
-            raise mosaicError("Expected moved workspace to no longer be present in source window")
+            raise cotermError("Expected moved workspace to no longer be present in source window")
 
     print("PASS: window list/create + workspace move preserves surface IDs")
     return 0

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Regression test: `mosaic omc` preserves fallback provider dirs in PATH.
+Regression test: `coterm omc` preserves fallback provider dirs in PATH.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from claude_teams_test_utils import resolve_mosaic_cli
+from claude_teams_test_utils import resolve_coterm_cli
 
 
 def make_executable(path: Path, content: str) -> None:
@@ -20,12 +20,12 @@ def make_executable(path: Path, content: str) -> None:
 
 def main() -> int:
     try:
-        cli_path = resolve_mosaic_cli()
+        cli_path = resolve_coterm_cli()
     except Exception as exc:
         print(f"FAIL: {exc}")
         return 1
 
-    with tempfile.TemporaryDirectory(prefix="mosaic-omc-fallback-path-") as td:
+    with tempfile.TemporaryDirectory(prefix="coterm-omc-fallback-path-") as td:
         root = Path(td)
         fallback_bin = root / ".bun" / "bin"
         fallback_bin.mkdir(parents=True, exist_ok=True)
@@ -50,8 +50,8 @@ omc-node-helper "$@"
         env = os.environ.copy()
         env["HOME"] = str(root)
         env["PATH"] = "/usr/bin:/bin"
-        env["MOSAIC_CLI_SENTRY_DISABLED"] = "1"
-        env["MOSAIC_SOCKET_PATH"] = str(root / "missing.sock")
+        env["COTERM_CLI_SENTRY_DISABLED"] = "1"
+        env["COTERM_SOCKET_PATH"] = str(root / "missing.sock")
 
         proc = subprocess.run(
             [cli_path, "omc", "--version"],
@@ -63,7 +63,7 @@ omc-node-helper "$@"
         )
 
         if proc.returncode != 0:
-            print("FAIL: `mosaic omc --version` failed with omc in a fallback dir")
+            print("FAIL: `coterm omc --version` failed with omc in a fallback dir")
             print(f"exit={proc.returncode}")
             print(f"stdout={proc.stdout.strip()}")
             print(f"stderr={proc.stderr.strip()}")
@@ -80,7 +80,7 @@ omc-node-helper "$@"
             print(f"FAIL: expected fallback helper to remain on PATH, got {lines!r}")
             return 1
 
-    print("PASS: mosaic omc preserves fallback provider dirs in PATH")
+    print("PASS: coterm omc preserves fallback provider dirs in PATH")
     return 0
 
 

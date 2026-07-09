@@ -1,6 +1,6 @@
 import AppKit
-import MosaicAgentLaunch
-import MosaicNotifications
+import CotermAgentLaunch
+import CotermNotifications
 import Foundation
 
 /// App-side adapter for notification delivery seams. The delivery coordinator

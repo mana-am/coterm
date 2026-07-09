@@ -1,7 +1,7 @@
 import AppKit
 import Bonsplit
-import MosaicControlSocket
-import MosaicFeedback
+import CotermControlSocket
+import CotermFeedback
 import Foundation
 
 /// The system-domain witnesses: the byte-faithful bodies of the former
@@ -285,7 +285,7 @@ extension TerminalController: ControlSystemContext {
         }
 
         // Int64 → Int is lossless on 64-bit macOS.
-        let sequence = Int(max(0, MosaicEventBus.shared.latestSequence))
+        let sequence = Int(max(0, CotermEventBus.shared.latestSequence))
         let selectedWorkspaceId = tabManager.selectedTabId
         let workspaces = tabManager.tabs.enumerated().map { index, workspace in
             extensionSidebarWorkspaceRow(
@@ -334,7 +334,7 @@ extension TerminalController: ControlSystemContext {
             latestNotificationText: latestNotificationText,
             latestConversationMessage: workspace.latestConversationMessage,
             latestSubmittedMessage: workspace.latestSubmittedMessage,
-            latestSubmittedAtISO: workspace.latestSubmittedAt.map(MosaicEventBus.isoTimestamp),
+            latestSubmittedAtISO: workspace.latestSubmittedAt.map(CotermEventBus.isoTimestamp),
             listeningPorts: workspace.listeningPorts,
             pullRequestURLs: workspace.sidebarPullRequestsInDisplayOrder().map { $0.url.absoluteString },
             panelDirectories: workspace.sidebarDirectoriesInDisplayOrder(),

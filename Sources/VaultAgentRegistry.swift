@@ -1,25 +1,25 @@
 import Foundation
 import OSLog
 
-struct MosaicVaultConfigDefinition: Codable, Hashable, Sendable {
-    var agents: [MosaicVaultAgentRegistration]
+struct CotermVaultConfigDefinition: Codable, Hashable, Sendable {
+    var agents: [CotermVaultAgentRegistration]
 
-    init(agents: [MosaicVaultAgentRegistration] = []) {
+    init(agents: [CotermVaultAgentRegistration] = []) {
         self.agents = agents
     }
 }
 
-struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
+struct CotermVaultAgentRegistration: Codable, Hashable, Sendable {
     var id: String
     var name: String
     var iconAssetName: String?
-    var detect: MosaicVaultAgentDetectRule
-    var sessionIdSource: MosaicVaultAgentSessionIDSource
+    var detect: CotermVaultAgentDetectRule
+    var sessionIdSource: CotermVaultAgentSessionIDSource
     var resumeCommand: String
     /// Optional template for forking (branching) a session into a new copy.
     /// Omit it for agents that do not have a fork verb.
     var forkCommand: String?
-    var cwd: MosaicVaultAgentCWDPolicy
+    var cwd: CotermVaultAgentCWDPolicy
     var sessionDirectory: String?
 
     private enum CodingKeys: String, CodingKey {
@@ -30,11 +30,11 @@ struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
         id: String,
         name: String,
         iconAssetName: String? = nil,
-        detect: MosaicVaultAgentDetectRule,
-        sessionIdSource: MosaicVaultAgentSessionIDSource,
+        detect: CotermVaultAgentDetectRule,
+        sessionIdSource: CotermVaultAgentSessionIDSource,
         resumeCommand: String,
         forkCommand: String? = nil,
-        cwd: MosaicVaultAgentCWDPolicy = .preserve,
+        cwd: CotermVaultAgentCWDPolicy = .preserve,
         sessionDirectory: String? = nil
     ) {
         self.id = id
@@ -83,8 +83,8 @@ struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
         self.id = id
         self.name = name
         self.iconAssetName = Self.normalizedOptional(try container.decodeIfPresent(String.self, forKey: .iconAssetName))
-        self.detect = try container.decodeIfPresent(MosaicVaultAgentDetectRule.self, forKey: .detect) ?? .init()
-        self.sessionIdSource = try container.decode(MosaicVaultAgentSessionIDSource.self, forKey: .sessionIdSource)
+        self.detect = try container.decodeIfPresent(CotermVaultAgentDetectRule.self, forKey: .detect) ?? .init()
+        self.sessionIdSource = try container.decode(CotermVaultAgentSessionIDSource.self, forKey: .sessionIdSource)
         self.resumeCommand = resumeCommand
         if let forkCommand = try container.decodeIfPresent(String.self, forKey: .forkCommand)?
             .trimmingCharacters(in: .whitespacesAndNewlines), !forkCommand.isEmpty {
@@ -99,7 +99,7 @@ struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
         } else {
             self.forkCommand = nil
         }
-        self.cwd = try container.decodeIfPresent(MosaicVaultAgentCWDPolicy.self, forKey: .cwd) ?? .preserve
+        self.cwd = try container.decodeIfPresent(CotermVaultAgentCWDPolicy.self, forKey: .cwd) ?? .preserve
         let directory = try container.decodeIfPresent(String.self, forKey: .sessionDirectory)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         self.sessionDirectory = directory?.isEmpty == true ? nil : directory
@@ -131,12 +131,12 @@ struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
         return id
     }
 
-    static var builtInPi: MosaicVaultAgentRegistration {
-        MosaicVaultAgentRegistration(
+    static var builtInPi: CotermVaultAgentRegistration {
+        CotermVaultAgentRegistration(
             id: "pi",
             name: "Pi",
             iconAssetName: "AgentIcons/Pi",
-            detect: MosaicVaultAgentDetectRule(processName: "pi", argvContains: ["pi"]),
+            detect: CotermVaultAgentDetectRule(processName: "pi", argvContains: ["pi"]),
             sessionIdSource: .piSessionFile,
             resumeCommand: "{{executable}} --session {{sessionId}}",
             forkCommand: "{{executable}} --session {{sessionId}} --fork",
@@ -145,11 +145,11 @@ struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
         )
     }
 
-    static var builtInOmp: MosaicVaultAgentRegistration {
-        MosaicVaultAgentRegistration(
+    static var builtInOmp: CotermVaultAgentRegistration {
+        CotermVaultAgentRegistration(
             id: "omp",
             name: "OMP",
-            detect: MosaicVaultAgentDetectRule(
+            detect: CotermVaultAgentDetectRule(
                 processName: "omp",
                 alternateArgvContains: ["@oh-my-pi/pi-coding-agent"]
             ),
@@ -161,12 +161,12 @@ struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
         )
     }
 
-    static var builtInAntigravity: MosaicVaultAgentRegistration {
-        MosaicVaultAgentRegistration(
+    static var builtInAntigravity: CotermVaultAgentRegistration {
+        CotermVaultAgentRegistration(
             id: "antigravity",
             name: "Antigravity",
             iconAssetName: "AgentIcons/Antigravity",
-            detect: MosaicVaultAgentDetectRule(processNames: ["agy", "antigravity"]),
+            detect: CotermVaultAgentDetectRule(processNames: ["agy", "antigravity"]),
             sessionIdSource: .argvOption("--conversation"),
             resumeCommand: "{{executable}} --conversation {{sessionId}}",
             cwd: .preserve,
@@ -174,11 +174,11 @@ struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
         )
     }
 
-    static var builtInGrok: MosaicVaultAgentRegistration {
-        MosaicVaultAgentRegistration(
+    static var builtInGrok: CotermVaultAgentRegistration {
+        CotermVaultAgentRegistration(
             id: "grok",
             name: "Grok",
-            detect: MosaicVaultAgentDetectRule(processNames: ["grok", "grok-macos-aarch64", "grok-macos-aarch"]),
+            detect: CotermVaultAgentDetectRule(processNames: ["grok", "grok-macos-aarch64", "grok-macos-aarch"]),
             sessionIdSource: .grokSessionDirectory,
             resumeCommand: "{{executable}} -r {{sessionId}}",
             cwd: .preserve,
@@ -187,7 +187,7 @@ struct MosaicVaultAgentRegistration: Codable, Hashable, Sendable {
     }
 }
 
-struct MosaicVaultAgentDetectRule: Codable, Hashable, Sendable {
+struct CotermVaultAgentDetectRule: Codable, Hashable, Sendable {
     var processName: String?
     var processNames: [String]
     var argvContains: [String]
@@ -242,7 +242,7 @@ struct MosaicVaultAgentDetectRule: Codable, Hashable, Sendable {
     }
 }
 
-enum MosaicVaultAgentSessionIDSource: Codable, Hashable, Sendable {
+enum CotermVaultAgentSessionIDSource: Codable, Hashable, Sendable {
     case argvOption(String)
     case piSessionFile
     case grokSessionDirectory
@@ -330,7 +330,7 @@ enum MosaicVaultAgentSessionIDSource: Codable, Hashable, Sendable {
     }
 }
 
-enum MosaicVaultAgentCWDPolicy: String, Codable, Hashable, Sendable {
+enum CotermVaultAgentCWDPolicy: String, Codable, Hashable, Sendable {
     case preserve
     case ignore
 
@@ -353,13 +353,13 @@ enum MosaicVaultAgentCWDPolicy: String, Codable, Hashable, Sendable {
     }
 }
 
-struct MosaicVaultAgentRegistry: Sendable {
-    private static let logger = Logger(subsystem: "ai.emergent.inc.mosaic", category: "VaultAgentRegistry")
+struct CotermVaultAgentRegistry: Sendable {
+    private static let logger = Logger(subsystem: "ai.emergent.inc.coterm", category: "VaultAgentRegistry")
 
-    var registrations: [MosaicVaultAgentRegistration]
+    var registrations: [CotermVaultAgentRegistration]
 
-    init(registrations: [MosaicVaultAgentRegistration]) {
-        var ordered: [MosaicVaultAgentRegistration] = []
+    init(registrations: [CotermVaultAgentRegistration]) {
+        var ordered: [CotermVaultAgentRegistration] = []
         var indexesByID: [String: Int] = [:]
         for registration in registrations {
             if let existingIndex = indexesByID[registration.id] {
@@ -372,14 +372,14 @@ struct MosaicVaultAgentRegistry: Sendable {
         self.registrations = ordered
     }
 
-    func registration(id: String) -> MosaicVaultAgentRegistration? {
+    func registration(id: String) -> CotermVaultAgentRegistration? {
         registrations.first { $0.id == id }
     }
 
     func mergingProjectConfig(
         workingDirectory: String?,
         fileManager: FileManager = .default
-    ) -> MosaicVaultAgentRegistry {
+    ) -> CotermVaultAgentRegistry {
         guard let workingDirectory = workingDirectory?.trimmingCharacters(in: .whitespacesAndNewlines),
               !workingDirectory.isEmpty,
               let path = Self.findLocalConfig(startingAt: workingDirectory, fileManager: fileManager),
@@ -388,7 +388,7 @@ struct MosaicVaultAgentRegistry: Sendable {
               !agents.isEmpty else {
             return self
         }
-        return MosaicVaultAgentRegistry(registrations: registrations + agents)
+        return CotermVaultAgentRegistry(registrations: registrations + agents)
     }
 
     static func load(
@@ -396,18 +396,18 @@ struct MosaicVaultAgentRegistry: Sendable {
         workingDirectory: String? = nil,
         environment: [String: String] = ProcessInfo.processInfo.environment,
         fileManager: FileManager = .default
-    ) -> MosaicVaultAgentRegistry {
+    ) -> CotermVaultAgentRegistry {
         var registrations = [
-            MosaicVaultAgentRegistration.builtInPi,
-            MosaicVaultAgentRegistration.builtInOmp,
-            MosaicVaultAgentRegistration.builtInAntigravity,
-            MosaicVaultAgentRegistration.builtInGrok,
+            CotermVaultAgentRegistration.builtInPi,
+            CotermVaultAgentRegistration.builtInOmp,
+            CotermVaultAgentRegistration.builtInAntigravity,
+            CotermVaultAgentRegistration.builtInGrok,
         ]
         for path in configPaths(homeDirectory: homeDirectory, workingDirectory: workingDirectory, environment: environment, fileManager: fileManager) {
             guard let config = decodeConfig(at: path, fileManager: fileManager) else { continue }
             registrations.append(contentsOf: config.vault?.agents ?? [])
         }
-        return MosaicVaultAgentRegistry(registrations: registrations)
+        return CotermVaultAgentRegistry(registrations: registrations)
     }
 
     private static func configPaths(
@@ -417,7 +417,7 @@ struct MosaicVaultAgentRegistry: Sendable {
         fileManager: FileManager
     ) -> [String] {
         let home = (homeDirectory as NSString).standardizingPath
-        var paths = [(home as NSString).appendingPathComponent(".config/mosaic/mosaic.json")]
+        var paths = [(home as NSString).appendingPathComponent(".config/coterm/coterm.json")]
         let startingDirectory = workingDirectory?.trimmingCharacters(in: .whitespacesAndNewlines)
             ?? environment["PWD"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let startingDirectory, !startingDirectory.isEmpty,
@@ -436,8 +436,8 @@ struct MosaicVaultAgentRegistry: Sendable {
         var current = (start as NSString).standardizingPath
         while true {
             let candidates = [
-                ((current as NSString).appendingPathComponent(".mosaic") as NSString).appendingPathComponent("mosaic.json"),
-                (current as NSString).appendingPathComponent("mosaic.json"),
+                ((current as NSString).appendingPathComponent(".coterm") as NSString).appendingPathComponent("coterm.json"),
+                (current as NSString).appendingPathComponent("coterm.json"),
             ]
             for candidate in candidates where fileManager.fileExists(atPath: candidate) {
                 return candidate
@@ -448,7 +448,7 @@ struct MosaicVaultAgentRegistry: Sendable {
         }
     }
 
-    private static func decodeConfig(at path: String, fileManager: FileManager) -> MosaicConfigFile? {
+    private static func decodeConfig(at path: String, fileManager: FileManager) -> CotermConfigFile? {
         guard fileManager.fileExists(atPath: path),
               let data = fileManager.contents(atPath: path),
               !data.isEmpty else {
@@ -456,7 +456,7 @@ struct MosaicVaultAgentRegistry: Sendable {
         }
         do {
             let sanitized = try JSONCParser.preprocess(data: data)
-            return try JSONDecoder().decode(MosaicConfigFile.self, from: sanitized)
+            return try JSONDecoder().decode(CotermConfigFile.self, from: sanitized)
         } catch {
             logger.fault(
                 "Failed to decode config at \(path, privacy: .public): \(error.localizedDescription, privacy: .public)"

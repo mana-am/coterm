@@ -1,4 +1,4 @@
-import MosaicPanes
+import CotermPanes
 import Foundation
 
 extension TabManager {

@@ -4,7 +4,7 @@ import {
   nowSeconds,
   type Principal,
 } from "@coterm/collab-auth";
-import type { InviteRecord } from "./invite-store";
+import type { InviteRecord, JoinApprovalRequest, RoomRecord } from "./invite-store";
 import { HttpRelayClient, type RelayClient } from "./relay-client";
 
 const GRANT_TTL_SECONDS = 15 * 60;
@@ -14,6 +14,11 @@ interface InviteStoreStub {
   list(): Promise<InviteRecord[]>;
   remove(room: string): Promise<boolean>;
   removeMany(rooms: readonly string[]): Promise<void>;
+  putRoom(record: RoomRecord): Promise<void>;
+  getRoom(room: string): Promise<RoomRecord | null>;
+  putJoinRequest(record: JoinApprovalRequest): Promise<void>;
+  getJoinRequest(requestId: string): Promise<JoinApprovalRequest | null>;
+  listJoinRequests(): Promise<JoinApprovalRequest[]>;
 }
 
 interface InviteStoreNamespace {
@@ -43,6 +48,10 @@ function inviteStore(env: ControlPlaneEnv, userId: string): InviteStoreStub {
   return env.INVITE_STORE.get(env.INVITE_STORE.idFromName(userId));
 }
 
+function roomStore(env: ControlPlaneEnv, room: string): InviteStoreStub {
+  return env.INVITE_STORE.get(env.INVITE_STORE.idFromName(`room:${room}`));
+}
+
 function resolveOrgId(explicit: unknown, principal: Principal): string {
   if (typeof explicit === "string" && explicit.trim() !== "") return explicit;
   if (principal.selectedOrgId) return principal.selectedOrgId;
@@ -57,6 +66,23 @@ async function readJson(request: Request): Promise<Record<string, unknown> | nul
   } catch {
     return null;
   }
+}
+
+function randomShareSecret(): string {
+  const values = new Uint8Array(32);
+  crypto.getRandomValues(values);
+  let binary = "";
+  for (const value of values) binary += String.fromCharCode(value);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function readShareSecret(body: Record<string, unknown>): string {
+  const value = typeof body.shareSecret === "string"
+    ? body.shareSecret
+    : typeof body.secret === "string"
+      ? body.secret
+      : "";
+  return value.trim();
 }
 
 export async function controlPlaneFetch(
@@ -108,13 +134,17 @@ export async function controlPlaneFetch(
     const entitlements = await provider.resolveEntitlements(principal, orgId);
 
     let room: string | null;
+    let shareSecret: string;
     if (typeof body.code === "string" && body.code.trim() !== "") {
       room = normalizeSessionCode(body.code);
       if (room === null) return json({ error: "invalid_session_code" }, 400);
+      shareSecret = readShareSecret(body) || randomShareSecret();
     } else {
       if (!entitlements.codesEnabled) return json({ error: "codes_disabled" }, 403);
-      room = await relay.preCreateRoom(relayURL);
-      if (room === null) return json({ error: "relay_unavailable" }, 502);
+      const precreated = await relay.preCreateRoom(relayURL);
+      if (precreated === null) return json({ error: "relay_unavailable" }, 502);
+      room = precreated.room;
+      shareSecret = precreated.shareSecret ?? randomShareSecret();
     }
 
     const session = await provider.mintSessionDescriptor({
@@ -123,10 +153,19 @@ export async function controlPlaneFetch(
       orgId,
       code: room,
       relayURL,
+      shareSecret,
       createdAt: nowSeconds(),
     });
+    await roomStore(env, room).putRoom({
+      room,
+      ownerUserId: principal.userId,
+      orgId,
+      relayURL,
+      shareSecret,
+      createdAt: new Date().toISOString(),
+    });
     const grant = await mintGrant(provider, room, principal, orgId);
-    return json({ session, room, code: room, relayURL, grant, entitlements });
+    return json({ session, room, code: room, relayURL, grant, shareSecret, entitlements });
   }
 
   // POST /api/collab/invite
@@ -186,6 +225,73 @@ export async function controlPlaneFetch(
     return json({ invites: survivors });
   }
 
+  // GET /api/collab/join-requests
+  if (path === "/api/collab/join-requests" && request.method === "GET") {
+    const requests = await inviteStore(env, principal.userId).listJoinRequests();
+    return json({ requests });
+  }
+
+  // POST /api/collab/join-requests/approve
+  if (path === "/api/collab/join-requests/approve" && request.method === "POST") {
+    const body = await readJson(request);
+    if (body === null) return json({ error: "invalid_json" }, 400);
+    const requestId = typeof body.requestId === "string" ? body.requestId.trim() : "";
+    const approved = body.approved !== false;
+    if (!requestId) return json({ error: "invalid_request" }, 400);
+    const store = inviteStore(env, principal.userId);
+    const pending = await store.getJoinRequest(requestId);
+    if (pending === null) return json({ error: "join_request_not_found" }, 404);
+    if (pending.status !== "pending") return json({ request: pending });
+    const decidedAt = new Date().toISOString();
+    const requestRecord: JoinApprovalRequest = approved
+      ? {
+          ...pending,
+          status: "approved",
+          decidedAt,
+          grant: await mintGrant(
+            provider,
+            pending.room,
+            {
+              userId: pending.requesterUserId,
+              displayName: pending.requesterName ?? null,
+              imageURL: pending.requesterImageURL ?? null,
+              orgIds: [pending.orgId],
+              selectedOrgId: pending.orgId,
+            },
+            pending.orgId,
+          ),
+        }
+      : { ...pending, status: "denied", decidedAt };
+    await store.putJoinRequest(requestRecord);
+    return json({ request: requestRecord });
+  }
+
+  // POST /api/collab/join-requests/claim
+  if (path === "/api/collab/join-requests/claim" && request.method === "POST") {
+    const body = await readJson(request);
+    if (body === null) return json({ error: "invalid_json" }, 400);
+    const room = typeof body.room === "string" ? normalizeSessionCode(body.room) : null;
+    const requestId = typeof body.requestId === "string" ? body.requestId.trim() : "";
+    if (room === null || !requestId) return json({ error: "invalid_request" }, 400);
+    const roomRecord = await roomStore(env, room).getRoom(room);
+    if (roomRecord === null) return json({ error: "session_not_found" }, 404);
+    const requestRecord = await inviteStore(env, roomRecord.ownerUserId).getJoinRequest(requestId);
+    if (requestRecord === null || requestRecord.requesterUserId !== principal.userId) {
+      return json({ error: "join_request_not_found" }, 404);
+    }
+    if (requestRecord.status === "pending") {
+      return json({ status: "pending", requestId, room, code: room, relayURL: requestRecord.relayURL ?? roomRecord.relayURL ?? "" }, 202);
+    }
+    if (requestRecord.status === "denied") return json({ error: "join_denied" }, 403);
+    if (!requestRecord.grant) return json({ error: "grant_unavailable" }, 502);
+    return json({
+      room,
+      code: room,
+      relayURL: requestRecord.relayURL ?? roomRecord.relayURL ?? "",
+      grant: requestRecord.grant,
+    });
+  }
+
   // POST /api/collab/join
   if (path === "/api/collab/join" && request.method === "POST") {
     const body = await readJson(request);
@@ -200,6 +306,27 @@ export async function controlPlaneFetch(
       room = normalizeSessionCode(body.code);
       if (room === null) return json({ error: "invalid_session_code" }, 400);
       if (typeof body.relayURL === "string" && body.relayURL.trim() !== "") relayURL = body.relayURL;
+      const shareSecret = readShareSecret(body);
+      if (!shareSecret) return json({ error: "share_secret_required" }, 400);
+      const roomRecord = await roomStore(env, room).getRoom(room);
+      if (roomRecord === null) return json({ error: "session_not_found" }, 404);
+      if (roomRecord.shareSecret !== shareSecret) return json({ error: "invalid_share_secret" }, 403);
+      const requestId = crypto.randomUUID();
+      const requestRecord: JoinApprovalRequest = {
+        requestId,
+        room,
+        requesterUserId: principal.userId,
+        orgId: roomRecord.orgId,
+        relayURL: relayURL || roomRecord.relayURL,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      };
+      if (principal.displayName) requestRecord.requesterName = principal.displayName;
+      if (principal.imageURL) requestRecord.requesterImageURL = principal.imageURL;
+      await inviteStore(env, roomRecord.ownerUserId).putJoinRequest(requestRecord);
+      const notifyRelayURL = requestRecord.relayURL ?? roomRecord.relayURL ?? env.COLLAB_RELAY_URL ?? "";
+      if (notifyRelayURL) await relay.notifyInbox(notifyRelayURL, roomRecord.ownerUserId);
+      return json({ status: "pending", requestId, room, code: room, relayURL: notifyRelayURL }, 202);
     } else if (typeof body.session === "string" && body.session.trim() !== "") {
       const desc = await provider.verifySessionDescriptor(body.session);
       if (desc === null) return json({ error: "invalid_session" }, 400);

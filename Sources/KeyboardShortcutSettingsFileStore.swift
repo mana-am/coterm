@@ -1,10 +1,10 @@
 import Combine
-import MosaicFoundation
-import MosaicSettings
+import CotermFoundation
+import CotermSettings
 import Foundation
 import os
 
-nonisolated private let mosaicSettingsFileStoreLogger = Logger(subsystem: "mosaic.com.emergent.app", category: "SettingsStore")
+nonisolated private let cotermSettingsFileStoreLogger = Logger(subsystem: "coterm.com.emergent.app", category: "SettingsStore")
 
 @MainActor
 final class KeyboardShortcutSettingsObserver: ObservableObject {
@@ -21,25 +21,25 @@ final class KeyboardShortcutSettingsObserver: ObservableObject {
     }
 }
 
-final class MosaicSettingsFileStore {
-    static let shared = MosaicSettingsFileStore()
+final class CotermSettingsFileStore {
+    static let shared = CotermSettingsFileStore()
 
     static let currentSchemaVersion = 1
-    static let schemaURLString = "https://raw.githubusercontent.com/emergent-inc/mosaic/main/web/data/mosaic.schema.json"
-    private static let legacySchemaURLString = "https://raw.githubusercontent.com/emergent-inc/mosaic/main/web/data/mosaic-settings.schema.json"
-    private static let releaseBundleIdentifier = "mosaic.com.emergent.app"
-    private static let backupsDefaultsKey = "mosaic.settingsFile.backups.v1"
-    private static let importedManagedDefaultsDefaultsKey = "mosaic.settingsFile.importedManagedDefaults.v1"
+    static let schemaURLString = "https://raw.githubusercontent.com/emergent-inc/coterm/main/web/data/coterm.schema.json"
+    private static let legacySchemaURLString = "https://raw.githubusercontent.com/emergent-inc/coterm/main/web/data/coterm-settings.schema.json"
+    private static let releaseBundleIdentifier = "coterm.com.emergent.app"
+    private static let backupsDefaultsKey = "coterm.settingsFile.backups.v1"
+    private static let importedManagedDefaultsDefaultsKey = "coterm.settingsFile.importedManagedDefaults.v1"
     fileprivate static let socketPasswordBackupIdentifier = "automation.socketPassword"
 
     static var defaultPrimaryPath: String {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
-        return (home as NSString).appendingPathComponent(".config/mosaic/mosaic.json")
+        return (home as NSString).appendingPathComponent(".config/coterm/coterm.json")
     }
 
     static var defaultFallbackPath: String? {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
-        return (home as NSString).appendingPathComponent(".config/mosaic/settings.json")
+        return (home as NSString).appendingPathComponent(".config/coterm/settings.json")
     }
 
     static var defaultApplicationSupportFallbackPath: String? {
@@ -78,9 +78,9 @@ final class MosaicSettingsFileStore {
     private(set) var activeSourcePath: String?
 
     init(
-        primaryPath: String = MosaicSettingsFileStore.defaultPrimaryPath,
-        fallbackPath: String? = MosaicSettingsFileStore.defaultFallbackPath,
-        additionalFallbackPaths: [String] = [MosaicSettingsFileStore.defaultApplicationSupportFallbackPath].compactMap { $0 },
+        primaryPath: String = CotermSettingsFileStore.defaultPrimaryPath,
+        fallbackPath: String? = CotermSettingsFileStore.defaultFallbackPath,
+        additionalFallbackPaths: [String] = [CotermSettingsFileStore.defaultApplicationSupportFallbackPath].compactMap { $0 },
         fileManager: FileManager = .default,
         notificationCenter: NotificationCenter = .default,
         passwordStore: SocketControlPasswordStore = SocketControlPasswordStore(),
@@ -95,7 +95,7 @@ final class MosaicSettingsFileStore {
         importedManagedDefaults = Self.loadImportedManagedDefaults()
 
         bootstrapPrimaryTemplateIfNeeded()
-        // The app init path loads mosaic.json before applying language itself.
+        // The app init path loads coterm.json before applying language itself.
         // Running live default side effects here can initialize UI/runtime
         // singletons while this store singleton is still in its dispatch_once.
         reload(applyLiveDefaultSideEffects: false)
@@ -178,7 +178,7 @@ final class MosaicSettingsFileStore {
     }
 
     /// The `when`-clause override for an action parsed from `shortcuts.when` in
-    /// mosaic.json, or `nil` when the action has no configured override (so the
+    /// coterm.json, or `nil` when the action has no configured override (so the
     /// caller falls back to the action's built-in ``shortcutContext``).
     func whenClause(for action: KeyboardShortcutSettings.Action) -> ShortcutWhenClause? {
         synchronized { whenClausesByAction[action] }
@@ -213,7 +213,7 @@ final class MosaicSettingsFileStore {
             try contents.write(to: fileURL, options: [.atomic])
             try fileManager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
         } catch {
-            mosaicSettingsFileStoreLogger.warning("failed to bootstrap \(self.primaryPath, privacy: .private(mask: .hash)): \(String(describing: error), privacy: .private(mask: .hash))")
+            cotermSettingsFileStoreLogger.warning("failed to bootstrap \(self.primaryPath, privacy: .private(mask: .hash)): \(String(describing: error), privacy: .private(mask: .hash))")
         }
     }
 
@@ -325,7 +325,7 @@ final class MosaicSettingsFileStore {
             }
             return .parsed(parseSettingsFile(root: root, sourcePath: path))
         } catch {
-            mosaicSettingsFileStoreLogger.warning("parse error at \(path, privacy: .private(mask: .hash)): \(String(describing: error), privacy: .private(mask: .hash))")
+            cotermSettingsFileStoreLogger.warning("parse error at \(path, privacy: .private(mask: .hash)): \(String(describing: error), privacy: .private(mask: .hash))")
             return .invalid
         }
     }
@@ -333,7 +333,7 @@ final class MosaicSettingsFileStore {
     private func parseSettingsFile(root: [String: Any], sourcePath: String) -> ResolvedSettingsSnapshot {
         let schemaVersion = jsonInt(root["schemaVersion"]) ?? 1
         if schemaVersion > Self.currentSchemaVersion {
-            mosaicSettingsFileStoreLogger.warning("\(sourcePath, privacy: .private(mask: .hash)) uses future schemaVersion \(schemaVersion, privacy: .private(mask: .hash)); parsing known fields only")
+            cotermSettingsFileStoreLogger.warning("\(sourcePath, privacy: .private(mask: .hash)) uses future schemaVersion \(schemaVersion, privacy: .private(mask: .hash)); parsing known fields only")
         }
 
         var snapshot = ResolvedSettingsSnapshot(path: sourcePath)
@@ -695,12 +695,12 @@ final class MosaicSettingsFileStore {
             for (rawName, rawValue) in rawColors {
                 let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !name.isEmpty else {
-                    mosaicSettingsFileStoreLogger.warning("ignoring empty workspace color name in \(sourcePath, privacy: .private(mask: .hash))")
+                    cotermSettingsFileStoreLogger.warning("ignoring empty workspace color name in \(sourcePath, privacy: .private(mask: .hash))")
                     continue
                 }
                 guard let hex = jsonString(rawValue),
                       let normalizedHex = WorkspaceTabColorSettings.normalizedHex(hex) else {
-                    mosaicSettingsFileStoreLogger.warning("ignoring invalid workspace color '\(name, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
+                    cotermSettingsFileStoreLogger.warning("ignoring invalid workspace color '\(name, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
                     continue
                 }
                 normalizedPalette[name] = normalizedHex
@@ -717,12 +717,12 @@ final class MosaicSettingsFileStore {
             )
             for (name, rawValue) in rawOverrides {
                 guard validNames.contains(name) else {
-                    mosaicSettingsFileStoreLogger.warning("ignoring unknown workspace color '\(name, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
+                    cotermSettingsFileStoreLogger.warning("ignoring unknown workspace color '\(name, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
                     continue
                 }
                 guard let hex = jsonString(rawValue),
                       let normalizedHex = WorkspaceTabColorSettings.normalizedHex(hex) else {
-                    mosaicSettingsFileStoreLogger.warning("ignoring invalid workspace color override '\(name, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
+                    cotermSettingsFileStoreLogger.warning("ignoring invalid workspace color override '\(name, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
                     continue
                 }
                 palette[name] = normalizedHex
@@ -797,7 +797,7 @@ final class MosaicSettingsFileStore {
     ) {
         if let raw = jsonString(section["socketControlMode"]) {
             let knownModes = Set([
-                "off", "mosaiconly", "automation", "password", "allowall", "openaccess", "fullopenaccess",
+                "off", "cotermonly", "automation", "password", "allowall", "openaccess", "fullopenaccess",
                 "notifications", "full",
             ])
             let normalizedRaw = raw.replacingOccurrences(of: "-", with: "").lowercased()
@@ -926,11 +926,11 @@ final class MosaicSettingsFileStore {
 
         for (rawAction, rawBinding) in bindings {
             guard let action = KeyboardShortcutSettings.Action(rawValue: rawAction) else {
-                mosaicSettingsFileStoreLogger.warning("ignoring unknown shortcut action '\(rawAction, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
+                cotermSettingsFileStoreLogger.warning("ignoring unknown shortcut action '\(rawAction, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
                 continue
             }
             guard let shortcut = parseShortcutBindingValue(rawBinding, action: action) else {
-                mosaicSettingsFileStoreLogger.warning("ignoring invalid shortcut binding for '\(rawAction, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
+                cotermSettingsFileStoreLogger.warning("ignoring invalid shortcut binding for '\(rawAction, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
                 continue
             }
             snapshot.shortcuts[action] = shortcut
@@ -956,12 +956,12 @@ final class MosaicSettingsFileStore {
         }
         for (rawAction, rawClause) in whenSection {
             guard let action = KeyboardShortcutSettings.Action(rawValue: rawAction) else {
-                mosaicSettingsFileStoreLogger.warning("ignoring shortcuts.when for unknown action '\(rawAction, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
+                cotermSettingsFileStoreLogger.warning("ignoring shortcuts.when for unknown action '\(rawAction, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
                 continue
             }
             guard let expression = jsonString(rawClause),
                   let clause = ShortcutWhenClause.parse(expression) else {
-                mosaicSettingsFileStoreLogger.warning("ignoring invalid shortcuts.when clause for '\(rawAction, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
+                cotermSettingsFileStoreLogger.warning("ignoring invalid shortcuts.when clause for '\(rawAction, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
                 continue
             }
             snapshot.whenClauses[action] = clause
@@ -983,7 +983,7 @@ final class MosaicSettingsFileStore {
                     allowBareFirstStroke: action.allowsBareFirstStroke
                 )
             }
-            // Object form written by the MosaicSettings package recorder (the
+            // Object form written by the CotermSettings package recorder (the
             // in-app Settings UI): { "first": { key, command, ... }, "second": { ... }? }.
             // The package serializes StoredShortcut as nested stroke objects, so
             // a rebinding made in Settings only reaches this store in that shape.
@@ -1003,7 +1003,7 @@ final class MosaicSettingsFileStore {
         return action.normalizedSettingsFileShortcut(shortcut)
     }
 
-    /// Decodes the nested-object binding the MosaicSettings package writes
+    /// Decodes the nested-object binding the CotermSettings package writes
     /// (`{ "first": { stroke }, "second": { stroke }? }`) into the app-target
     /// ``StoredShortcut``. An empty primary key is the package's explicit
     /// "unbound" marker. Returns `nil` when `first` is missing or malformed —
@@ -1295,7 +1295,7 @@ final class MosaicSettingsFileStore {
         if didMutateStoredValue {
             return managedDefaultSideEffects(
                 for: defaultsKey,
-                source: "mosaicConfig.restoreUserDefault"
+                source: "cotermConfig.restoreUserDefault"
             )
         }
         return ManagedDefaultBatchSideEffects()
@@ -1384,7 +1384,7 @@ final class MosaicSettingsFileStore {
         if didMutateStoredValue {
             return managedDefaultSideEffects(
                 for: defaultsKey,
-                source: "mosaicConfig.applyManagedDefault"
+                source: "cotermConfig.applyManagedDefault"
             )
         }
         return ManagedDefaultBatchSideEffects()
@@ -1401,7 +1401,7 @@ final class MosaicSettingsFileStore {
     ) -> Bool {
         guard !forceApply else { return true }
         guard let importedDefault else { return true }
-        // Precedence: user explicit choice (UserDefaults) > mosaic.json imported default > built-in default.
+        // Precedence: user explicit choice (UserDefaults) > coterm.json imported default > built-in default.
         guard let current = currentManagedUserDefaultsValue(
             for: defaultsKey,
             matching: value,
@@ -1648,7 +1648,7 @@ final class MosaicSettingsFileStore {
     }
 
     private func logInvalid(_ path: String, sourcePath: String) {
-        mosaicSettingsFileStoreLogger.warning("ignoring invalid setting '\(path, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
+        cotermSettingsFileStoreLogger.warning("ignoring invalid setting '\(path, privacy: .private(mask: .hash))' in \(sourcePath, privacy: .private(mask: .hash))")
     }
 
     private func jsonString(_ rawValue: Any?) -> String? {
@@ -1688,7 +1688,7 @@ final class MosaicSettingsFileStore {
 
 }
 
-typealias KeyboardShortcutSettingsFileStore = MosaicSettingsFileStore
+typealias KeyboardShortcutSettingsFileStore = CotermSettingsFileStore
 
 private struct ResolvedSettingsSnapshot {
     var path: String?
@@ -1761,7 +1761,7 @@ private struct ManagedCustomSettings: Equatable {
     var managedIdentifiers: Set<String> {
         var identifiers: Set<String> = []
         if socketPassword != nil {
-            identifiers.insert(MosaicSettingsFileStore.socketPasswordBackupIdentifier)
+            identifiers.insert(CotermSettingsFileStore.socketPasswordBackupIdentifier)
         }
         return identifiers
     }

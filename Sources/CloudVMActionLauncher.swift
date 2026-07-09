@@ -1,4 +1,4 @@
-import MosaicFoundation
+import CotermFoundation
 import AppKit
 import Foundation
 
@@ -35,18 +35,18 @@ final class CloudVMActionLauncher {
         preferredWindow: NSWindow?,
         onCompletion: ((Completion) -> Void)? = nil
     ) -> Bool {
-        let cliURL = Bundle.main.resourceURL?.appendingPathComponent("bin/mosaic")
+        let cliURL = Bundle.main.resourceURL?.appendingPathComponent("bin/coterm")
         guard let cliURL,
               FileManager.default.isExecutableFile(atPath: cliURL.path) else {
             presentStartFailure(
                 summary: String(
                     localized: "command.cloudVM.failed.missingCLI",
-                    defaultValue: "The bundled CLI is missing from this mosaic build."
+                    defaultValue: "The bundled CLI is missing from this coterm build."
                 ),
                 output: "",
                 action: String(
                     localized: "command.cloudVM.failed.action.missingCLI",
-                    defaultValue: "Install or reload a fresh mosaic build, then try Start Cloud VM again. You can also run `mosaic vm new` in a terminal to see the full error."
+                    defaultValue: "Install or reload a fresh coterm build, then try Start Cloud VM again. You can also run `coterm vm new` in a terminal to see the full error."
                 ),
                 preferredWindow: preferredWindow
             )
@@ -57,9 +57,9 @@ final class CloudVMActionLauncher {
         process.executableURL = cliURL
         process.arguments = ["--socket", socketPath, "--id-format", "uuids", "vm", "new"]
         var environment = ProcessInfo.processInfo.environment
-        environment["MOSAIC_SOCKET_PATH"] = socketPath
-        environment["MOSAIC_BUNDLED_CLI_PATH"] = cliURL.path
-        environment.removeValue(forKey: "MOSAIC_SOCKET")
+        environment["COTERM_SOCKET_PATH"] = socketPath
+        environment["COTERM_BUNDLED_CLI_PATH"] = cliURL.path
+        environment.removeValue(forKey: "COTERM_SOCKET")
         process.environment = environment
 
         let outputPipe = Pipe()
@@ -85,14 +85,14 @@ final class CloudVMActionLauncher {
                 guard terminationStatus != 0, !Self.shared.isShuttingDown else { return }
                 let format = String(
                     localized: "command.cloudVM.failed.exit",
-                    defaultValue: "mosaic vm new exited with status %d."
+                    defaultValue: "coterm vm new exited with status %d."
                 )
                 Self.shared.presentStartFailure(
                     summary: String(format: format, Int(terminationStatus)),
                     output: output,
                     action: String(
                         localized: "command.cloudVM.failed.action.exit",
-                        defaultValue: "Open a terminal and run `mosaic auth status`, `mosaic vm ls`, then `mosaic vm new`. If you hit the active VM limit, delete one with `mosaic vm rm <id>` and retry."
+                        defaultValue: "Open a terminal and run `coterm auth status`, `coterm vm ls`, then `coterm vm new`. If you hit the active VM limit, delete one with `coterm vm rm <id>` and retry."
                     ),
                     preferredWindow: launchWindow
                 )
@@ -103,7 +103,7 @@ final class CloudVMActionLauncher {
             try process.run()
             processes[process.processIdentifier] = process
 #if DEBUG
-            mosaicDebugLog("cloudVM.launch pid=\(process.processIdentifier) socket=\(socketPath)")
+            cotermDebugLog("cloudVM.launch pid=\(process.processIdentifier) socket=\(socketPath)")
 #endif
             return true
         } catch {
@@ -111,12 +111,12 @@ final class CloudVMActionLauncher {
             presentStartFailure(
                 summary: String(
                     localized: "command.cloudVM.failed.launch",
-                    defaultValue: "`mosaic vm new` could not be launched."
+                    defaultValue: "`coterm vm new` could not be launched."
                 ),
                 output: error.localizedDescription,
                 action: String(
                     localized: "command.cloudVM.failed.action.launch",
-                    defaultValue: "Reload mosaic so the bundled CLI is available, then try again. If it still fails, run `mosaic vm new` in a terminal and send us the output."
+                    defaultValue: "Reload coterm so the bundled CLI is available, then try again. If it still fails, run `coterm vm new` in a terminal and send us the output."
                 ),
                 preferredWindow: preferredWindow
             )
@@ -180,7 +180,7 @@ final class CloudVMActionLauncher {
             "bearer",
             "billingcustomer",
             "billingteam",
-            "mosaic_vm_",
+            "coterm_vm_",
             "cookie",
             "credential",
             "database",
@@ -211,7 +211,7 @@ final class CloudVMActionLauncher {
             "bearer",
             "billingcustomer",
             "billingteam",
-            "mosaicvmapi",
+            "cotermvmapi",
             "cookie",
             "credential",
             "database",

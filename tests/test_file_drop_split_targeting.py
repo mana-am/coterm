@@ -14,7 +14,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mosaic import mosaic
+from coterm import coterm
 
 
 def surface_ids_from_layout(layout: dict):
@@ -42,7 +42,7 @@ def surface_ids_from_layout(layout: dict):
 
 
 def main() -> int:
-    with mosaic() as client:
+    with coterm() as client:
         try:
             client.activate_app()
         except Exception:

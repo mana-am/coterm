@@ -118,7 +118,7 @@ export const deviceTokens = pgTable(
     deviceToken: text("device_token").notNull(),
     platform: text("platform").notNull().default("ios"),
     // The APNs topic the token belongs to (the iOS bundle id, which varies by
-    // build: dev.mosaic.ios.<tag>, dev.mosaic.app.beta, mosaic.com.emergent.app).
+    // build: dev.coterm.ios.<tag>, dev.coterm.app.beta, coterm.com.emergent.app).
     bundleId: text("bundle_id").notNull(),
     // "sandbox" for development builds, "production" for TestFlight/App Store —
     // selects which APNs host the sender uses.
@@ -169,11 +169,11 @@ export const cloudVmBillingGrants = pgTable(
 
 /**
  * Device registry — the team-scoped record of which physical machines (Macs /
- * hosts) and their running mosaic app instances exist, so a phone can auto-pair
+ * hosts) and their running coterm app instances exist, so a phone can auto-pair
  * on reload instead of re-scanning a QR.
  *
  * Two-level model:
- *   `devices` (a physical machine) -> `deviceAppInstances` (one running mosaic
+ *   `devices` (a physical machine) -> `deviceAppInstances` (one running coterm
  *   build/tag on that machine).
  *
  * The registry is a best-effort *rendezvous* layer that lets a re-launched
@@ -182,7 +182,7 @@ export const cloudVmBillingGrants = pgTable(
  * falls back to it if the registry is unreachable, so pairing survives the
  * cloud registry being down.
  *
- * Device identity is a mosaic-GENERATED persisted UUID (see Mac
+ * Device identity is a coterm-GENERATED persisted UUID (see Mac
  * `MobileHostIdentity.deviceID()` / iOS `MobileDeviceIdentity`), NOT
  * IOPlatformUUID. It is cross-platform, survives relaunch, and is
  * user-renamable via `displayName`.
@@ -193,9 +193,9 @@ export const devices = pgTable(
     // Surrogate primary key for the team-scoped device row.
     id: uuid("id").defaultRandom().primaryKey(),
     // Stack team that owns this device row. All registry reads/writes are
-    // scoped to a team the caller is a verified member of (`X-Mosaic-Team-Id`).
+    // scoped to a team the caller is a verified member of (`X-Coterm-Team-Id`).
     teamId: text("team_id").notNull(),
-    // The mosaic-generated persisted UUID supplied by the device. It is the
+    // The coterm-generated persisted UUID supplied by the device. It is the
     // device's stable, global identity (mirrors Mac `MobileHostIdentity` / iOS
     // `MobileDeviceIdentity`), but identity is modeled per team: one row per
     // (team, device), so a Mac in two teams registers a row in each and a phone
@@ -225,8 +225,8 @@ export const devices = pgTable(
 );
 
 /**
- * A running mosaic app instance on a device, keyed by `(deviceId, tag)` so each
- * tagged build (`dev.mosaic.<tag>`, stable, etc.) on the same machine is its own
+ * A running coterm app instance on a device, keyed by `(deviceId, tag)` so each
+ * tagged build (`dev.coterm.<tag>`, stable, etc.) on the same machine is its own
  * row. Holds the attach `routes` the phone uses to reconnect; the registry is
  * port-flexible, so the endpoint lives in `routes` jsonb rather than a fixed
  * column. A re-register updates the routes for the same `(deviceId, tag)`.
@@ -239,7 +239,7 @@ export const deviceAppInstances = pgTable(
       .notNull()
       .references(() => devices.id, { onDelete: "cascade" }),
     teamId: text("team_id").notNull(),
-    // The mosaic build tag this instance is running (e.g. "stable" or a dev tag).
+    // The coterm build tag this instance is running (e.g. "stable" or a dev tag).
     // Defaults to "default" when the build does not distinguish tags.
     tag: text("tag").notNull().default("default"),
     // Attach routes advertised by this instance, ordered by priority. Shape

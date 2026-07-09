@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic"
+            "value": "coterm"
           }
         }
       }
@@ -1690,7 +1690,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not move this tab to the selected destination."
+            "value": "coterm could not move this tab to the selected destination."
           }
         }
       }
@@ -2042,7 +2042,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mosaic opened, you may close this tab"
+            "value": "Coterm opened, you may close this tab"
           }
         }
       }
@@ -2174,7 +2174,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Always allow this host in mosaic"
+            "value": "Always allow this host in Coterm"
           }
         }
       }
@@ -2614,7 +2614,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ uses plain HTTP, so traffic can be read or modified on the network.\n\nOpen this URL in your default browser, or proceed in mosaic."
+            "value": "%@ uses plain HTTP, so traffic can be read or modified on the network.\n\nOpen this URL in your default browser, or proceed in coterm."
           }
         }
       }
@@ -2680,7 +2680,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not open this link. You can copy it and open it in another app."
+            "value": "coterm could not open this link. You can copy it and open it in another app."
           }
         }
       }
@@ -2702,7 +2702,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A web page in mosaic wants to open a link in another app. You can stay in the browser instead."
+            "value": "A web page in Coterm wants to open a link in another app. You can stay in the browser instead."
           }
         }
       }
@@ -2911,7 +2911,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to create mosaic browser profile '%@'"
+            "value": "Failed to create Coterm browser profile '%@'"
           }
         }
       }
@@ -2922,7 +2922,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No mosaic browser profile matches '%@'"
+            "value": "No Coterm browser profile matches '%@'"
           }
         }
       }
@@ -2999,7 +2999,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Created mosaic profiles: %@"
+            "value": "Created coterm profiles: %@"
           }
         }
       }
@@ -3136,7 +3136,7 @@
         }
       }
     },
-    "browser.import.destination.mosaic": {
+    "browser.import.destination.coterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -3197,7 +3197,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Imported data goes into the selected mosaic profile."
+            "value": "Imported data goes into the selected coterm profile."
           }
         }
       }
@@ -3208,7 +3208,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All selected source profiles go into one mosaic profile."
+            "value": "All selected source profiles go into one coterm profile."
           }
         }
       }
@@ -3219,7 +3219,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Missing mosaic profiles are created on import."
+            "value": "Missing coterm profiles are created on import."
           }
         }
       }
@@ -3296,7 +3296,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not create the destination profile \"%@\"."
+            "value": "coterm could not create the destination profile \"%@\"."
           }
         }
       }
@@ -3307,7 +3307,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The selected mosaic browser profile no longer exists. Pick a destination profile again."
+            "value": "The selected Coterm browser profile no longer exists. Pick a destination profile again."
           }
         }
       }
@@ -3439,7 +3439,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not find browser profiles to import from on this Mac."
+            "value": "coterm could not find browser profiles to import from on this Mac."
           }
         }
       }
@@ -3840,13 +3840,13 @@
         }
       }
     },
-    "browser.proceedInMosaic": {
+    "browser.proceedInCoterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Proceed in mosaic"
+            "value": "Proceed in Coterm"
           }
         }
       }
@@ -3857,7 +3857,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multiple mosaic browser profiles match '%@'. Use the profile ID instead."
+            "value": "Multiple Coterm browser profiles match '%@'. Use the profile ID instead."
           }
         }
       }
@@ -3912,7 +3912,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to clear mosaic browser profile '%@'"
+            "value": "Failed to clear Coterm browser profile '%@'"
           }
         }
       }
@@ -3923,7 +3923,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to create mosaic browser profile '%@'"
+            "value": "Failed to create Coterm browser profile '%@'"
           }
         }
       }
@@ -3934,7 +3934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to delete mosaic browser profile '%@'"
+            "value": "Failed to delete Coterm browser profile '%@'"
           }
         }
       }
@@ -3945,7 +3945,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cannot delete mosaic browser profile '%@' while %d browser panel(s) are using it"
+            "value": "Cannot delete Coterm browser profile '%@' while %d browser panel(s) are using it"
           }
         }
       }
@@ -3956,7 +3956,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No mosaic browser profile matches '%@'"
+            "value": "No Coterm browser profile matches '%@'"
           }
         }
       }
@@ -3967,7 +3967,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to rename mosaic browser profile to '%@'"
+            "value": "Failed to rename Coterm browser profile to '%@'"
           }
         }
       }
@@ -4352,7 +4352,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic claude-teams [claude-args...]\n\nLaunch Claude Code with agent teams enabled.\n\nThis command:\n  - defaults Claude teammate mode to auto\n  - sets a tmux-like environment so Claude auto mode uses mosaic splits\n  - sets CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1\n  - prepends a private tmux shim to PATH\n  - forwards all remaining arguments to claude\n\nThe tmux shim translates supported tmux window/pane commands into mosaic\nworkspace and split operations in the current mosaic session.\n\nExamples:\n  mosaic claude-teams\n  mosaic claude-teams --continue\n  mosaic claude-teams --model sonnet"
+            "value": "Usage: coterm claude-teams [claude-args...]\n\nLaunch Claude Code with agent teams enabled.\n\nThis command:\n  - defaults Claude teammate mode to auto\n  - sets a tmux-like environment so Claude auto mode uses coterm splits\n  - sets CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1\n  - prepends a private tmux shim to PATH\n  - forwards all remaining arguments to claude\n\nThe tmux shim translates supported tmux window/pane commands into coterm\nworkspace and split operations in the current coterm session.\n\nExamples:\n  coterm claude-teams\n  coterm claude-teams --continue\n  coterm claude-teams --model sonnet"
           }
         }
       }
@@ -4429,7 +4429,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not start this command. Try again, or reinstall mosaic if the problem continues."
+            "value": "coterm could not start this command. Try again, or reinstall coterm if the problem continues."
           }
         }
       }
@@ -4440,7 +4440,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not start the command-line tool from the app bundle. Reinstall mosaic or run the command from a standard mosaic CLI installation."
+            "value": "coterm could not start the command-line tool from the app bundle. Reinstall coterm or run the command from a standard coterm CLI installation."
           }
         }
       }
@@ -4451,7 +4451,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not run this command from the app bundle. Reinstall mosaic or run the command from a standard mosaic CLI installation."
+            "value": "coterm could not run this command from the app bundle. Reinstall coterm or run the command from a standard coterm CLI installation."
           }
         }
       }
@@ -4462,7 +4462,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic dismiss-notification (--id <uuid> | --all-read)\n\nRemove one notification, or remove every already-read notification.\n\nFlags:\n  --id <uuid>           Notification id to remove\n  --all-read            Remove every already-read notification\n  --json                Print JSON\n  --id-format <mode>    refs, uuids, or both"
+            "value": "Usage: coterm dismiss-notification (--id <uuid> | --all-read)\n\nRemove one notification, or remove every already-read notification.\n\nFlags:\n  --id <uuid>           Notification id to remove\n  --all-read            Remove every already-read notification\n  --json                Print JSON\n  --id-format <mode>    refs, uuids, or both"
           }
         }
       }
@@ -4473,7 +4473,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic jump-to-unread\n\nFocus the latest unread notification, matching the Notifications page action.\n\nFlags:\n  --json                Print JSON\n  --id-format <mode>    refs, uuids, or both"
+            "value": "Usage: coterm jump-to-unread\n\nFocus the latest unread notification, matching the Notifications page action.\n\nFlags:\n  --json                Print JSON\n  --id-format <mode>    refs, uuids, or both"
           }
         }
       }
@@ -4484,7 +4484,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic mark-notification-read (--id <uuid> | --workspace <id|ref> [--surface <id|ref>] | --all)\n\nMark notifications read without opening them. Exactly one selector is required.\n\nFlags:\n  --id <uuid>           Mark one notification read\n  --workspace <id|ref>  Mark notifications for a workspace\n  --surface <id|ref>    Narrow --workspace to one surface\n  --all                 Mark every notification read\n  --json                Print JSON\n  --id-format <mode>    refs, uuids, or both"
+            "value": "Usage: coterm mark-notification-read (--id <uuid> | --workspace <id|ref> [--surface <id|ref>] | --all)\n\nMark notifications read without opening them. Exactly one selector is required.\n\nFlags:\n  --id <uuid>           Mark one notification read\n  --workspace <id|ref>  Mark notifications for a workspace\n  --surface <id|ref>    Narrow --workspace to one surface\n  --all                 Mark every notification read\n  --json                Print JSON\n  --id-format <mode>    refs, uuids, or both"
           }
         }
       }
@@ -4495,7 +4495,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic memory [flags]\n\nDiagnose mosaic app memory separately from recursive terminal child-process RSS.\n\nFlags:\n  --all                         Include all windows (default: current window only)\n  --workspace <id|ref|index>   Limit workspace context for attribution labels\n  --groups <count>              Number of child command groups to show (default: 12)\n  --json                        Structured JSON output\n\nOutput:\n  App footprint is the direct mosaic process physical footprint from macOS process accounting.\n  Child RSS is recursive resident memory for descendants of the mosaic app process,\n  grouped by command name and attributed back to workspace, pane, and surface when known.\n\nExample:\n  mosaic memory\n  mosaic memory --groups 20\n  mosaic --json memory --all"
+            "value": "Usage: coterm memory [flags]\n\nDiagnose coterm app memory separately from recursive terminal child-process RSS.\n\nFlags:\n  --all                         Include all windows (default: current window only)\n  --workspace <id|ref|index>   Limit workspace context for attribution labels\n  --groups <count>              Number of child command groups to show (default: 12)\n  --json                        Structured JSON output\n\nOutput:\n  App footprint is the direct coterm process physical footprint from macOS process accounting.\n  Child RSS is recursive resident memory for descendants of the coterm app process,\n  grouped by command name and attributed back to workspace, pane, and surface when known.\n\nExample:\n  coterm memory\n  coterm memory --groups 20\n  coterm --json memory --all"
           }
         }
       }
@@ -4506,7 +4506,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic open-notification --id <uuid>\n\nFocus the notification's workspace and surface, then mark the row read.\n\nFlags:\n  --id <uuid>           Notification id to open\n  --json                Print JSON\n  --id-format <mode>    refs, uuids, or both"
+            "value": "Usage: coterm open-notification --id <uuid>\n\nFocus the notification's workspace and surface, then mark the row read.\n\nFlags:\n  --id <uuid>           Notification id to open\n  --json                Print JSON\n  --id-format <mode>    refs, uuids, or both"
           }
         }
       }
@@ -4517,7 +4517,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic reorder-workspaces --order <id|ref|index>,<id|ref|index>,... [flags]\n\nReorder workspaces within a window as one atomic batch. The comma-separated\norder is the final leading order inside the pinned and unpinned groups;\nunmentioned workspaces keep their relative order after listed peers in the\nsame group.\n\nFlags:\n  --order <refs>                Comma-separated workspace refs to place first\n  --window <id|ref|index>       Window context\n  --dry-run                     Print the resolved final indexes without applying\n\nExample:\n  mosaic reorder-workspaces --order workspace:1,workspace:11,workspace:31\n  mosaic reorder-workspaces --order workspace:11,workspace:1 --dry-run"
+            "value": "Usage: coterm reorder-workspaces --order <id|ref|index>,<id|ref|index>,... [flags]\n\nReorder workspaces within a window as one atomic batch. The comma-separated\norder is the final leading order inside the pinned and unpinned groups;\nunmentioned workspaces keep their relative order after listed peers in the\nsame group.\n\nFlags:\n  --order <refs>                Comma-separated workspace refs to place first\n  --window <id|ref|index>       Window context\n  --dry-run                     Print the resolved final indexes without applying\n\nExample:\n  coterm reorder-workspaces --order workspace:1,workspace:11,workspace:31\n  coterm reorder-workspaces --order workspace:11,workspace:1 --dry-run"
           }
         }
       }
@@ -4528,7 +4528,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic set-status <key> <value> [flags]\n\nSet a sidebar status entry for a workspace. Status entries appear as\npills in the sidebar tab row. Use a unique key so different tools\n(e.g. \"claude_code\", \"build\") can manage their own entries.\n\nFlags:\n  --icon <name>          Icon name (e.g. \"sparkle\", \"hammer\")\n  --color <#hex>         Pill color (e.g. \"#ff9500\")\n  --priority <n>         Sort priority; higher appears first (default: 0)\n  --workspace <id|ref>   Target workspace (default: $MOSAIC_WORKSPACE_ID)\n\nExample:\n  mosaic set-status build \"compiling\" --icon hammer --color \"#ff9500\" --priority 80\n  mosaic set-status deploy \"v1.2.3\" --workspace workspace:2"
+            "value": "Usage: coterm set-status <key> <value> [flags]\n\nSet a sidebar status entry for a workspace. Status entries appear as\npills in the sidebar tab row. Use a unique key so different tools\n(e.g. \"claude_code\", \"build\") can manage their own entries.\n\nFlags:\n  --icon <name>          Icon name (e.g. \"sparkle\", \"hammer\")\n  --color <#hex>         Pill color (e.g. \"#ff9500\")\n  --priority <n>         Sort priority; higher appears first (default: 0)\n  --workspace <id|ref>   Target workspace (default: $COTERM_WORKSPACE_ID)\n\nExample:\n  coterm set-status build \"compiling\" --icon hammer --color \"#ff9500\" --priority 80\n  coterm set-status deploy \"v1.2.3\" --workspace workspace:2"
           }
         }
       }
@@ -4539,7 +4539,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic ssh <destination> [flags] [-- <remote-command-args>]\n\nCreate a new workspace, mark it as remote-SSH, and start an SSH session in that workspace.\nmosaic will also establish a local SSH proxy endpoint so browser traffic can egress from the remote host.\n\nFlags:\n  --name <title>          Optional workspace title\n  --port <n>              SSH port\n  --identity <path>       SSH identity file path\n  -A, --forward-agent     Forward the caller's SSH agent; also honors ForwardAgent yes from ssh_config\n  -a, --no-forward-agent  Disable SSH agent forwarding for this workspace\n  --ssh-option <opt>      Extra SSH -o option (repeatable)\n  --window <id|ref|index> Target window for the managed workspace\n  --no-focus              Create workspace without switching to it\n\nExample:\n  mosaic ssh dev@my-host\n  mosaic ssh dev@my-host --name \"gpu-box\" --port 2222 --identity ~/.ssh/id_ed25519\n  mosaic ssh dev@my-host --forward-agent\n  mosaic ssh dev@my-host --ssh-option UserKnownHostsFile=/dev/null --ssh-option StrictHostKeyChecking=no"
+            "value": "Usage: coterm ssh <destination> [flags] [-- <remote-command-args>]\n\nCreate a new workspace, mark it as remote-SSH, and start an SSH session in that workspace.\ncoterm will also establish a local SSH proxy endpoint so browser traffic can egress from the remote host.\n\nFlags:\n  --name <title>          Optional workspace title\n  --port <n>              SSH port\n  --identity <path>       SSH identity file path\n  -A, --forward-agent     Forward the caller's SSH agent; also honors ForwardAgent yes from ssh_config\n  -a, --no-forward-agent  Disable SSH agent forwarding for this workspace\n  --ssh-option <opt>      Extra SSH -o option (repeatable)\n  --window <id|ref|index> Target window for the managed workspace\n  --no-focus              Create workspace without switching to it\n\nExample:\n  coterm ssh dev@my-host\n  coterm ssh dev@my-host --name \"gpu-box\" --port 2222 --identity ~/.ssh/id_ed25519\n  coterm ssh dev@my-host --forward-agent\n  coterm ssh dev@my-host --ssh-option UserKnownHostsFile=/dev/null --ssh-option StrictHostKeyChecking=no"
           }
         }
       }
@@ -4550,7 +4550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic ssh-tmux <destination> [--port <n>] [--identity <path>] [--no-focus]\n\nOpen a dedicated mosaic window that mirrors a remote host's tmux sessions over\ntmux control mode (tmux -CC) via SSH: each tmux session becomes a workspace,\neach window a tab, and a multi-pane window a native split. Requires the\n\"Remote tmux\" beta to be enabled in Settings.\n\nIf the host needs interactive authentication (password, host-key confirmation,\nMFA, or a security-key touch), mosaic runs ssh inline in this terminal so you can\nauthenticate, then mirrors the sessions over the shared SSH connection. Hosts\nthat authenticate non-interactively (ssh-agent / key in ~/.ssh/config) mirror\nwith no prompt. ~/.ssh/config aliases and their IdentityFile/ProxyJump/Port\nsettings are honored.\n\nFlags:\n  --port <n>          SSH port\n  --identity <path>   SSH identity file path\n  --no-focus          Open the mirror window without activating it\n\nExample:\n  mosaic ssh-tmux dev@my-host\n  mosaic ssh-tmux my-ssh-alias\n  mosaic ssh-tmux dev@my-host --port 2222 --identity ~/.ssh/id_ed25519"
+            "value": "Usage: coterm ssh-tmux <destination> [--port <n>] [--identity <path>] [--no-focus]\n\nOpen a dedicated coterm window that mirrors a remote host's tmux sessions over\ntmux control mode (tmux -CC) via SSH: each tmux session becomes a workspace,\neach window a tab, and a multi-pane window a native split. Requires the\n\"Remote tmux\" beta to be enabled in Settings.\n\nIf the host needs interactive authentication (password, host-key confirmation,\nMFA, or a security-key touch), coterm runs ssh inline in this terminal so you can\nauthenticate, then mirrors the sessions over the shared SSH connection. Hosts\nthat authenticate non-interactively (ssh-agent / key in ~/.ssh/config) mirror\nwith no prompt. ~/.ssh/config aliases and their IdentityFile/ProxyJump/Port\nsettings are honored.\n\nFlags:\n  --port <n>          SSH port\n  --identity <path>   SSH identity file path\n  --no-focus          Open the mirror window without activating it\n\nExample:\n  coterm ssh-tmux dev@my-host\n  coterm ssh-tmux my-ssh-alias\n  coterm ssh-tmux dev@my-host --port 2222 --identity ~/.ssh/id_ed25519"
           }
         }
       }
@@ -4638,7 +4638,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removed Antigravity mosaic hooks from %@"
+            "value": "Removed Antigravity coterm hooks from %@"
           }
         }
       }
@@ -4649,7 +4649,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removed 0 mosaic hook(s) from %@"
+            "value": "Removed 0 coterm hook(s) from %@"
           }
         }
       }
@@ -4660,7 +4660,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not create the hooks directory: a file exists at %@; remove or rename the conflicting file and re-run `mosaic hooks setup`"
+            "value": "coterm could not create the hooks directory: a file exists at %@; remove or rename the conflicting file and re-run `coterm hooks setup`"
           }
         }
       }
@@ -4670,7 +4670,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kiro applies these hooks only when run as the mosaic agent. Start Kiro with `kiro-cli chat --agent mosaic`, or make it the default with `kiro-cli settings chat.defaultAgent mosaic`."
+            "value": "Kiro applies these hooks only when run as the coterm agent. Start Kiro with `kiro-cli chat --agent coterm`, or make it the default with `kiro-cli settings chat.defaultAgent coterm`."
           }
         }
       }
@@ -4708,13 +4708,13 @@
         }
       }
     },
-    "cli.hooks.omp.error.notMosaicExtension": {
+    "cli.hooks.omp.error.notCotermExtension": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ exists and is not a mosaic extension; leaving it alone"
+            "value": "%@ exists and is not a coterm extension; leaving it alone"
           }
         }
       }
@@ -4747,7 +4747,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No OMP mosaic extension found at %@"
+            "value": "No OMP coterm extension found at %@"
           }
         }
       }
@@ -4758,7 +4758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refusing to remove %@: missing mosaic marker"
+            "value": "Refusing to remove %@: missing coterm marker"
           }
         }
       }
@@ -4769,7 +4769,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removed OMP mosaic extension from %@"
+            "value": "Removed OMP coterm extension from %@"
           }
         }
       }
@@ -4807,13 +4807,13 @@
         }
       }
     },
-    "cli.hooks.pi.error.notMosaicExtension": {
+    "cli.hooks.pi.error.notCotermExtension": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ exists and is not a mosaic extension; leaving it alone"
+            "value": "%@ exists and is not a coterm extension; leaving it alone"
           }
         }
       }
@@ -4846,7 +4846,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No Pi mosaic extension found at %@"
+            "value": "No Pi coterm extension found at %@"
           }
         }
       }
@@ -4857,7 +4857,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refusing to remove %@: missing mosaic marker"
+            "value": "Refusing to remove %@: missing coterm marker"
           }
         }
       }
@@ -4868,7 +4868,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removed Pi mosaic extension from %@"
+            "value": "Removed Pi coterm extension from %@"
           }
         }
       }
@@ -4923,7 +4923,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic memory requires a running mosaic build that supports memory diagnostics"
+            "value": "coterm memory requires a running coterm build that supports memory diagnostics"
           }
         }
       }
@@ -5187,7 +5187,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic mobile set-font <points> [--surface <id>] [--workspace <id>]"
+            "value": "Usage: coterm mobile set-font <points> [--surface <id>] [--workspace <id>]"
           }
         }
       }
@@ -5253,7 +5253,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic omo [opencode-args...]\n\nLaunch OpenCode with oh-my-openagent in a mosaic-aware environment.\n\noh-my-openagent orchestrates multiple AI models as specialized agents in\nparallel. This command sets up a tmux shim so agent panes become native\nmosaic splits with sidebar metadata and notifications.\n\nThis command:\n  - sets a tmux-like environment so oh-my-openagent uses mosaic splits\n  - prepends a private tmux shim to PATH\n  - forwards all remaining arguments to opencode\n\nThe tmux shim translates tmux window/pane commands into mosaic workspace\nand split operations in the current mosaic session.\n\nExamples:\n  mosaic omo\n  mosaic omo --continue\n  mosaic omo --model claude-sonnet-4-6"
+            "value": "Usage: coterm omo [opencode-args...]\n\nLaunch OpenCode with oh-my-openagent in a coterm-aware environment.\n\noh-my-openagent orchestrates multiple AI models as specialized agents in\nparallel. This command sets up a tmux shim so agent panes become native\ncoterm splits with sidebar metadata and notifications.\n\nThis command:\n  - sets a tmux-like environment so oh-my-openagent uses coterm splits\n  - prepends a private tmux shim to PATH\n  - forwards all remaining arguments to opencode\n\nThe tmux shim translates tmux window/pane commands into coterm workspace\nand split operations in the current coterm session.\n\nExamples:\n  coterm omo\n  coterm omo --continue\n  coterm omo --model claude-sonnet-4-6"
           }
         }
       }
@@ -5264,7 +5264,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to activate mosaic"
+            "value": "Failed to activate coterm"
           }
         }
       }
@@ -5275,7 +5275,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to launch mosaic"
+            "value": "Failed to launch coterm"
           }
         }
       }
@@ -5286,7 +5286,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to open %@ in mosaic"
+            "value": "Failed to open %@ in Coterm"
           }
         }
       }
@@ -5539,7 +5539,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic right-sidebar <command> [flags]\n\nControl the right sidebar from the CLI.\n\nCommands:\n  toggle                         Toggle right sidebar visibility\n  show                           Show the right sidebar\n  hide                           Hide the right sidebar\n  focus                          Focus the current right sidebar mode\n  set <files|find|vault|sessions|feed|dock>\n                                 Show, switch mode, and focus\n  mode                           Print {\"visible\":bool,\"mode\":string}\n  files|find|vault|sessions|feed|dock\n                                 Alias for show + set + focus\n\nFlags:\n  --workspace <id|ref|index>     Target the window containing a workspace\n  --window <id|ref|index>        Target a window\n  --no-focus                     With set, switch mode without moving focus\n\nExamples:\n  mosaic right-sidebar toggle\n  mosaic right-sidebar set find\n  mosaic right-sidebar set vault --no-focus\n  mosaic right-sidebar mode"
+            "value": "Usage: coterm right-sidebar <command> [flags]\n\nControl the right sidebar from the CLI.\n\nCommands:\n  toggle                         Toggle right sidebar visibility\n  show                           Show the right sidebar\n  hide                           Hide the right sidebar\n  focus                          Focus the current right sidebar mode\n  set <files|find|vault|sessions|feed|dock>\n                                 Show, switch mode, and focus\n  mode                           Print {\"visible\":bool,\"mode\":string}\n  files|find|vault|sessions|feed|dock\n                                 Alias for show + set + focus\n\nFlags:\n  --workspace <id|ref|index>     Target the window containing a workspace\n  --window <id|ref|index>        Target a window\n  --no-focus                     With set, switch mode without moving focus\n\nExamples:\n  coterm right-sidebar toggle\n  coterm right-sidebar set find\n  coterm right-sidebar set vault --no-focus\n  coterm right-sidebar mode"
           }
         }
       }
@@ -5605,7 +5605,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unknown sessions subcommand: %@. Usage: mosaic sessions list [options]"
+            "value": "Unknown sessions subcommand: %@. Usage: coterm sessions list [options]"
           }
         }
       }
@@ -5638,7 +5638,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic sessions list [options]\n       mosaic sessions [options]\n\nPrint saved agent session records from ~/.mosaicterm/*-hook-sessions.json.\nThis command does not require a running mosaic socket.\n\nOptions:\n  --agent <name>        Filter to one agent, for example codex or claude\n  --session <id>        Filter to one agent session id\n  --workspace <id>      Filter to one saved workspace id\n  --surface <id>        Filter to one saved surface id\n  --cwd <text>          Filter by saved cwd or launch working directory\n  --state-dir <path>    Override hook state directory\n  --codex-home <path>   Override the default Codex home used for transcript checks\n  --limit <n>           Limit text output (default: 100)\n  --all                 Print all matches\n  --json                Print structured JSON\n\nCodex rows include whether the saved id exists in CODEX_HOME/session_index.jsonl\nand whether a matching transcript file exists under CODEX_HOME/sessions or\nCODEX_HOME/archived_sessions.\n\nCompatibility aliases:\n  mosaic sessions debug [options]\n  mosaic session-debug [options]"
+            "value": "Usage: coterm sessions list [options]\n       coterm sessions [options]\n\nPrint saved agent session records from ~/.coterm/*-hook-sessions.json.\nThis command does not require a running coterm socket.\n\nOptions:\n  --agent <name>        Filter to one agent, for example codex or claude\n  --session <id>        Filter to one agent session id\n  --workspace <id>      Filter to one saved workspace id\n  --surface <id>        Filter to one saved surface id\n  --cwd <text>          Filter by saved cwd or launch working directory\n  --state-dir <path>    Override hook state directory\n  --codex-home <path>   Override the default Codex home used for transcript checks\n  --limit <n>           Limit text output (default: 100)\n  --all                 Print all matches\n  --json                Print structured JSON\n\nCodex rows include whether the saved id exists in CODEX_HOME/session_index.jsonl\nand whether a matching transcript file exists under CODEX_HOME/sessions or\nCODEX_HOME/archived_sessions.\n\nCompatibility aliases:\n  coterm sessions debug [options]\n  coterm session-debug [options]"
           }
         }
       }
@@ -5825,7 +5825,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic sidebar <validate|reload|select|open> [name|--all] [--json]\n\nValidate, reload, select, or open custom sidebars from ~/.config/mosaic/sidebars.\nSwift files win over JSON files with the same base name.\n\nCommands:\n  validate [name]   Validate all custom sidebars, or one named sidebar\n  reload [name]     Validate all sidebars, then reload every valid one\n  select <name>     Validate and activate one custom sidebar\n  open <name>       Open one custom sidebar as a Bonsplit pane\n\nExamples:\n  mosaic sidebar validate\n  mosaic sidebar reload --all\n  mosaic sidebar select finder.tree\n  mosaic sidebar open finder.tree"
+            "value": "Usage: coterm sidebar <validate|reload|select|open> [name|--all] [--json]\n\nValidate, reload, select, or open custom sidebars from ~/.config/coterm/sidebars.\nSwift files win over JSON files with the same base name.\n\nCommands:\n  validate [name]   Validate all custom sidebars, or one named sidebar\n  reload [name]     Validate all sidebars, then reload every valid one\n  select <name>     Validate and activate one custom sidebar\n  open <name>       Open one custom sidebar as a Bonsplit pane\n\nExamples:\n  coterm sidebar validate\n  coterm sidebar reload --all\n  coterm sidebar select finder.tree\n  coterm sidebar open finder.tree"
           }
         }
       }
@@ -5836,7 +5836,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refusing to choose socket: MOSAIC_SOCKET_PATH and MOSAIC_SOCKET differ. Use MOSAIC_SOCKET_PATH or unset MOSAIC_SOCKET."
+            "value": "Refusing to choose socket: COTERM_SOCKET_PATH and COTERM_SOCKET differ. Use COTERM_SOCKET_PATH or unset COTERM_SOCKET."
           }
         }
       }
@@ -5847,7 +5847,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "respawn-pane requires -k in mosaic tmux compatibility mode"
+            "value": "respawn-pane requires -k in coterm tmux compatibility mode"
           }
         }
       }
@@ -5869,7 +5869,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic top requires a running mosaic build that supports process diagnostics"
+            "value": "coterm top requires a running coterm build that supports process diagnostics"
           }
         }
       }
@@ -6023,7 +6023,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current theme: Anysphere Dark (managed by mosaic)"
+            "value": "Current theme: Anysphere Dark (managed by coterm)"
           }
         }
       }
@@ -6034,7 +6034,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Terminal theme is managed by mosaic and cannot be changed."
+            "value": "Terminal theme is managed by coterm and cannot be changed."
           }
         }
       }
@@ -6045,7 +6045,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic themes\n       mosaic themes list\n\nTerminal colors are fixed to Anysphere Dark and cannot be changed.\nUse `mosaic themes list` to inspect bundled themes and the managed\ncurrent theme.\n\nCommands:\n  list                      List available themes and mark Anysphere Dark as managed\n\nExamples:\n  mosaic themes\n  mosaic themes list"
+            "value": "Usage: coterm themes\n       coterm themes list\n\nTerminal colors are fixed to Anysphere Dark and cannot be changed.\nUse `coterm themes list` to inspect bundled themes and the managed\ncurrent theme.\n\nCommands:\n  list                      List available themes and mark Anysphere Dark as managed\n\nExamples:\n  coterm themes\n  coterm themes list"
           }
         }
       }
@@ -6056,7 +6056,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic workspace <subcommand> [flags]\n\nCanonical noun for workspace operations. Legacy verbs\n(new-workspace, list-workspaces, close-workspace,\nrename-workspace, select-workspace) keep working and print a\none-time deprecation hint pointing here.\n\nSubcommands:\n  list                    List workspaces in a window\n  create [flags]          Create a workspace (same flags as new-workspace,\n                          including --env KEY=VALUE and --env-file <path>)\n  env [workspace] [--mask]\n                          Print a workspace's configured environment\n                          variables (--mask redacts the values)\n  close <workspace>       Close a workspace\n  rename <workspace> --title <new>\n  select <workspace>      Make a workspace active\n  reconnect [workspace]   Reconnect a remote (SSH) workspace, including one\n                          whose automatic reconnect paused because the host\n                          was unreachable\n  disconnect [workspace]  Stop a remote (SSH) workspace's connection\n  group <subcommand>      Workspace group operations (see mosaic workspace-group --help)\n\nenv/reconnect/disconnect accept a positional handle or --workspace\n<id|ref|index>, defaulting to the caller's workspace, then the\nselected one (of --window's window when given).\n\nExamples:\n  mosaic workspace list --json\n  mosaic workspace create --name Build --cwd ~/projects/myapp\n  mosaic workspace create --cwd . --env AWS_PROFILE=prod --env-file ./.mosaic.env\n  mosaic workspace env workspace:3 --mask\n  mosaic workspace close workspace:3\n  mosaic workspace reconnect\n  mosaic workspace disconnect --workspace workspace:3"
+            "value": "Usage: coterm workspace <subcommand> [flags]\n\nCanonical noun for workspace operations. Legacy verbs\n(new-workspace, list-workspaces, close-workspace,\nrename-workspace, select-workspace) keep working and print a\none-time deprecation hint pointing here.\n\nSubcommands:\n  list                    List workspaces in a window\n  create [flags]          Create a workspace (same flags as new-workspace,\n                          including --env KEY=VALUE and --env-file <path>)\n  env [workspace] [--mask]\n                          Print a workspace's configured environment\n                          variables (--mask redacts the values)\n  close <workspace>       Close a workspace\n  rename <workspace> --title <new>\n  select <workspace>      Make a workspace active\n  reconnect [workspace]   Reconnect a remote (SSH) workspace, including one\n                          whose automatic reconnect paused because the host\n                          was unreachable\n  disconnect [workspace]  Stop a remote (SSH) workspace's connection\n  group <subcommand>      Workspace group operations (see coterm workspace-group --help)\n\nenv/reconnect/disconnect accept a positional handle or --workspace\n<id|ref|index>, defaulting to the caller's workspace, then the\nselected one (of --window's window when given).\n\nExamples:\n  coterm workspace list --json\n  coterm workspace create --name Build --cwd ~/projects/myapp\n  coterm workspace create --cwd . --env AWS_PROFILE=prod --env-file ./.coterm.env\n  coterm workspace env workspace:3 --mask\n  coterm workspace close workspace:3\n  coterm workspace reconnect\n  coterm workspace disconnect --workspace workspace:3"
           }
         }
       }
@@ -6562,7 +6562,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open a terminal and run `mosaic auth status`, `mosaic vm ls`, then `mosaic vm new`. If you hit the active VM limit, delete one with `mosaic vm rm <id>` and retry."
+            "value": "Open a terminal and run `coterm auth status`, `coterm vm ls`, then `coterm vm new`. If you hit the active VM limit, delete one with `coterm vm rm <id>` and retry."
           }
         }
       }
@@ -6573,7 +6573,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload mosaic so the bundled CLI is available, then try again. If it still fails, run `mosaic vm new` in a terminal and send us the output."
+            "value": "Reload coterm so the bundled CLI is available, then try again. If it still fails, run `coterm vm new` in a terminal and send us the output."
           }
         }
       }
@@ -6584,7 +6584,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Install or reload a fresh mosaic build, then try Start Cloud VM again. You can also run `mosaic vm new` in a terminal to see the full error."
+            "value": "Install or reload a fresh coterm build, then try Start Cloud VM again. You can also run `coterm vm new` in a terminal to see the full error."
           }
         }
       }
@@ -6617,7 +6617,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic vm new exited with status %d."
+            "value": "coterm vm new exited with status %d."
           }
         }
       }
@@ -6628,7 +6628,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic vm new could not be launched."
+            "value": "coterm vm new could not be launched."
           }
         }
       }
@@ -6639,7 +6639,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The bundled CLI is missing from this mosaic build."
+            "value": "The bundled CLI is missing from this coterm build."
           }
         }
       }
@@ -6677,7 +6677,7 @@
         }
       }
     },
-    "command.mosaicConfig.customTitle": {
+    "command.cotermConfig.customTitle": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6688,7 +6688,7 @@
         }
       }
     },
-    "command.mosaicConfig.defaultClaudeCodeTitle": {
+    "command.cotermConfig.defaultClaudeCodeTitle": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6699,7 +6699,7 @@
         }
       }
     },
-    "command.mosaicConfig.defaultCodexTitle": {
+    "command.cotermConfig.defaultCodexTitle": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6710,7 +6710,7 @@
         }
       }
     },
-    "command.mosaicConfig.issue.newWorkspaceActionNotFound.detail": {
+    "command.cotermConfig.issue.newWorkspaceActionNotFound.detail": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6721,7 +6721,7 @@
         }
       }
     },
-    "command.mosaicConfig.issue.newWorkspaceActionRequiresWorkspaceCommand.detail": {
+    "command.cotermConfig.issue.newWorkspaceActionRequiresWorkspaceCommand.detail": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6732,7 +6732,7 @@
         }
       }
     },
-    "command.mosaicConfig.issue.newWorkspaceCommandNotFound.detail": {
+    "command.cotermConfig.issue.newWorkspaceCommandNotFound.detail": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6743,7 +6743,7 @@
         }
       }
     },
-    "command.mosaicConfig.issue.newWorkspaceCommandRequiresWorkspace.detail": {
+    "command.cotermConfig.issue.newWorkspaceCommandRequiresWorkspace.detail": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6754,7 +6754,7 @@
         }
       }
     },
-    "command.mosaicConfig.issue.schemaError.detail": {
+    "command.cotermConfig.issue.schemaError.detail": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6765,29 +6765,29 @@
         }
       }
     },
-    "command.mosaicConfig.issue.schemaError.fallback": {
+    "command.cotermConfig.issue.schemaError.fallback": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invalid mosaic.json"
+            "value": "Invalid coterm.json"
           }
         }
       }
     },
-    "command.mosaicConfig.issue.schemaError.title": {
+    "command.cotermConfig.issue.schemaError.title": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic.json Schema Error"
+            "value": "coterm.json Schema Error"
           }
         }
       }
     },
-    "command.mosaicConfig.issue.subtitle": {
+    "command.cotermConfig.issue.subtitle": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -6798,24 +6798,24 @@
         }
       }
     },
-    "command.mosaicConfig.issue.warning.title": {
+    "command.cotermConfig.issue.warning.title": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic.json Configuration Warning"
+            "value": "coterm.json Configuration Warning"
           }
         }
       }
     },
-    "command.mosaicConfig.subtitle": {
+    "command.cotermConfig.subtitle": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic.json"
+            "value": "coterm.json"
           }
         }
       }
@@ -6892,7 +6892,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disable mosaic Browser"
+            "value": "Disable coterm Browser"
           }
         }
       }
@@ -6936,7 +6936,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enable mosaic Browser"
+            "value": "Enable coterm Browser"
           }
         }
       }
@@ -7068,7 +7068,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shell Command: Install 'mosaic' in PATH"
+            "value": "Shell Command: Install 'coterm' in PATH"
           }
         }
       }
@@ -7123,7 +7123,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Make mosaic the Default Terminal"
+            "value": "Make coterm the Default Terminal"
           }
         }
       }
@@ -8145,7 +8145,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shell Command: Uninstall 'mosaic' from PATH"
+            "value": "Shell Command: Uninstall 'coterm' from PATH"
           }
         }
       }
@@ -9289,7 +9289,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic crashed during your last session"
+            "value": "coterm crashed during your last session"
           }
         }
       }
@@ -9300,7 +9300,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Renders as native SwiftUI inside mosaic with hover, focus, and typing. A faulty sidebar shares the app process."
+            "value": "Renders as native SwiftUI inside coterm with hover, focus, and typing. A faulty sidebar shares the app process."
           }
         }
       }
@@ -9597,7 +9597,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New DEBUG mosaic windows open on the selected display. Shared across all tagged dev builds; applied at window creation."
+            "value": "New DEBUG coterm windows open on the selected display. Shared across all tagged dev builds; applied at window creation."
           }
         }
       }
@@ -10025,7 +10025,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No user theme or terminal colors, so mosaic applies its managed default colors."
+            "value": "No user theme or terminal colors, so coterm applies its managed default colors."
           }
         }
       }
@@ -10047,7 +10047,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loads your actual Ghostty and mosaic config files."
+            "value": "Loads your actual Ghostty and coterm config files."
           }
         }
       }
@@ -10355,7 +10355,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic terminal transparency"
+            "value": "coterm terminal transparency"
           }
         }
       }
@@ -10399,7 +10399,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "lawrence in ~/mosaic"
+            "value": "lawrence in ~/coterm"
           }
         }
       }
@@ -11300,7 +11300,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmCommand.cancel": {
+    "dialog.cotermConfig.confirmCommand.cancel": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11311,7 +11311,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmCommand.messageWithCommand": {
+    "dialog.cotermConfig.confirmCommand.messageWithCommand": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11322,7 +11322,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmCommand.run": {
+    "dialog.cotermConfig.confirmCommand.run": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11333,7 +11333,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmCommand.title": {
+    "dialog.cotermConfig.confirmCommand.title": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11344,7 +11344,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmCommand.trustAndRun": {
+    "dialog.cotermConfig.confirmCommand.trustAndRun": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11355,7 +11355,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmRestart.cancel": {
+    "dialog.cotermConfig.confirmRestart.cancel": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11366,7 +11366,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmRestart.message": {
+    "dialog.cotermConfig.confirmRestart.message": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11377,7 +11377,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmRestart.recreate": {
+    "dialog.cotermConfig.confirmRestart.recreate": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11388,7 +11388,7 @@
         }
       }
     },
-    "dialog.mosaicConfig.confirmRestart.title": {
+    "dialog.cotermConfig.confirmRestart.title": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11493,7 +11493,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notifications are disabled for mosaic. Enable them in System Settings to see alerts."
+            "value": "Notifications are disabled for coterm. Enable them in System Settings to see alerts."
           }
         }
       }
@@ -11526,7 +11526,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enable Notifications for mosaic"
+            "value": "Enable Notifications for coterm"
           }
         }
       }
@@ -11537,7 +11537,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not move this tab to the selected destination."
+            "value": "coterm could not move this tab to the selected destination."
           }
         }
       }
@@ -11608,7 +11608,7 @@
         }
       }
     },
-    "dialog.quitMosaic.message": {
+    "dialog.quitCoterm.message": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11619,7 +11619,7 @@
         }
       }
     },
-    "dialog.quitMosaic.quit": {
+    "dialog.quitCoterm.quit": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -11630,13 +11630,13 @@
         }
       }
     },
-    "dialog.quitMosaic.title": {
+    "dialog.quitCoterm.title": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quit mosaic?"
+            "value": "Quit Coterm?"
           }
         }
       }
@@ -11724,7 +11724,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic SSH Link Blocked"
+            "value": "Coterm SSH Link Blocked"
           }
         }
       }
@@ -11746,7 +11746,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "I trust this SSH target and want mosaic to connect."
+            "value": "I trust this SSH target and want coterm to connect."
           }
         }
       }
@@ -11790,7 +11790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The SSH host or user contains unsupported or hidden characters, so mosaic refused to use it."
+            "value": "The SSH host or user contains unsupported or hidden characters, so coterm refused to use it."
           }
         }
       }
@@ -11900,7 +11900,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The workspace title contains hidden control or formatting characters, so mosaic refused to use it."
+            "value": "The workspace title contains hidden control or formatting characters, so coterm refused to use it."
           }
         }
       }
@@ -11933,7 +11933,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic ssh exited with status %d."
+            "value": "coterm ssh exited with status %d."
           }
         }
       }
@@ -11944,7 +11944,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic ssh could not be launched."
+            "value": "coterm ssh could not be launched."
           }
         }
       }
@@ -11955,7 +11955,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The bundled CLI is missing from this mosaic build."
+            "value": "The bundled CLI is missing from this coterm build."
           }
         }
       }
@@ -11977,7 +11977,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An external link wants to open \"%@\" in mosaic. Do you want to open this SSH workspace?\n\nIf you did not initiate this request, it may represent an attempted attack on your system. Only continue if you explicitly started this action."
+            "value": "An external link wants to open \"%@\" in coterm. Do you want to open this SSH workspace?\n\nIf you did not initiate this request, it may represent an attempted attack on your system. Only continue if you explicitly started this action."
           }
         }
       }
@@ -12010,7 +12010,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open SSH Workspace in mosaic?"
+            "value": "Open SSH Workspace in Coterm?"
           }
         }
       }
@@ -12032,7 +12032,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic Link Blocked"
+            "value": "coterm Link Blocked"
           }
         }
       }
@@ -12087,7 +12087,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only one mosaic external link can be opened at a time."
+            "value": "Only one coterm external link can be opened at a time."
           }
         }
       }
@@ -12098,7 +12098,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The link name contains hidden control or formatting characters, so mosaic refused to use it."
+            "value": "The link name contains hidden control or formatting characters, so coterm refused to use it."
           }
         }
       }
@@ -12120,7 +12120,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The link text contains unsupported or hidden characters, so mosaic refused to use it."
+            "value": "The link text contains unsupported or hidden characters, so coterm refused to use it."
           }
         }
       }
@@ -12142,7 +12142,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The link title contains hidden control or formatting characters, so mosaic refused to use it."
+            "value": "The link title contains hidden control or formatting characters, so coterm refused to use it."
           }
         }
       }
@@ -12219,7 +12219,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not send the link text to a terminal."
+            "value": "coterm could not send the link text to a terminal."
           }
         }
       }
@@ -12241,7 +12241,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A %@:// link is asking mosaic to paste a prompt into the current workspace. mosaic cannot verify which website or app opened this link.\n\nmosaic will paste the text into the terminal and will not press Return. Only continue if you trust this prompt."
+            "value": "A %@:// link is asking coterm to paste a prompt into the current workspace. coterm cannot verify which website or app opened this link.\n\ncoterm will paste the text into the terminal and will not press Return. Only continue if you trust this prompt."
           }
         }
       }
@@ -12274,7 +12274,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A %@:// link is asking mosaic to paste rules into the current workspace. mosaic cannot verify which website or app opened this link.\n\nmosaic will paste the rules into the terminal and will not write files or press Return. Only continue if you trust these rules."
+            "value": "A %@:// link is asking coterm to paste rules into the current workspace. coterm cannot verify which website or app opened this link.\n\ncoterm will paste the rules into the terminal and will not write files or press Return. Only continue if you trust these rules."
           }
         }
       }
@@ -13429,7 +13429,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Set up mosaic Dock controls for the current context.\n\nFirst, learn the feature before editing:\n1. Run `mosaic docs dock` if the mosaic CLI is available. If it is not, read https://mosaic.inc/docs/dock.\n2. Inspect the repository or current directory to understand the project type, scripts, package manager, dev servers, logs, task runners, test commands, and any existing TUI tools.\n3. If the desired Dock is ambiguous, ask the user what they want monitored or controlled before writing files.\n\nDock is mosaic's right-sidebar terminal control area. A Dock config is JSON with a top-level `controls` array. Each control runs a command in its own Ghostty-backed terminal section using the user's login shell. Controls are useful for project dashboards, git/status views, dev server or build status, test watchers, log tails, queues, local services, or a custom TUI such as `mosaic feed tui --opentui` when that feed is useful.\n\nChoose where to write the config:\n- In a repository or project directory, create or edit `.mosaic/dock.json` so teammates can share it.\n- For a personal default outside a repo, create or edit `~/.config/mosaic/dock.json`.\n- If both exist, project `.mosaic/dock.json` is more specific for that project. Nested project configs apply to that directory tree; use the nearest relevant project config instead of writing unrelated controls globally.\n- If there is no repo and no clear project root, use the global config only after confirming the user wants a personal Dock.\n\nSchema:\n{\n  \"controls\": [\n    {\n      \"id\": \"short-stable-id\",\n      \"title\": \"Human label\",\n      \"command\": \"safe command to run\",\n      \"cwd\": \"optional/path\",\n      \"height\": 220,\n      \"env\": { \"NAME\": \"value\" }\n    }\n  ]\n}\n\nRules:\n- Keep ids stable, lowercase, and unique.\n- Use `cwd` for subdirectories; relative paths resolve from the config base.\n- Use `height` only when a control needs a fixed amount of vertical space.\n- Use `env` only for non-secret values needed by one control.\n- Do not put secrets, tokens, or machine-specific private paths in a shared project config.\n- Prefer commands that are safe to start repeatedly and make sense in a terminal.\n- Do not invent unavailable scripts. Read package files, Makefiles, Procfiles, README docs, config files, and existing tooling first.\n- Keep shared project Docks portable for teammates. Put personal or machine-specific controls in the global Dock.\n\nDeliverable:\n- Create or update the appropriate dock.json.\n- Preserve existing useful controls unless the user asked to replace them.\n- Validate that the JSON parses.\n- Summarize what each control does and any commands the user should review before trusting the Dock config."
+            "value": "Set up coterm Dock controls for the current context.\n\nFirst, learn the feature before editing:\n1. Run `coterm docs dock` if the coterm CLI is available. If it is not, read https://coterm.cc/docs/dock.\n2. Inspect the repository or current directory to understand the project type, scripts, package manager, dev servers, logs, task runners, test commands, and any existing TUI tools.\n3. If the desired Dock is ambiguous, ask the user what they want monitored or controlled before writing files.\n\nDock is coterm's right-sidebar terminal control area. A Dock config is JSON with a top-level `controls` array. Each control runs a command in its own Ghostty-backed terminal section using the user's login shell. Controls are useful for project dashboards, git/status views, dev server or build status, test watchers, log tails, queues, local services, or a custom TUI such as `coterm feed tui --opentui` when that feed is useful.\n\nChoose where to write the config:\n- In a repository or project directory, create or edit `.coterm/dock.json` so teammates can share it.\n- For a personal default outside a repo, create or edit `~/.config/coterm/dock.json`.\n- If both exist, project `.coterm/dock.json` is more specific for that project. Nested project configs apply to that directory tree; use the nearest relevant project config instead of writing unrelated controls globally.\n- If there is no repo and no clear project root, use the global config only after confirming the user wants a personal Dock.\n\nSchema:\n{\n  \"controls\": [\n    {\n      \"id\": \"short-stable-id\",\n      \"title\": \"Human label\",\n      \"command\": \"safe command to run\",\n      \"cwd\": \"optional/path\",\n      \"height\": 220,\n      \"env\": { \"NAME\": \"value\" }\n    }\n  ]\n}\n\nRules:\n- Keep ids stable, lowercase, and unique.\n- Use `cwd` for subdirectories; relative paths resolve from the config base.\n- Use `height` only when a control needs a fixed amount of vertical space.\n- Use `env` only for non-secret values needed by one control.\n- Do not put secrets, tokens, or machine-specific private paths in a shared project config.\n- Prefer commands that are safe to start repeatedly and make sense in a terminal.\n- Do not invent unavailable scripts. Read package files, Makefiles, Procfiles, README docs, config files, and existing tooling first.\n- Keep shared project Docks portable for teammates. Put personal or machine-specific controls in the global Dock.\n\nDeliverable:\n- Create or update the appropriate dock.json.\n- Preserve existing useful controls unless the user asked to replace them.\n- Validate that the JSON parses.\n- Summarize what each control does and any commands the user should review before trusting the Dock config."
           }
         }
       }
@@ -13528,7 +13528,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add controls to .mosaic/dock.json."
+            "value": "Add controls to .coterm/dock.json."
           }
         }
       }
@@ -13781,7 +13781,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic could not register as the default terminal app."
+            "value": "coterm could not register as the default terminal app."
           }
         }
       }
@@ -16280,13 +16280,13 @@
         }
       }
     },
-    "fileExplorer.contextMenu.openInMosaic": {
+    "fileExplorer.contextMenu.openInCoterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open in mosaic"
+            "value": "Open in Coterm"
           }
         }
       }
@@ -17199,7 +17199,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic will not contact this image URL until you load this image."
+            "value": "coterm will not contact this image URL until you load this image."
           }
         }
       }
@@ -17331,7 +17331,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "About mosaic"
+            "value": "About coterm"
           }
         }
       }
@@ -17364,18 +17364,18 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Make mosaic the Default Terminal"
+            "value": "Make coterm the Default Terminal"
           }
         }
       }
     },
-    "menu.app.openMosaicSettingsFile": {
+    "menu.app.openCotermSettingsFile": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open mosaic.json"
+            "value": "Open coterm.json"
           }
         }
       }
@@ -18546,13 +18546,13 @@
         }
       }
     },
-    "menu.quitMosaic": {
+    "menu.quitCoterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quit mosaic"
+            "value": "Quit Coterm"
           }
         }
       }
@@ -19100,7 +19100,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get mosaic for iPhone"
+            "value": "Get coterm for iPhone"
           }
         }
       }
@@ -19232,7 +19232,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signed in to mosaic"
+            "value": "Signed in to coterm"
           }
         }
       }
@@ -19342,7 +19342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in with your mosaic account to pair your iPhone."
+            "value": "Sign in with your coterm account to pair your iPhone."
           }
         }
       }
@@ -19364,7 +19364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Install mosaic on your iPhone and open it."
+            "value": "Install coterm on your iPhone and open it."
           }
         }
       }
@@ -19419,7 +19419,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan this code with the mosaic app on your iPhone to sync your terminal workspaces."
+            "value": "Scan this code with the coterm app on your iPhone to sync your terminal workspaces."
           }
         }
       }
@@ -19471,7 +19471,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic used default notification behavior because '%@' failed."
+            "value": "coterm used default notification behavior because '%@' failed."
           }
         }
       }
@@ -19603,7 +19603,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send agent notifications to the mosaic iPhone app. Off by default; nothing is uploaded unless this is on."
+            "value": "Send agent notifications to the coterm iPhone app. Off by default; nothing is uploaded unless this is on."
           }
         }
       }
@@ -20098,7 +20098,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "[mosaic] Press Enter to reconnect. This terminal will stay disconnected until then."
+            "value": "[coterm] Press Enter to reconnect. This terminal will stay disconnected until then."
           }
         }
       }
@@ -20109,7 +20109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "[mosaic] Reconnect this workspace from the sidebar or by running the original mosaic remote command again."
+            "value": "[coterm] Reconnect this workspace from the sidebar or by running the original coterm remote command again."
           }
         }
       }
@@ -20120,7 +20120,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "[mosaic] remote session disconnected: %s"
+            "value": "[coterm] remote session disconnected: %s"
           }
         }
       }
@@ -20251,7 +20251,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "remote daemon does not support persistent SSH PTY sessions; reconnect the remote workspace to update mosaic"
+            "value": "remote daemon does not support persistent SSH PTY sessions; reconnect the remote workspace to update coterm"
           }
         }
       }
@@ -20261,7 +20261,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "remote daemon is missing required functionality; reconnect the remote workspace to update mosaic"
+            "value": "remote daemon is missing required functionality; reconnect the remote workspace to update coterm"
           }
         }
       }
@@ -20378,7 +20378,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "remote session server is too old (found %@; mosaic needs version %@ or newer)"
+            "value": "remote session server is too old (found %@; coterm needs version %@ or newer)"
           }
         }
       }
@@ -21577,7 +21577,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in with your Mosaic account to enable sharing with others."
+            "value": "Sign in with your Coterm account to enable sharing with others."
           }
         }
       }
@@ -21874,7 +21874,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic will ask macOS to use this app for SSH links, .command/.tool files, and UNIX executables. macOS may show a confirmation prompt."
+            "value": "coterm will ask macOS to use this app for SSH links, .command/.tool files, and UNIX executables. macOS may show a confirmation prompt."
           }
         }
       }
@@ -21885,7 +21885,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Set mosaic as default terminal?"
+            "value": "Set coterm as default terminal?"
           }
         }
       }
@@ -21896,7 +21896,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic handles SSH links, .command/.tool files, and UNIX executables."
+            "value": "coterm handles SSH links, .command/.tool files, and UNIX executables."
           }
         }
       }
@@ -21907,7 +21907,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Set mosaic as the handler for SSH links, .command/.tool files, and UNIX executables."
+            "value": "Set coterm as the handler for SSH links, .command/.tool files, and UNIX executables."
           }
         }
       }
@@ -22089,7 +22089,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scale every font in mosaic by the same percentage. 100% = design size."
+            "value": "Scale every font in Coterm by the same percentage. 100% = design size."
           }
         }
       }
@@ -22287,7 +22287,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restart mosaic to apply"
+            "value": "Restart coterm to apply"
           }
         }
       }
@@ -22408,7 +22408,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hide the Dock icon and Cmd+Tab entry. Use the menu bar item to show mosaic."
+            "value": "Hide the Dock icon and Cmd+Tab entry. Use the menu bar item to show coterm."
           }
         }
       }
@@ -22457,24 +22457,24 @@
         }
       }
     },
-    "settings.app.openMarkdownInMosaicViewer": {
+    "settings.app.openMarkdownInCotermViewer": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open Markdown in mosaic Viewer"
+            "value": "Open Markdown in Coterm Viewer"
           }
         }
       }
     },
-    "settings.app.openMarkdownInMosaicViewer.subtitle": {
+    "settings.app.openMarkdownInCotermViewer.subtitle": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cmd-clicking Markdown files opens the rendered mosaic markdown viewer instead of the generic file preview."
+            "value": "Cmd-clicking Markdown files opens the rendered Coterm markdown viewer instead of the generic file preview."
           }
         }
       }
@@ -22485,7 +22485,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open Sidebar PR Links in mosaic Browser"
+            "value": "Open Sidebar PR Links in Coterm Browser"
           }
         }
       }
@@ -22529,7 +22529,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clicks open inside mosaic browser."
+            "value": "Clicks open inside Coterm browser."
           }
         }
       }
@@ -22540,7 +22540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open Sidebar Port Links in mosaic Browser"
+            "value": "Open Sidebar Port Links in Coterm Browser"
           }
         }
       }
@@ -22562,29 +22562,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Port clicks open inside mosaic browser."
+            "value": "Port clicks open inside Coterm browser."
           }
         }
       }
     },
-    "settings.app.openSupportedFilesInMosaic": {
+    "settings.app.openSupportedFilesInCoterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open Supported Files in mosaic"
+            "value": "Open Supported Files in Coterm"
           }
         }
       }
     },
-    "settings.app.openSupportedFilesInMosaic.subtitle": {
+    "settings.app.openSupportedFilesInCoterm.subtitle": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cmd-clicking readable files opens text, code, PDFs, images, audio, video, and Quick Look previews in mosaic."
+            "value": "Cmd-clicking readable files opens text, code, PDFs, images, audio, video, and Quick Look previews in Coterm."
           }
         }
       }
@@ -22606,7 +22606,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When mosaic is inactive, the first click only activates the window. Click again to focus the pane."
+            "value": "When coterm is inactive, the first click only activates the window. Click again to focus the pane."
           }
         }
       }
@@ -22617,7 +22617,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When mosaic is inactive, clicking a pane activates the window and focuses that pane in one click."
+            "value": "When coterm is inactive, clicking a pane activates the window and focuses that pane in one click."
           }
         }
       }
@@ -22749,7 +22749,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open mosaic.json"
+            "value": "Open coterm.json"
           }
         }
       }
@@ -22793,7 +22793,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep mosaic in the menu bar for unread notifications and quick actions."
+            "value": "Keep coterm in the menu bar for unread notifications and quick actions."
           }
         }
       }
@@ -23123,7 +23123,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share anonymized crash and usage data to help improve mosaic."
+            "value": "Share anonymized crash and usage data to help improve coterm."
           }
         }
       }
@@ -23376,7 +23376,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hooks must be installed with `mosaic hooks amp install`. They no-op outside mosaic terminals. When disabled, the installed Amp plugin stays inactive without needing to be removed."
+            "value": "Hooks must be installed with `coterm hooks amp install`. They no-op outside coterm terminals. When disabled, the installed Amp plugin stays inactive without needing to be removed."
           }
         }
       }
@@ -23387,7 +23387,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amp runs without mosaic integration."
+            "value": "Amp runs without coterm integration."
           }
         }
       }
@@ -23453,7 +23453,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ can't generate names yet, so mosaic uses each session's own agent."
+            "value": "%@ can't generate names yet, so coterm uses each session's own agent."
           }
         }
       }
@@ -23552,7 +23552,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When enabled, mosaic wraps the claude command to inject session tracking and notification hooks. Disable if you prefer to manage Claude Code hooks yourself."
+            "value": "When enabled, coterm wraps the claude command to inject session tracking and notification hooks. Disable if you prefer to manage Claude Code hooks yourself."
           }
         }
       }
@@ -23563,7 +23563,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Claude Code runs without mosaic integration."
+            "value": "Claude Code runs without coterm integration."
           }
         }
       }
@@ -23596,7 +23596,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When enabled, mosaic wraps the codex command to inject session tracking and notification hooks. Disable if you prefer to manage Codex hooks yourself. mosaic still tracks live Codex sessions it can observe even when this is off. To also track Codex launched through a custom launcher that bypasses the wrapper (e.g. a subrouter), run `mosaic hooks setup --agent codex`, which installs hooks into ~/.codex/hooks.json."
+            "value": "When enabled, coterm wraps the codex command to inject session tracking and notification hooks. Disable if you prefer to manage Codex hooks yourself. coterm still tracks live Codex sessions it can observe even when this is off. To also track Codex launched through a custom launcher that bypasses the wrapper (e.g. a subrouter), run `coterm hooks setup --agent codex`, which installs hooks into ~/.codex/hooks.json."
           }
         }
       }
@@ -23607,7 +23607,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Codex runs without mosaic integration."
+            "value": "Codex runs without coterm integration."
           }
         }
       }
@@ -23640,7 +23640,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hooks must be installed with `mosaic hooks cursor install`. They no-op outside mosaic terminals."
+            "value": "Hooks must be installed with `coterm hooks cursor install`. They no-op outside coterm terminals."
           }
         }
       }
@@ -23651,7 +23651,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cursor runs without mosaic integration."
+            "value": "Cursor runs without coterm integration."
           }
         }
       }
@@ -23684,7 +23684,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hooks must be installed with `mosaic hooks gemini install`. They no-op outside mosaic terminals."
+            "value": "Hooks must be installed with `coterm hooks gemini install`. They no-op outside coterm terminals."
           }
         }
       }
@@ -23695,7 +23695,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gemini runs without mosaic integration."
+            "value": "Gemini runs without coterm integration."
           }
         }
       }
@@ -23728,7 +23728,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hooks must be installed with `mosaic hooks kiro install`, then run Kiro with `kiro-cli chat --agent mosaic` (or set it as your default agent). They no-op outside mosaic terminals."
+            "value": "Hooks must be installed with `coterm hooks kiro install`, then run Kiro with `kiro-cli chat --agent coterm` (or set it as your default agent). They no-op outside coterm terminals."
           }
         }
       }
@@ -23794,7 +23794,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kiro runs without mosaic integration."
+            "value": "Kiro runs without coterm integration."
           }
         }
       }
@@ -23871,7 +23871,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Each workspace gets MOSAIC_PORT and MOSAIC_PORT_END env vars with a dedicated port range. New terminals inherit these values."
+            "value": "Each workspace gets COTERM_PORT and COTERM_PORT_END env vars with a dedicated port range. New terminals inherit these values."
           }
         }
       }
@@ -23893,7 +23893,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starting port for MOSAIC_PORT env var."
+            "value": "Starting port for COTERM_PORT env var."
           }
         }
       }
@@ -23981,7 +23981,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Overrides: MOSAIC_SOCKET_ENABLE, MOSAIC_SOCKET_MODE, and MOSAIC_SOCKET_PATH (set MOSAIC_ALLOW_SOCKET_OVERRIDE=1 for stable/nightly builds)."
+            "value": "Overrides: COTERM_SOCKET_ENABLE, COTERM_SOCKET_MODE, and COTERM_SOCKET_PATH (set COTERM_ALLOW_SOCKET_OVERRIDE=1 for stable/nightly builds)."
           }
         }
       }
@@ -24190,7 +24190,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Claude Code Integration is off, so Claude sessions will not be auto-named. Other supported agents still name when their mosaic hooks are installed."
+            "value": "Claude Code Integration is off, so Claude sessions will not be auto-named. Other supported agents still name when their coterm hooks are installed."
           }
         }
       }
@@ -24201,7 +24201,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When enabled, mosaic summarizes supported agent sessions into short workspace and tab names using each agent's own binary, refreshed as the topic shifts. Manual renames always win and stop auto-naming for that workspace or tab. Uses your agent account for the short summarization calls."
+            "value": "When enabled, coterm summarizes supported agent sessions into short workspace and tab names using each agent's own binary, refreshed as the topic shifts. Manual renames always win and stop auto-naming for that workspace or tab. Uses your agent account for the short summarization calls."
           }
         }
       }
@@ -24256,7 +24256,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lists your sidebars from ~/.config/mosaic/sidebars in the sidebar picker, rendered in an isolated helper process."
+            "value": "Lists your sidebars from ~/.config/coterm/sidebars in the sidebar picker, rendered in an isolated helper process."
           }
         }
       }
@@ -24388,7 +24388,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mirrors a remote host's tmux sessions in the sidebar over ssh tmux -CC; sessions become workspaces and windows become tabs. Quitting mosaic leaves the remote tmux server running."
+            "value": "Mirrors a remote host's tmux sessions in the sidebar over ssh tmux -CC; sessions become workspaces and windows become tabs. Quitting coterm leaves the remote tmux server running."
           }
         }
       }
@@ -24487,7 +24487,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use {query} or %s for the search terms. Without a placeholder, mosaic appends q=."
+            "value": "Use {query} or %s for the search terms. Without a placeholder, coterm appends q=."
           }
         }
       }
@@ -24520,7 +24520,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enable mosaic Browser"
+            "value": "Enable coterm Browser"
           }
         }
       }
@@ -24652,7 +24652,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How long a browser tab must stay hidden before mosaic frees its page memory. Active downloads, popups, developer tools, fullscreen, and loading pages are skipped."
+            "value": "How long a browser tab must stay hidden before coterm frees its page memory. Active downloads, popups, developer tools, fullscreen, and loading pages are skipped."
           }
         }
       }
@@ -24784,7 +24784,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Applies to terminal link clicks and intercepted `open https://...` calls. Only these hosts open in mosaic. Others open in your default browser. One host or wildcard per line (for example: example.com, *.internal.example). Leave empty to open all hosts in mosaic."
+            "value": "Applies to terminal link clicks and intercepted `open https://...` calls. Only these hosts open in Coterm. Others open in your default browser. One host or wildcard per line (for example: example.com, *.internal.example). Leave empty to open all hosts in Coterm."
           }
         }
       }
@@ -24806,7 +24806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Controls which HTTP (non-HTTPS) hosts can open in mosaic without a warning prompt. Defaults include localhost, *.localhost, 127.0.0.1, ::1, 0.0.0.0, and *.localtest.me."
+            "value": "Controls which HTTP (non-HTTPS) hosts can open in Coterm without a warning prompt. Defaults include localhost, *.localhost, 127.0.0.1, ::1, 0.0.0.0, and *.localtest.me."
           }
         }
       }
@@ -24960,7 +24960,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open Terminal Links in mosaic Browser"
+            "value": "Open Terminal Links in Coterm Browser"
           }
         }
       }
@@ -25317,13 +25317,13 @@
         }
       }
     },
-    "settings.config.banner.mosaic": {
+    "settings.config.banner.coterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the mosaic Ghostty config selected for this build. Edit it here, then Save to reload mosaic."
+            "value": "This is the coterm Ghostty config selected for this build. Edit it here, then Save to reload coterm."
           }
         }
       }
@@ -25334,7 +25334,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is a generated preview of the effective config. Edit the mosaic tab to change what mosaic reads."
+            "value": "This is a generated preview of the effective config. Edit the coterm tab to change what coterm reads."
           }
         }
       }
@@ -25345,18 +25345,18 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is a generated preview of the effective config. No base Ghostty config file was found, so only mosaic overrides are shown."
+            "value": "This is a generated preview of the effective config. No base Ghostty config file was found, so only coterm overrides are shown."
           }
         }
       }
     },
-    "settings.config.source.mosaic": {
+    "settings.config.source.coterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic"
+            "value": "coterm"
           }
         }
       }
@@ -25389,7 +25389,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't open the mosaic config."
+            "value": "Couldn't open the coterm config."
           }
         }
       }
@@ -25411,7 +25411,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save the mosaic config."
+            "value": "Couldn't save the coterm config."
           }
         }
       }
@@ -25422,7 +25422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved to mosaic config and reloaded."
+            "value": "Saved to coterm config and reloaded."
           }
         }
       }
@@ -25466,7 +25466,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lists your sidebars from ~/.config/mosaic/sidebars in the sidebar picker."
+            "value": "Lists your sidebars from ~/.config/coterm/sidebars in the sidebar picker."
           }
         }
       }
@@ -25477,7 +25477,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Custom sidebars are SwiftUI-style files in ~/.config/mosaic/sidebars. Pick one from the sidebar toggle button's right-click menu; edits hot-reload on save. Use the in-app renderer only for sidebars you trust."
+            "value": "Custom sidebars are SwiftUI-style files in ~/.config/coterm/sidebars. Pick one from the sidebar toggle button's right-click menu; edits hot-reload on save. Use the in-app renderer only for sidebars you trust."
           }
         }
       }
@@ -25541,7 +25541,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn this on to show or hide all mosaic windows from any app."
+            "value": "Turn this on to show or hide all coterm windows from any app."
           }
         }
       }
@@ -25552,7 +25552,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Press the shortcut from any app to show or hide all mosaic windows."
+            "value": "Press the shortcut from any app to show or hide all coterm windows."
           }
         }
       }
@@ -25893,7 +25893,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Click Apply to change the port. mosaic checks the port is free first: if it's in use, the current listener keeps running untouched; if it's free, it rebinds and connected devices reconnect on the new port."
+            "value": "Click Apply to change the port. coterm checks the port is free first: if it's in use, the current listener keeps running untouched; if it's free, it rebinds and connected devices reconnect on the new port."
           }
         }
       }
@@ -26047,7 +26047,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Run a shell command when a notification arrives. $MOSAIC_NOTIFICATION_TITLE, $MOSAIC_NOTIFICATION_SUBTITLE, $MOSAIC_NOTIFICATION_BODY are set."
+            "value": "Run a shell command when a notification arrives. $COTERM_NOTIFICATION_TITLE, $COTERM_NOTIFICATION_SUBTITLE, $COTERM_NOTIFICATION_BODY are set."
           }
         }
       }
@@ -26113,7 +26113,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Briefly flash a blue outline when mosaic highlights a pane."
+            "value": "Briefly flash a blue outline when coterm highlights a pane."
           }
         }
       }
@@ -26762,7 +26762,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "app.openMarkdownInMosaicViewer md markdown mdx viewer preview readme"
+            "value": "app.openMarkdownInCotermViewer md markdown mdx viewer preview readme"
           }
         }
       }
@@ -26828,7 +26828,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "sidebar.openPortLinksInMosaicBrowser ports localhost links browser default external embedded"
+            "value": "sidebar.openPortLinksInCotermBrowser ports localhost links browser default external embedded"
           }
         }
       }
@@ -26839,7 +26839,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "sidebar.openPullRequestLinksInMosaicBrowser pr links github browser default external embedded"
+            "value": "sidebar.openPullRequestLinksInCotermBrowser pr links github browser default external embedded"
           }
         }
       }
@@ -27026,7 +27026,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "app.openSupportedFilesInMosaic cmd click file preview pdf image video audio quicklook quick look editor external"
+            "value": "app.openSupportedFilesInCoterm cmd click file preview pdf image video audio quicklook quick look editor external"
           }
         }
       }
@@ -27213,7 +27213,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "automation.portBase mosaic_port start first base env environment variable"
+            "value": "automation.portBase coterm_port start first base env environment variable"
           }
         }
       }
@@ -27224,7 +27224,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "automation.portRange mosaic_port_end range size count env ports"
+            "value": "automation.portRange coterm_port_end range size count env ports"
           }
         }
       }
@@ -27378,7 +27378,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "browser.interceptTerminalOpenCommandInMosaicBrowser open command http https url terminal intercept"
+            "value": "browser.interceptTerminalOpenCommandInCotermBrowser open command http https url terminal intercept"
           }
         }
       }
@@ -27422,7 +27422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "browser.openTerminalLinksInMosaicBrowser click url terminal links open in browser href"
+            "value": "browser.openTerminalLinksInCotermBrowser click url terminal links open in browser href"
           }
         }
       }
@@ -27488,7 +27488,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tmux prefix ctrl-b control-b multi key sequence chord mosaic json"
+            "value": "tmux prefix ctrl-b control-b multi key sequence chord coterm json"
           }
         }
       }
@@ -27499,7 +27499,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "hotkeys keybindings key bindings commands keyboard accelerators shortcuts mosaic json"
+            "value": "hotkeys keybindings key bindings commands keyboard accelerators shortcuts coterm json"
           }
         }
       }
@@ -27554,7 +27554,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "docs documentation schema reference mosaic json keys configuration"
+            "value": "docs documentation schema reference coterm json keys configuration"
           }
         }
       }
@@ -27565,7 +27565,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "open config file json jsonc config editor ~/.config mosaic preferences"
+            "value": "open config file json jsonc config editor ~/.config coterm preferences"
           }
         }
       }
@@ -27906,7 +27906,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic.json"
+            "value": "coterm.json"
           }
         }
       }
@@ -28016,7 +28016,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit mosaic-owned app settings, shortcuts, automation, sidebar, notifications, and browser behavior."
+            "value": "Edit coterm-owned app settings, shortcuts, automation, sidebar, notifications, and browser behavior."
           }
         }
       }
@@ -28038,7 +28038,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open mosaic.json"
+            "value": "Open coterm.json"
           }
         }
       }
@@ -28071,7 +28071,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add tmux-style multi-step shortcuts in mosaic.json, for example [\"ctrl+b\", \"c\"]."
+            "value": "Add tmux-style multi-step shortcuts in Coterm.json, for example [\"ctrl+b\", \"c\"]."
           }
         }
       }
@@ -28081,7 +28081,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Managed in mosaic.json"
+            "value": "Managed in coterm.json"
           }
         }
       }
@@ -28477,7 +28477,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When mosaic reopens after quit, restored agent terminals stay idle until you resume them manually."
+            "value": "When coterm reopens after quit, restored agent terminals stay idle until you resume them manually."
           }
         }
       }
@@ -28488,7 +28488,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When mosaic reopens after quit, restored agent terminals automatically run their resume command."
+            "value": "When coterm reopens after quit, restored agent terminals automatically run their resume command."
           }
         }
       }
@@ -28554,7 +28554,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agent terminals stay live until you close them or quit mosaic."
+            "value": "Agent terminals stay live until you close them or quit coterm."
           }
         }
       }
@@ -28587,7 +28587,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic does not add system-clipboard copy on selection. Ghostty config still controls Paste Selection."
+            "value": "coterm does not add system-clipboard copy on selection. Ghostty config still controls Paste Selection."
           }
         }
       }
@@ -28631,7 +28631,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic warns you with a badge and a banner when one pane's process tree uses too much memory, so a single leak can't crash the whole app."
+            "value": "coterm warns you with a badge and a banner when one pane's process tree uses too much memory, so a single leak can't crash the whole app."
           }
         }
       }
@@ -28983,7 +28983,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shows the right-edge terminal scroll bar in shell scrollback. mosaic hides it automatically for alternate-screen style TUI surfaces."
+            "value": "Shows the right-edge terminal scroll bar in shell scrollback. coterm hides it automatically for alternate-screen style TUI surfaces."
           }
         }
       }
@@ -29258,7 +29258,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit mosaic.json to add or remove named colors. \"Choose Custom Color...\" still adds local Custom N entries."
+            "value": "Edit coterm.json to add or remove named colors. \"Choose Custom Color...\" still adds local Custom N entries."
           }
         }
       }
@@ -29269,7 +29269,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No palette entries. Add colors in mosaic.json or use \"Choose Custom Color...\" from a workspace context menu."
+            "value": "No palette entries. Add colors in coterm.json or use \"Choose Custom Color...\" from a workspace context menu."
           }
         }
       }
@@ -31256,7 +31256,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mosaic lost the extension connection. No workspace data or actions are being shared."
+            "value": "Coterm lost the extension connection. No workspace data or actions are being shared."
           }
         }
       }
@@ -31267,7 +31267,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mosaic could not load this extension's configuration. No workspace data or actions were shared."
+            "value": "Coterm could not load this extension's configuration. No workspace data or actions were shared."
           }
         }
       }
@@ -31278,7 +31278,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mosaic rejected this extension's configuration. No workspace data or actions were shared."
+            "value": "Coterm rejected this extension's configuration. No workspace data or actions were shared."
           }
         }
       }
@@ -31289,7 +31289,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mosaic did not receive this extension's configuration in time. No workspace data or actions are being shared."
+            "value": "Coterm did not receive this extension's configuration in time. No workspace data or actions are being shared."
           }
         }
       }
@@ -31300,7 +31300,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mosaic did not receive a sidebar extension configuration, so no workspace data or actions were shared."
+            "value": "Coterm did not receive a sidebar extension configuration, so no workspace data or actions were shared."
           }
         }
       }
@@ -31553,7 +31553,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Install and enable a Mosaic sidebar extension to show it here."
+            "value": "Install and enable a Coterm sidebar extension to show it here."
           }
         }
       }
@@ -31575,7 +31575,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mosaic could not load sidebar extensions."
+            "value": "Coterm could not load sidebar extensions."
           }
         }
       }
@@ -31784,7 +31784,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An installed sidebar extension needs approval before Mosaic can use it."
+            "value": "An installed sidebar extension needs approval before Coterm can use it."
           }
         }
       }
@@ -32202,7 +32202,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Welcome to mosaic!"
+            "value": "Welcome to coterm!"
           }
         }
       }
@@ -32378,7 +32378,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic"
+            "value": "coterm"
           }
         }
       }
@@ -32911,13 +32911,13 @@
         }
       }
     },
-    "sleepyMode.glow.mosaic": {
+    "sleepyMode.glow.coterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic"
+            "value": "coterm"
           }
         }
       }
@@ -32999,13 +32999,13 @@
         }
       }
     },
-    "sleepyMode.mascot.mosaic": {
+    "sleepyMode.mascot.coterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic mascot"
+            "value": "coterm mascot"
           }
         }
       }
@@ -33318,13 +33318,13 @@
         }
       }
     },
-    "sleepyMode.theme.mosaic": {
+    "sleepyMode.theme.coterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic"
+            "value": "coterm"
           }
         }
       }
@@ -33379,7 +33379,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlock mosaic Sleepy Mode"
+            "value": "Unlock coterm Sleepy Mode"
           }
         }
       }
@@ -33879,24 +33879,24 @@
         }
       }
     },
-    "socketControl.mosaicOnly.description": {
+    "socketControl.cotermOnly.description": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only processes started inside mosaic terminals can send commands."
+            "value": "Only processes started inside coterm terminals can send commands."
           }
         }
       }
     },
-    "socketControl.mosaicOnly.name": {
+    "socketControl.cotermOnly.name": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic processes only"
+            "value": "Coterm processes only"
           }
         }
       }
@@ -34061,7 +34061,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The profile archive is ready. mosaic is opening the submission draft now."
+            "value": "The profile archive is ready. coterm is opening the submission draft now."
           }
         }
       }
@@ -34347,7 +34347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS may ask for administrator permission because Instruments samples the running mosaic process."
+            "value": "macOS may ask for administrator permission because Instruments samples the running coterm process."
           }
         }
       }
@@ -34479,7 +34479,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send a mosaic profile"
+            "value": "Send a coterm profile"
           }
         }
       }
@@ -34611,7 +34611,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profiling mosaic"
+            "value": "Profiling coterm"
           }
         }
       }
@@ -34627,13 +34627,13 @@
         }
       }
     },
-    "statusMenu.showMosaic": {
+    "statusMenu.showCoterm": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show mosaic"
+            "value": "Show Coterm"
           }
         }
       }
@@ -34787,7 +34787,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A process wants mosaic to keep this resume command for the current terminal:\n\n%@\n\nWorking directory: %@"
+            "value": "A process wants coterm to keep this resume command for the current terminal:\n\n%@\n\nWorking directory: %@"
           }
         }
       }
@@ -34809,7 +34809,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic is restoring a terminal with this resume command:\n\n%@\n\nWorking directory: %@"
+            "value": "coterm is restoring a terminal with this resume command:\n\n%@\n\nWorking directory: %@"
           }
         }
       }
@@ -35183,7 +35183,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ask %@ (PID %lld) to terminate gracefully. mosaic will force-kill it if it is still running after a short grace period."
+            "value": "Ask %@ (PID %lld) to terminate gracefully. coterm will force-kill it if it is still running after a short grace period."
           }
         }
       }
@@ -35194,7 +35194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ask %lld processes to terminate gracefully. mosaic will force-kill remaining processes after a short grace period. PIDs: %@."
+            "value": "Ask %lld processes to terminate gracefully. coterm will force-kill remaining processes after a short grace period. PIDs: %@."
           }
         }
       }
@@ -35744,7 +35744,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Welcome to Mosaic"
+            "value": "Welcome to Coterm"
           }
         }
       }
@@ -35755,7 +35755,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Welcome to mosaic"
+            "value": "Welcome to coterm"
           }
         }
       }
@@ -36447,7 +36447,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic couldn't download the update feed. Check your connection and try again."
+            "value": "coterm couldn't download the update feed. Check your connection and try again."
           }
         }
       }
@@ -36502,7 +36502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move mosaic into Applications and relaunch to enable updates. If it’s already in Applications, restart your Mac and try again, or download the latest version below."
+            "value": "Move coterm into Applications and relaunch to enable updates. If it’s already in Applications, restart your Mac and try again, or download the latest version below."
           }
         }
       }
@@ -36546,7 +36546,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic can't reach the update server. Check your internet connection and try again."
+            "value": "coterm can't reach the update server. Check your internet connection and try again."
           }
         }
       }
@@ -36579,7 +36579,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move mosaic into Applications and relaunch to enable updates."
+            "value": "Move coterm into Applications and relaunch to enable updates."
           }
         }
       }
@@ -36645,7 +36645,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic couldn't connect to the update server. Check your connection or try again later."
+            "value": "coterm couldn't connect to the update server. Check your connection or try again later."
           }
         }
       }
@@ -36799,7 +36799,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic can automatically check for updates in the background."
+            "value": "coterm can automatically check for updates in the background."
           }
         }
       }
@@ -37536,7 +37536,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copy Code"
+            "value": "Copy Token"
           }
         }
       }
@@ -37569,7 +37569,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic collaboration join --session-code <code> [--relay-url <url>]"
+            "value": "Usage: coterm collaboration join --session-code <code> [--relay-url <url>]"
           }
         }
       }
@@ -37668,7 +37668,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share this session code with collaborators"
+            "value": "Share this full token with collaborators. The owner must approve each join request."
           }
         }
       }
@@ -37695,6 +37695,17 @@
         }
       }
     },
+    "collaboration.error.joinApprovalRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join request sent. The room owner must approve before you can enter."
+          }
+        }
+      }
+    },
     "collaboration.error.relayRejected": {
       "extractionState": "manual",
       "localizations": {
@@ -37706,13 +37717,24 @@
         }
       }
     },
+    "collaboration.error.selfHostedBackendRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure your self-hosted Coterm collaboration backend before sharing."
+          }
+        }
+      }
+    },
     "collaboration.join.message": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the session code from the collaborator."
+            "value": "Enter the full share token from the collaborator."
           }
         }
       }
@@ -37723,7 +37745,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session code"
+            "value": "Share token"
           }
         }
       }
@@ -38405,7 +38427,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reachable mosaic room peers:"
+            "value": "Reachable coterm room peers:"
           }
         }
       }
@@ -38537,7 +38559,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign into Mosaic"
+            "value": "Sign into Coterm"
           }
         }
       }
@@ -38592,7 +38614,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mosaic agent-room reset: unexpected argument '%@'"
+            "value": "coterm agent-room reset: unexpected argument '%@'"
           }
         }
       }
@@ -38658,7 +38680,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Claude not running with mosaic hooks on this surface"
+            "value": "Claude not running with coterm hooks on this surface"
           }
         }
       }
@@ -38680,7 +38702,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usage: mosaic agent-room <status|create|connect|disconnect|reset|post|digest>"
+            "value": "Usage: coterm agent-room <status|create|connect|disconnect|reset|post|digest>"
           }
         }
       }

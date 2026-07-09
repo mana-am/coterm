@@ -1,6 +1,6 @@
 import Foundation
-import MosaicCanvas
-import MosaicCanvasUI
+import CotermCanvas
+import CotermCanvasUI
 
 /// Every user-invokable canvas operation, behind one shared entrypoint.
 ///
