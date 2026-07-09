@@ -861,7 +861,13 @@ final class CollaborationRuntime {
     )
     private static let directoryMemberCacheTTL: TimeInterval = 5 * 60
 
-    private(set) var relayURLString = CollaborationRuntime.defaultRelayURLString
+    private(set) var relayURLString = CollaborationRuntime.initialRelayURLString
+
+    /// The relay base URL to start from: a self-hosted override (env or
+    /// `~/.mosaic-dev.env`) when present, otherwise the built-in default.
+    private static var initialRelayURLString: String {
+        AuthEnvironment.collaborationRelayURLOverride ?? defaultRelayURLString
+    }
     private(set) var sessionCode: String?
     private(set) var connectionLabel = CollaborationStrings.disconnected
     private(set) var lastErrorMessage: String?
@@ -1108,7 +1114,17 @@ final class CollaborationRuntime {
     private init() {
         let displayName = NSFullUserName().isEmpty ? Host.current().localizedName ?? "mosaic" : NSFullUserName()
         localAvatarSeed = NSUserName().trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty ?? displayName
-        peerIdentity = CollaborationPeerIdentity.persistedParticipant(displayName: displayName)
+        if let guestID = CollaborationGuestSession.guestID {
+            // Offline guest mode: the chosen id is the identity, no account.
+            peerIdentity = CollaborationPeerIdentity.authenticatedParticipant(
+                peerID: UUID().uuidString,
+                userID: guestID,
+                displayName: guestID,
+                imageURL: CollaborationGuestSession.avatarURL
+            )
+        } else {
+            peerIdentity = CollaborationPeerIdentity.persistedParticipant(displayName: displayName)
+        }
         installTerminalSurfaceReadyObserver()
         Task { @MainActor [weak self] in
             await self?.restorePersistedAgentRooms()
@@ -1664,6 +1680,10 @@ final class CollaborationRuntime {
     }
 
     func ensureSignedInForCollaboration(continue action: @escaping @MainActor () -> Void) -> Bool {
+        // Offline guest mode needs no account: the chosen id is the identity.
+        if CollaborationGuestSession.isEnabled {
+            return true
+        }
         guard let auth = AppDelegate.shared?.auth else {
             NSSound.beep()
             return false
@@ -4663,10 +4683,18 @@ final class CollaborationRuntime {
     }
 
     private var resolvedCollaborationOrgID: String? {
-        AppDelegate.shared?.auth?.coordinator.resolvedTeamID
+        // Offline guest mode has no team; use the guest id so the backend path
+        // (signed grant + relay URL from the control-plane) is taken.
+        if let guestID = CollaborationGuestSession.guestID { return guestID }
+        return AppDelegate.shared?.auth?.coordinator.resolvedTeamID
     }
 
     private func collaborationAccessToken() async -> String? {
+        // Offline guest mode: carry the chosen id in a locally-minted token that
+        // the self-hosted control-plane decodes (noauth) — no account required.
+        if let guestID = CollaborationGuestSession.guestID {
+            return CollaborationGuestSession.accessToken(id: guestID)
+        }
         guard let coordinator = AppDelegate.shared?.auth?.coordinator else { return nil }
         return try? await coordinator.accessToken()
     }

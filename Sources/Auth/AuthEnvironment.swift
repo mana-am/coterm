@@ -145,12 +145,44 @@ enum AuthEnvironment {
     }
 
     static var apiBaseURL: URL {
-        canonicalizedLoopbackURL(
+        // Process env wins; then `~/.mosaic-dev.env` (DEBUG only) so a
+        // click-launched tagged build can point at a self-hosted backend without
+        // a shell; then the production default.
+        let fallback = devOverride(key: "MOSAIC_API_BASE_URL") ?? defaultAPIBaseURL
+        return canonicalizedLoopbackURL(
             resolvedURL(
                 environmentKey: "MOSAIC_API_BASE_URL",
-                fallback: defaultAPIBaseURL
+                fallback: fallback
             )
         )
+    }
+
+    /// Offline collaboration "guest" identity. When set (process env or
+    /// `~/.mosaic-dev.env`), the app skips the browser sign-in for collaboration
+    /// and uses this id directly — no account, fully offline. Empty/absent → the
+    /// normal signed-in flow is used.
+    static var collaborationGuestID: String? {
+        collaborationGuestValue("MOSAIC_COLLAB_GUEST_ID")
+    }
+
+    /// Optional avatar (image URL) shown next to the guest id.
+    static var collaborationGuestAvatarURL: String? {
+        collaborationGuestValue("MOSAIC_COLLAB_GUEST_AVATAR")
+    }
+
+    /// Override for the collaboration relay WebSocket base URL. Lets a self-hosted
+    /// deployment (or local dev) use its own relay instead of the built-in default.
+    static var collaborationRelayURLOverride: String? {
+        collaborationGuestValue("MOSAIC_COLLABORATION_RELAY_URL")
+    }
+
+    private static func collaborationGuestValue(_ key: String) -> String? {
+        if let value = ProcessInfo.processInfo.environment[key]?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !value.isEmpty {
+            return value
+        }
+        return devOverride(key: key)
     }
 
     /// Base URL for the mosaic-owned cloud VM backend (`/api/vm`).
@@ -414,5 +446,44 @@ enum AuthEnvironment {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         components?.host = "localhost"
         return components?.url ?? url
+    }
+}
+
+/// Offline collaboration "guest" mode.
+///
+/// When ``AuthEnvironment/collaborationGuestID`` is set, collaboration runs with
+/// no account and no browser sign-in: the chosen id is the identity, and the
+/// access token is a locally-minted `mosaicv1`-shaped token whose payload the
+/// self-hosted (open-source) control-plane decodes in `noauth` mode — it is not
+/// verified, so no shared secret is needed.
+enum CollaborationGuestSession {
+    /// Whether offline guest mode is active.
+    static var isEnabled: Bool { AuthEnvironment.collaborationGuestID != nil }
+
+    /// The chosen guest id (display name + participant id), or nil when disabled.
+    static var guestID: String? { AuthEnvironment.collaborationGuestID }
+
+    /// The chosen guest avatar image URL, if any.
+    static var avatarURL: String? { AuthEnvironment.collaborationGuestAvatarURL }
+
+    /// Mint an unsigned `mosaicv1`-shaped access token carrying `id` as the user
+    /// id. Shape: `mosaicv1.<base64url(JSON payload)>.<placeholder-signature>`.
+    static func accessToken(id: String, now: Date = Date()) -> String {
+        let iat = Int(now.timeIntervalSince1970)
+        let payload: [String: Any] = [
+            "kind": "access",
+            "userId": id,
+            "teamIds": [String](),
+            "selectedTeamId": NSNull(),
+            "exp": iat + 86_400,
+            "iat": iat,
+            "nonce": UUID().uuidString,
+        ]
+        let data = (try? JSONSerialization.data(withJSONObject: payload)) ?? Data()
+        let base64url = data.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+        return "mosaicv1.\(base64url).guest"
     }
 }
