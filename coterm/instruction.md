@@ -15,7 +15,7 @@ Cursor, Codex, or another repository-aware assistant:
 Install and configure the Coterm self-hosted collaboration backend by following the instructions here:
 https://raw.githubusercontent.com/mana-am/coterm/refs/heads/main/coterm/instruction.md
 
-Work in the repository root. Coterm collaboration is self-host only; do not look for an official hosted backend. Read the guide, run `cd coterm && bun install && bunx wrangler login && bun run deploy:self-host`, then summarize the printed client configuration values and any manual DNS steps that remain. If I already deployed, use `bun run deploy:self-host -- --print-config` to reprint the saved values or `bun run doctor:self-host` to diagnose health. To configure a DEBUG Coterm client, run `bun run configure:client -- --guest-id <name>`. To inspect the non-secret agent context, run `bun run context:self-host -- --format markdown`. Use `--smoke` only if I ask for a live smoke test.
+Work in the repository root. Coterm collaboration is self-host only; do not look for an official hosted backend. Read the guide, run `cd coterm && bun install && bunx wrangler login && bun run deploy:self-host`, then summarize the printed client configuration values and any manual DNS steps that remain. If I already deployed, use `bun run deploy:self-host -- --print-config` to reprint the saved values or `bun run doctor:self-host` to diagnose health. To configure a DEBUG Coterm client, run `bun run configure:client`; add `-- --guest-id <name>` only if I want a specific display name. To inspect the non-secret agent context, run `bun run context:self-host -- --format markdown`. Use `--smoke` only if I ask for a live smoke test.
 ```
 
 You can also read the steps below directly. The recommended path is the
@@ -48,8 +48,8 @@ Agent checklist:
    `bun run deploy:self-host -- --print-config`.
 5. If the user reports a broken deployment, run `bun run doctor:self-host`.
 6. If the user wants a DEBUG Coterm app to use the backend without shell env,
-   run `bun run configure:client -- --guest-id <name>` and tell them to restart
-   the app.
+   run `bun run configure:client` and tell them to restart the app. Add
+   `-- --guest-id <name>` only when the user wants a specific display name.
 7. If another agent needs current backend state, run
    `bun run context:self-host -- --format markdown` or read
    `.coterm-self-host.context.json`.
@@ -104,7 +104,7 @@ bun run context:self-host -- --format markdown
 Configure a DEBUG Coterm client to use the deployment:
 
 ```bash
-bun run configure:client -- --guest-id alice
+bun run configure:client
 ```
 
 That writes the self-host URLs to `~/.coterm-dev.env`; restart the DEBUG app

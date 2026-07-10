@@ -27,6 +27,10 @@ This writes the saved self-host URLs to `~/.coterm-dev.env`, which DEBUG builds
 read even when launched from Finder, Dock, or a tagged app link. Restart the app
 after writing the file.
 
+`--guest-id` is optional in current Coterm builds. If it is omitted, Coterm uses
+an automatic local guest identity when hosted auth is disabled. Pass `--guest-id`
+only when you want a specific display name.
+
 ## The URLs
 
 | What | Env var | Value |
@@ -41,13 +45,14 @@ your relay from the first call.
 
 ## Offline guest mode (no login)
 
-For a self-hosted, account-free experience, run the client in guest mode: the
-identity is a chosen id (+ optional avatar), and the client skips the browser
-sign-in. Set:
+For a self-hosted, account-free experience, Coterm runs collaboration in guest
+mode when hosted auth is disabled. The identity is either an automatic local id
+or a chosen id (+ optional avatar), and the client skips the browser sign-in.
+Optional overrides:
 
 | Env var | Meaning |
 |---|---|
-| `COTERM_COLLAB_GUEST_ID` | The user's id / display name (required to enable guest mode) |
+| `COTERM_COLLAB_GUEST_ID` | The user's id / display name (optional override) |
 | `COTERM_COLLAB_GUEST_AVATAR` | Optional avatar image URL |
 
 In `noauth` backend mode the control-plane reads the id from the client's token

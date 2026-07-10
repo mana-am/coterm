@@ -75,12 +75,14 @@ Useful follow-ups:
 bun run deploy:self-host -- --print-config  # reprint saved client values
 bun run doctor:self-host                    # check an existing deployment
 bun run context:self-host -- --format markdown
-bun run configure:client -- --guest-id alice
+bun run configure:client
 ```
 
 `configure:client` writes the saved self-host URLs to `~/.coterm-dev.env`, which
 DEBUG Coterm builds read even when launched from Finder, Dock, or a tagged app
-link. `context:self-host` emits the same non-secret state as text, JSON,
+link. Current Coterm builds use an automatic local guest identity when hosted
+auth is disabled; pass `-- --guest-id alice` only when you want a specific
+display name. `context:self-host` emits the same non-secret state as text, JSON,
 Markdown, or shell exports so coding agents can understand the current backend
 without re-discovering Cloudflare.
 

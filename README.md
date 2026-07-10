@@ -81,7 +81,7 @@ Important rules:
 - Capture and report `COTERM_API_BASE_URL`, `COTERM_COLLABORATION_RELAY_URL`, and `COTERM_PRESENCE_BASE_URL`.
 - Use `bun run deploy:self-host -- --print-config` to reprint saved values.
 - Use `bun run doctor:self-host` to diagnose an existing deployment.
-- Use `bun run configure:client -- --guest-id <name>` for a DEBUG Coterm client.
+- Use `bun run configure:client` for a DEBUG Coterm client; add `-- --guest-id <name>` only to override the automatic local guest identity.
 
 ## What Is Coterm?
 

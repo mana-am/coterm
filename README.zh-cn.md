@@ -81,7 +81,7 @@ curl -fsSL https://raw.githubusercontent.com/mana-am/coterm/refs/heads/main/cote
 - 记录并返回 `COTERM_API_BASE_URL`、`COTERM_COLLABORATION_RELAY_URL`、`COTERM_PRESENCE_BASE_URL`。
 - 需要重新打印配置时，使用 `bun run deploy:self-host -- --print-config`。
 - 诊断已有部署时，使用 `bun run doctor:self-host`。
-- DEBUG Coterm 客户端配置使用 `bun run configure:client -- --guest-id <name>`。
+- DEBUG Coterm 客户端配置使用 `bun run configure:client`；只有需要指定显示名时才加 `-- --guest-id <name>`。
 
 ## Coterm 是什么？
 

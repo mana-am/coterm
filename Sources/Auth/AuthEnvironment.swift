@@ -180,12 +180,16 @@ enum AuthEnvironment {
         )
     }
 
-    /// Offline collaboration "guest" identity. When set (process env or
-    /// `~/.coterm-dev.env`), the app skips the browser sign-in for collaboration
-    /// and uses this id directly — no account, fully offline. Empty/absent → the
-    /// normal signed-in flow is used.
+    /// Offline collaboration "guest" identity. Explicit process env or
+    /// `~/.coterm-dev.env` values win. When hosted auth is not enabled, Coterm
+    /// automatically falls back to a local guest identity so sharing never opens
+    /// the browser sign-in prompt in the self-hosted build.
     static var collaborationGuestID: String? {
-        collaborationGuestValue("COTERM_COLLAB_GUEST_ID")
+        if let configured = collaborationGuestValue("COTERM_COLLAB_GUEST_ID") {
+            return configured
+        }
+        guard !hostedAuthEnabled else { return nil }
+        return defaultCollaborationGuestID()
     }
 
     /// Optional avatar (image URL) shown next to the guest id.
@@ -206,6 +210,22 @@ enum AuthEnvironment {
             return value
         }
         return devOverride(key: key)
+    }
+
+    private static func defaultCollaborationGuestID() -> String {
+        let displayName = NSFullUserName()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
+            ?? NSUserName().trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+            ?? "coterm-user"
+        let hostName = Host.current().localizedName?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
+            ?? ProcessInfo.processInfo.hostName
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .nilIfEmpty
+            ?? "mac"
+        return "\(displayName)@\(hostName)"
     }
 
     /// Base URL for the coterm-owned cloud VM backend (`/api/vm`).
@@ -474,11 +494,10 @@ enum AuthEnvironment {
 
 /// Offline collaboration "guest" mode.
 ///
-/// When ``AuthEnvironment/collaborationGuestID`` is set, collaboration runs with
-/// no account and no browser sign-in: the chosen id is the identity, and the
-/// access token is a locally-minted `cotermv1`-shaped token whose payload the
-/// self-hosted (open-source) control-plane decodes in `noauth` mode — it is not
-/// verified, so no shared secret is needed.
+/// When hosted auth is disabled, collaboration runs with no account and no
+/// browser sign-in: the explicit or automatically generated guest id is the
+/// identity, and the access token is a locally-minted `cotermv1`-shaped token
+/// whose payload the self-hosted control-plane can decode in `noauth` mode.
 enum CollaborationGuestSession {
     /// Whether offline guest mode is active.
     static var isEnabled: Bool { AuthEnvironment.collaborationGuestID != nil }
