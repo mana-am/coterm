@@ -154,6 +154,21 @@ cd coterm
 ./scripts/reload.sh --tag local
 ```
 
+## 发布前检查
+
+公开发布前请运行：
+
+```bash
+./scripts/coterm-release-audit.sh
+./scripts/coterm-collaboration-two-app-check.sh
+```
+
+release audit 会检查公开仓库/下载链接、自托管默认行为、App 本地化字符串里的 Mosaic 品牌残留，以及 release asset 命名。two-app helper 会构建隔离的 `host-test` 和 `guest-test` DEBUG App，并打印 create、join、房主审批、长 secret 邀请码和 stop sharing 的手工回归清单。
+
+Release 打包还要求使用 `zig 0.15.2` 构建内置 Ghostty CLI helper。不要从 Zig 版本不一致的机器或 CI runner 发布 macOS 安装包。
+
+如果工作区里有个人部署覆盖，例如本地 `wrangler.toml`，正式打 tag 前必须清理；`COTERM_RELEASE_AUDIT_ALLOW_DIRTY=1` 只用于临时探索检查，不用于正式发布。
+
 ## 文档
 
 - [自托管协作安装指南](./coterm/instruction.md)

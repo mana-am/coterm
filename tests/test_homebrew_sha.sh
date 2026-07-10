@@ -1,6 +1,6 @@
 #!/bin/bash
 # Regression test: verify the homebrew cask SHA256 matches the actual release DMG.
-# Catches issues like https://github.com/emergent-inc/coterm/issues/110 where a race
+# Catches issues like release issue #110 where a race
 # condition caused the cask to contain the SHA of a 404 page instead of the DMG.
 set -euo pipefail
 

@@ -197,7 +197,7 @@ export function buildLlmsText(origin: string): string {
     "- Works with: Claude Code, Codex, OpenCode, Gemini CLI, Aider, and any CLI tool",
     "- Automation: `coterm` CLI and Unix socket API, browser automation, hooks, skills, and custom commands",
     `- Download: ${origin}/download`,
-    "- Source: https://github.com/emergent-inc/coterm",
+    "- Source: https://github.com/mana-am/coterm",
     "",
     "## Page variants",
     "",

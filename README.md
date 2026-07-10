@@ -204,6 +204,21 @@ xcodebuild -project coterm.xcodeproj \
 
 Official signed and notarized releases require Apple Developer credentials and should use the release workflow.
 
+## Release Hardening
+
+Before cutting a public release, run the release audit and the two-app collaboration checklist:
+
+```bash
+./scripts/coterm-release-audit.sh
+./scripts/coterm-collaboration-two-app-check.sh
+```
+
+The audit checks the public repo/download identity, self-host-only defaults, app-localized Mosaic branding, and release asset naming. The two-app helper builds isolated `host-test` and `guest-test` DEBUG apps and prints the manual collaboration regression path for create, join, owner approval, invite-secret handling, and stop sharing.
+
+Release packaging also requires `zig 0.15.2` for the bundled Ghostty CLI helper. Do not publish a macOS asset from a machine or CI runner with a different Zig version.
+
+If the working tree contains local deployment overrides such as a personal `wrangler.toml`, either clean them before tagging or run the audit with `COTERM_RELEASE_AUDIT_ALLOW_DIRTY=1` only for an exploratory check. Do not tag from a dirty tree.
+
 ## Documentation
 
 - [Self-host collaboration install guide](./coterm/instruction.md)
