@@ -4,8 +4,11 @@ import CotermAuthRuntime
 import Foundation
 import Observation
 
-/// Drives the in-app iOS pairing window. Gates pairing on the Mac being signed
-/// in (authorization is a Stack same-account check), then turns on the
+/// Drives the in-app iOS pairing window. Legacy mobile pairing still depends on
+/// hosted account auth, so self-hosted builds keep it disabled until pairing can
+/// be reworked around local owner approval. When hosted auth is explicitly
+/// enabled, this gates pairing on the Mac being signed in (authorization is a
+/// Stack same-account check), then turns on the
 /// pairing host, mints an attach ticket, and exposes the QR payload plus
 /// Tailscale reachability for the view. The displayed code never expires and
 /// is never regenerated on a timer; Refresh Code re-mints on demand.
@@ -86,6 +89,13 @@ final class MobilePairingModel {
 
     private var coordinator: AuthCoordinator? { AppDelegate.shared?.auth?.coordinator }
 
+    private static var selfHostedUnavailableMessage: String {
+        String(
+            localized: "mobile.pairing.selfHosted.message",
+            defaultValue: "Mobile pairing still depends on hosted account auth, so it is disabled in the self-hosted build. Use self-hosted room sharing for collaboration until local pairing is reworked."
+        )
+    }
+
     /// Re-evaluates sign-in state and, when signed in, brings the listener up
     /// and mints a fresh attach ticket. Safe to call repeatedly (Refresh button,
     /// or the view re-running it when auth state settles).
@@ -104,6 +114,11 @@ final class MobilePairingModel {
         }
         await coordinator.awaitBootstrapped()
         guard generation == refreshGeneration else { return }
+        guard AuthEnvironment.hostedAuthEnabled else {
+            signedInEmail = nil
+            state = .failed(Self.selfHostedUnavailableMessage)
+            return
+        }
         guard coordinator.isAuthenticated else {
             signedInEmail = nil
             state = .signedOut
@@ -181,6 +196,10 @@ final class MobilePairingModel {
     /// Launches the Mac browser sign-in flow. Fire-and-forget; the view re-runs
     /// ``refresh()`` when the coordinator's auth state settles.
     func signIn() {
+        guard AuthEnvironment.hostedAuthEnabled else {
+            state = .failed(Self.selfHostedUnavailableMessage)
+            return
+        }
         state = .loading
         AppDelegate.shared?.auth?.browserSignIn.beginSignIn()
     }

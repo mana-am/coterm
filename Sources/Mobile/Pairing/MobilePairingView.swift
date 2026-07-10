@@ -185,7 +185,16 @@ struct MobilePairingView: View {
         .frame(maxWidth: .infinity, minHeight: 200)
     }
 
+    @ViewBuilder
     private var signedOut: some View {
+        if !AuthEnvironment.hostedAuthEnabled {
+            selfHostedPairingUnavailable
+        } else {
+            hostedSignInRequired
+        }
+    }
+
+    private var hostedSignInRequired: some View {
         VStack(spacing: 12) {
             Image(systemName: "person.crop.circle.badge.plus")
                 .cotermFont(size: 28)
@@ -209,6 +218,25 @@ struct MobilePairingView: View {
         .frame(maxWidth: .infinity, minHeight: 200)
     }
 
+    private var selfHostedPairingUnavailable: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "person.crop.circle.badge.exclamationmark")
+                .cotermFont(size: 28)
+                .foregroundStyle(.orange)
+            Text(String(localized: "mobile.pairing.selfHosted.title", defaultValue: "Mobile pairing is disabled in self-hosted mode"))
+                .font(.headline)
+                .multilineTextAlignment(.center)
+            Text(String(
+                localized: "mobile.pairing.selfHosted.message",
+                defaultValue: "Mobile pairing still depends on hosted account auth, so it is disabled in the self-hosted build. Use self-hosted room sharing for collaboration until local pairing is reworked."
+            ))
+            .multilineTextAlignment(.center)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, minHeight: 200)
+    }
+
     @ViewBuilder
     private var loadingContent: some View {
         if browserSignIn?.isSigningIn == true {
@@ -218,7 +246,7 @@ struct MobilePairingView: View {
                     Text(String(localized: "mobile.pairing.signIn.connecting", defaultValue: "Connecting…"))
                         .foregroundStyle(.secondary)
                 }
-                if browserSignIn?.signInIsSlow == true {
+                if AuthEnvironment.hostedAuthEnabled, browserSignIn?.signInIsSlow == true {
                     slowSignInFallback
                 }
             }
@@ -244,6 +272,7 @@ struct MobilePairingView: View {
             .fixedSize(horizontal: false, vertical: true)
 
             TrackedButton("mobilepairingview_button_246", action: {
+                guard AuthEnvironment.hostedAuthEnabled else { return }
                 guard let url = browserSignIn?.activeAttemptSignInURL else { return }
                 NSWorkspace.shared.open(url)
             }) {

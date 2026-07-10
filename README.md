@@ -37,6 +37,36 @@ It combines:
 
 Coterm is designed for developers who run Claude Code, Codex, OpenCode, Gemini CLI, Aider, Amp, Cursor Agent, or other terminal-based coding agents in parallel.
 
+## Lineage And Upstream Relationship
+
+Coterm is an independent open-source distribution built from the Mosaic/cmux code lineage. It keeps the terminal, workspace, pane, browser, command palette, settings, and Ghostty integration foundation, then changes the product identity and deployment model around Coterm.
+
+Coterm is not an official Mosaic or cmux release, and it should not be represented as endorsed by those projects. Mosaic and cmux names, logos, domains, hosted services, and trademarks remain separate from Coterm.
+
+### Mosaic
+
+Mosaic is the original open-source project this codebase descends from. Coterm preserves the required license notices and attribution, while using its own app name, icon, bundle identity, domains, update feeds, docs, packaging, and release channel.
+
+See [ATTRIBUTION.md](./ATTRIBUTION.md) for the formal attribution and redistribution notes.
+
+### cmux
+
+cmux is the current upstream code line for many terminal/workspace/browser improvements. Coterm may selectively port upstream fixes from cmux, but not by blindly merging cmux over Coterm.
+
+In practice:
+
+- upstream terminal rendering, workspace, pane, browser, command palette, settings, performance, and crash fixes may be useful to port;
+- cmux branding, domains, hosted-service defaults, release feeds, package names, and protocol assumptions do not define Coterm;
+- Coterm-owned collaboration, self-host deployment, protocol names, mobile pairing, packaging, and product identity must stay Coterm-specific.
+
+Some legacy `cmux` names remain intentionally as compatibility shims for old helpers, wire formats, or artifact names. They are tracked in [docs/coterm-cmux-compat.md](./docs/coterm-cmux-compat.md). The upstream sync policy lives in [docs/upstream-cmux-sync.md](./docs/upstream-cmux-sync.md).
+
+### Ghostty
+
+Coterm uses Ghostty as its terminal rendering foundation through libghostty/GhosttyKit. Ghostty provides the low-level terminal emulator engine, rendering behavior, shell integration pieces, and Ghostty-style configuration compatibility. Coterm provides the macOS workspace shell around it: windows, panes, tabs, browser surfaces, agent workflows, notifications, CLI/socket automation, and collaboration.
+
+Ghostty is a third-party dependency/submodule with its own license and upstream project. Coterm is not a Ghostty distribution; it embeds and integrates Ghostty technology as part of a broader agent workspace app.
+
 ## Download
 
 Download the latest macOS build:
@@ -151,6 +181,9 @@ Official signed and notarized releases require Apple Developer credentials and s
 - [Self-host backend docs](./coterm/docs/self-hosting.md)
 - [Client setup](./coterm/docs/client-setup.md)
 - [Preview sharing](./coterm/docs/preview-sharing.md)
+- [Attribution](./ATTRIBUTION.md)
+- [Coterm/cmux compatibility register](./docs/coterm-cmux-compat.md)
+- [Upstream cmux sync policy](./docs/upstream-cmux-sync.md)
 - [Repository map](./docs/repo-map.md)
 
 ## License And Attribution

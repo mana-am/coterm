@@ -19303,6 +19303,28 @@
         }
       }
     },
+    "mobile.pairing.selfHosted.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile pairing still depends on hosted account auth, so it is disabled in the self-hosted build. Use self-hosted room sharing for collaboration until local pairing is reworked."
+          }
+        }
+      }
+    },
+    "mobile.pairing.selfHosted.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile pairing is disabled in self-hosted mode"
+          }
+        }
+      }
+    },
     "mobile.pairing.signIn.button": {
       "extractionState": "manual",
       "localizations": {
