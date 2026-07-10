@@ -887,6 +887,7 @@ final class CollaborationRuntime {
     private(set) var connectionLabel = CollaborationStrings.disconnected
     private(set) var lastErrorMessage: String?
     private(set) var workspaceParticipantSnapshotRevision = 0
+    private(set) var terminalHeaderRevision = 0
     private(set) var agentRoomHeaderRevision = 0
 
     /// Resolved sharing entitlements for the caller's active org, computed
@@ -1598,6 +1599,7 @@ final class CollaborationRuntime {
     }
 
     func state(for terminal: TerminalPanel) -> CollaborationTerminalHeaderState {
+        _ = terminalHeaderRevision
         let terminalID = hostedTerminalIDsBySurfaceID[terminal.id] ?? mirroredTerminalIDsBySurfaceID[terminal.id]
         if let terminalID, let state = terminalStatesByID[terminalID] {
             return terminalHeaderState(state, for: terminal)
@@ -1696,16 +1698,7 @@ final class CollaborationRuntime {
                 break
             }
         } else {
-            switch CollaborationTerminalShareAction.primaryAction(
-                role: role,
-                workspaceHasSession: workspaceSessionCode != nil,
-                directorySharingEnabled: collaborationEntitlements.directorySharing
-            ) {
-            case .stopSharingHostedTerminal, .stopViewingRemoteTerminal, .presentSessionChooser, .createSessionAndShareDirectly, .shareInWorkspaceSession:
-                leave(terminal: terminal)
-            case .presentParticipantPicker:
-                break
-            }
+            leave(terminal: terminal)
         }
     }
 
@@ -2031,6 +2024,7 @@ final class CollaborationRuntime {
     }
 
     func recipientSnapshots(for terminal: TerminalPanel) -> [CollaborationTerminalRecipientSnapshot] {
+        _ = terminalHeaderRevision
         _ = workspaceParticipantSnapshotRevision
         let terminalID = hostedTerminalIDsBySurfaceID[terminal.id] ?? mirroredTerminalIDsBySurfaceID[terminal.id]
         guard let terminalID, let connection = connection(forTerminalID: terminalID) else { return [] }
@@ -2579,6 +2573,7 @@ final class CollaborationRuntime {
         terminalOwnerParticipantIDsByID.removeValue(forKey: terminalID)
         mirroredTerminalOwnerPeerIDsByID.removeValue(forKey: terminalID)
         terminalOwnerAvatarRequestKeysByID.removeValue(forKey: terminalID)
+        terminalHeaderRevision &+= 1
         for surfaceID in hostedSurfaceIDs + mirroredSurfaceIDs {
             terminalSelectionLastSentAtBySurfaceID.removeValue(forKey: surfaceID)
             terminalPointerLastSentAtBySurfaceID.removeValue(forKey: surfaceID)
@@ -5749,6 +5744,7 @@ final class CollaborationRuntime {
             peerSummary: connection.peerSummary,
             ownerSnapshot: ownerSnapshot
         )
+        terminalHeaderRevision &+= 1
         syncTerminalTabPresentation(terminalID: terminalID, ownerSnapshot: ownerSnapshot)
         // First share of this terminal in a session that already has peers:
         // record an explicit empty recipient selection BEFORE anything hits
