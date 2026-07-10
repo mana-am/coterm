@@ -234,7 +234,7 @@ final class PresenceHeartbeatClient {
             "routes": routes.map(\.mobileHostJSONObject),
         ]
         // The app's bundle id lets the phone label the build channel on the
-        // Computers screen (coterm.com.emergent.app = Stable, .nightly/.rc/.staging
+        // Computers screen (cc.coterm.app = Stable, .nightly/.rc/.staging
         // suffixes, dev.coterm.* = a DEV build — paired with `tag` for the dev tag).
         if let bundleID, !bundleID.isEmpty {
             bodyDict["bundleId"] = bundleID

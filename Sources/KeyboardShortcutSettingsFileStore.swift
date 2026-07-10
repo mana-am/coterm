@@ -4,7 +4,7 @@ import CotermSettings
 import Foundation
 import os
 
-nonisolated private let cotermSettingsFileStoreLogger = Logger(subsystem: "coterm.com.emergent.app", category: "SettingsStore")
+nonisolated private let cotermSettingsFileStoreLogger = Logger(subsystem: "cc.coterm.app", category: "SettingsStore")
 
 @MainActor
 final class KeyboardShortcutSettingsObserver: ObservableObject {
@@ -27,7 +27,7 @@ final class CotermSettingsFileStore {
     static let currentSchemaVersion = 1
     static let schemaURLString = "https://raw.githubusercontent.com/mana-am/coterm/main/web/data/coterm.schema.json"
     private static let legacySchemaURLString = "https://raw.githubusercontent.com/mana-am/coterm/main/web/data/coterm-settings.schema.json"
-    private static let releaseBundleIdentifier = "coterm.com.emergent.app"
+    private static let releaseBundleIdentifier = "cc.coterm.app"
     private static let backupsDefaultsKey = "coterm.settingsFile.backups.v1"
     private static let importedManagedDefaultsDefaultsKey = "coterm.settingsFile.importedManagedDefaults.v1"
     fileprivate static let socketPasswordBackupIdentifier = "automation.socketPassword"

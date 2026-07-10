@@ -4,7 +4,7 @@ import Bonsplit
 import OSLog
 
 private let closedItemHistoryLogger = Logger(
-    subsystem: "coterm.com.emergent.app",
+    subsystem: "cc.coterm.app",
     category: "ClosedItemHistory"
 )
 
@@ -652,7 +652,7 @@ final class ClosedItemHistoryStore: ObservableObject {
         }
         let bundleId = (bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
             ? bundleIdentifier!
-            : "coterm.com.emergent.app"
+            : "cc.coterm.app"
         let safeBundleId = bundleId.replacingOccurrences(
             of: "[^A-Za-z0-9._-]",
             with: "_",

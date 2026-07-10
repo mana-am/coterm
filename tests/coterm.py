@@ -52,10 +52,10 @@ class cotermError(Exception):
 _STATE_DIR = os.path.expanduser("~/.local/state/coterm")
 _STABLE_SOCKET_PATH = os.path.join(_STATE_DIR, "coterm.sock")
 _LEGACY_STABLE_SOCKET_PATH = "/tmp/coterm.sock"
-_STABLE_BUNDLE_ID = "coterm.com.emergent.app"
-_NIGHTLY_BUNDLE_ID = "coterm.com.emergent.app.nightly"
-_STAGING_BUNDLE_ID = "coterm.com.emergent.app.staging"
-_DEFAULT_DEBUG_BUNDLE_ID = "coterm.com.emergent.app.debug"
+_STABLE_BUNDLE_ID = "cc.coterm.app"
+_NIGHTLY_BUNDLE_ID = "cc.coterm.app.nightly"
+_STAGING_BUNDLE_ID = "cc.coterm.app.staging"
+_DEFAULT_DEBUG_BUNDLE_ID = "cc.coterm.app.debug"
 
 
 def _sanitize_marker_slug(raw: str) -> Optional[str]:

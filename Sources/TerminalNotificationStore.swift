@@ -7,7 +7,7 @@ import Bonsplit
 import CotermSettings
 
 nonisolated private let terminalNotificationLogger = Logger(
-    subsystem: "coterm.com.emergent.app",
+    subsystem: "cc.coterm.app",
     category: "notification"
 )
 
@@ -238,8 +238,8 @@ final class TerminalNotificationStore: ObservableObject {
 
     static let shared = TerminalNotificationStore()
 
-    static let categoryIdentifier = "coterm.com.emergent.app.userNotification"
-    static let actionShowIdentifier = "coterm.com.emergent.app.userNotification.show"
+    static let categoryIdentifier = "cc.coterm.app.userNotification"
+    static let actionShowIdentifier = "cc.coterm.app.userNotification.show"
 
     /// Mobile-host event topic the Mac emits when one or more delivered
     /// notifications are dismissed/cleared on this Mac, so an attached phone can

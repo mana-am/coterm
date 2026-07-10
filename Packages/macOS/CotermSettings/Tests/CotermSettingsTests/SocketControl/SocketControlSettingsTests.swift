@@ -54,9 +54,9 @@ import CotermSettings
     }
 
     @Test func taggedDevBuildDetection() {
-        #expect(SocketControlSettings.isTaggedDevBuild(bundleIdentifier: "coterm.com.emergent.app.debug.my-tag"))
-        #expect(!SocketControlSettings.isTaggedDevBuild(bundleIdentifier: "coterm.com.emergent.app.debug"))
-        #expect(!SocketControlSettings.isTaggedDevBuild(bundleIdentifier: "coterm.com.emergent.app"))
+        #expect(SocketControlSettings.isTaggedDevBuild(bundleIdentifier: "cc.coterm.app.debug.my-tag"))
+        #expect(!SocketControlSettings.isTaggedDevBuild(bundleIdentifier: "cc.coterm.app.debug"))
+        #expect(!SocketControlSettings.isTaggedDevBuild(bundleIdentifier: "cc.coterm.app"))
     }
 
     @Test func untaggedDebugLaunchIsBlockedOnlyForBareDebugBundle() {
@@ -64,7 +64,7 @@ import CotermSettings
         #expect(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: [:],
-                bundleIdentifier: "coterm.com.emergent.app.debug",
+                bundleIdentifier: "cc.coterm.app.debug",
                 isDebugBuild: true
             )
         )
@@ -73,7 +73,7 @@ import CotermSettings
         #expect(
             !SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: ["COTERM_UI_TEST_RUN": "1"],
-                bundleIdentifier: "coterm.com.emergent.app.debug",
+                bundleIdentifier: "cc.coterm.app.debug",
                 isDebugBuild: true
             )
         )
@@ -81,7 +81,7 @@ import CotermSettings
         #expect(
             !SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: [:],
-                bundleIdentifier: "coterm.com.emergent.app.debug.tag",
+                bundleIdentifier: "cc.coterm.app.debug.tag",
                 isDebugBuild: true
             )
         )
@@ -89,7 +89,7 @@ import CotermSettings
         #expect(
             !SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: [:],
-                bundleIdentifier: "coterm.com.emergent.app",
+                bundleIdentifier: "cc.coterm.app",
                 isDebugBuild: false
             )
         )
@@ -101,7 +101,7 @@ import CotermSettings
                 "COTERM_SOCKET_PATH": "/tmp/coterm-custom.sock",
                 "COTERM_ALLOW_SOCKET_OVERRIDE": "1",
             ],
-            bundleIdentifier: "coterm.com.emergent.app.debug.tag",
+            bundleIdentifier: "cc.coterm.app.debug.tag",
             isDebugBuild: true,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .missing }
@@ -115,13 +115,13 @@ import CotermSettings
         ]
         let path = SocketControlSettings.socketPath(
             environment: environment,
-            bundleIdentifier: "coterm.com.emergent.app.debug",
+            bundleIdentifier: "cc.coterm.app.debug",
             isDebugBuild: true,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .missing }
         )
         let defaultPath = SocketControlSettings.defaultSocketPath(
-            bundleIdentifier: "coterm.com.emergent.app.debug",
+            bundleIdentifier: "cc.coterm.app.debug",
             environment: environment,
             isDebugBuild: true,
             currentUserID: 501,
@@ -139,7 +139,7 @@ import CotermSettings
                 "COTERM_SOCKET_PATH": "/tmp/coterm-forced.sock",
                 "XCTestConfigurationFilePath": "/tmp/Test-coterm-unit-2026.06.17.xctestconfiguration",
             ],
-            bundleIdentifier: "coterm.com.emergent.app.debug",
+            bundleIdentifier: "cc.coterm.app.debug",
             isDebugBuild: true,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .missing }
@@ -152,7 +152,7 @@ import CotermSettings
             environment: [
                 "DYLD_INSERT_LIBRARIES": "/Applications/Xcode.app/Contents/Developer/usr/lib/libXCTestSwiftSupport.dylib",
             ],
-            bundleIdentifier: "coterm.com.emergent.app.debug",
+            bundleIdentifier: "cc.coterm.app.debug",
             isDebugBuild: true,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .missing }
@@ -167,7 +167,7 @@ import CotermSettings
             environment: [
                 "XCTestConfigurationFilePath": "/tmp/first/Test-coterm-unit.xctestconfiguration",
             ],
-            bundleIdentifier: "coterm.com.emergent.app.debug",
+            bundleIdentifier: "cc.coterm.app.debug",
             isDebugBuild: true,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .missing }
@@ -176,7 +176,7 @@ import CotermSettings
             environment: [
                 "XCTestConfigurationFilePath": "/tmp/second/Test-coterm-unit.xctestconfiguration",
             ],
-            bundleIdentifier: "coterm.com.emergent.app.debug",
+            bundleIdentifier: "cc.coterm.app.debug",
             isDebugBuild: true,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .missing }
@@ -192,7 +192,7 @@ import CotermSettings
                 "COTERM_TAG": "ci-split-theme",
                 "XCTestConfigurationFilePath": "/tmp/Test-coterm-unit-2026.06.17.xctestconfiguration",
             ],
-            bundleIdentifier: "coterm.com.emergent.app.debug",
+            bundleIdentifier: "cc.coterm.app.debug",
             isDebugBuild: true,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .missing }

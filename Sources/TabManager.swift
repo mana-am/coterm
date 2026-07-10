@@ -23,7 +23,7 @@ import Coterminal
 // The old Tab class is replaced by Workspace
 typealias Tab = Workspace
 
-private let tabManagerLogger = Logger(subsystem: "coterm.com.emergent.app", category: "TabManager")
+private let tabManagerLogger = Logger(subsystem: "cc.coterm.app", category: "TabManager")
 
 enum WorkspaceOrderChangeNotificationKey {
     static let movedWorkspaceIds = "movedWorkspaceIds"

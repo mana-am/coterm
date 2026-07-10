@@ -139,7 +139,7 @@ exit 0
 
         env = os.environ.copy()
         env["COTERM_SOCKET_PATH"] = "/tmp/coterm-open-wrapper-test.sock"
-        env["COTERM_BUNDLE_ID"] = "coterm.com.emergent.app.debug.test"
+        env["COTERM_BUNDLE_ID"] = "cc.coterm.app.debug.test"
         env["COTERM_OPEN_WRAPPER_SYSTEM_OPEN"] = str(system_open)
         env["COTERM_OPEN_WRAPPER_DEFAULTS"] = str(defaults)
         env["FAKE_OPEN_LOG"] = str(open_log)

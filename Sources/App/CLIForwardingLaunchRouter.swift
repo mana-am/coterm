@@ -2,7 +2,7 @@ import Darwin
 import Foundation
 import os
 
-nonisolated private let cliForwardingLogger = Logger(subsystem: "coterm.com.emergent.app", category: "CLIForwarding")
+nonisolated private let cliForwardingLogger = Logger(subsystem: "cc.coterm.app", category: "CLIForwarding")
 
 enum CLIForwardingLaunchRouter {
     private static let guardKey = "COTERM_CLI_FORWARDED"

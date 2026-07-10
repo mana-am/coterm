@@ -170,7 +170,7 @@ class CotermPerfRunner:
 
     def clean_persisted_state(self) -> None:
         app_support = pathlib.Path.home() / "Library/Application Support/coterm"
-        bundle_id = f"coterm.com.emergent.app.debug.{self.tag_id}"
+        bundle_id = f"cc.coterm.app.debug.{self.tag_id}"
         for suffix in ("", "-previous"):
             (app_support / f"session-{bundle_id}{suffix}.json").unlink(missing_ok=True)
         self.socket_path.unlink(missing_ok=True)
@@ -215,7 +215,7 @@ class CotermPerfRunner:
                 "COTERMD_UNIX_PATH": str(self.cotermd_socket_path),
                 "COTERM_DEBUG_LOG": str(self.debug_log_path),
                 "COTERM_TAG": self.tag,
-                "COTERM_BUNDLE_ID": f"coterm.com.emergent.app.debug.{self.tag_id}",
+                "COTERM_BUNDLE_ID": f"cc.coterm.app.debug.{self.tag_id}",
             }
         )
         return env
@@ -225,7 +225,7 @@ class CotermPerfRunner:
         env["COTERM_SOCKET"] = str(self.socket_path)
         env["COTERM_SOCKET_PATH"] = str(self.socket_path)
         env["COTERM_TAG"] = self.tag
-        env["COTERM_BUNDLE_ID"] = f"coterm.com.emergent.app.debug.{self.tag_id}"
+        env["COTERM_BUNDLE_ID"] = f"cc.coterm.app.debug.{self.tag_id}"
         env["COTERM_CLI_RESPONSE_TIMEOUT_SEC"] = str(max(15, int(self.args.snapshot_timeout)))
         return env
 

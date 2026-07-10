@@ -93,6 +93,22 @@ check_no_match \
   "Mosaic|mosaic" \
   Resources/Localizable.xcstrings Resources/InfoPlist.xcstrings
 
+check_no_match \
+  "Coterm-owned release surfaces do not use the old Emergent bundle identity" \
+  "coterm\.com\.emergent\.app|com\.emergent\.inc\.coterm" \
+  coterm.xcodeproj Resources Sources Packages scripts .github docs tests \
+  README.md README.zh-cn.md README.ja.md README.ko.md README.ru.md coterm
+
+check_match \
+  "Xcode release bundle identity is cc.coterm.app" \
+  "PRODUCT_BUNDLE_IDENTIFIER = cc\.coterm\.app;" \
+  coterm.xcodeproj/project.pbxproj
+
+check_match \
+  "release workflow validates cc.coterm.app provisioning" \
+  '\$\{APPLE_TEAM_ID\}\.cc\.coterm\.app' \
+  .github/workflows/release.yml
+
 check_match \
   "README declares self-host-only collaboration" \
   "self-host only|self-hosted collaboration" \

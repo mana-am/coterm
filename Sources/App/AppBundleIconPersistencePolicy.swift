@@ -1,7 +1,7 @@
 import Foundation
 
 enum AppBundleIconPersistencePolicy {
-    private static let stableReleaseBundleIdentifier = "coterm.com.emergent.app"
+    private static let stableReleaseBundleIdentifier = "cc.coterm.app"
     private static let stableReleaseAppBundleName = "Coterm.app"
     static let disablePersistenceArgument = "--coterm-disable-bundle-icon-persistence"
     static let disablePersistenceDefaultsKey = "cotermDisableBundleIconPersistence"

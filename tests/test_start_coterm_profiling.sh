@@ -29,9 +29,9 @@ EOF
 stable_app="$TMP_DIR/Coterm.app"
 nightly_app="$TMP_DIR/Coterm NIGHTLY.app"
 dev_app="$TMP_DIR/Coterm DEV dog.app"
-make_app "$stable_app" "coterm.com.emergent.app" "Coterm"
-make_app "$nightly_app" "coterm.com.emergent.app.nightly" "Coterm NIGHTLY"
-make_app "$dev_app" "coterm.com.emergent.app.debug.dog" "Coterm DEV dog"
+make_app "$stable_app" "cc.coterm.app" "Coterm"
+make_app "$nightly_app" "cc.coterm.app.nightly" "Coterm NIGHTLY"
+make_app "$dev_app" "cc.coterm.app.debug.dog" "Coterm DEV dog"
 
 plist_buddy="$TMP_DIR/plistbuddy"
 cat > "$plist_buddy" <<'EOF'
@@ -107,7 +107,7 @@ cat > "$ps_file" <<EOF
 EOF
 
 dry_run="$("$SCRIPT" --dry-run --test-ps-file "$ps_file" --channel dev --tag dog --duration 7 --out "$TMP_DIR/out")"
-if [[ "$dry_run" != *"Target: pid=303 channel=dev bundle=coterm.com.emergent.app.debug.dog name=Coterm DEV dog"* ]]; then
+if [[ "$dry_run" != *"Target: pid=303 channel=dev bundle=cc.coterm.app.debug.dog name=Coterm DEV dog"* ]]; then
   echo "FAIL: dev tag selector did not choose the tagged dev process" >&2
   echo "$dry_run" >&2
   exit 1
@@ -149,9 +149,9 @@ if ! grep -Fq "multiple coterm processes are running" /tmp/coterm-profile-ambigu
 fi
 
 list_output="$("$SCRIPT" --list-targets --test-ps-file "$ps_file")"
-if [[ "$list_output" != *"pid=101 channel=stable bundle=coterm.com.emergent.app"* ]] ||
-   [[ "$list_output" != *"pid=202 channel=nightly bundle=coterm.com.emergent.app.nightly"* ]] ||
-   [[ "$list_output" != *"pid=303 channel=dev bundle=coterm.com.emergent.app.debug.dog"* ]]; then
+if [[ "$list_output" != *"pid=101 channel=stable bundle=cc.coterm.app"* ]] ||
+   [[ "$list_output" != *"pid=202 channel=nightly bundle=cc.coterm.app.nightly"* ]] ||
+   [[ "$list_output" != *"pid=303 channel=dev bundle=cc.coterm.app.debug.dog"* ]]; then
   echo "FAIL: --list-targets did not show stable/nightly/dev discrimination" >&2
   echo "$list_output" >&2
   exit 1
@@ -323,7 +323,7 @@ if ! grep -Fq "all profiling templates failed" /tmp/coterm-profile-all-failed.lo
   exit 1
 fi
 
-submit_output="$("$ROOT_DIR/Resources/bin/submit-coterm-profile" --dry-run --profile "$timeout_out" --target-name "Coterm DEV dog" --target-pid 303 --channel dev --bundle-id coterm.com.emergent.app.debug.dog --reply-to "user@example.com")"
+submit_output="$("$ROOT_DIR/Resources/bin/submit-coterm-profile" --dry-run --profile "$timeout_out" --target-name "Coterm DEV dog" --target-pid 303 --channel dev --bundle-id cc.coterm.app.debug.dog --reply-to "user@example.com")"
 if [[ "$submit_output" != *"Recipient: contact@emergent.inc"* ]] ||
    [[ "$submit_output" != *"Reply-to: user@example.com"* ]] ||
    [[ "$submit_output" != *"Subject: coterm profiling capture: Coterm DEV dog"* ]]; then
@@ -424,7 +424,7 @@ COTERM_PROFILE_OSASCRIPT="$cancel_bin" COTERM_PROFILE_OPEN="$open_bin" COTERM_PR
   --target-name "Coterm DEV dog" \
   --target-pid 303 \
   --channel dev \
-  --bundle-id coterm.com.emergent.app.debug.dog
+  --bundle-id cc.coterm.app.debug.dog
 
 sleep_osascript="$TMP_DIR/sleep-osascript"
 sleep_osascript_pid="$TMP_DIR/sleep-osascript.pid"
@@ -441,7 +441,7 @@ COTERM_PROFILE_OSASCRIPT="$sleep_osascript" COTERM_PROFILE_DITTO="$ditto_bin" "$
   --target-name "Coterm DEV dog" \
   --target-pid 303 \
   --channel dev \
-  --bundle-id coterm.com.emergent.app.debug.dog \
+  --bundle-id cc.coterm.app.debug.dog \
   --send &
 sleep_helper_pid="$!"
 for _ in $(seq 1 50); do
@@ -479,7 +479,7 @@ if COTERM_PROFILE_OSASCRIPT="$cancel_bin" COTERM_PROFILE_OPEN="$open_bin" COTERM
   --target-name "Coterm DEV dog" \
   --target-pid 303 \
   --channel dev \
-  --bundle-id coterm.com.emergent.app.debug.dog \
+  --bundle-id cc.coterm.app.debug.dog \
   --send >/tmp/coterm-profile-send-cancel.log 2>&1; then
   echo "FAIL: submit helper send mode should fail when Mail send is canceled" >&2
   exit 1
@@ -514,7 +514,7 @@ HOME="$TMP_DIR" COTERM_PROFILE_FEEDBACK_EMAIL=wrong@example.com COTERM_PROFILE_L
   --target-name "Coterm DEV dog" \
   --target-pid 303 \
   --channel dev \
-  --bundle-id coterm.com.emergent.app.debug.dog \
+  --bundle-id cc.coterm.app.debug.dog \
   --recipient contact@emergent.inc \
   --reply-to-file "$reply_to_file" \
   --note-file "$note_file" \

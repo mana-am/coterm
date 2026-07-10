@@ -75,7 +75,7 @@ OUTPUT="$(
   COTERM_SOCKET="/tmp/main-coterm-legacy.sock" \
   COTERM_SOCKET_PATH="/tmp/main-coterm.sock" \
   COTERM_SOCKET_PASSWORD="main-secret" \
-  COTERM_BUNDLE_ID="coterm.com.emergent.app" \
+  COTERM_BUNDLE_ID="cc.coterm.app" \
   COTERM_BUNDLED_CLI_PATH="/Applications/Coterm.app/Contents/Resources/bin/coterm" \
   COTERM_WORKSPACE_ID="main-workspace" \
   COTERM_TAB_ID="main-tab" \
@@ -106,7 +106,7 @@ reject_prefix() {
 
 require_line "COTERM_SOCKET_PATH=$SOCKET_PATH"
 require_line "COTERM_TAG=$TAG_SLUG"
-require_line "COTERM_BUNDLE_ID=coterm.com.emergent.app.debug.${TAG_BUNDLE_ID}"
+require_line "COTERM_BUNDLE_ID=cc.coterm.app.debug.${TAG_BUNDLE_ID}"
 require_line "COTERM_BUNDLED_CLI_PATH=$FAKE_CLI"
 
 reject_prefix "COTERM_SOCKET"

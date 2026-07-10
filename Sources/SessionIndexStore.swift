@@ -9,7 +9,7 @@ import os
 import SQLite3
 
 nonisolated private let sessionIndexLogger = Logger(
-    subsystem: Bundle.main.bundleIdentifier ?? "coterm.com.emergent.app",
+    subsystem: Bundle.main.bundleIdentifier ?? "cc.coterm.app",
     category: "SessionIndexStore"
 )
 

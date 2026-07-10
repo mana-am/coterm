@@ -3,48 +3,48 @@ import Testing
 
 @Test func markerFilesAreVariantAware() {
     #expect(SocketPathMarkerFiles.variant(
-        bundleIdentifier: "coterm.com.emergent.app",
+        bundleIdentifier: "cc.coterm.app",
         environment: [:]
     ) == .stable)
     #expect(SocketPathMarkerFiles.variant(
-        bundleIdentifier: "coterm.com.emergent.app.nightly",
+        bundleIdentifier: "cc.coterm.app.nightly",
         environment: [:]
     ) == .nightly(slug: nil))
     #expect(SocketPathMarkerFiles.variant(
-        bundleIdentifier: "coterm.com.emergent.app.debug.agent",
+        bundleIdentifier: "cc.coterm.app.debug.agent",
         environment: [:]
     ) == .dev(slug: "agent"))
     #expect(SocketPathMarkerFiles.variant(
-        bundleIdentifier: "coterm.com.emergent.app.debug",
+        bundleIdentifier: "cc.coterm.app.debug",
         environment: ["COTERM_TAG": "Issue 3542"]
     ) == .dev(slug: "issue-3542"))
     #expect(SocketPathMarkerFiles.variant(
-        bundleIdentifier: "coterm.com.emergent.app.debug",
+        bundleIdentifier: "cc.coterm.app.debug",
         environment: ["COTERM_TAG": "café"]
     ) == .dev(slug: "caf"))
 }
 
 @Test func defaultSocketPathsStayVariantScoped() {
     #expect(SocketPathMarkerFiles.defaultSocketPath(
-        bundleIdentifier: "coterm.com.emergent.app",
+        bundleIdentifier: "cc.coterm.app",
         environment: [:],
         isDebugBuild: false,
         stableSocketPath: "/stable/coterm.sock"
     ) == "/stable/coterm.sock")
     #expect(SocketPathMarkerFiles.defaultSocketPath(
-        bundleIdentifier: "coterm.com.emergent.app.nightly",
+        bundleIdentifier: "cc.coterm.app.nightly",
         environment: [:],
         isDebugBuild: false,
         stableSocketPath: "/stable/coterm.sock"
     ) == "/tmp/coterm-nightly.sock")
     #expect(SocketPathMarkerFiles.defaultSocketPath(
-        bundleIdentifier: "coterm.com.emergent.app.staging.my-feature",
+        bundleIdentifier: "cc.coterm.app.staging.my-feature",
         environment: [:],
         isDebugBuild: false,
         stableSocketPath: "/stable/coterm.sock"
     ) == "/tmp/coterm-staging-my-feature.sock")
     #expect(SocketPathMarkerFiles.defaultSocketPath(
-        bundleIdentifier: "coterm.com.emergent.app.debug",
+        bundleIdentifier: "cc.coterm.app.debug",
         environment: ["COTERM_TAG": "Issue 3542"],
         isDebugBuild: false,
         stableSocketPath: "/stable/coterm.sock"

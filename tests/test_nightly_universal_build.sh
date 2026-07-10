@@ -58,7 +58,7 @@ if ! awk '
   exit 1
 fi
 
-if ! grep -Fq 'bundle ID `coterm.com.emergent.app.nightly`' "$WORKFLOW_FILE"; then
+if ! grep -Fq 'bundle ID `cc.coterm.app.nightly`' "$WORKFLOW_FILE"; then
   echo "FAIL: nightly workflow must publish the unified nightly bundle ID"
   exit 1
 fi

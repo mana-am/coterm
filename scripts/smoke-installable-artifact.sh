@@ -54,15 +54,15 @@ fi
 
 case "$CHANNEL" in
   stable)
-    EXPECTED_BUNDLE_ID="coterm.com.emergent.app"
+    EXPECTED_BUNDLE_ID="cc.coterm.app"
     EXPECTED_APP_NAME="Coterm"
     ;;
   nightly)
-    EXPECTED_BUNDLE_ID="coterm.com.emergent.app.nightly"
+    EXPECTED_BUNDLE_ID="cc.coterm.app.nightly"
     EXPECTED_APP_NAME="Coterm NIGHTLY"
     ;;
   debug)
-    EXPECTED_BUNDLE_ID_PREFIX="coterm.com.emergent.app.debug."
+    EXPECTED_BUNDLE_ID_PREFIX="cc.coterm.app.debug."
     EXPECTED_APP_NAME_PREFIX="Coterm DEV "
     ;;
   *)

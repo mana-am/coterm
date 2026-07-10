@@ -33,12 +33,12 @@ fi
 case "$CHANNEL" in
   stable)
     EXPECTED_NAME="Coterm"
-    EXPECTED_BUNDLE_ID="coterm.com.emergent.app"
+    EXPECTED_BUNDLE_ID="cc.coterm.app"
     EXPECTED_ICON_NAME="AppIcon"
     ;;
   nightly)
     EXPECTED_NAME="Coterm NIGHTLY"
-    EXPECTED_BUNDLE_ID="coterm.com.emergent.app.nightly"
+    EXPECTED_BUNDLE_ID="cc.coterm.app.nightly"
     EXPECTED_ICON_NAME="AppIcon-Nightly"
     ;;
   *)

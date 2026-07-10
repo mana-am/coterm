@@ -3,7 +3,7 @@ import CotermAuthRuntime
 import Foundation
 import os
 
-private let macPairedMacPublishLog = Logger(subsystem: "coterm.com.emergent.app", category: "MacPairedMacPublish")
+private let macPairedMacPublishLog = Logger(subsystem: "cc.coterm.app", category: "MacPairedMacPublish")
 
 /// DEV convenience: publishes THIS Mac's own attach route into the signed-in
 /// user's per-user `pairedMacs` Durable Object backup (`POST /v1/sync/paired-macs`

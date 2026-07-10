@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import os.log
 
-nonisolated private let menuBarProfilingLogger = Logger(subsystem: "coterm.com.emergent.app", category: "MenuBarProfiling")
+nonisolated private let menuBarProfilingLogger = Logger(subsystem: "cc.coterm.app", category: "MenuBarProfiling")
 
 enum MenuBarProfilingLauncher {
     static let defaultDurationSeconds = 15

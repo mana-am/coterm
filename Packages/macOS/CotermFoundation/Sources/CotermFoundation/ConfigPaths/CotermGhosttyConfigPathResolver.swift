@@ -12,7 +12,7 @@ public import Foundation
 public struct CotermGhosttyConfigPathResolver {
     /// The bundle identifier of the released coterm app, used as the canonical
     /// config location and the fallback for dev/nightly/staging channels.
-    public static let releaseBundleIdentifier = "coterm.com.emergent.app"
+    public static let releaseBundleIdentifier = "cc.coterm.app"
     private static let releaseFallbackChannelSuffixes = ["debug", "nightly", "staging"]
 
     public init() {}

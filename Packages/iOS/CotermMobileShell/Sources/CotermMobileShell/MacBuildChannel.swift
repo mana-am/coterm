@@ -24,13 +24,13 @@ public struct MacBuildChannel: Sendable {
         }
 
         // The channel is the component RIGHT AFTER the base bundle id; a tagged
-        // build appends a further `.slug` (e.g. `coterm.com.emergent.app.nightly.my-tag`,
-        // `coterm.com.emergent.app.rc`), so match the component, not the suffix. Mirrors
+        // build appends a further `.slug` (e.g. `cc.coterm.app.nightly.my-tag`,
+        // `cc.coterm.app.rc`), so match the component, not the suffix. Mirrors
         // the canonical `SocketPathMarkerFiles.variant` on macOS — kept in sync as
         // channels are added (Stable/Nightly/Staging/RC). RC may not exist yet (a
         // future release-candidate desktop build), but is handled ahead of time.
         let bundle = (bundleID ?? "").lowercased()
-        let base = "coterm.com.emergent.app"
+        let base = "cc.coterm.app"
         if bundle == base { return "Stable" }
         if bundle.hasPrefix(base + ".") {
             let rest = bundle.dropFirst(base.count + 1)
@@ -43,7 +43,7 @@ public struct MacBuildChannel: Sendable {
             default: return nil // unknown channel component — don't guess
             }
         }
-        // A non-`coterm.com.emergent.app` bundle that is clearly a dev build (e.g. the iOS
+        // A non-`cc.coterm.app` bundle that is clearly a dev build (e.g. the iOS
         // dev bundle `dev.coterm.*`).
         if bundle.hasPrefix("dev.coterm") { return "DEV" }
         return nil

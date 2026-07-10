@@ -7,7 +7,7 @@ public import Foundation
 /// ## Why not Application Support
 ///
 /// These files are read and written by **two separately code-signed binaries** —
-/// the coterm app (bundle id `coterm.com.emergent.app`) and the standalone `coterm` CLI
+/// the coterm app (bundle id `cc.coterm.app`) and the standalone `coterm` CLI
 /// installed at `/usr/local/bin/coterm`. On macOS Sequoia, a non-sandboxed process
 /// that reaches into another app's data under `~/Library/Application Support`,
 /// `~/Library/Containers`, or `~/Library/Group Containers` triggers the

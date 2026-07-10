@@ -64,14 +64,14 @@ struct SessionSnapshotRepositoryTests {
         #expect(backup.path == dir.appendingPathComponent("coterm/session-com.coterm_odd_id-previous.json").path)
     }
 
-    @Test("nil and blank bundle identifiers fall back to coterm.com.emergent.app")
+    @Test("nil and blank bundle identifiers fall back to cc.coterm.app")
     func bundleIdentifierFallback() throws {
         let dir = try makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: dir) }
         for identifier in [nil, "  "] as [String?] {
             let repository = makeRepository(appSupport: dir, bundleIdentifier: identifier)
             let primary = try #require(repository.defaultSnapshotFileURL())
-            #expect(primary.lastPathComponent == "session-coterm.com.emergent.app.json")
+            #expect(primary.lastPathComponent == "session-cc.coterm.app.json")
         }
     }
 

@@ -424,7 +424,7 @@ class GhosttyApp {
         scrollbackReplayEnvironmentKey: SessionScrollbackReplayStore.environmentKey, globalFontMagnificationPercent: { GlobalFontMagnification.storedPercent }
     )
 
-    private static let releaseBundleIdentifier = "coterm.com.emergent.app"
+    private static let releaseBundleIdentifier = "cc.coterm.app"
     /// Shared config-file discovery seam. Resolves Ghostty config scan paths,
     /// scans them for font/appearance directives, and decides legacy/CJK/theme
     /// overrides. The C-API config-load methods below call it to decide *what*
@@ -3520,7 +3520,7 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
         ProcessInfo.processInfo.environment["COTERM_COLLAB_CURSOR_DEBUG"] == "1"
 
     private static let collaboratorCursorLogger = Logger(
-        subsystem: "coterm.com.emergent.app",
+        subsystem: "cc.coterm.app",
         category: "collab.cursor"
     )
 

@@ -105,7 +105,7 @@ fi
 TAG_ID="$(sanitize_bundle "$TAG")"
 TAG_SLUG="$(sanitize_path "$TAG")"
 APP="$HOME/Library/Developer/Xcode/DerivedData/coterm-${TAG_SLUG}/Build/Products/Debug/Coterm DEV ${TAG}.app"
-BID="coterm.com.emergent.app.debug.${TAG_ID}"
+BID="cc.coterm.app.debug.${TAG_ID}"
 SOCK="/tmp/coterm-debug-${TAG_SLUG}.sock"
 DSOCK="$HOME/Library/Application Support/coterm/cotermd-dev-${TAG_SLUG}.sock"
 LOG="/tmp/coterm-debug-${TAG_SLUG}.log"

@@ -29,7 +29,7 @@ Use this when producing the app others download.
 - Product: `coterm-macos.dmg`
 - Contents: signed and notarized `Coterm.app`
 - Configuration: Release, universal macOS app
-- Bundle ID: `coterm.com.emergent.app`
+- Bundle ID: `cc.coterm.app`
 - Update feed: Sparkle `appcast.xml`
 - Download URL: `https://download.coterm.cc/coterm-macos.dmg`
 - Release trigger: push a `v*` tag to GitHub
@@ -38,7 +38,7 @@ Nightly has the same shape but a different channel:
 
 - Product: `coterm-nightly-macos.dmg`
 - Contents: signed and notarized `Coterm NIGHTLY.app`
-- Bundle ID: `coterm.com.emergent.app.nightly`
+- Bundle ID: `cc.coterm.app.nightly`
 - Update feed: `https://updates.coterm.cc/nightly/appcast.xml`
 - Release target: the mutable `nightly` GitHub Release
 
@@ -93,7 +93,7 @@ Optional or adjacent release operations use:
 - `HOMEBREW_TAP_TOKEN`
 - `SENTRY_AUTH_TOKEN`
 
-The signing identity must be a Developer ID Application identity for emergent.inc. The release provisioning profile must match `coterm.com.emergent.app` and include required entitlements such as WebAuthn.
+The signing identity must be a Developer ID Application identity for emergent.inc. The release provisioning profile must match `cc.coterm.app` and include required entitlements such as WebAuthn.
 
 ### Tag And Trigger
 
@@ -164,7 +164,7 @@ Coterm.app/Contents/embedded.provisionprofile
 CI validates that the profile app identifier matches `APPLE_TEAM_ID` plus the release bundle id:
 
 ```text
-T342J8UQGV.coterm.com.emergent.app
+T342J8UQGV.cc.coterm.app
 ```
 
 ### 5. Sign The App
@@ -360,7 +360,7 @@ https://download.coterm.cc/nightly/coterm-nightly-macos.dmg
 
 Nightly uses:
 
-- bundle ID `coterm.com.emergent.app.nightly`
+- bundle ID `cc.coterm.app.nightly`
 - app display name `Coterm NIGHTLY`
 - `coterm.nightly.entitlements`
 - `APPLE_NIGHTLY_PROVISIONING_PROFILE_BASE64`
@@ -485,7 +485,7 @@ open -n "/Volumes/coterm session code ui/Coterm DEV session-code-ui.app"
 The debug artifact smoke should report:
 
 ```text
-installable artifact smoke OK: bundle=coterm.com.emergent.app.debug.<tag> version=<version> build=<build>
+installable artifact smoke OK: bundle=cc.coterm.app.debug.<tag> version=<version> build=<build>
 ```
 
 If Finder reports `kLSNoExecutableErr`, compare the mounted app's `Info.plist` `CFBundleExecutable` with the file in `Contents/MacOS/`, verify it is executable (`0755`), detach all stale coterm volumes, and retry with a new DMG filename and volume name.

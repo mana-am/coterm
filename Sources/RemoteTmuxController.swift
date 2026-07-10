@@ -20,7 +20,7 @@ final class RemoteTmuxController {
 
     /// Diagnostic logger (not user-facing) for mirror lifecycle events such as a
     /// ControlMaster that couldn't be confirmed ready before the attach burst.
-    nonisolated static let logger = Logger(subsystem: "coterm.com.emergent.app", category: "RemoteTmux")
+    nonisolated static let logger = Logger(subsystem: "cc.coterm.app", category: "RemoteTmux")
 
     /// Per-endpoint SSH transports (keyed by ``RemoteTmuxHost/connectionHash``),
     /// owned by ``RemoteTmuxController`` and delegated to for discovery + master teardown.

@@ -4186,7 +4186,7 @@ enum AppIconLaunchState {
 enum AppIconSettings {
     static let modeKey = "appIconMode"
     static let defaultMode: AppIconMode = .automatic
-    private static let dockTileIconDidChangeNotification = Notification.Name("coterm.com.emergent.appIconDidChange")
+    private static let dockTileIconDidChangeNotification = Notification.Name("cc.coterm.appIconDidChange")
     private static var liveEnvironmentProvider: () -> Environment = { .live() }
 
     private static func isRunningUnderXCTest(_ env: [String: String] = ProcessInfo.processInfo.environment) -> Bool {
@@ -4428,8 +4428,8 @@ nonisolated enum BuildFlavor: String, Sendable {
         if SocketControlSettings.isDebugLikeBundleIdentifier(normalizedBundleIdentifier) {
             return .dev
         }
-        if normalizedBundleIdentifier == "coterm.com.emergent.app.nightly"
-            || normalizedBundleIdentifier?.hasPrefix("coterm.com.emergent.app.nightly.") == true {
+        if normalizedBundleIdentifier == "cc.coterm.app.nightly"
+            || normalizedBundleIdentifier?.hasPrefix("cc.coterm.app.nightly.") == true {
             return .nightly
         }
         if bundleNames.contains(where: containsNightlyToken) {

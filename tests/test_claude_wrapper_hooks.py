@@ -248,7 +248,7 @@ def run_wrapper_terminal_env_probe(
         args_log = tmp / "real-args.log"
         socket_path = str(tmp / "coterm.sock")
         fingerprint_env = {
-            "COTERM_BUNDLE_ID": "coterm.com.emergent.app.debug.envprobe",
+            "COTERM_BUNDLE_ID": "cc.coterm.app.debug.envprobe",
             "COTERM_BUNDLED_CLI_PATH": str(wrapper_dir / "coterm"),
             "COTERM_LOAD_GHOSTTY_ZSH_INTEGRATION": "1",
             "COTERM_PANEL_ID": "panel:test",
@@ -903,7 +903,7 @@ def test_hooks_disabled_preserves_coterm_terminal_env_for_custom_hooks(failures:
         )
 
         for key, expected_value in {
-            "COTERM_BUNDLE_ID": "coterm.com.emergent.app.debug.envprobe",
+            "COTERM_BUNDLE_ID": "cc.coterm.app.debug.envprobe",
             "COTERM_CLAUDE_HOOKS_DISABLED": "1",
             "COTERM_PANEL_ID": "panel:test",
             "COTERM_SURFACE_ID": "surface:test",

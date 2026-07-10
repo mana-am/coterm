@@ -24,7 +24,7 @@ Use `Examples/SampleSidebarExtensionApp` as the reference project:
 1. Open `SampleSidebarExtensionApp.xcodeproj`.
 2. Change the app and extension bundle identifiers to your own reverse-DNS prefix.
 3. Change the signing team from emergent.inc to your team.
-4. Keep the extension point identifier as `coterm.com.emergent.app.coterm.sidebar`.
+4. Keep the extension point identifier as `cc.coterm.app.coterm.sidebar`.
 5. Build and launch the containing app once so macOS registers the embedded extension.
 6. In COTERM, open Sidebar Extensions from the puzzle button next to the sidebar help button and enable your extension.
 7. Choose the extension sidebar provider from that puzzle menu.
@@ -36,7 +36,7 @@ The extension target declares the extension point manually in its `Info.plist`:
 <key>EXAppExtensionAttributes</key>
 <dict>
   <key>EXExtensionPointIdentifier</key>
-  <string>coterm.com.emergent.app.coterm.sidebar</string>
+  <string>cc.coterm.app.coterm.sidebar</string>
 </dict>
 ```
 

@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-nonisolated private let cotermEventLogLogger = Logger(subsystem: "coterm.com.emergent.app", category: "event-log")
+nonisolated private let cotermEventLogLogger = Logger(subsystem: "cc.coterm.app", category: "event-log")
 
 // Sendable safety: pending state is protected by `lock`; file IO runs on `queue`.
 final class CotermEventLogWriter: @unchecked Sendable {

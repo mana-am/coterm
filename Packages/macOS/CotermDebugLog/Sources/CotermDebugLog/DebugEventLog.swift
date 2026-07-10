@@ -375,7 +375,7 @@ public final class DebugEventLog: @unchecked Sendable {
         }
 
         if let bundleId = Bundle.main.bundleIdentifier,
-           bundleId != "coterm.com.emergent.app.debug" {
+           bundleId != "cc.coterm.app.debug" {
             return "/tmp/coterm-debug-\(sanitizePathToken(bundleId)).log"
         }
 

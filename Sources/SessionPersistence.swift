@@ -713,7 +713,7 @@ enum SurfaceResumeApprovalStore {
     private static let secretFileName = ".surface-resume-approval-secret"
     private static let settingsTerminalSectionKey = "terminal"
     private static let settingsRecordsKey = "resumeCommands"
-    private static let keychainService = "coterm.com.emergent.app.surface-resume-approvals"
+    private static let keychainService = "cc.coterm.app.surface-resume-approvals"
     private static let keychainAccount = "hmac-secret-v1"
 
     struct StoredFile: Codable {

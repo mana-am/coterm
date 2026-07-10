@@ -335,7 +335,7 @@ extension TerminalSurface {
         if fileManager.fileExists(atPath: integrationDir, isDirectory: &isDirectory), isDirectory.boolValue {
             return true
         }
-        Logger(subsystem: "coterm.com.emergent.app", category: "ghostty.initialization")
+        Logger(subsystem: "cc.coterm.app", category: "ghostty.initialization")
             .error("coterm shell-integration dir missing at \(integrationDir, privacy: .private); spawning shell without coterm shell integration so the user's shell config still loads")
         return false
     }
@@ -367,7 +367,7 @@ extension TerminalSurface {
         func bundledBootstrapIsReadable(_ relativePath: String) -> Bool {
             let path = (integrationDir as NSString).appendingPathComponent(relativePath)
             if FileManager.default.isReadableFile(atPath: path) { return true }
-            Logger(subsystem: "coterm.com.emergent.app", category: "ghostty.initialization")
+            Logger(subsystem: "cc.coterm.app", category: "ghostty.initialization")
                 .error("coterm \(shellName, privacy: .public) bootstrap unreadable at \(path, privacy: .private); skipping coterm shell-startup redirection so the user's shell config still loads")
             return false
         }
@@ -399,7 +399,7 @@ extension TerminalSurface {
                     .joined(separator: "\n")
                 if !bootstrap.isEmpty { setManagedEnvironmentValue("PROMPT_COMMAND", bootstrap) }
             } catch {
-                Logger(subsystem: "coterm.com.emergent.app", category: "ghostty.initialization")
+                Logger(subsystem: "cc.coterm.app", category: "ghostty.initialization")
                     .error("coterm bash bootstrap unreadable at \(bashBootstrapPath, privacy: .private): \(error.localizedDescription, privacy: .public); bash shell integration will not load")
             }
         case "fish":

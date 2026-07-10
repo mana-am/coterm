@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_NAME="Coterm DEV"
-BUNDLE_ID="coterm.com.emergent.app.debug"
+BUNDLE_ID="cc.coterm.app.debug"
 BASE_APP_NAME="Coterm DEV"
 DERIVED_DATA=""
 NAME_SET=0
@@ -162,16 +162,16 @@ write_last_socket_path() {
   local slug=""
 
   case "$bundle_id" in
-    coterm.com.emergent.app)
+    cc.coterm.app)
       marker_name="last-socket-path"
       tmp_marker="/tmp/coterm-last-socket-path"
       ;;
-    coterm.com.emergent.app.nightly)
+    cc.coterm.app.nightly)
       marker_name="nightly-last-socket-path"
       tmp_marker="/tmp/coterm-nightly-last-socket-path"
       ;;
-    coterm.com.emergent.app.nightly.*)
-      slug="$(sanitize_path "${bundle_id#coterm.com.emergent.app.nightly.}")"
+    cc.coterm.app.nightly.*)
+      slug="$(sanitize_path "${bundle_id#cc.coterm.app.nightly.}")"
       if [[ -n "$slug" ]]; then
         marker_name="nightly-${slug}-last-socket-path"
         tmp_marker="/tmp/coterm-nightly-${slug}-last-socket-path"
@@ -180,12 +180,12 @@ write_last_socket_path() {
         tmp_marker="/tmp/coterm-nightly-last-socket-path"
       fi
       ;;
-    coterm.com.emergent.app.staging)
+    cc.coterm.app.staging)
       marker_name="staging-last-socket-path"
       tmp_marker="/tmp/coterm-staging-last-socket-path"
       ;;
-    coterm.com.emergent.app.staging.*)
-      slug="$(sanitize_path "${bundle_id#coterm.com.emergent.app.staging.}")"
+    cc.coterm.app.staging.*)
+      slug="$(sanitize_path "${bundle_id#cc.coterm.app.staging.}")"
       if [[ -n "$slug" ]]; then
         marker_name="staging-${slug}-last-socket-path"
         tmp_marker="/tmp/coterm-staging-${slug}-last-socket-path"
@@ -194,15 +194,15 @@ write_last_socket_path() {
         tmp_marker="/tmp/coterm-staging-last-socket-path"
       fi
       ;;
-    coterm.com.emergent.app.debug)
+    cc.coterm.app.debug)
       slug="${TAG_SLUG:-}"
       if [[ -n "$slug" ]]; then
         marker_name="dev-${slug}-last-socket-path"
         tmp_marker="/tmp/coterm-dev-${slug}-last-socket-path"
       fi
       ;;
-    coterm.com.emergent.app.debug.*)
-      slug="$(sanitize_path "${bundle_id#coterm.com.emergent.app.debug.}")"
+    cc.coterm.app.debug.*)
+      slug="$(sanitize_path "${bundle_id#cc.coterm.app.debug.}")"
       if [[ -n "$slug" ]]; then
         marker_name="dev-${slug}-last-socket-path"
         tmp_marker="/tmp/coterm-dev-${slug}-last-socket-path"
@@ -516,7 +516,7 @@ if [[ -n "$TAG" ]]; then
     APP_NAME="Coterm DEV ${TAG_SLUG}"
   fi
   if [[ "$BUNDLE_SET" -eq 0 ]]; then
-    BUNDLE_ID="coterm.com.emergent.app.debug.${TAG_ID}"
+    BUNDLE_ID="cc.coterm.app.debug.${TAG_ID}"
   fi
   if [[ "$DERIVED_SET" -eq 0 ]]; then
     DERIVED_DATA="$(tagged_derived_data_path "$TAG_SLUG")"

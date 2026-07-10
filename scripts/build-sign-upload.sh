@@ -103,7 +103,7 @@ ENTITLEMENTS="$(mktemp /tmp/coterm-release-entitlements.XXXXXX)"
 ./scripts/resolve-app-entitlements.sh \
   "$ENTITLEMENTS_TEMPLATE" \
   "$ENTITLEMENTS" \
-  "coterm.com.emergent.app"
+  "cc.coterm.app"
 ./scripts/sign-coterm-bundle.sh "$APP_PATH" "$ENTITLEMENTS" "$SIGN_HASH"
 echo "Codesign verified"
 

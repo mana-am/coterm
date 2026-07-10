@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_NAME="Coterm STAGING"
-BUNDLE_ID="coterm.com.emergent.app.staging"
+BUNDLE_ID="cc.coterm.app.staging"
 BASE_APP_NAME="coterm"
 DERIVED_DATA=""
 NAME_SET=0
@@ -36,8 +36,8 @@ write_last_socket_path() {
 staging_slug_from_bundle_id() {
   local bundle_id="$1"
   local suffix=""
-  if [[ "$bundle_id" == "coterm.com.emergent.app.staging."* ]]; then
-    suffix="${bundle_id#coterm.com.emergent.app.staging.}"
+  if [[ "$bundle_id" == "cc.coterm.app.staging."* ]]; then
+    suffix="${bundle_id#cc.coterm.app.staging.}"
   fi
   sanitize_path "$suffix"
 }
@@ -136,7 +136,7 @@ if [[ -n "$TAG" ]]; then
     APP_NAME="Coterm STAGING ${TAG}"
   fi
   if [[ "$BUNDLE_SET" -eq 0 ]]; then
-    BUNDLE_ID="coterm.com.emergent.app.staging.${TAG_ID}"
+    BUNDLE_ID="cc.coterm.app.staging.${TAG_ID}"
   fi
   if [[ "$DERIVED_SET" -eq 0 ]]; then
     DERIVED_DATA="/tmp/coterm-staging-${TAG_SLUG}"

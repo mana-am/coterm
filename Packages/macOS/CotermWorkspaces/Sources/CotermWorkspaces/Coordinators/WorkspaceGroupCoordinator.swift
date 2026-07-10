@@ -2,7 +2,7 @@ public import Foundation
 public import CotermSettings
 internal import OSLog
 
-private let workspaceGroupLogger = Logger(subsystem: "coterm.com.emergent.app", category: "WorkspaceGroupCoordinator")
+private let workspaceGroupLogger = Logger(subsystem: "cc.coterm.app", category: "WorkspaceGroupCoordinator")
 
 /// Sequences every workspace-group flow over the window's `WorkspacesModel`:
 /// group creation (fresh anchor + member adoption), member add/remove,

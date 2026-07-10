@@ -44,7 +44,7 @@ coterm_attach__bundle_seg() {
 
 # The tagged macOS Debug app's bundle id (the iOS pairing host lives on the Mac).
 coterm_attach_mac_bundle_id() {
-  printf 'coterm.com.emergent.app.debug.%s' "$(coterm_attach__bundle_seg "$1")"
+  printf 'cc.coterm.app.debug.%s' "$(coterm_attach__bundle_seg "$1")"
 }
 
 # The tagged Mac app's debug socket path.

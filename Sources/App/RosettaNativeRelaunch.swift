@@ -2,7 +2,7 @@ import Darwin
 import Foundation
 import os
 
-nonisolated private let rosettaRelaunchLogger = Logger(subsystem: "coterm.com.emergent.app", category: "RosettaRelaunch")
+nonisolated private let rosettaRelaunchLogger = Logger(subsystem: "cc.coterm.app", category: "RosettaRelaunch")
 
 /// Launch-time self-heal that re-execs coterm natively when the process is
 /// running translated under Rosetta on Apple Silicon.

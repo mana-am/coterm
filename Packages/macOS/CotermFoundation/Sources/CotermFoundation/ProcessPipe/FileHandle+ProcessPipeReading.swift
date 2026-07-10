@@ -5,7 +5,7 @@ import OSLog
 // Same subsystem/category as the original app-target ProcessPipeReader so
 // existing log queries keep working after the move into CotermFoundation.
 nonisolated private let processPipeReaderLogger = Logger(
-    subsystem: "coterm.com.emergent.app",
+    subsystem: "cc.coterm.app",
     category: "ProcessPipeReader"
 )
 

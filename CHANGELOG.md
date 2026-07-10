@@ -9,6 +9,7 @@ All notable changes to coterm are documented here.
 - Add a two-app collaboration regression helper for create, join, owner approval, invite-secret handling, and stop sharing.
 
 ### Changed
+- Move Coterm's app, debug, nightly, staging, sidebar, socket, keychain, and release validation identities to the `cc.coterm.app` bundle namespace.
 - Point public GitHub issue, funding, and agent-readable source links at `mana-am/coterm`.
 
 ## [1.39.0] - 2026-06-30

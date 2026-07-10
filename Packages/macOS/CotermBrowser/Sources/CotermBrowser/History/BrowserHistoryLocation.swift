@@ -25,11 +25,11 @@ public struct BrowserHistoryLocation: Sendable {
     /// so every dev build of the same lane reuses one history file, while
     /// production identifiers pass through unchanged.
     public static func normalizedNamespace(bundleIdentifier: String) -> String {
-        if bundleIdentifier.hasPrefix("coterm.com.emergent.app.debug.") {
-            return "coterm.com.emergent.app.debug"
+        if bundleIdentifier.hasPrefix("cc.coterm.app.debug.") {
+            return "cc.coterm.app.debug"
         }
-        if bundleIdentifier.hasPrefix("coterm.com.emergent.app.staging.") {
-            return "coterm.com.emergent.app.staging"
+        if bundleIdentifier.hasPrefix("cc.coterm.app.staging.") {
+            return "cc.coterm.app.staging"
         }
         return bundleIdentifier
     }

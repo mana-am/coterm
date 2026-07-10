@@ -396,7 +396,7 @@ def python_client_default_socket_path(extra_env: dict[str, str]) -> str:
 
 
 def test_python_client_ignores_unknown_bundle_env() -> bool:
-    expected_tagged_debug = "coterm.com.emergent.app.debug.variant.test.tag"
+    expected_tagged_debug = "cc.coterm.app.debug.variant.test.tag"
     actual = python_client_default_bundle_id({
         "COTERM_BUNDLE_ID": "com.example.stale.bundle",
         "COTERM_TAG": "variant-test-tag",
@@ -408,10 +408,10 @@ def test_python_client_ignores_unknown_bundle_env() -> bool:
         return False
 
     actual = python_client_default_bundle_id({
-        "COTERM_BUNDLE_ID": "coterm.com.emergent.app",
+        "COTERM_BUNDLE_ID": "cc.coterm.app",
         "COTERM_TAG": "rogue-stable-tag",
     })
-    if actual != "coterm.com.emergent.app":
+    if actual != "cc.coterm.app":
         print("FAIL: python client rejected known stable COTERM_BUNDLE_ID")
         print(f"actual={actual!r}")
         return False
@@ -477,25 +477,25 @@ def test_variant_last_socket_markers(cli_path: str) -> bool:
             cli_path,
             apps,
             "coterm",
-            "coterm.com.emergent.app",
+            "cc.coterm.app",
         )
         nightly_cli = bundled_cli_for_variant(
             cli_path,
             apps,
             "Coterm NIGHTLY",
-            "coterm.com.emergent.app.nightly",
+            "cc.coterm.app.nightly",
         )
         isolated_nightly_cli = bundled_cli_for_variant(
             cli_path,
             apps,
             "Coterm NIGHTLY issue3542",
-            "coterm.com.emergent.app.nightly.issue3542",
+            "cc.coterm.app.nightly.issue3542",
         )
         dev_agent_cli = bundled_cli_for_variant(
             cli_path,
             apps,
             "Coterm DEV agent",
-            "coterm.com.emergent.app.debug.agent",
+            "cc.coterm.app.debug.agent",
         )
 
         write_marker(home, "last-socket-path", stable_socket)
@@ -595,7 +595,7 @@ def test_base_debug_cli_discovers_coterm_tag(cli_path: str) -> bool:
                 cli_path,
                 apps,
                 "Coterm DEV issue3542",
-                "coterm.com.emergent.app.debug",
+                "cc.coterm.app.debug",
             )
             proc = subprocess.run(
                 [debug_cli, "ping"],

@@ -199,7 +199,7 @@ struct MobileAttachTicketAuthorization {
 enum MobileHostIdentity {
     private static let deviceIDKey = "mobileHost.deviceID"
     private static let sharedDeviceIDFileName = "mobile-host-device-id"
-    private static let stableBundleIdentifier = "coterm.com.emergent.app"
+    private static let stableBundleIdentifier = "cc.coterm.app"
 
     static func deviceID() -> String {
         let stableDefaults = Bundle.main.bundleIdentifier == stableBundleIdentifier

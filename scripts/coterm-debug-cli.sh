@@ -81,6 +81,6 @@ unset COTERMD_UNIX_PATH
 unset COTERM_DEBUG_LOG
 export COTERM_SOCKET_PATH="$socket_path"
 export COTERM_TAG="$tag_slug"
-export COTERM_BUNDLE_ID="coterm.com.emergent.app.debug.${tag_bundle_id}"
+export COTERM_BUNDLE_ID="cc.coterm.app.debug.${tag_bundle_id}"
 export COTERM_BUNDLED_CLI_PATH="$cli_path"
 exec "$cli_path" "$@"

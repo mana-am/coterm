@@ -552,7 +552,7 @@ class StressContext:
         env["COTERM_CLAUDE_HOOK_SENTRY_DISABLED"] = "1"
         if self.tag:
             env["COTERM_TAG"] = self.tag
-            env["COTERM_BUNDLE_ID"] = f"coterm.com.emergent.app.debug.{self.tag.replace('-', '.')}"
+            env["COTERM_BUNDLE_ID"] = f"cc.coterm.app.debug.{self.tag.replace('-', '.')}"
         env.pop("COTERM_SOCKET", None)
         env.pop("COTERM_SOCKET_PASSWORD", None)
         env.pop("COTERM_WORKSPACE_ID", None)

@@ -2,7 +2,7 @@ public import Foundation
 import SQLite3
 import os
 
-private let syncStoreLog = Logger(subsystem: "coterm.com.emergent.app", category: "CotermSyncStore")
+private let syncStoreLog = Logger(subsystem: "cc.coterm.app", category: "CotermSyncStore")
 
 /// Local-first sync store: one raw-SQLite3 database backing the generic sync
 /// substrate (DESIGN.md §4). This is a deliberate clone of

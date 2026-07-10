@@ -49,7 +49,7 @@ launch_and_wait() {
   done
 
   # Force socket mode for deterministic automation runs, independent of prior user settings.
-  defaults write coterm.com.emergent.app.debug socketControlMode -string full >/dev/null 2>&1 || true
+  defaults write cc.coterm.app.debug socketControlMode -string full >/dev/null 2>&1 || true
 
   # Launch directly with UI test mode enabled so startup follows deterministic test codepaths.
   COTERM_TAG="$RUN_TAG" COTERM_UI_TEST_MODE=1 "$APP/Contents/MacOS/Coterm DEV" >/dev/null 2>&1 &

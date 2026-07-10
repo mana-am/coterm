@@ -3,9 +3,9 @@ public import Foundation
 public enum SocketPathMarkerFiles {
     public static let stableMarkerFileName = "last-socket-path"
     public static let stableTmpPath = "/tmp/coterm-last-socket-path"
-    public static let nightlyBundleIdentifier = "coterm.com.emergent.app.nightly"
-    public static let stagingBundleIdentifier = "coterm.com.emergent.app.staging"
-    public static let defaultBaseDebugBundleIdentifier = "coterm.com.emergent.app.debug"
+    public static let nightlyBundleIdentifier = "cc.coterm.app.nightly"
+    public static let stagingBundleIdentifier = "cc.coterm.app.staging"
+    public static let defaultBaseDebugBundleIdentifier = "cc.coterm.app.debug"
     public static let defaultDebugSocketPath = "/tmp/coterm-debug.sock"
     public static let defaultNightlySocketPath = "/tmp/coterm-nightly.sock"
     public static let defaultStagingSocketPath = "/tmp/coterm-staging.sock"

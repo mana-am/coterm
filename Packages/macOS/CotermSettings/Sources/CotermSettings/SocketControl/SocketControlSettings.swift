@@ -19,7 +19,7 @@ public struct SocketControlSettings {
     /// Environment key carrying the dev build's launch tag.
     public static let launchTagEnvKey = "COTERM_TAG"
     /// Base bundle identifier shared by all debug builds.
-    public static let baseDebugBundleIdentifier = "coterm.com.emergent.app.debug"
+    public static let baseDebugBundleIdentifier = "cc.coterm.app.debug"
     private static let stableSocketFileName = "coterm.sock"
     /// Legacy stable socket path used before the Application Support location.
     public static let legacyStableDefaultSocketPath = "/tmp/coterm.sock"
@@ -212,7 +212,7 @@ public struct SocketControlSettings {
         stableDefaultSocketCanBeReclaimed: (String) -> Bool = { _ in true }
     ) -> String {
         guard !isDebugBuild,
-              normalizedBundleIdentifier(bundleIdentifier) == "coterm.com.emergent.app",
+              normalizedBundleIdentifier(bundleIdentifier) == "cc.coterm.app",
               isStableReleaseSocketPath(preferredPath, currentUserID: currentUserID) else {
             return preferredPath
         }
@@ -323,7 +323,7 @@ public struct SocketControlSettings {
 
     private static func shouldReserveStableSocketPath(bundleIdentifier: String?, isDebugBuild: Bool) -> Bool {
         if isDebugBuild { return true }
-        return normalizedBundleIdentifier(bundleIdentifier) != "coterm.com.emergent.app"
+        return normalizedBundleIdentifier(bundleIdentifier) != "cc.coterm.app"
     }
 
     private static func isStableReleaseSocketPath(_ path: String, currentUserID: uid_t) -> Bool {
@@ -407,11 +407,11 @@ public struct SocketControlSettings {
     /// Whether the bundle identifier is a debug build identifier.
     public static func isDebugLikeBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
         guard let bundleIdentifier else { return false }
-        return bundleIdentifier == "coterm.com.emergent.app.debug"
-            || bundleIdentifier.hasPrefix("coterm.com.emergent.app.debug.")
+        return bundleIdentifier == "cc.coterm.app.debug"
+            || bundleIdentifier.hasPrefix("cc.coterm.app.debug.")
     }
 
-    /// Whether the bundle identifier is a tagged DEV build (`coterm.com.emergent.app.debug.<tag>`).
+    /// Whether the bundle identifier is a tagged DEV build (`cc.coterm.app.debug.<tag>`).
     public static func isTaggedDevBuild(bundleIdentifier: String? = Bundle.main.bundleIdentifier) -> Bool {
         guard let bundleIdentifier else { return false }
         return bundleIdentifier.hasPrefix("\(baseDebugBundleIdentifier).")
@@ -420,8 +420,8 @@ public struct SocketControlSettings {
     /// Whether the bundle identifier is a staging build identifier.
     public static func isStagingBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
         guard let bundleIdentifier else { return false }
-        return bundleIdentifier == "coterm.com.emergent.app.staging"
-            || bundleIdentifier.hasPrefix("coterm.com.emergent.app.staging.")
+        return bundleIdentifier == "cc.coterm.app.staging"
+            || bundleIdentifier.hasPrefix("cc.coterm.app.staging.")
     }
 
     /// The directory holding the control socket and its marker files.

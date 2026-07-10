@@ -87,7 +87,7 @@ public final class UpdateController {
         self.isDevLikeBundle = isDevLikeBundle
         settings.apply(to: defaults)
         if isDevLikeBundle {
-            // DEV (`coterm.com.emergent.app.debug[.<tag>]`) and staging (`coterm.com.emergent.app.staging[.<tag>]`)
+            // DEV (`cc.coterm.app.debug[.<tag>]`) and staging (`cc.coterm.app.staging[.<tag>]`)
             // builds are produced from local source and are not on the public release train, so
             // they must never query the public appcast. Turning off Sparkle's automatic checks
             // stops the passive vectors: Sparkle never schedules its own background checks, and
@@ -429,8 +429,8 @@ public final class UpdateController {
 }
 
 extension UpdateController {
-    /// Whether `bundleIdentifier` is a coterm DEV (`coterm.com.emergent.app.debug[.<tag>]`) or staging
-    /// (`coterm.com.emergent.app.staging[.<tag>]`) build.
+    /// Whether `bundleIdentifier` is a coterm DEV (`cc.coterm.app.debug[.<tag>]`) or staging
+    /// (`cc.coterm.app.staging[.<tag>]`) build.
     ///
     /// Such builds are produced from local source and are not on the public release train, so
     /// they must never be compared against the public Sparkle appcast (#6292).
@@ -441,9 +441,9 @@ extension UpdateController {
     /// dependency edge for a small string check.
     static func isDevLikeBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
         guard let bundleIdentifier else { return false }
-        return bundleIdentifier == "coterm.com.emergent.app.debug"
-            || bundleIdentifier.hasPrefix("coterm.com.emergent.app.debug.")
-            || bundleIdentifier == "coterm.com.emergent.app.staging"
-            || bundleIdentifier.hasPrefix("coterm.com.emergent.app.staging.")
+        return bundleIdentifier == "cc.coterm.app.debug"
+            || bundleIdentifier.hasPrefix("cc.coterm.app.debug.")
+            || bundleIdentifier == "cc.coterm.app.staging"
+            || bundleIdentifier.hasPrefix("cc.coterm.app.staging.")
     }
 }

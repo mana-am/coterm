@@ -412,16 +412,16 @@ system_info_value() {
 channel_for_bundle() {
   local bundle_id="$1"
   case "$bundle_id" in
-    coterm.com.emergent.app)
+    cc.coterm.app)
       printf 'stable'
       ;;
-    coterm.com.emergent.app.nightly|coterm.com.emergent.app.nightly.*)
+    cc.coterm.app.nightly|cc.coterm.app.nightly.*)
       printf 'nightly'
       ;;
-    coterm.com.emergent.app.staging|coterm.com.emergent.app.staging.*)
+    cc.coterm.app.staging|cc.coterm.app.staging.*)
       printf 'staging'
       ;;
-    coterm.com.emergent.app.debug|coterm.com.emergent.app.debug.*)
+    cc.coterm.app.debug|cc.coterm.app.debug.*)
       printf 'dev'
       ;;
     *)

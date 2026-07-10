@@ -73,7 +73,7 @@ enum AuthEnvironment {
             }
             return "coterm-dev"
         }
-        if bundleIdentifier == "coterm.com.emergent.app.nightly" {
+        if bundleIdentifier == "cc.coterm.app.nightly" {
             return "coterm-nightly"
         }
         return "coterm"
@@ -81,7 +81,7 @@ enum AuthEnvironment {
 
     private static func debugSchemeTag(fromBundleIdentifier bundleIdentifier: String?) -> String? {
         guard let bundleIdentifier else { return nil }
-        let prefix = "coterm.com.emergent.app.debug."
+        let prefix = "cc.coterm.app.debug."
         guard bundleIdentifier.hasPrefix(prefix) else { return nil }
         let suffix = String(bundleIdentifier.dropFirst(prefix.count))
         return sanitizedCallbackSchemeTag(suffix)
@@ -97,7 +97,7 @@ enum AuthEnvironment {
     }
 
     private static func isDebugBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
-        bundleIdentifier?.hasPrefix("coterm.com.emergent.app.debug") == true
+        bundleIdentifier?.hasPrefix("cc.coterm.app.debug") == true
     }
 
     static func sanitizedCallbackSchemeTag(_ rawTag: String) -> String? {

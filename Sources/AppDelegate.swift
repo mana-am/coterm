@@ -1073,7 +1073,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private var sessionAutosaveDeferredRetryPending = false
     private var processDetectedSessionSaveGeneration: UInt64 = 0
     private let sessionPersistenceQueue = DispatchQueue(
-        label: "coterm.com.emergent.app.sessionPersistence",
+        label: "cc.coterm.app.sessionPersistence",
         qos: .utility
     )
     /// Session snapshot persistence (CotermSession); composition-root owned.
@@ -1094,7 +1094,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     /// `BrowserPanel` wraps responder-churning devtools work in `withBypass(_:)`.
     nonisolated let browserFirstResponderBypass = BrowserFirstResponderBypass()
     private nonisolated static let launchServicesRegistrationQueue = DispatchQueue(
-        label: "coterm.com.emergent.app.launchServicesRegistration",
+        label: "cc.coterm.app.launchServicesRegistration",
         qos: .utility
     )
     private nonisolated static func enqueueLaunchServicesRegistrationWork(_ work: @escaping @Sendable () -> Void) {

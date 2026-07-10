@@ -1,7 +1,7 @@
 import AppKit
 import CoreServices
 
-private let cotermAppIconDidChangeNotification = Notification.Name("coterm.com.emergent.appIconDidChange")
+private let cotermAppIconDidChangeNotification = Notification.Name("cc.coterm.appIconDidChange")
 private let cotermAppIconModeKey = "appIconMode"
 
 private enum DockTileAppIconMode: String {

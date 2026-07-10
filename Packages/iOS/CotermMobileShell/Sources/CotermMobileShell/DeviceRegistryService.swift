@@ -3,7 +3,7 @@ public import CotermMobileShellModel
 public import Foundation
 import os
 
-private let deviceRegistryLog = Logger(subsystem: "coterm.com.emergent.app", category: "DeviceRegistry")
+private let deviceRegistryLog = Logger(subsystem: "cc.coterm.app", category: "DeviceRegistry")
 
 /// HTTP client for the team-scoped device registry (`/api/devices`).
 ///

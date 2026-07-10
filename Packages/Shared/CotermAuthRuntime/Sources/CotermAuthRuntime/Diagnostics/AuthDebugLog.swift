@@ -3,7 +3,7 @@ import os
 
 /// Redacted auth diagnostics, shared by the token stores and sign-in flows.
 ///
-/// Logs to the unified log (`coterm.com.emergent.app` / `auth`) in all builds. macOS
+/// Logs to the unified log (`cc.coterm.app` / `auth`) in all builds. macOS
 /// DEBUG builds additionally append to `/tmp/coterm-auth-debug.log` (0600) so a
 /// sign-in repro can be tailed without Console.app. Token material, JWTs, and
 /// emails are redacted before any sink sees the message. A pure value;
@@ -25,7 +25,7 @@ public struct AuthDebugLog: Sendable {
         #endif
     }
 
-    private static let logger = Logger(subsystem: "coterm.com.emergent.app", category: "auth")
+    private static let logger = Logger(subsystem: "cc.coterm.app", category: "auth")
 
     #if DEBUG && os(macOS)
     private static let debugLogPath = "/tmp/coterm-auth-debug.log"

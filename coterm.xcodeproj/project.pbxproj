@@ -5529,7 +5529,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.0.5;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = coterm.com.emergent.appuitests;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.coterm.appuitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_TARGET_NAME = coterm;
@@ -5604,7 +5604,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Debug";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COTERM_AUTH_CALLBACK_SCHEME = "coterm-dev";
-				COTERM_SIDEBAR_EXTENSION_POINT_ID = coterm.com.emergent.app.coterm.sidebar;
+				COTERM_SIDEBAR_EXTENSION_POINT_ID = cc.coterm.app.coterm.sidebar;
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -5631,7 +5631,7 @@
 					"-framework",
 					Carbon,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = coterm.com.emergent.app.debug;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.coterm.app.debug;
 				PRODUCT_NAME = "Coterm DEV";
 				OTHER_SWIFT_FLAGS = (
 					"-Xllvm",
@@ -5651,7 +5651,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COTERM_AUTH_CALLBACK_SCHEME = coterm;
-				COTERM_SIDEBAR_EXTENSION_POINT_ID = coterm.com.emergent.app.coterm.sidebar;
+				COTERM_SIDEBAR_EXTENSION_POINT_ID = cc.coterm.app.coterm.sidebar;
 				CODE_SIGN_ENTITLEMENTS = Resources/coterm.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -5679,7 +5679,7 @@
 					"-framework",
 					Carbon,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = coterm.com.emergent.app;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.coterm.app;
 				PRODUCT_NAME = Coterm;
 				SPARKLE_PUBLIC_KEY = "avjcgKibf1FTvhIjLBxhd+0HSpsXU4D0IGlVk8cgqRc=";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -5736,7 +5736,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.0.5;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = coterm.com.emergent.appuitests;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.coterm.appuitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_VERSION = 5.0;
@@ -5759,7 +5759,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.0.5;
-				PRODUCT_BUNDLE_IDENTIFIER = coterm.com.emergent.app.docktileplugin.debug;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.coterm.app.docktileplugin.debug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -5784,7 +5784,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.0.5;
-				PRODUCT_BUNDLE_IDENTIFIER = coterm.com.emergent.app.docktileplugin;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.coterm.app.docktileplugin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -5803,7 +5803,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.0.5;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = coterm.com.emergent.apptests;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.coterm.apptests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_VERSION = 5.0;
@@ -5822,7 +5822,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.0.5;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = coterm.com.emergent.apptests;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.coterm.apptests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Coterm.app/Contents/MacOS/Coterm";

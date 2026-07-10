@@ -394,11 +394,11 @@ jobs:
 
           prepare_variant \
             "$APP_DIR" \
-            "coterm.com.emergent.app.nightly" \
+            "cc.coterm.app.nightly" \
             "https://updates.coterm.cc/nightly/appcast.xml"
 
           echo "Nightly app name: Coterm NIGHTLY"
-          echo "Nightly bundle ID: coterm.com.emergent.app.nightly"
+          echo "Nightly bundle ID: cc.coterm.app.nightly"
           echo "Nightly marketing version: ${NIGHTLY_MARKETING_VERSION}"
           echo "Nightly build number: ${NIGHTLY_BUILD}"
           echo "Nightly immutable DMG: ${NIGHTLY_DMG_IMMUTABLE}"
@@ -454,7 +454,7 @@ jobs:
           security cms -D -i "$TMP_PROFILE" > "$TMP_PLIST"
 
           APP_ID="$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.application-identifier" "$TMP_PLIST")"
-          if [ "$APP_ID" != "${APPLE_TEAM_ID}.coterm.com.emergent.app.nightly" ]; then
+          if [ "$APP_ID" != "${APPLE_TEAM_ID}.cc.coterm.app.nightly" ]; then
             echo "Nightly provisioning profile targets unexpected app ID: $APP_ID" >&2
             exit 1
           fi
@@ -497,7 +497,7 @@ jobs:
             ./scripts/resolve-app-entitlements.sh \
               coterm.nightly.entitlements \
               "$ENTITLEMENTS" \
-              "coterm.com.emergent.app.nightly"
+              "cc.coterm.app.nightly"
             ./scripts/sign-coterm-bundle.sh \
               "$APP_PATH" \
               "$ENTITLEMENTS" \
@@ -660,7 +660,7 @@ jobs:
             Automated nightly build for `${{ needs.decide.outputs.short_sha }}`.
 
             **Coterm NIGHTLY** is published as a universal app:
-            - bundle ID `coterm.com.emergent.app.nightly`
+            - bundle ID `cc.coterm.app.nightly`
             - feed `appcast.xml`
             - compatibility feed `appcast-universal.xml` for older universal nightlies
 

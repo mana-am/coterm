@@ -4,7 +4,7 @@ import os
 
 /// Diagnostics for partial pipe reads; mirrors the app-side ProcessPipeReader
 /// warning the lifted code emitted (file-scoped `os.Logger` per house style).
-nonisolated private let logger = Logger(subsystem: "coterm.com.emergent.app", category: "MultiWindowRouter")
+nonisolated private let logger = Logger(subsystem: "cc.coterm.app", category: "MultiWindowRouter")
 
 /// Runs the bundled coterm CLI against the app's control socket to route a
 /// request to a specific window, capturing its output.

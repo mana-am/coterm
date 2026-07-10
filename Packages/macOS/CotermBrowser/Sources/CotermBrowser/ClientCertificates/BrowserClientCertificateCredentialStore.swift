@@ -15,7 +15,7 @@ public struct BrowserClientCertificateCredentialStore {
     ])
 
     private let logger = Logger(
-        subsystem: "coterm.com.emergent.app",
+        subsystem: "cc.coterm.app",
         category: "BrowserClientCertificate"
     )
 

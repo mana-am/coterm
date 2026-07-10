@@ -20,7 +20,7 @@ if [[ ! -x "$bin" ]]; then
 fi
 
 exec env \
-  COTERM_BUNDLE_ID="coterm.com.emergent.app.debug.${tag_bundle_id}" \
+  COTERM_BUNDLE_ID="cc.coterm.app.debug.${tag_bundle_id}" \
   COTERM_SOCKET_ENABLE=1 \
   COTERM_SOCKET_MODE=allowAll \
   COTERM_SOCKET_PATH="/tmp/coterm-debug-${tag}.sock" \

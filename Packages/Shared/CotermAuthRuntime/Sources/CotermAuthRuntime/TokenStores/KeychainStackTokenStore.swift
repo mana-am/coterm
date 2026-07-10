@@ -36,7 +36,7 @@ public actor KeychainStackTokenStore: StackAuthTokenStoreProtocol {
     ///   reads `Bundle.main`; this type never does).
     public static func serviceName(bundleIdentifier: String?) -> String {
         guard let bundleIdentifier, !bundleIdentifier.isEmpty else {
-            return "coterm.com.emergent.app.auth"
+            return "cc.coterm.app.auth"
         }
         return "\(bundleIdentifier).auth"
     }

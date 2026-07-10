@@ -1160,7 +1160,7 @@ jobs:
           SOCK="/tmp/coterm-debug-${TAG}.sock"
           BUNDLE_ID="$(
             /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist" 2>/dev/null \
-              || echo 'coterm.com.emergent.app.debug'
+              || echo 'cc.coterm.app.debug'
           )"
 
           pkill -x "Coterm DEV" || true
