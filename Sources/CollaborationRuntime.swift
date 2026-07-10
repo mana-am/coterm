@@ -4217,9 +4217,14 @@ final class CollaborationRuntime {
         let response = runCollaborationStartChooser()
         switch response {
         case .alertFirstButtonReturn:
-            Task { await createSessionAndPresentCode(relayURL: nil) }
+            performAfterCurrentCollaborationDialog { [weak self] in
+                guard let self else { return }
+                Task { await self.createSessionAndPresentCode(relayURL: nil) }
+            }
         case .alertSecondButtonReturn:
-            presentJoinDialog()
+            performAfterCurrentCollaborationDialog { [weak self] in
+                self?.presentJoinDialog()
+            }
         default:
             break
         }
@@ -4227,7 +4232,7 @@ final class CollaborationRuntime {
 
     private func presentJoinDialog() {
         guard let code = runJoinCodeDialog() else { return }
-        Task { await joinSession(code: code, entrypoint: .startDialogJoin) }
+        Task { await joinSessionWithProgress(code: code, entrypoint: .startDialogJoin) }
     }
 
     private func presentStartDialog(thenShare panel: any CollaborationEditablePanel) {
@@ -4241,9 +4246,14 @@ final class CollaborationRuntime {
         let response = runCollaborationStartChooser()
         switch response {
         case .alertFirstButtonReturn:
-            Task { await createSessionAndShare(panel: panel) }
+            performAfterCurrentCollaborationDialog { [weak self, panel] in
+                guard let self else { return }
+                Task { await self.createSessionAndShare(panel: panel) }
+            }
         case .alertSecondButtonReturn:
-            presentJoinDialog(thenShare: panel)
+            performAfterCurrentCollaborationDialog { [weak self, panel] in
+                self?.presentJoinDialog(thenShare: panel)
+            }
         default:
             break
         }
@@ -4260,11 +4270,24 @@ final class CollaborationRuntime {
             buttonIndex: Self.alertButtonIndex(for: response)
         ) {
         case .createSessionAndShareTerminal:
-            Task { await createSessionAndShare(terminal: terminal) }
+            performAfterCurrentCollaborationDialog { [weak self, terminal] in
+                guard let self else { return }
+                Task { await self.createSessionAndShare(terminal: terminal) }
+            }
         case .joinSessionAndBindWorkspace:
-            presentJoinDialog(thenBindWorkspaceFor: terminal)
+            performAfterCurrentCollaborationDialog { [weak self, terminal] in
+                self?.presentJoinDialog(thenBindWorkspaceFor: terminal)
+            }
         case .cancel:
             break
+        }
+    }
+
+    private func performAfterCurrentCollaborationDialog(_ action: @escaping @MainActor () -> Void) {
+        DispatchQueue.main.async {
+            Task { @MainActor in
+                action()
+            }
         }
     }
 
@@ -4284,15 +4307,16 @@ final class CollaborationRuntime {
     private func presentJoinDialog(thenShare panel: any CollaborationEditablePanel) {
         guard let code = runJoinCodeDialog() else { return }
         Task {
-            await joinSession(code: code, entrypoint: .startDialogJoin)
-            share(panel: panel, entrypoint: .startDialogJoin)
+            if await joinSessionWithProgress(code: code, entrypoint: .startDialogJoin) != nil {
+                share(panel: panel, entrypoint: .startDialogJoin)
+            }
         }
     }
 
     private func presentJoinDialog(thenBindWorkspaceFor terminal: TerminalPanel) {
         guard let code = runJoinCodeDialog() else { return }
         Task {
-            if let connection = await joinSession(code: code, entrypoint: .startDialogJoin) {
+            if let connection = await joinSessionWithProgress(code: code, entrypoint: .startDialogJoin) {
                 recordWorkspaceSession(connection.sessionCode, workspaceID: terminal.workspaceId)
             }
         }
@@ -4670,6 +4694,25 @@ final class CollaborationRuntime {
         return connection
     }
 
+    @discardableResult
+    private func joinSessionWithProgress(
+        code: String,
+        entrypoint: CollaborationAnalyticsEntrypoint
+    ) async -> CollaborationRelayConnection? {
+        let progress = CollaborationProgressPanel(
+            title: CollaborationStrings.joinPreparing,
+            presentsAsSheet: false,
+            minimumVisibleDuration: 0.4
+        )
+        progress.present(afterDelay: 0)
+        let connection = await joinSession(code: code, entrypoint: entrypoint)
+        await progress.dismiss()
+        if connection == nil {
+            presentCollaborationJoinFailure()
+        }
+        return connection
+    }
+
     private func createSession() async throws -> CollaborationCreateSessionResponse {
         // The self-hosted control-plane is authoritative. It checks sharing
         // policy, records the owner, mints the owner grant, and returns the
@@ -4752,6 +4795,14 @@ final class CollaborationRuntime {
         CollaborationMessagePanel(
             title: CollaborationStrings.connectionFailed,
             message: error.localizedDescription,
+            buttonTitle: CollaborationStrings.okButton
+        ).run()
+    }
+
+    private func presentCollaborationJoinFailure() {
+        CollaborationMessagePanel(
+            title: CollaborationStrings.connectionFailed,
+            message: lastErrorMessage ?? CollaborationStrings.joinFailed,
             buttonTitle: CollaborationStrings.okButton
         ).run()
     }
@@ -7701,6 +7752,13 @@ enum CollaborationStrings {
         )
     }
 
+    static var joinPreparing: String {
+        String(
+            localized: "collaboration.join.preparing",
+            defaultValue: "Joining session…"
+        )
+    }
+
     static var directoryLoading: String {
         String(
             localized: "collaboration.directory.loading",
@@ -7954,7 +8012,10 @@ enum CollaborationStrings {
     }
 
     static var startMessage: String {
-        String(localized: "collaboration.start.message", defaultValue: "Create a new invite or join one with a session code.")
+        String(
+            localized: "collaboration.start.message",
+            defaultValue: "Create a room on your self-hosted backend, copy the full share token, and approve each guest before they can join."
+        )
     }
 
     static var relayURLPlaceholder: String {
@@ -7993,7 +8054,10 @@ enum CollaborationStrings {
     }
 
     static var joinMessage: String {
-        String(localized: "collaboration.join.message", defaultValue: "Enter the full share token from the collaborator.")
+        String(
+            localized: "collaboration.join.message",
+            defaultValue: "Paste the full share token from the room owner. The owner must approve your request before you can enter."
+        )
     }
 
     static var signInRequiredTitle: String {
@@ -8015,7 +8079,7 @@ enum CollaborationStrings {
     static var selfHostedBackendRequired: String {
         String(
             localized: "collaboration.error.selfHostedBackendRequired",
-            defaultValue: "Deploy and configure your self-hosted Coterm collaboration backend before sharing, then restart Coterm."
+            defaultValue: "Set up self-hosted collaboration first: run `cd coterm && bun run deploy:self-host && bun run configure:client`, then restart Coterm."
         )
     }
 
@@ -8023,6 +8087,13 @@ enum CollaborationStrings {
         String(
             localized: "collaboration.error.joinApprovalRequired",
             defaultValue: "Join request sent. The room owner must approve before you can enter."
+        )
+    }
+
+    static var joinFailed: String {
+        String(
+            localized: "collaboration.error.joinFailed",
+            defaultValue: "Could not join this session. Check the share token, make sure the self-hosted backend is running, and ask the room owner to approve your request."
         )
     }
 
@@ -8259,7 +8330,7 @@ private final class CollaborationMessagePanel {
     private var actionBoxes: [ButtonActionBox] = []
 
     init(title: String, message: String, buttonTitle: String) {
-        let size = NSSize(width: 420, height: 286)
+        let size = NSSize(width: 500, height: 340)
         window = CollaborationDialogPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.borderless],
@@ -8306,7 +8377,7 @@ private final class CollaborationMessagePanel {
         messageField.font = .systemFont(ofSize: 16, weight: .regular)
         messageField.textColor = .labelColor
         messageField.maximumNumberOfLines = 0
-        messageField.preferredMaxLayoutWidth = 364
+        messageField.preferredMaxLayoutWidth = 444
         stack.addArrangedSubview(messageField)
         stack.setCustomSpacing(28, after: messageField)
 
@@ -8324,9 +8395,9 @@ private final class CollaborationMessagePanel {
 
             iconView.widthAnchor.constraint(equalToConstant: 64),
             iconView.heightAnchor.constraint(equalToConstant: 64),
-            titleField.widthAnchor.constraint(equalToConstant: 364),
-            messageField.widthAnchor.constraint(equalToConstant: 364),
-            button.widthAnchor.constraint(equalToConstant: 364),
+            titleField.widthAnchor.constraint(equalToConstant: 444),
+            messageField.widthAnchor.constraint(equalToConstant: 444),
+            button.widthAnchor.constraint(equalToConstant: 444),
             button.heightAnchor.constraint(equalToConstant: 36),
         ])
     }
@@ -8998,7 +9069,7 @@ private final class CollaborationStartChooserPanel {
     private var actionBoxes: [ButtonActionBox] = []
 
     init() {
-        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 420, height: 328))
+        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 460, height: 374))
         contentView.wantsLayer = true
 
         window = NSWindow(
@@ -9053,7 +9124,7 @@ private final class CollaborationStartChooserPanel {
         messageField.font = .systemFont(ofSize: 16, weight: .regular)
         messageField.textColor = .labelColor
         messageField.maximumNumberOfLines = 0
-        messageField.preferredMaxLayoutWidth = 340
+        messageField.preferredMaxLayoutWidth = 380
         textStack.addArrangedSubview(messageField)
 
         let buttonStack = NSStackView()
@@ -9091,14 +9162,14 @@ private final class CollaborationStartChooserPanel {
             iconView.widthAnchor.constraint(equalToConstant: 64),
             iconView.heightAnchor.constraint(equalToConstant: 64),
 
-            textStack.widthAnchor.constraint(equalToConstant: 340),
-            titleField.widthAnchor.constraint(equalToConstant: 340),
-            messageField.widthAnchor.constraint(equalToConstant: 340),
+            textStack.widthAnchor.constraint(equalToConstant: 380),
+            titleField.widthAnchor.constraint(equalToConstant: 380),
+            messageField.widthAnchor.constraint(equalToConstant: 380),
 
-            buttonStack.widthAnchor.constraint(equalToConstant: 340),
-            createButton.widthAnchor.constraint(equalToConstant: 340),
-            joinButton.widthAnchor.constraint(equalToConstant: 340),
-            cancelButton.widthAnchor.constraint(equalToConstant: 340),
+            buttonStack.widthAnchor.constraint(equalToConstant: 380),
+            createButton.widthAnchor.constraint(equalToConstant: 380),
+            joinButton.widthAnchor.constraint(equalToConstant: 380),
+            cancelButton.widthAnchor.constraint(equalToConstant: 380),
             createButton.heightAnchor.constraint(equalToConstant: 44),
             joinButton.heightAnchor.constraint(equalToConstant: 44),
             cancelButton.heightAnchor.constraint(equalToConstant: 44),

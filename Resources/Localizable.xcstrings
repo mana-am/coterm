@@ -37767,7 +37767,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deploy and configure your self-hosted Coterm collaboration backend before sharing, then restart Coterm."
+            "value": "Set up self-hosted collaboration first: run `cd coterm && bun run deploy:self-host && bun run configure:client`, then restart Coterm."
           }
         }
       }
@@ -37778,7 +37778,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the full share token from the collaborator."
+            "value": "Paste the full share token from the room owner. The owner must approve your request before you can enter."
           }
         }
       }
@@ -37976,7 +37976,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create a new invite or join one with a session code."
+            "value": "Create a room on your self-hosted backend, copy the full share token, and approve each guest before they can join."
           }
         }
       }
@@ -38747,6 +38747,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Usage: coterm agent-room <status|create|connect|disconnect|reset|post|digest>"
+          }
+        }
+      }
+    },
+    "collaboration.join.preparing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Joining session…"
+          }
+        }
+      }
+    },
+    "collaboration.error.joinFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not join this session. Check the share token, make sure the self-hosted backend is running, and ask the room owner to approve your request."
           }
         }
       }
