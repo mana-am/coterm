@@ -489,6 +489,9 @@ struct TerminalPanelView: View {
                     CollaborationRuntime.shared.presentTeammateDirectorySharePicker()
                     isTerminalRecipientPopoverPresented = false
                 },
+                onOpenSetupGuide: {
+                    CollaborationRuntime.shared.openSelfHostedSetupGuide()
+                },
                 onSelectionChanged: { selectedIDs in
                     CollaborationRuntime.shared.applyRecipientSelection(selectedIDs, for: panel)
                 },
@@ -809,6 +812,7 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
     let directorySharingEnabled: Bool
     let onCopyInviteCode: () -> Void
     let onShareWithTeammate: () -> Void
+    let onOpenSetupGuide: () -> Void
     let onSelectionChanged: (Set<String>) -> Void
     let onStopSharing: () -> Void
     @State private var selectedParticipantIDs: Set<String>
@@ -819,6 +823,7 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
         directorySharingEnabled: Bool,
         onCopyInviteCode: @escaping () -> Void,
         onShareWithTeammate: @escaping () -> Void,
+        onOpenSetupGuide: @escaping () -> Void,
         onSelectionChanged: @escaping (Set<String>) -> Void,
         onStopSharing: @escaping () -> Void
     ) {
@@ -827,6 +832,7 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
         self.directorySharingEnabled = directorySharingEnabled
         self.onCopyInviteCode = onCopyInviteCode
         self.onShareWithTeammate = onShareWithTeammate
+        self.onOpenSetupGuide = onOpenSetupGuide
         self.onSelectionChanged = onSelectionChanged
         self.onStopSharing = onStopSharing
         _selectedParticipantIDs = State(initialValue: Set(
@@ -869,6 +875,12 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
                         .cotermFont(size: 11)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    TrackedButton("terminal_share_setup_guide", CollaborationStrings.openSetupGuide) {
+                        onOpenSetupGuide()
+                    }
+                    .buttonStyle(.cotermSecondaryRegular)
+                    .fixedSize()
 
                     HStack {
                         if codesEnabled {

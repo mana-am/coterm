@@ -909,6 +909,7 @@ final class CollaborationRuntime {
     /// Short-lived www-issued join grants keyed by relay room. Attached to the
     /// relay connect URL so the relay admits the connection.
     @ObservationIgnored private var grantsByRoom: [String: String] = [:]
+    @ObservationIgnored private var shareSecretsByRoom: [String: String] = [:]
     /// Signed session descriptors keyed by relay room, used to invite a
     /// teammate (via the org directory) into an already-created session.
     @ObservationIgnored private var sessionDescriptorsByRoom: [String: String] = [:]
@@ -1700,9 +1701,9 @@ final class CollaborationRuntime {
                 workspaceHasSession: workspaceSessionCode != nil,
                 directorySharingEnabled: collaborationEntitlements.directorySharing
             ) {
-            case .stopSharingHostedTerminal, .stopViewingRemoteTerminal:
+            case .stopSharingHostedTerminal, .stopViewingRemoteTerminal, .presentSessionChooser, .createSessionAndShareDirectly, .shareInWorkspaceSession:
                 leave(terminal: terminal)
-            case .presentSessionChooser, .createSessionAndShareDirectly, .shareInWorkspaceSession, .presentParticipantPicker:
+            case .presentParticipantPicker:
                 break
             }
         }
@@ -2055,8 +2056,9 @@ final class CollaborationRuntime {
         }
         let normalizedCode = Self.normalizedSessionCode(from: sessionCode)
         guard !normalizedCode.isEmpty else { return }
+        let shareToken = shareToken(forRoom: normalizedCode)
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(normalizedCode, forType: .string)
+        NSPasteboard.general.setString(shareToken, forType: .string)
         #if DEBUG
         print("[PostHog] firing: invite_code_copied")
         #endif
@@ -2097,8 +2099,9 @@ final class CollaborationRuntime {
         guard let code else { return }
         let normalizedCode = Self.normalizedSessionCode(from: code)
         guard !normalizedCode.isEmpty else { return }
+        let shareToken = shareToken(forRoom: normalizedCode)
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(normalizedCode, forType: .string)
+        NSPasteboard.general.setString(shareToken, forType: .string)
         #if DEBUG
         print("[PostHog] firing: invite_code_copied")
         #endif
@@ -4378,7 +4381,7 @@ final class CollaborationRuntime {
         }
     }
 
-    private func openSelfHostedSetupGuide() {
+    func openSelfHostedSetupGuide() {
         guard let url = URL(string: "https://github.com/mana-am/coterm/blob/main/coterm/docs/self-hosting.md") else { return }
         NSWorkspace.shared.open(url)
     }
@@ -4808,6 +4811,7 @@ final class CollaborationRuntime {
         collaborationEntitlements = created.entitlements
         prefetchDirectoryMembersIfNeeded()
         storeGrant(created.grant, forRoom: created.room)
+        storeShareSecret(created.shareSecret, forRoom: created.room)
         let roomKey = normalizedRoomKey(created.room)
         sessionDescriptorsByRoom[roomKey] = created.session
         // Persist so an explicit session-end after an app relaunch can still
@@ -4883,6 +4887,19 @@ final class CollaborationRuntime {
 
     private func grant(forRoom room: String) -> String? {
         grantsByRoom[normalizedRoomKey(room)] ?? grantsByRoom[room]
+    }
+
+    private func storeShareSecret(_ secret: String?, forRoom room: String) {
+        guard let secret, !secret.isEmpty else { return }
+        shareSecretsByRoom[normalizedRoomKey(room)] = secret
+        shareSecretsByRoom[room] = secret
+    }
+
+    private func shareToken(forRoom room: String) -> String {
+        CollaborationShareToken(
+            code: normalizedRoomKey(room),
+            shareSecret: shareSecretsByRoom[normalizedRoomKey(room)] ?? shareSecretsByRoom[room]
+        ).pasteboardValue
     }
 
     /// Before joining by share token, ask the self-hosted control-plane for a
@@ -5147,6 +5164,8 @@ final class CollaborationRuntime {
         sessionDescriptorsByRoom.removeValue(forKey: room)
         grantsByRoom.removeValue(forKey: key)
         grantsByRoom.removeValue(forKey: room)
+        shareSecretsByRoom.removeValue(forKey: key)
+        shareSecretsByRoom.removeValue(forKey: room)
         guard let descriptor, !invitedUserIDs.isEmpty else { return }
         Task { @MainActor [invitedUserIDs, descriptor] in
             guard let token = await collaborationAccessToken() else { return }
