@@ -68,6 +68,23 @@ struct CollaborationJoinRequestPending: Decodable, Sendable {
     let relayURL: String
 }
 
+struct CollaborationJoinApprovalRequest: Decodable, Sendable, Identifiable, Equatable {
+    let requestId: String
+    let room: String
+    let requesterUserId: String
+    let requesterName: String?
+    let requesterImageURL: String?
+    let status: String
+    let createdAt: String
+
+    var id: String { requestId }
+}
+
+enum CollaborationCodeJoinGrant: Sendable {
+    case granted(CollaborationJoinResult)
+    case pending(CollaborationJoinRequestPending)
+}
+
 enum CollaborationBackendError: LocalizedError {
     case invalidURL
     case http(status: Int, code: String?)
@@ -98,6 +115,8 @@ struct CollaborationBackendClient {
     private struct OKBody: Decodable { let ok: Bool? }
     private struct DirectoryBody: Decodable { let members: [CollaborationDirectoryMember] }
     private struct InboxBody: Decodable { let invites: [CollaborationIncomingSession] }
+    private struct JoinRequestsBody: Decodable { let requests: [CollaborationJoinApprovalRequest] }
+    private struct JoinApprovalBody: Decodable { let request: CollaborationJoinApprovalRequest }
 
     func entitlements(accessToken: String, orgId: String) async throws -> CollaborationEntitlements {
         try await get("api/collab/entitlements", accessToken: accessToken, query: ["orgId": orgId])
@@ -181,10 +200,40 @@ struct CollaborationBackendClient {
         code: String,
         shareSecret: String,
         relayURL: String?
-    ) async throws -> CollaborationJoinResult {
+    ) async throws -> CollaborationCodeJoinGrant {
         var body: [String: String] = ["code": code, "shareSecret": shareSecret]
         if let relayURL { body["relayURL"] = relayURL }
-        return try await post("api/collab/join", accessToken: accessToken, body: body)
+        return try await postJoin("api/collab/join", accessToken: accessToken, body: body)
+    }
+
+    func claimJoinRequest(
+        accessToken: String,
+        room: String,
+        requestId: String
+    ) async throws -> CollaborationCodeJoinGrant {
+        try await postJoin(
+            "api/collab/join-requests/claim",
+            accessToken: accessToken,
+            body: ["room": room, "requestId": requestId]
+        )
+    }
+
+    func joinRequests(accessToken: String) async throws -> [CollaborationJoinApprovalRequest] {
+        let body: JoinRequestsBody = try await get("api/collab/join-requests", accessToken: accessToken, query: [:])
+        return body.requests
+    }
+
+    func approveJoinRequest(
+        accessToken: String,
+        requestId: String,
+        approved: Bool
+    ) async throws -> CollaborationJoinApprovalRequest {
+        let body: JoinApprovalBody = try await postJSON(
+            "api/collab/join-requests/approve",
+            accessToken: accessToken,
+            body: ["requestId": requestId, "approved": approved]
+        )
+        return body.request
     }
 
     // MARK: - Transport
@@ -216,6 +265,14 @@ struct CollaborationBackendClient {
         accessToken: String,
         body: [String: String]
     ) async throws -> T {
+        try await postJSON(path, accessToken: accessToken, body: body)
+    }
+
+    private func postJSON<T: Decodable>(
+        _ path: String,
+        accessToken: String,
+        body: [String: Any]
+    ) async throws -> T {
         let url = baseURL.appendingPathComponent(path)
         var request = URLRequest(url: url)
         request.timeoutInterval = Self.requestTimeout
@@ -224,6 +281,37 @@ struct CollaborationBackendClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         return try await perform(request)
+    }
+
+    private func postJoin(
+        _ path: String,
+        accessToken: String,
+        body: [String: String]
+    ) async throws -> CollaborationCodeJoinGrant {
+        let url = baseURL.appendingPathComponent(path)
+        var request = URLRequest(url: url)
+        request.timeoutInterval = Self.requestTimeout
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw CollaborationBackendError.http(status: -1, code: nil)
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let code = (try? JSONDecoder().decode(ErrorBody.self, from: data))?.error
+            throw CollaborationBackendError.http(status: http.statusCode, code: code)
+        }
+        do {
+            if http.statusCode == 202 {
+                return .pending(try JSONDecoder().decode(CollaborationJoinRequestPending.self, from: data))
+            }
+            return .granted(try JSONDecoder().decode(CollaborationJoinResult.self, from: data))
+        } catch {
+            throw CollaborationBackendError.decoding
+        }
     }
 
     private func perform<T: Decodable>(_ request: URLRequest) async throws -> T {

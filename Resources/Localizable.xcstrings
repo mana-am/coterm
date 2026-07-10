@@ -37750,6 +37750,28 @@
         }
       }
     },
+    "collaboration.error.joinApprovalDenied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The room owner denied your join request."
+          }
+        }
+      }
+    },
+    "collaboration.error.joinApprovalTimedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The room owner did not approve before the request timed out."
+          }
+        }
+      }
+    },
     "collaboration.error.relayRejected": {
       "extractionState": "manual",
       "localizations": {
@@ -37790,6 +37812,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Share token"
+          }
+        }
+      }
+    },
+    "collaboration.joinApproval.approve": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve"
+          }
+        }
+      }
+    },
+    "collaboration.joinApproval.deny": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deny"
+          }
+        }
+      }
+    },
+    "collaboration.joinApproval.messageFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wants to join this room."
+          }
+        }
+      }
+    },
+    "collaboration.joinApproval.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join Request"
           }
         }
       }

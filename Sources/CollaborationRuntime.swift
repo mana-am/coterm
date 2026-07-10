@@ -862,6 +862,9 @@ final class CollaborationRuntime {
     private static let defaultRelayURLString = ""
     private static let terminalInitialRenderGridScrollbackLines = 10_000
     private static let joinAcknowledgementTimeout: Duration = .seconds(5)
+    private static let joinApprovalClaimPollInterval: Duration = .seconds(1)
+    private static let joinApprovalOwnerPollInterval: Duration = .seconds(2)
+    private static let joinApprovalTimeout: TimeInterval = 180
     private static let inviteCodeStore = CollaborationInviteCodeStore()
     private static let workspaceSessionStore = CollaborationWorkspaceSessionStore(
         inviteCodeStore: CollaborationRuntime.inviteCodeStore
@@ -920,6 +923,8 @@ final class CollaborationRuntime {
     /// redundant refreshes when the resolved org id has not actually changed.
     @ObservationIgnored private var lastEntitlementsOrgID: String?
     @ObservationIgnored private var incomingSharedSessionsPollTask: Task<Void, Never>?
+    @ObservationIgnored private var joinApprovalRequestsPollTask: Task<Void, Never>?
+    @ObservationIgnored private var presentedJoinApprovalRequestIDs: Set<String> = []
     /// Persistent relay WebSocket that pushes invite nudges for the signed-in
     /// user, plus the user id it is bound to (so we restart on user change).
     @ObservationIgnored private var inboxRealtimeTask: Task<Void, Never>?
@@ -4640,7 +4645,9 @@ final class CollaborationRuntime {
         #endif
         PostHogAnalytics.shared.capture("collaboration_session_join_started")
         guard await acquireCodeJoinGrantIfPossible(code: normalizedCode, shareSecret: token.shareSecret) else {
-            lastErrorMessage = CollaborationStrings.joinApprovalRequired
+            if lastErrorMessage == nil {
+                lastErrorMessage = CollaborationStrings.joinFailed
+            }
             connectionLabel = CollaborationStrings.connectionFailed
             trackCollaboration(
                 .sessionJoined,
@@ -4766,6 +4773,7 @@ final class CollaborationRuntime {
         // Persist so an explicit session-end after an app relaunch can still
         // withdraw the invites we sent (in-memory maps are lost on relaunch).
         Self.outgoingInviteStore.recordDescriptor(created.session, forRoomKey: roomKey)
+        startJoinApprovalRequestsPolling()
     }
 
     private func createSessionViaRelay() async throws -> CollaborationCreateSessionResponse {
@@ -4852,14 +4860,70 @@ final class CollaborationRuntime {
                 shareSecret: shareSecret,
                 relayURL: relayURLString
             )
-            if !result.relayURL.isEmpty {
-                relayURLString = Self.normalizedRelayURL(from: result.relayURL)
-            }
-            storeGrant(result.grant, forRoom: result.room)
-            return true
+            return await applyCodeJoinGrantOrWaitForApproval(result, accessToken: token)
         } catch {
+            lastErrorMessage = error.localizedDescription
             return false
         }
+    }
+
+    private func applyCodeJoinGrantOrWaitForApproval(
+        _ result: CollaborationCodeJoinGrant,
+        accessToken: String
+    ) async -> Bool {
+        switch result {
+        case .granted(let grant):
+            applyJoinGrant(grant)
+            return true
+        case .pending(let pending):
+            lastErrorMessage = nil
+            return await waitForApprovedJoinRequest(pending, accessToken: accessToken)
+        }
+    }
+
+    private func applyJoinGrant(_ result: CollaborationJoinResult) {
+        if !result.relayURL.isEmpty {
+            relayURLString = Self.normalizedRelayURL(from: result.relayURL)
+        }
+        storeGrant(result.grant, forRoom: result.room)
+    }
+
+    private func waitForApprovedJoinRequest(
+        _ pending: CollaborationJoinRequestPending,
+        accessToken: String
+    ) async -> Bool {
+        let deadline = Date().addingTimeInterval(Self.joinApprovalTimeout)
+        while !Task.isCancelled, Date() < deadline {
+            try? await Task.sleep(for: Self.joinApprovalClaimPollInterval)
+            do {
+                let result = try await collaborationBackendClient.claimJoinRequest(
+                    accessToken: accessToken,
+                    room: pending.room,
+                    requestId: pending.requestId
+                )
+                switch result {
+                case .granted(let grant):
+                    applyJoinGrant(grant)
+                    return true
+                case .pending:
+                    continue
+                }
+            } catch let error as CollaborationBackendError {
+                if case let .http(status, code) = error, status == 403, code == "join_denied" {
+                    lastErrorMessage = CollaborationStrings.joinApprovalDenied
+                    return false
+                }
+                if case let .http(status, _) = error, status == 404 {
+                    lastErrorMessage = error.localizedDescription
+                    return false
+                }
+            } catch {
+                // Transient network errors are retried until the approval window
+                // expires; the final timeout produces the user-facing failure.
+            }
+        }
+        lastErrorMessage = CollaborationStrings.joinApprovalTimedOut
+        return false
     }
 
     /// React to the active org (`AuthCoordinator.resolvedTeamID`) changing —
@@ -5227,6 +5291,66 @@ final class CollaborationRuntime {
     func stopIncomingSharedSessionsPolling() {
         incomingSharedSessionsPollTask?.cancel()
         incomingSharedSessionsPollTask = nil
+    }
+
+    func startJoinApprovalRequestsPolling() {
+        guard joinApprovalRequestsPollTask == nil else { return }
+        joinApprovalRequestsPollTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                await self?.refreshJoinApprovalRequests()
+                try? await Task.sleep(for: Self.joinApprovalOwnerPollInterval)
+            }
+        }
+    }
+
+    func stopJoinApprovalRequestsPolling() {
+        joinApprovalRequestsPollTask?.cancel()
+        joinApprovalRequestsPollTask = nil
+        presentedJoinApprovalRequestIDs.removeAll()
+    }
+
+    private func refreshJoinApprovalRequests() async {
+        let activeRooms = Set(connectionsBySessionCode.keys.map(Self.normalizedSessionCode(from:)))
+        guard !activeRooms.isEmpty,
+              let token = await collaborationAccessToken(),
+              let requests = try? await collaborationBackendClient.joinRequests(accessToken: token) else {
+            return
+        }
+        for request in requests where request.status == "pending" {
+            let room = Self.normalizedSessionCode(from: request.room)
+            guard activeRooms.contains(room),
+                  !presentedJoinApprovalRequestIDs.contains(request.requestId) else {
+                continue
+            }
+            presentedJoinApprovalRequestIDs.insert(request.requestId)
+            let approved = presentJoinApprovalRequest(request)
+            do {
+                _ = try await collaborationBackendClient.approveJoinRequest(
+                    accessToken: token,
+                    requestId: request.requestId,
+                    approved: approved
+                )
+            } catch {
+                presentedJoinApprovalRequestIDs.remove(request.requestId)
+                lastErrorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func presentJoinApprovalRequest(_ request: CollaborationJoinApprovalRequest) -> Bool {
+        let requester = request.requesterName?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+            ?? request.requesterUserId
+        let alert = NSAlert()
+        configureCollaborationAlertChrome(alert)
+        alert.alertStyle = .informational
+        alert.messageText = CollaborationStrings.joinApprovalRequestTitle
+        alert.informativeText = String(
+            format: CollaborationStrings.joinApprovalRequestMessageFormat,
+            requester
+        )
+        alert.addButton(withTitle: CollaborationStrings.approveJoinRequest)
+        alert.addButton(withTitle: CollaborationStrings.denyJoinRequest)
+        return alert.runModal() == .alertFirstButtonReturn
     }
 
     // MARK: - Realtime inbox (relay nudge → www refetch)
@@ -8090,11 +8214,44 @@ enum CollaborationStrings {
         )
     }
 
+    static var joinApprovalDenied: String {
+        String(
+            localized: "collaboration.error.joinApprovalDenied",
+            defaultValue: "The room owner denied your join request."
+        )
+    }
+
+    static var joinApprovalTimedOut: String {
+        String(
+            localized: "collaboration.error.joinApprovalTimedOut",
+            defaultValue: "The room owner did not approve before the request timed out."
+        )
+    }
+
     static var joinFailed: String {
         String(
             localized: "collaboration.error.joinFailed",
             defaultValue: "Could not join this session. Check the share token, make sure the self-hosted backend is running, and ask the room owner to approve your request."
         )
+    }
+
+    static var joinApprovalRequestTitle: String {
+        String(localized: "collaboration.joinApproval.title", defaultValue: "Join Request")
+    }
+
+    static var joinApprovalRequestMessageFormat: String {
+        String(
+            localized: "collaboration.joinApproval.messageFormat",
+            defaultValue: "%@ wants to join this room."
+        )
+    }
+
+    static var approveJoinRequest: String {
+        String(localized: "collaboration.joinApproval.approve", defaultValue: "Approve")
+    }
+
+    static var denyJoinRequest: String {
+        String(localized: "collaboration.joinApproval.deny", defaultValue: "Deny")
     }
 
     static var relayRejected: String {
