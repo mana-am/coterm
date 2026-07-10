@@ -496,7 +496,7 @@ struct TerminalPanelView: View {
                     CollaborationRuntime.shared.applyRecipientSelection(selectedIDs, for: panel)
                 },
                 onStopSharing: {
-                    CollaborationRuntime.shared.setSharing(false, for: panel)
+                    CollaborationRuntime.shared.stopSharing(terminal: panel)
                     isTerminalRecipientPopoverPresented = false
                 }
             )
@@ -867,6 +867,7 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
                             TrackedButton("terminal_share_stop", CollaborationStrings.stopSharingTerminal) {
                                 onStopSharing()
                             }
+                            .buttonStyle(.cotermSecondaryRegular)
                             .fixedSize()
                         }
                     }
@@ -903,6 +904,7 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
                             TrackedButton("terminal_share_stop", CollaborationStrings.stopSharingTerminal) {
                                 onStopSharing()
                             }
+                            .buttonStyle(.cotermSecondaryRegular)
                             .fixedSize()
                         }
                     }
@@ -925,6 +927,7 @@ private struct TerminalCollaborationRecipientPopoverContent: View {
                         TrackedButton("terminal_share_stop", CollaborationStrings.stopSharingTerminal) {
                             onStopSharing()
                         }
+                        .buttonStyle(.cotermSecondaryRegular)
                     }
                     .padding(.top, 6)
                 }

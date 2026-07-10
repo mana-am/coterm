@@ -1698,8 +1698,19 @@ final class CollaborationRuntime {
                 break
             }
         } else {
-            leave(terminal: terminal)
+            stopSharing(terminal: terminal)
         }
+    }
+
+    func stopSharing(terminal: TerminalPanel) {
+        let sessionBeforeStop = terminalScopedSessionCode(for: terminal).map(Self.normalizedSessionCode(from:))
+        #if DEBUG
+        cotermDebugLog("collaboration.terminal.stop.request surface=\(terminal.id.uuidString) session=\(sessionBeforeStop ?? "nil")")
+        #endif
+        leave(terminal: terminal)
+        guard let sessionBeforeStop, !sessionBeforeStop.isEmpty else { return }
+        guard terminalIDsForSessionCleanup(sessionBeforeStop).isEmpty else { return }
+        leaveWorkspaceSession(for: terminal)
     }
 
     func ensureSignedInForCollaboration(continue action: @escaping @MainActor () -> Void) -> Bool {
@@ -2270,6 +2281,12 @@ final class CollaborationRuntime {
         let sharedToCount = connection.map {
             selectedRecipientParticipantIDs(for: terminalID, connection: $0).count
         } ?? 0
+        if let connection, let panel = hostedTerminalsByID[terminalID]?.panel {
+            Self.terminalRecipientSelectionStore.remove(
+                sessionCode: connection.sessionCode,
+                terminalKey: terminalSelectionKey(for: panel)
+            )
+        }
         syncTerminalTabPresentation(terminalID: terminalID, ownerSnapshot: nil)
         hostedTerminalsByID.removeValue(forKey: terminalID)
         removeTerminalSurfaceMappings(for: terminalID)

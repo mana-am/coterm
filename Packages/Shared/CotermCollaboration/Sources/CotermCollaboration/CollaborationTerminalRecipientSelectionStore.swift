@@ -168,6 +168,19 @@ public struct CollaborationTerminalRecipientSelectionStore {
         persist(selections)
     }
 
+    /// Removes the stored recipient selection for a single terminal.
+    public func remove(sessionCode: String, terminalKey: String) {
+        let normalizedCode = inviteCodeStore.normalizedSessionCode(from: sessionCode)
+        let normalizedKey = terminalKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedCode.isEmpty, !normalizedKey.isEmpty else { return }
+        var selections = selectionsBySessionAndTerminal()
+        selections[normalizedCode]?[normalizedKey] = nil
+        if selections[normalizedCode]?.isEmpty == true {
+            selections[normalizedCode] = nil
+        }
+        persist(selections)
+    }
+
     /// Removes every terminal recipient selection.
     public func removeAll() {
         defaults.removeObject(forKey: selectionsKey)
