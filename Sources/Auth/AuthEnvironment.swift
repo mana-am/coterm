@@ -180,6 +180,19 @@ enum AuthEnvironment {
         )
     }
 
+    static var selfHostedCollaborationConfigured: Bool {
+        if let configured = ProcessInfo.processInfo.environment["COTERM_API_BASE_URL"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !configured.isEmpty {
+            return true
+        }
+        #if DEBUG
+        return devOverride(key: "COTERM_API_BASE_URL") != nil
+        #else
+        return false
+        #endif
+    }
+
     /// Offline collaboration "guest" identity. Explicit process env or
     /// `~/.coterm-dev.env` values win. When hosted auth is not enabled, Coterm
     /// automatically falls back to a local guest identity so sharing never opens

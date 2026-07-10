@@ -4364,6 +4364,7 @@ final class CollaborationRuntime {
             await progress.dismiss()
             lastErrorMessage = error.localizedDescription
             connectionLabel = CollaborationStrings.connectionFailed
+            presentCollaborationCreateFailure(error)
             #if DEBUG
             print("[PostHog] firing: collaboration_session_create_failed")
             #endif
@@ -4444,6 +4445,7 @@ final class CollaborationRuntime {
             await progress?.dismiss()
             lastErrorMessage = error.localizedDescription
             connectionLabel = CollaborationStrings.connectionFailed
+            presentCollaborationCreateFailure(error)
             #if DEBUG
             print("[PostHog] firing: collaboration_session_create_failed")
             #endif
@@ -4554,6 +4556,7 @@ final class CollaborationRuntime {
         } catch {
             lastErrorMessage = error.localizedDescription
             connectionLabel = CollaborationStrings.connectionFailed
+            presentCollaborationCreateFailure(error)
             #if DEBUG
             print("[PostHog] firing: collaboration_session_create_failed")
             #endif
@@ -4671,6 +4674,9 @@ final class CollaborationRuntime {
         // The self-hosted control-plane is authoritative. It checks sharing
         // policy, records the owner, mints the owner grant, and returns the
         // long share secret. Do not fall back to code-only relay creation.
+        guard AuthEnvironment.selfHostedCollaborationConfigured else {
+            throw CollaborationRuntimeError.selfHostedBackendRequired
+        }
         guard let created = try await createSessionViaBackend() else {
             throw CollaborationRuntimeError.selfHostedBackendRequired
         }
@@ -4727,6 +4733,7 @@ final class CollaborationRuntime {
             throw CollaborationRuntimeError.invalidRelayURL
         }
         var request = URLRequest(url: url)
+        request.timeoutInterval = 10
         request.httpMethod = "POST"
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
@@ -4739,6 +4746,14 @@ final class CollaborationRuntime {
 
     private var collaborationBackendClient: CollaborationBackendClient {
         CollaborationBackendClient(baseURL: AuthEnvironment.apiBaseURL)
+    }
+
+    private func presentCollaborationCreateFailure(_ error: Error) {
+        CollaborationMessagePanel(
+            title: CollaborationStrings.connectionFailed,
+            message: error.localizedDescription,
+            buttonTitle: CollaborationStrings.okButton
+        ).run()
     }
 
     private var resolvedCollaborationOrgID: String? {
@@ -8000,7 +8015,7 @@ enum CollaborationStrings {
     static var selfHostedBackendRequired: String {
         String(
             localized: "collaboration.error.selfHostedBackendRequired",
-            defaultValue: "Configure your self-hosted Coterm collaboration backend before sharing."
+            defaultValue: "Deploy and configure your self-hosted Coterm collaboration backend before sharing, then restart Coterm."
         )
     }
 

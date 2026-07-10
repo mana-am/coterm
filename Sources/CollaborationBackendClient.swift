@@ -92,6 +92,8 @@ struct CollaborationBackendClient {
     let baseURL: URL
     var session: URLSession = .shared
 
+    private static let requestTimeout: TimeInterval = 10
+
     private struct ErrorBody: Decodable { let error: String? }
     private struct OKBody: Decodable { let ok: Bool? }
     private struct DirectoryBody: Decodable { let members: [CollaborationDirectoryMember] }
@@ -203,6 +205,7 @@ struct CollaborationBackendClient {
         }
         guard let url = components.url else { throw CollaborationBackendError.invalidURL }
         var request = URLRequest(url: url)
+        request.timeoutInterval = Self.requestTimeout
         request.httpMethod = "GET"
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         return try await perform(request)
@@ -215,6 +218,7 @@ struct CollaborationBackendClient {
     ) async throws -> T {
         let url = baseURL.appendingPathComponent(path)
         var request = URLRequest(url: url)
+        request.timeoutInterval = Self.requestTimeout
         request.httpMethod = "POST"
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

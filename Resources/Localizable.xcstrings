@@ -37767,7 +37767,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Configure your self-hosted Coterm collaboration backend before sharing."
+            "value": "Deploy and configure your self-hosted Coterm collaboration backend before sharing, then restart Coterm."
           }
         }
       }
