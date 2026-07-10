@@ -1,75 +1,57 @@
-<h1 align="center">Coterm</h1>
+<div align="center">
 
-<p align="center">
-  A native macOS terminal and browser workspace for AI coding agents, with self-hosted real-time collaboration.
-</p>
+<img src="./docs/assets/main-first-image.png" alt="Coterm screenshot" width="900" />
 
-<p align="center">
-  <a href="https://github.com/mana-am/coterm/releases/latest/download/coterm-macos.dmg">
-    <img src="./docs/assets/macos-badge.png" alt="Download Coterm for macOS" width="180" />
-  </a>
-</p>
+# Coterm
 
-<p align="center">
-  <a href="https://github.com/mana-am/coterm/releases/latest">Download</a>
-  ·
-  <a href="./coterm/instruction.md">Self-host Collaboration</a>
-  ·
-  <a href="./ATTRIBUTION.md">Attribution</a>
-</p>
+**A native macOS terminal and browser workspace for AI coding agents, with self-hosted real-time collaboration.**
 
-<p align="center">
-  <img src="./docs/assets/main-first-image.png" alt="Coterm screenshot" width="900" />
-</p>
+[![GitHub Release](https://img.shields.io/github/v/release/mana-am/coterm?color=369eff&labelColor=black&logo=github&style=flat-square)](https://github.com/mana-am/coterm/releases)
+[![Platform](https://img.shields.io/badge/platform-macOS-111111?labelColor=black&logo=apple&style=flat-square)](https://github.com/mana-am/coterm/releases/latest)
+[![License](https://img.shields.io/badge/license-GPL--3.0--or--later-white?labelColor=black&style=flat-square)](./LICENSE)
+[![Self Host](https://img.shields.io/badge/collaboration-self--hosted-39d353?labelColor=black&style=flat-square)](./coterm/instruction.md)
 
-## What Is Coterm?
+[English](README.md) | [简体中文](README.zh-cn.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md)
 
-Coterm is an open-source macOS app for running coding agents in a terminal-first workflow.
+[Download](https://github.com/mana-am/coterm/releases/latest) · [Installation](#installation) · [Self-host Collaboration](./coterm/instruction.md) · [Attribution](./ATTRIBUTION.md)
 
-It combines:
+</div>
 
-- a native macOS terminal powered by libghostty;
-- vertical workspaces, tabs, and split panes;
-- an in-app browser that agents can inspect and control;
-- notification rings and unread state for long-running agent sessions;
-- a CLI and socket API for automation;
-- self-hosted real-time collaboration for shared agent rooms.
+---
 
-Coterm is designed for developers who run Claude Code, Codex, OpenCode, Gemini CLI, Aider, Amp, Cursor Agent, or other terminal-based coding agents in parallel.
+Coterm is for developers who run Claude Code, Codex, OpenCode, Gemini CLI, Aider, Amp, Cursor Agent, or other terminal-based coding agents in parallel.
 
-## Lineage And Upstream Relationship
+It gives you a native macOS terminal, split workspaces, browser panes, notifications, local automation, and self-hosted collaboration without requiring a Coterm-hosted account service.
 
-Coterm is an independent open-source distribution built from the Mosaic/cmux code lineage. It keeps the terminal, workspace, pane, browser, command palette, settings, and Ghostty integration foundation, then changes the product identity and deployment model around Coterm.
+## Installation
 
-Coterm is not an official Mosaic or cmux release, and it should not be represented as endorsed by those projects. Mosaic and cmux names, logos, domains, hosted services, and trademarks remain separate from Coterm.
+Coterm has two pieces:
 
-### Mosaic
+- **Mac app** — the native terminal/browser workspace you run locally.
+- **Self-hosted collaboration backend** — optional Cloudflare Workers you deploy yourself when you want room sharing, presence, approval flows, or preview sharing.
 
-Mosaic is the original open-source project this codebase descends from. Coterm preserves the required license notices and attribution, while using its own app name, icon, bundle identity, domains, update feeds, docs, packaging, and release channel.
+### TL;DR
 
-See [ATTRIBUTION.md](./ATTRIBUTION.md) for the formal attribution and redistribution notes.
+| You want | Do this | What you get |
+| :--- | :--- | :--- |
+| Use Coterm locally | Download the latest DMG | `Coterm.app` for macOS |
+| Use collaboration | Deploy the self-host backend | Your own relay, control plane, and presence workers |
+| Build from source | Clone with submodules and run setup | A local Debug or Release build |
 
-### cmux
+### For Humans
 
-cmux is the current upstream code line for many terminal/workspace/browser improvements. Coterm may selectively port upstream fixes from cmux, but not by blindly merging cmux over Coterm.
+**Recommended: let an LLM agent install and configure collaboration for you.** The self-host backend touches Cloudflare login, Workers deploy order, Durable Object migrations, worker URLs, and client config. An agent can read the full guide and follow the exact steps.
 
-In practice:
+Paste this prompt into Claude Code, AmpCode, Cursor, Codex, or another coding agent:
 
-- upstream terminal rendering, workspace, pane, browser, command palette, settings, performance, and crash fixes may be useful to port;
-- cmux branding, domains, hosted-service defaults, release feeds, package names, and protocol assumptions do not define Coterm;
-- Coterm-owned collaboration, self-host deployment, protocol names, mobile pairing, packaging, and product identity must stay Coterm-specific.
+```text
+Install Coterm and configure its self-hosted collaboration backend by following the instructions here:
+https://raw.githubusercontent.com/mana-am/coterm/refs/heads/main/coterm/instruction.md
 
-Some legacy `cmux` names remain intentionally as compatibility shims for old helpers, wire formats, or artifact names. They are tracked in [docs/coterm-cmux-compat.md](./docs/coterm-cmux-compat.md). The upstream sync policy lives in [docs/upstream-cmux-sync.md](./docs/upstream-cmux-sync.md).
+Coterm is self-host only. Do not configure hosted sign-in, dashboard.coterm.cc, Clerk, Stack Auth, Stripe, or any official hosted Coterm backend. Use my Cloudflare account, deploy the self-host backend, capture the printed COTERM_API_BASE_URL, COTERM_COLLABORATION_RELAY_URL, and COTERM_PRESENCE_BASE_URL values, then configure my local Coterm client with those values.
+```
 
-### Ghostty
-
-Coterm uses Ghostty as its terminal rendering foundation through libghostty/GhosttyKit. Ghostty provides the low-level terminal emulator engine, rendering behavior, shell integration pieces, and Ghostty-style configuration compatibility. Coterm provides the macOS workspace shell around it: windows, panes, tabs, browser surfaces, agent workflows, notifications, CLI/socket automation, and collaboration.
-
-Ghostty is a third-party dependency/submodule with its own license and upstream project. Coterm is not a Ghostty distribution; it embeds and integrates Ghostty technology as part of a broader agent workspace app.
-
-## Download
-
-Download the latest macOS build:
+If you only want the macOS app:
 
 ```text
 https://github.com/mana-am/coterm/releases/latest/download/coterm-macos.dmg
@@ -77,13 +59,46 @@ https://github.com/mana-am/coterm/releases/latest/download/coterm-macos.dmg
 
 Open the DMG and drag `Coterm.app` into `/Applications`.
 
-The first public build is ad-hoc signed but not Apple Developer ID notarized yet. On first launch, macOS may require right-clicking `Coterm.app`, choosing `Open`, and confirming in System Settings.
+The first public builds may be ad-hoc signed rather than Apple Developer ID notarized. If macOS blocks the first launch, right-click `Coterm.app`, choose **Open**, and confirm in System Settings.
+
+### For LLM Agents
+
+Fetch the installation guide and follow it end to end:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mana-am/coterm/refs/heads/main/coterm/instruction.md
+```
+
+If the raw URL is unavailable because the user is in a local checkout, read `coterm/instruction.md` directly.
+
+Important rules:
+
+- Coterm collaboration is self-host only.
+- Do not look for or configure an official hosted Coterm backend.
+- Do not configure hosted sign-in or `dashboard.coterm.cc`.
+- Use the user's Cloudflare account.
+- Prefer `cd coterm && bun install && bunx wrangler login && bun run deploy:self-host`.
+- Capture and report `COTERM_API_BASE_URL`, `COTERM_COLLABORATION_RELAY_URL`, and `COTERM_PRESENCE_BASE_URL`.
+- Use `bun run deploy:self-host -- --print-config` to reprint saved values.
+- Use `bun run doctor:self-host` to diagnose an existing deployment.
+- Use `bun run configure:client -- --guest-id <name>` for a DEBUG Coterm client.
+
+## What Is Coterm?
+
+Coterm is an open-source macOS app for terminal-first AI coding workflows.
+
+It combines:
+
+- native terminal rendering powered by libghostty;
+- vertical workspaces, tabs, and split panes;
+- in-app browser panes that agents can inspect and control;
+- notification rings and unread state for long-running agent sessions;
+- a local CLI and socket API for automation;
+- optional self-hosted real-time collaboration for shared agent rooms.
 
 ## Collaboration Is Self-Hosted
 
-Coterm does not ship with a public hosted collaboration backend.
-
-If you want room sharing, presence, approval flows, or preview sharing, deploy the backend in your own Cloudflare account:
+Coterm does not ship with a public hosted collaboration backend. If you want room sharing, deploy the backend in your own Cloudflare account:
 
 ```bash
 cd coterm
@@ -92,25 +107,15 @@ bunx wrangler login
 bun run deploy:self-host
 ```
 
-Full guide:
-
-```text
-coterm/instruction.md
-```
-
-For coding agents:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/mana-am/coterm/refs/heads/main/coterm/instruction.md
-```
-
-The self-host backend prints the client URLs you need to configure:
+The deploy script prints the client URLs you need:
 
 ```text
 COTERM_API_BASE_URL=...
 COTERM_COLLABORATION_RELAY_URL=...
 COTERM_PRESENCE_BASE_URL=...
 ```
+
+See [coterm/instruction.md](./coterm/instruction.md) for the full install guide.
 
 ## Share Security
 
@@ -130,13 +135,13 @@ Guests submit the room code plus secret. The room owner must approve the pending
 
 Run multiple coding agents side by side. Coterm keeps workspaces, tabs, panes, directories, and notifications visible without forcing agents into a hidden orchestration layer.
 
-### Notifications
-
-Coterm listens for terminal notification sequences and exposes `coterm notify` for agent hooks. Panes and tabs light up when an agent needs attention.
-
 ### Browser Panes
 
 Open a browser next to a terminal. Agents can inspect the accessibility tree, click elements, fill forms, evaluate JavaScript, and work against local development servers.
+
+### Notifications
+
+Coterm listens for terminal notification sequences and exposes `coterm notify` for agent hooks. Panes and tabs light up when an agent needs attention.
 
 ### CLI Automation
 
@@ -145,6 +150,30 @@ Use the `coterm` CLI and local socket API to create workspaces, split panes, sen
 ### Ghostty Rendering
 
 Coterm uses libghostty for terminal rendering and reads Ghostty-style terminal configuration for fonts, themes, and colors.
+
+## Lineage And Upstream Relationship
+
+Coterm is an independent open-source distribution built from the Mosaic/cmux code lineage. It keeps the terminal, workspace, pane, browser, command palette, settings, and Ghostty integration foundation, then changes the product identity and deployment model around Coterm.
+
+Coterm is not an official Mosaic or cmux release and should not be represented as endorsed by those projects. Mosaic and cmux names, logos, domains, hosted services, and trademarks remain separate from Coterm.
+
+### Mosaic
+
+Mosaic is the original open-source project this codebase descends from. Coterm preserves the required license notices and attribution while using its own app name, icon, bundle identity, domains, update feeds, docs, packaging, and release channel.
+
+See [ATTRIBUTION.md](./ATTRIBUTION.md) for formal attribution and redistribution notes.
+
+### cmux
+
+cmux is the current upstream code line for many terminal/workspace/browser improvements. Coterm may selectively port upstream fixes from cmux, but not by blindly merging cmux over Coterm.
+
+Some legacy `cmux` names remain intentionally as compatibility shims for old helpers, wire formats, or artifact names. They are tracked in [docs/coterm-cmux-compat.md](./docs/coterm-cmux-compat.md). The upstream sync policy lives in [docs/upstream-cmux-sync.md](./docs/upstream-cmux-sync.md).
+
+### Ghostty
+
+Coterm uses Ghostty as its terminal rendering foundation through libghostty/GhosttyKit. Ghostty provides the low-level terminal emulator engine, rendering behavior, shell integration pieces, and Ghostty-style configuration compatibility. Coterm provides the macOS workspace shell around it.
+
+Ghostty is a third-party dependency/submodule with its own license and upstream project. Coterm is not a Ghostty distribution; it embeds and integrates Ghostty technology as part of a broader agent workspace app.
 
 ## Build From Source
 
