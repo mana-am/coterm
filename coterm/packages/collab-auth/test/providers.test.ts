@@ -1,13 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import { HmacAuthProvider } from "../src/hmacProvider";
 import { NoAuthProvider } from "../src/noAuthProvider";
-import { signCotermToken } from "../src/hmac";
+import { base64urlEncodeBytes, signCotermToken } from "../src/hmac";
 import { nowSeconds } from "../src/common";
 
 const SECRET = "provider-secret";
 
 function requestWithBearer(token: string, url = "https://cp.local/api/collab/inbox"): Request {
   return new Request(url, { headers: { authorization: `Bearer ${token}` } });
+}
+
+function localGuestAccessToken(claims: Record<string, unknown>): string {
+  const payload = base64urlEncodeBytes(new TextEncoder().encode(JSON.stringify(claims)));
+  return `cotermv1.${payload}.guest`;
 }
 
 describe("HmacAuthProvider", () => {
@@ -68,12 +73,35 @@ describe("HmacAuthProvider", () => {
     expect(principal?.orgIds).toEqual(["org1"]);
   });
 
+  test("authenticateRequest accepts a local guest access token but still signs grants", async () => {
+    const p = new HmacAuthProvider({ secret: SECRET });
+    const token = localGuestAccessToken({
+      kind: "access",
+      userId: "guest-alice",
+      teamIds: [],
+      exp: nowSeconds() + 900,
+    });
+    const principal = await p.authenticateRequest(requestWithBearer(token));
+    expect(principal?.userId).toBe("guest-alice");
+
+    const grant = await p.mintGrant({
+      room: "ABCD1234",
+      userId: "guest-alice",
+      iat: nowSeconds(),
+      exp: nowSeconds() + 900,
+    });
+    expect(grant.endsWith(".guest")).toBe(false);
+    expect(await p.authorizeRelayConnect({ room: "ABCD1234", grant })).toMatchObject({ ok: true });
+  });
+
   test("authenticateRequest rejects refresh tokens and unsigned tokens", async () => {
     const p = new HmacAuthProvider({ secret: SECRET });
     const refresh = await signCotermToken({ kind: "refresh", userId: "u1", exp: nowSeconds() + 900 }, SECRET);
     expect(await p.authenticateRequest(requestWithBearer(refresh))).toBeNull();
     const wrongSecret = await signCotermToken({ kind: "access", userId: "u1", exp: nowSeconds() + 900 }, "nope");
     expect(await p.authenticateRequest(requestWithBearer(wrongSecret))).toBeNull();
+    const guestRefresh = localGuestAccessToken({ kind: "refresh", userId: "u1", exp: nowSeconds() + 900 });
+    expect(await p.authenticateRequest(requestWithBearer(guestRefresh))).toBeNull();
   });
 });
 

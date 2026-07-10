@@ -55,8 +55,13 @@ Optional overrides:
 | `COTERM_COLLAB_GUEST_ID` | The user's id / display name (optional override) |
 | `COTERM_COLLAB_GUEST_AVATAR` | Optional avatar image URL |
 
-In `noauth` backend mode the control-plane reads the id from the client's token
-(decoded, not verified) — no secret needed.
+In `hmac` backend mode, the control-plane accepts Coterm's local `.guest` access
+token as identity input, then mints signed session descriptors and relay grants
+with `COLLAB_AUTH_SECRET`. The relay still verifies the backend-signed grant
+before admitting a WebSocket connection.
+
+In `noauth` backend mode, the control-plane also reads the id from the client's
+token, but grants are unsigned. Use `noauth` only for local testing.
 
 ### Example (macOS, launched from a shell)
 

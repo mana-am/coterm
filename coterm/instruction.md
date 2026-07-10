@@ -171,6 +171,11 @@ bunx wrangler secret put COLLAB_AUTH_SECRET
 Repeat the secret setup in `workers/relay`, `workers/control-plane`, and
 `workers/presence`.
 
+Coterm's no-login client uses a local `.guest` access token for identity in
+`hmac` mode. The backend still signs session descriptors and relay grants with
+`COLLAB_AUTH_SECRET`; the relay verifies those grants before admitting a
+WebSocket connection.
+
 `noauth` is only for local testing. It still requires a control-plane grant, but
 the grant is unsigned and is not a security boundary.
 

@@ -72,15 +72,25 @@ export class HmacAuthProvider implements CollabAuthProvider {
     }
 
     const claims = await verifyCotermToken<NativeSessionClaims>(token, this.secret);
-    if (claims === null) return null;
-    if (claims.kind !== "access") return null; // reject refresh tokens, grants, descriptors
-    if (typeof claims.exp === "number" && claims.exp <= nowSeconds()) return null;
-    const principal = principalFromClaims(claims);
+    const effectiveClaims = claims ?? this.decodeLocalGuestAccessToken(token);
+    if (effectiveClaims === null) return null;
+    if (effectiveClaims.kind !== "access") return null; // reject refresh tokens, grants, descriptors
+    if (typeof effectiveClaims.exp === "number" && effectiveClaims.exp <= nowSeconds()) return null;
+    const principal = principalFromClaims(effectiveClaims);
     if (principal === null) return null;
 
-    const expMs = claimsExpiryMs(claims) ?? now + 60_000;
+    const expMs = claimsExpiryMs(effectiveClaims) ?? now + 60_000;
     this.storeCache(token, { principal, expMs });
     return principal;
+  }
+
+  private decodeLocalGuestAccessToken(token: string): NativeSessionClaims | null {
+    const parts = token.split(".");
+    if (parts.length !== 3 || parts[0] !== "cotermv1" || parts[2] !== "guest") return null;
+    const claims = decodeCotermPayload<NativeSessionClaims>(token);
+    if (claims === null) return null;
+    if (claims.kind !== "access") return null; // reject refresh tokens, grants, descriptors
+    return claims;
   }
 
   sessionExpiryMs(request: Request): number | null {

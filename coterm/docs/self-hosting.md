@@ -212,8 +212,11 @@ across all three):
 ### `hmac` (default)
 
 The control-plane mints short-lived, room-bound join grants; the relay verifies
-them before the WebSocket upgrade, and the control-plane verifies client access
-tokens. All three workers share one secret:
+them before the WebSocket upgrade. Signed account access tokens are verified
+with the shared secret. Coterm's self-hosted no-login client may also send a
+local `.guest` access token for identity; the control-plane accepts that identity
+input, but relay grants and session descriptors are still HMAC-signed by the
+backend. All three workers share one secret:
 
 ```bash
 SECRET=$(openssl rand -hex 32)
