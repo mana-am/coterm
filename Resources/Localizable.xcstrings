@@ -37816,6 +37816,116 @@
         }
       }
     },
+    "collaboration.selfHostedIdentity.avatarURL": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar URL"
+          }
+        }
+      }
+    },
+    "collaboration.selfHostedIdentity.avatarURLPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https://example.com/avatar.png"
+          }
+        }
+      }
+    },
+    "collaboration.selfHostedIdentity.edit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Identity"
+          }
+        }
+      }
+    },
+    "collaboration.selfHostedIdentity.guestID": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display name"
+          }
+        }
+      }
+    },
+    "collaboration.selfHostedIdentity.guestIDPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "alice"
+          }
+        }
+      }
+    },
+    "collaboration.selfHostedIdentity.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the name and avatar other collaborators see in self-hosted rooms."
+          }
+        }
+      }
+    },
+    "collaboration.selfHostedIdentity.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "collaboration.selfHostedIdentity.summaryFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Self-host identity: %@"
+          }
+        }
+      }
+    },
+    "collaboration.selfHostedIdentity.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Self-host Identity"
+          }
+        }
+      }
+    },
+    "collaboration.setupGuide.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup Guide"
+          }
+        }
+      }
+    },
     "collaboration.joinApproval.approve": {
       "extractionState": "manual",
       "localizations": {

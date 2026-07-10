@@ -1964,6 +1964,19 @@ final class CollaborationRuntime {
 
     @discardableResult
     private func refreshPeerIdentityFromAuth() -> Bool {
+        if let guestID = CollaborationGuestSession.guestID {
+            let nextIdentity = CollaborationPeerIdentity.authenticatedParticipant(
+                peerID: peerIdentity.peerID,
+                userID: guestID,
+                displayName: guestID,
+                imageURL: CollaborationGuestSession.avatarURL
+            )
+            guard nextIdentity != peerIdentity else { return false }
+            peerIdentity = nextIdentity
+            workspaceParticipantSnapshotRevision &+= 1
+            resyncLocalOwnedTerminalTabPresentations()
+            return true
+        }
         guard let user = AppDelegate.shared?.auth?.coordinator.currentUser else { return false }
         let displayName = user.displayName?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
             ?? user.primaryEmail?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
@@ -4339,8 +4352,35 @@ final class CollaborationRuntime {
     }
 
     private func runCollaborationStartChooser() -> NSApplication.ModalResponse {
-        let panel = CollaborationStartChooserPanel()
+        let panel = CollaborationStartChooserPanel(
+            editIdentity: { [weak self] in
+                self?.presentSelfHostedIdentityEditor()
+            },
+            openSetupGuide: { [weak self] in
+                self?.openSelfHostedSetupGuide()
+            }
+        )
         return panel.run()
+    }
+
+    private func presentSelfHostedIdentityEditor() {
+        let panel = CollaborationSelfHostedIdentityPanel(
+            guestID: CollaborationGuestSession.guestID ?? "",
+            avatarURL: CollaborationGuestSession.avatarURL ?? ""
+        )
+        guard let identity = panel.run() else { return }
+        AuthEnvironment.saveCollaborationGuestIdentity(
+            id: identity.guestID,
+            avatarURL: identity.avatarURL
+        )
+        Task { @MainActor [weak self] in
+            await self?.refreshPeerIdentityForCollaborationAdvertise()
+        }
+    }
+
+    private func openSelfHostedSetupGuide() {
+        guard let url = URL(string: "https://github.com/mana-am/coterm/blob/main/coterm/docs/self-hosting.md") else { return }
+        NSWorkspace.shared.open(url)
     }
 
     private func createSessionAndPresentCode(relayURL: String?) async {
@@ -8184,6 +8224,55 @@ enum CollaborationStrings {
         )
     }
 
+    static func selfHostedIdentitySummary(_ identity: String) -> String {
+        String(
+            format: String(
+                localized: "collaboration.selfHostedIdentity.summaryFormat",
+                defaultValue: "Self-host identity: %@"
+            ),
+            identity
+        )
+    }
+
+    static var editSelfHostedIdentity: String {
+        String(localized: "collaboration.selfHostedIdentity.edit", defaultValue: "Edit Identity")
+    }
+
+    static var openSetupGuide: String {
+        String(localized: "collaboration.setupGuide.open", defaultValue: "Setup Guide")
+    }
+
+    static var selfHostedIdentityTitle: String {
+        String(localized: "collaboration.selfHostedIdentity.title", defaultValue: "Self-host Identity")
+    }
+
+    static var selfHostedIdentityMessage: String {
+        String(
+            localized: "collaboration.selfHostedIdentity.message",
+            defaultValue: "Choose the name and avatar other collaborators see in self-hosted rooms."
+        )
+    }
+
+    static var selfHostedGuestIDLabel: String {
+        String(localized: "collaboration.selfHostedIdentity.guestID", defaultValue: "Display name")
+    }
+
+    static var selfHostedGuestIDPlaceholder: String {
+        String(localized: "collaboration.selfHostedIdentity.guestIDPlaceholder", defaultValue: "alice")
+    }
+
+    static var selfHostedGuestAvatarLabel: String {
+        String(localized: "collaboration.selfHostedIdentity.avatarURL", defaultValue: "Avatar URL")
+    }
+
+    static var selfHostedGuestAvatarPlaceholder: String {
+        String(localized: "collaboration.selfHostedIdentity.avatarURLPlaceholder", defaultValue: "https://example.com/avatar.png")
+    }
+
+    static var saveSelfHostedIdentity: String {
+        String(localized: "collaboration.selfHostedIdentity.save", defaultValue: "Save")
+    }
+
     static var signInRequiredTitle: String {
         String(localized: "collaboration.signInRequired.title", defaultValue: "Sign into Coterm")
     }
@@ -9219,14 +9308,259 @@ private final class CollaborationSessionCreatedPanel {
     }
 }
 
+private struct CollaborationSelfHostedIdentity {
+    let guestID: String?
+    let avatarURL: String?
+}
+
+@MainActor
+private final class CollaborationSelfHostedIdentityPanel {
+    private let window: NSPanel
+    private let guestIDField = NSTextField(string: "")
+    private let avatarURLField = NSTextField(string: "")
+    private var response: NSApplication.ModalResponse = .alertSecondButtonReturn
+    private var actionBoxes: [ButtonActionBox] = []
+    private static let contentWidth: CGFloat = 424
+
+    init(guestID: String, avatarURL: String) {
+        let size = NSSize(width: 480, height: 386)
+        window = CollaborationDialogPanel(
+            contentRect: NSRect(origin: .zero, size: size),
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        window.isReleasedWhenClosed = false
+        window.backgroundColor = .clear
+        window.isOpaque = false
+        window.hasShadow = true
+        window.level = .modalPanel
+        window.isMovableByWindowBackground = true
+
+        let contentView = NSView(frame: NSRect(origin: .zero, size: size))
+        contentView.wantsLayer = true
+        window.contentView = contentView
+
+        let background = CollaborationDialogBackgroundView(frame: contentView.bounds)
+        background.frame = contentView.bounds
+        background.autoresizingMask = [.width, .height]
+        contentView.addSubview(background)
+
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 0
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(stack)
+
+        let iconView = NSImageView()
+        iconView.image = NSImage(named: NSImage.Name("AppIconLight")) ?? NSApp.applicationIconImage
+        iconView.imageScaling = .scaleProportionallyUpOrDown
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        stack.addArrangedSubview(iconView)
+        stack.setCustomSpacing(18, after: iconView)
+
+        let titleField = NSTextField(labelWithString: CollaborationStrings.selfHostedIdentityTitle)
+        titleField.font = .systemFont(ofSize: 18, weight: .semibold)
+        titleField.textColor = .labelColor
+        stack.addArrangedSubview(titleField)
+        stack.setCustomSpacing(10, after: titleField)
+
+        let messageField = NSTextField(wrappingLabelWithString: CollaborationStrings.selfHostedIdentityMessage)
+        messageField.font = .systemFont(ofSize: 14, weight: .regular)
+        messageField.textColor = .secondaryLabelColor
+        messageField.maximumNumberOfLines = 0
+        messageField.preferredMaxLayoutWidth = Self.contentWidth
+        stack.addArrangedSubview(messageField)
+        stack.setCustomSpacing(18, after: messageField)
+
+        addField(
+            label: CollaborationStrings.selfHostedGuestIDLabel,
+            placeholder: CollaborationStrings.selfHostedGuestIDPlaceholder,
+            value: guestID,
+            field: guestIDField,
+            to: stack
+        )
+        stack.setCustomSpacing(14, after: guestIDField)
+        addField(
+            label: CollaborationStrings.selfHostedGuestAvatarLabel,
+            placeholder: CollaborationStrings.selfHostedGuestAvatarPlaceholder,
+            value: avatarURL,
+            field: avatarURLField,
+            to: stack
+        )
+        stack.setCustomSpacing(24, after: avatarURLField)
+
+        let buttonRow = NSStackView()
+        buttonRow.orientation = .horizontal
+        buttonRow.alignment = .centerY
+        buttonRow.spacing = 16
+        buttonRow.translatesAutoresizingMaskIntoConstraints = false
+
+        let cancelButton = makeButton(title: CollaborationStrings.cancel, keyEquivalent: "\u{1b}") { [weak self] in
+            self?.finish(.alertSecondButtonReturn)
+        }
+        let saveButton = makeButton(title: CollaborationStrings.saveSelfHostedIdentity, keyEquivalent: "\r") { [weak self] in
+            self?.finish(.alertFirstButtonReturn)
+        }
+        styleSecondaryButton(cancelButton)
+        stylePrimaryButton(saveButton)
+        buttonRow.addArrangedSubview(cancelButton)
+        buttonRow.addArrangedSubview(saveButton)
+
+        let buttonContainer = NSView()
+        buttonContainer.translatesAutoresizingMaskIntoConstraints = false
+        buttonContainer.addSubview(buttonRow)
+        stack.addArrangedSubview(buttonContainer)
+
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
+            stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
+            stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -28),
+            stack.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -28),
+
+            iconView.widthAnchor.constraint(equalToConstant: 56),
+            iconView.heightAnchor.constraint(equalToConstant: 56),
+            titleField.widthAnchor.constraint(equalToConstant: Self.contentWidth),
+            messageField.widthAnchor.constraint(equalToConstant: Self.contentWidth),
+            guestIDField.widthAnchor.constraint(equalToConstant: Self.contentWidth),
+            guestIDField.heightAnchor.constraint(equalToConstant: 34),
+            avatarURLField.widthAnchor.constraint(equalToConstant: Self.contentWidth),
+            avatarURLField.heightAnchor.constraint(equalToConstant: 34),
+            buttonContainer.widthAnchor.constraint(equalToConstant: Self.contentWidth),
+            buttonContainer.heightAnchor.constraint(equalToConstant: 36),
+            buttonRow.centerXAnchor.constraint(equalTo: buttonContainer.centerXAnchor),
+            buttonRow.centerYAnchor.constraint(equalTo: buttonContainer.centerYAnchor),
+            cancelButton.widthAnchor.constraint(equalToConstant: 144),
+            saveButton.widthAnchor.constraint(equalToConstant: 144),
+            cancelButton.heightAnchor.constraint(equalToConstant: 36),
+            saveButton.heightAnchor.constraint(equalToConstant: 36),
+        ])
+    }
+
+    func run() -> CollaborationSelfHostedIdentity? {
+        guard let parent = NSApp.keyWindow ?? NSApp.mainWindow else {
+            window.center()
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(guestIDField)
+            NSApp.runModal(for: window)
+            window.orderOut(nil)
+            return result
+        }
+
+        parent.beginSheet(window)
+        window.makeKey()
+        window.makeFirstResponder(guestIDField)
+        NSApp.runModal(for: window)
+        parent.endSheet(window)
+        window.orderOut(nil)
+        return result
+    }
+
+    private var result: CollaborationSelfHostedIdentity? {
+        guard response == .alertFirstButtonReturn else { return nil }
+        let guestID = guestIDField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        let avatarURL = avatarURLField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        return CollaborationSelfHostedIdentity(guestID: guestID, avatarURL: avatarURL)
+    }
+
+    private func addField(
+        label: String,
+        placeholder: String,
+        value: String,
+        field: NSTextField,
+        to stack: NSStackView
+    ) {
+        let labelField = NSTextField(labelWithString: label)
+        labelField.font = .systemFont(ofSize: 13, weight: .medium)
+        labelField.textColor = .labelColor
+        stack.addArrangedSubview(labelField)
+        stack.setCustomSpacing(6, after: labelField)
+
+        field.stringValue = value
+        field.placeholderString = placeholder
+        field.font = .systemFont(ofSize: 14, weight: .regular)
+        field.controlSize = .large
+        field.lineBreakMode = .byTruncatingMiddle
+        field.translatesAutoresizingMaskIntoConstraints = false
+        stack.addArrangedSubview(field)
+    }
+
+    private func finish(_ response: NSApplication.ModalResponse) {
+        self.response = response
+        NSApp.stopModal()
+    }
+
+    private func makeButton(
+        title: String,
+        keyEquivalent: String,
+        action: @escaping () -> Void
+    ) -> NSButton {
+        let button = NSButton(title: title, target: nil, action: nil)
+        button.bezelStyle = .rounded
+        button.controlSize = .large
+        button.font = .systemFont(ofSize: 16, weight: .regular)
+        button.keyEquivalent = keyEquivalent
+        button.translatesAutoresizingMaskIntoConstraints = false
+
+        let actionBox = ButtonActionBox(action)
+        actionBoxes.append(actionBox)
+        button.target = actionBox
+        button.action = #selector(ButtonActionBox.invoke)
+        return button
+    }
+
+    private func stylePrimaryButton(_ button: NSButton) {
+        button.bezelColor = NSColor(hex: CotermChromePalette.accentHex) ?? .controlAccentColor
+        applyCollaborationAccentAlertButtonTitleStyle(
+            button,
+            font: NSFont.systemFont(ofSize: 16, weight: .regular)
+        )
+    }
+
+    private func styleSecondaryButton(_ button: NSButton) {
+        button.bezelColor = NSColor(hex: "#2D2D2D") ?? NSColor.controlColor.withAlphaComponent(0.40)
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        button.contentTintColor = .white
+        button.attributedTitle = NSAttributedString(
+            string: button.title,
+            attributes: [
+                .foregroundColor: NSColor.white,
+                .paragraphStyle: paragraph,
+                .font: NSFont.systemFont(ofSize: 16, weight: .regular),
+            ]
+        )
+    }
+
+    private final class ButtonActionBox: NSObject {
+        private let action: () -> Void
+
+        init(_ action: @escaping () -> Void) {
+            self.action = action
+        }
+
+        @objc func invoke() {
+            action()
+        }
+    }
+}
+
 @MainActor
 private final class CollaborationStartChooserPanel {
     private let window: NSWindow
+    private let editIdentity: @MainActor () -> Void
+    private let openSetupGuide: @MainActor () -> Void
     private var response: NSApplication.ModalResponse = .alertThirdButtonReturn
     private var actionBoxes: [ButtonActionBox] = []
 
-    init() {
-        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 460, height: 374))
+    init(
+        editIdentity: @escaping @MainActor () -> Void,
+        openSetupGuide: @escaping @MainActor () -> Void
+    ) {
+        self.editIdentity = editIdentity
+        self.openSetupGuide = openSetupGuide
+        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 480, height: 468))
         contentView.wantsLayer = true
 
         window = NSWindow(
@@ -9281,8 +9615,15 @@ private final class CollaborationStartChooserPanel {
         messageField.font = .systemFont(ofSize: 16, weight: .regular)
         messageField.textColor = .labelColor
         messageField.maximumNumberOfLines = 0
-        messageField.preferredMaxLayoutWidth = 380
+        messageField.preferredMaxLayoutWidth = 400
         textStack.addArrangedSubview(messageField)
+
+        let identityField = NSTextField(labelWithString: CollaborationStrings.selfHostedIdentitySummary(CollaborationGuestSession.guestID ?? ""))
+        identityField.font = .systemFont(ofSize: 13, weight: .regular)
+        identityField.textColor = .secondaryLabelColor
+        identityField.lineBreakMode = .byTruncatingMiddle
+        identityField.maximumNumberOfLines = 1
+        textStack.addArrangedSubview(identityField)
 
         let buttonStack = NSStackView()
         buttonStack.orientation = .vertical
@@ -9310,6 +9651,24 @@ private final class CollaborationStartChooserPanel {
         buttonStack.addArrangedSubview(joinButton)
         buttonStack.addArrangedSubview(cancelButton)
 
+        let utilityButtonStack = NSStackView()
+        utilityButtonStack.orientation = .horizontal
+        utilityButtonStack.alignment = .centerY
+        utilityButtonStack.spacing = 12
+        utilityButtonStack.translatesAutoresizingMaskIntoConstraints = false
+        stack.addArrangedSubview(utilityButtonStack)
+
+        let guideButton = makeButton(title: CollaborationStrings.openSetupGuide, keyEquivalent: "") { [weak self] in
+            self?.openSetupGuide()
+        }
+        let identityButton = makeButton(title: CollaborationStrings.editSelfHostedIdentity, keyEquivalent: "") { [weak self] in
+            self?.editIdentity()
+        }
+        styleSecondaryButton(guideButton)
+        styleSecondaryButton(identityButton)
+        utilityButtonStack.addArrangedSubview(guideButton)
+        utilityButtonStack.addArrangedSubview(identityButton)
+
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
             stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 32),
@@ -9319,17 +9678,22 @@ private final class CollaborationStartChooserPanel {
             iconView.widthAnchor.constraint(equalToConstant: 64),
             iconView.heightAnchor.constraint(equalToConstant: 64),
 
-            textStack.widthAnchor.constraint(equalToConstant: 380),
-            titleField.widthAnchor.constraint(equalToConstant: 380),
-            messageField.widthAnchor.constraint(equalToConstant: 380),
+            textStack.widthAnchor.constraint(equalToConstant: 400),
+            titleField.widthAnchor.constraint(equalToConstant: 400),
+            messageField.widthAnchor.constraint(equalToConstant: 400),
+            identityField.widthAnchor.constraint(equalToConstant: 400),
 
-            buttonStack.widthAnchor.constraint(equalToConstant: 380),
-            createButton.widthAnchor.constraint(equalToConstant: 380),
-            joinButton.widthAnchor.constraint(equalToConstant: 380),
-            cancelButton.widthAnchor.constraint(equalToConstant: 380),
+            buttonStack.widthAnchor.constraint(equalToConstant: 400),
+            createButton.widthAnchor.constraint(equalToConstant: 400),
+            joinButton.widthAnchor.constraint(equalToConstant: 400),
+            cancelButton.widthAnchor.constraint(equalToConstant: 400),
             createButton.heightAnchor.constraint(equalToConstant: 44),
             joinButton.heightAnchor.constraint(equalToConstant: 44),
             cancelButton.heightAnchor.constraint(equalToConstant: 44),
+            guideButton.widthAnchor.constraint(equalToConstant: 194),
+            identityButton.widthAnchor.constraint(equalToConstant: 194),
+            guideButton.heightAnchor.constraint(equalToConstant: 36),
+            identityButton.heightAnchor.constraint(equalToConstant: 36),
         ])
     }
 
@@ -9371,6 +9735,21 @@ private final class CollaborationStartChooserPanel {
     private func finish(_ response: NSApplication.ModalResponse) {
         self.response = response
         NSApp.stopModal()
+    }
+
+    private func styleSecondaryButton(_ button: NSButton) {
+        button.bezelColor = NSColor(hex: "#2D2D2D") ?? NSColor.controlColor.withAlphaComponent(0.40)
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        button.contentTintColor = .white
+        button.attributedTitle = NSAttributedString(
+            string: button.title,
+            attributes: [
+                .foregroundColor: NSColor.white,
+                .paragraphStyle: paragraph,
+                .font: NSFont.systemFont(ofSize: 14, weight: .regular),
+            ]
+        )
     }
 
     private final class ButtonActionBox: NSObject {

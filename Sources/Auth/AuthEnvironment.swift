@@ -5,6 +5,8 @@ enum AuthEnvironment {
     private static let developmentStackPublishableClientKey = "pck_xb63160bwe9699vtxfzfj6emmxpafg5mkjrtp6ehzxv5g"
     private static let productionStackProjectID = "9790718f-14cd-4f7e-824d-eaf527a82b82"
     private static let productionStackPublishableClientKey = "pck_kzj80gx4mh2jrzn1cx6y5e8jk0kwa01vkevh2p9zd4twr"
+    private static let collaborationGuestIDDefaultsKey = "CotermCollaborationGuestID"
+    private static let collaborationGuestAvatarDefaultsKey = "CotermCollaborationGuestAvatarURL"
 
     static var callbackScheme: String {
         let bundleIdentifier = Bundle.main.bundleIdentifier
@@ -198,7 +200,10 @@ enum AuthEnvironment {
     /// automatically falls back to a local guest identity so sharing never opens
     /// the browser sign-in prompt in the self-hosted build.
     static var collaborationGuestID: String? {
-        if let configured = collaborationGuestValue("COTERM_COLLAB_GUEST_ID") {
+        if let configured = collaborationGuestValue(
+            "COTERM_COLLAB_GUEST_ID",
+            defaultsKey: collaborationGuestIDDefaultsKey
+        ) {
             return configured
         }
         guard !hostedAuthEnabled else { return nil }
@@ -207,7 +212,15 @@ enum AuthEnvironment {
 
     /// Optional avatar (image URL) shown next to the guest id.
     static var collaborationGuestAvatarURL: String? {
-        collaborationGuestValue("COTERM_COLLAB_GUEST_AVATAR")
+        collaborationGuestValue(
+            "COTERM_COLLAB_GUEST_AVATAR",
+            defaultsKey: collaborationGuestAvatarDefaultsKey
+        )
+    }
+
+    static func saveCollaborationGuestIdentity(id: String?, avatarURL: String?) {
+        saveCollaborationGuestValue(id, defaultsKey: collaborationGuestIDDefaultsKey)
+        saveCollaborationGuestValue(avatarURL, defaultsKey: collaborationGuestAvatarDefaultsKey)
     }
 
     /// Override for the collaboration relay WebSocket base URL. Lets a self-hosted
@@ -216,13 +229,28 @@ enum AuthEnvironment {
         collaborationGuestValue("COTERM_COLLABORATION_RELAY_URL")
     }
 
-    private static func collaborationGuestValue(_ key: String) -> String? {
+    private static func collaborationGuestValue(_ key: String, defaultsKey: String? = nil) -> String? {
         if let value = ProcessInfo.processInfo.environment[key]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !value.isEmpty {
             return value
         }
+        if let defaultsKey,
+           let value = UserDefaults.standard.string(forKey: defaultsKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !value.isEmpty {
+            return value
+        }
         return devOverride(key: key)
+    }
+
+    private static func saveCollaborationGuestValue(_ value: String?, defaultsKey: String) {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty {
+            UserDefaults.standard.removeObject(forKey: defaultsKey)
+        } else {
+            UserDefaults.standard.set(trimmed, forKey: defaultsKey)
+        }
     }
 
     private static func defaultCollaborationGuestID() -> String {
