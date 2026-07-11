@@ -2,7 +2,7 @@
 
 All notable changes to coterm are documented here.
 
-## Unreleased
+## [0.1.0] - 2026-07-11
 
 ### Added
 - Add a repeatable release audit for Coterm repo/download identity, self-host-only defaults, and app-localized Mosaic branding.
