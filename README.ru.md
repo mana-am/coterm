@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="./docs/assets/main-first-image.png" alt="Coterm screenshot" width="900" />
-
 # Coterm
 
 **Native macOS terminal and browser workspace for AI coding agents, with self-hosted real-time collaboration.**
@@ -14,6 +12,18 @@
 [English](README.md) | [简体中文](README.zh-cn.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md)
 
 [Download](https://github.com/mana-am/coterm/releases/latest) · [Installation](#installation) · [Self-host Collaboration](./coterm/instruction.md) · [Attribution](./ATTRIBUTION.md)
+
+</div>
+
+---
+
+<div align="center">
+
+<a href="https://youtu.be/13qSk6Fgct0">
+  <img src="./docs/assets/coterm-collab-demo-thumb.png" width="900" alt="Демо совместной работы Coterm в реальном времени — смотреть на YouTube" />
+</a>
+
+<sub>▶ <a href="https://youtu.be/13qSk6Fgct0">Смотреть демо — двое разработчиков управляют одной сессией Claude Code вживую</a></sub>
 
 </div>
 

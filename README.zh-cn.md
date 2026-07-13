@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="./docs/assets/main-first-image.png" alt="Coterm 截图" width="900" />
-
 # Coterm
 
 **面向 AI Coding Agent 的原生 macOS 终端与浏览器工作区，协作能力完全自托管。**
@@ -14,6 +12,18 @@
 [English](README.md) | [简体中文](README.zh-cn.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md)
 
 [下载](https://github.com/mana-am/coterm/releases/latest) · [安装](#安装) · [自托管协作](./coterm/instruction.md) · [来源与署名](./ATTRIBUTION.md)
+
+</div>
+
+---
+
+<div align="center">
+
+<a href="https://youtu.be/13qSk6Fgct0">
+  <img src="./docs/assets/coterm-collab-demo-thumb.png" width="900" alt="Coterm 实时协作演示 — 在 YouTube 观看" />
+</a>
+
+<sub>▶ <a href="https://youtu.be/13qSk6Fgct0">观看演示 —— 两位开发者实时共同驱动同一个 Claude Code 会话</a></sub>
 
 </div>
 

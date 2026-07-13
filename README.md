@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="./docs/assets/main-first-image.png" alt="Coterm screenshot" width="900" />
-
 # Coterm
 
 **A native macOS terminal and browser workspace for AI coding agents, with self-hosted real-time collaboration.**
