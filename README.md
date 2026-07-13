@@ -19,6 +19,16 @@
 
 ---
 
+<div align="center">
+
+<video src="https://github.com/mana-am/coterm/raw/main/docs/assets/coterm-collab-demo.mp4" poster="./docs/assets/coterm-collab-demo-poster.png" width="900" controls muted playsinline></video>
+
+<sub>▶ <a href="https://github.com/mana-am/coterm/raw/main/docs/assets/coterm-collab-demo.mp4">Real-time, self-hosted collaboration — two people driving the same Claude Code session live (watch the demo)</a></sub>
+
+</div>
+
+---
+
 Coterm is for developers who run Claude Code, Codex, OpenCode, Gemini CLI, Aider, Amp, Cursor Agent, or other terminal-based coding agents in parallel.
 
 It gives you a native macOS terminal, split workspaces, browser panes, notifications, local automation, and self-hosted collaboration without requiring a Coterm-hosted account service.
