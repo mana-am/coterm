@@ -21,9 +21,11 @@
 
 <div align="center">
 
-<video src="https://github.com/mana-am/coterm/raw/main/docs/assets/coterm-collab-demo.mp4" poster="./docs/assets/coterm-collab-demo-poster.png" width="900" controls muted playsinline></video>
+<a href="https://youtu.be/13qSk6Fgct0">
+  <img src="./docs/assets/coterm-collab-demo-thumb.png" width="900" alt="Coterm real-time collaboration demo — watch on YouTube" />
+</a>
 
-<sub>▶ <a href="https://github.com/mana-am/coterm/raw/main/docs/assets/coterm-collab-demo.mp4">Real-time, self-hosted collaboration — two people driving the same Claude Code session live (watch the demo)</a></sub>
+<sub>▶ <a href="https://youtu.be/13qSk6Fgct0">Watch the demo — two developers driving the same Claude Code session live</a></sub>
 
 </div>
 
